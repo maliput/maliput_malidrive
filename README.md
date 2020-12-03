@@ -15,16 +15,8 @@ source ./bringup
 
 3. Build maliput_malidrive packages and their dependencies:
 
-  - If not building drake from source:
-
    ```sh
    colcon build --packages-up-to maliput_malidrive
-   ```
-
-  - If building drake from source:
-
-   ```sh
-   colcon build --cmake-args -DWITH_PYTHON_VERSION=3 --packages-up-to maliput_malidrive
    ```
 
 ## Run sample applications
