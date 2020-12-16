@@ -1,5 +1,4 @@
 // Copyright 2020 Toyota Research Institute
-// TODO(francocipollone): Moves this file to maliput_malidrive package once builder and loader are migrated.
 #include "maliput_malidrive/base/road_geometry.h"
 
 #include <memory>
