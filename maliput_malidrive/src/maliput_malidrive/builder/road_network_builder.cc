@@ -64,14 +64,6 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
                                        direction_usages, speed_limits)();
   maliput::log()->trace("Built RuleRoadBook.");
 
-  maliput::log()->trace("Building DiscreteValueRuleStateProvider...");
-  auto discrete_value_rule_state_provider = DiscreteValueRuleStateProviderBuilder(rule_book.get())();
-  maliput::log()->trace("Built DiscreteValueRuleStateProvider.");
-
-  maliput::log()->trace("Building RangeValueRuleStateProvider...");
-  auto range_value_rule_state_provider = RangeValueRuleStateProviderBuilder(rule_book.get())();
-  maliput::log()->trace("Built RangeValueRuleStateProvider.");
-
   maliput::log()->trace("Building TrafficLightBook...");
   auto traffic_light_book =
       !road_network_configuration_.traffic_light_book.has_value()
@@ -89,6 +81,15 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::log()->trace("Building PhaseProvider...");
   auto manual_phase_provider = std::make_unique<maliput::ManualPhaseProvider>();
   maliput::log()->trace("Built PhaseProvider.");
+
+  maliput::log()->trace("Building DiscreteValueRuleStateProvider...");
+  auto discrete_value_rule_state_provider =
+      DiscreteValueRuleStateProviderBuilder(rule_book.get(), phase_ring_book.get(), manual_phase_provider.get())();
+  maliput::log()->trace("Built DiscreteValueRuleStateProvider.");
+
+  maliput::log()->trace("Building RangeValueRuleStateProvider...");
+  auto range_value_rule_state_provider = RangeValueRuleStateProviderBuilder(rule_book.get())();
+  maliput::log()->trace("Built RangeValueRuleStateProvider.");
 
   maliput::log()->trace("Building IntersectionBook...");
   auto intersection_book =
