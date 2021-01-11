@@ -1,7 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #include <memory>
 
-#include "maliput/plugin/road_network_plugin.h"
+#include "maliput/plugin/road_network_loader.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/constants.h"
 
@@ -45,20 +45,17 @@ malidrive::builder::RoadNetworkConfiguration GetPropertiesFromStringMap(
   return {rg_id, opendrive_file, linear_tolerance, angular_tolerance, scale_length, inertial_to_lane};
 }
 
-class RoadNetwork : public maliput::plugin::RoadNetworkPlugin {
+class RoadNetwork : public maliput::plugin::RoadNetworkLoader {
  public:
-  std::unique_ptr<const maliput::api::RoadNetwork> LoadRoadNetwork(
-      const std::map<std::string, std::string>& parameters) const override {
-    return malidrive::builder::RoadNetworkBuilder(GetPropertiesFromStringMap(parameters))();
+  std::unique_ptr<const maliput::api::RoadNetwork> operator()(
+      const std::map<std::string, std::string>& properties) const override {
+    return malidrive::builder::RoadNetworkBuilder(GetPropertiesFromStringMap(properties))();
   }
 };
 
 }  // namespace
 
-// the class factories
-extern "C" std::unique_ptr<maliput::plugin::RoadNetworkPlugin> LoadMaliputRoadNetwork() {
-  return std::make_unique<RoadNetwork>();
-}
+REGISTER_ROAD_NETWORK_LOADER_PLUGIN("maliput_malidrive", RoadNetwork);
 
 }  // namespace plugin
 }  // namespace malidrive

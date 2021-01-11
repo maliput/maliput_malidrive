@@ -33,5 +33,5 @@ target_include_directories(road_network
 install(
   TARGETS road_network
   EXPORT ${PROJECT_NAME}-targets
-  DESTINATION "${CMAKE_INSTALL_PREFIX}/../plugins"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/../maliput/lib/maliput/plugins"
 )
