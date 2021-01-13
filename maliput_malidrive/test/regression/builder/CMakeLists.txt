@@ -18,6 +18,7 @@ set(UNIT_BUILDER_TEST_SOURCES
   road_geometry_builder_test.cc
   road_network_builder_test.cc
   rule_tools_test.cc
+  road_geometry_configuration_test.cc
   simplify_geometries_test.cc
 )
 

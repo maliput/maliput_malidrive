@@ -11,6 +11,7 @@ add_library(builder
   road_curve_factory.cc
   road_geometry_builder.cc
   road_geometry_builder_base.cc
+  road_geometry_configuration.cc
   road_network_builder.cc
   rule_registry_builder.cc
   road_rulebook_builder.cc

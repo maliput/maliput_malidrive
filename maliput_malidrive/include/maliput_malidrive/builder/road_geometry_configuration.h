@@ -16,6 +16,13 @@ struct BuildPolicy {
     kSequential = 0,
     kParallel,
   };
+
+  /// Convert string to a Type.
+  /// @param type String to be translated to a Type.
+  /// @returns A BuildPolicy::Type value
+  /// @throws maliput::common::assertion_error When `type` isn't a valid Type.
+  static BuildPolicy::Type FromStrToType(const std::string& type);
+
   Type type{Type::kSequential};
   std::optional<int> num_threads{};
 };
@@ -35,6 +42,18 @@ struct RoadGeometryConfiguration {
     kManualSelection,     ///< Manual adjustment.
     kAutomaticSelection,  ///< Automatic selection.
   };
+
+  /// Convert a string to a SimplificationPolicy.
+  /// @param policy String to be translated to a SimplificationPolicy.
+  /// @returns A SimplificationPolicy value
+  /// @throws maliput::common::assertion_error When `policy` isn't a valid SimplificationPolicy.
+  static SimplificationPolicy FromStrToSimplificationPolicy(const std::string& policy);
+
+  /// Convert a string to a ToleranceSelectionPolicy.
+  /// @param policy String to be translated to a ToleranceSelectionPolicy.
+  /// @returns A ToleranceSelectionPolicy value
+  /// @throws maliput::common::assertion_error When `policy` isn't a valid ToleranceSelectionPolicy.
+  static ToleranceSelectionPolicy FromStrToToleranceSelectionPolicy(const std::string& policy);
 
   // Designed for use with uniform initialization.
   maliput::api::RoadGeometryId id;
