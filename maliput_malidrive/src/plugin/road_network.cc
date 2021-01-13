@@ -30,7 +30,7 @@ builder::RoadNetworkConfiguration GetPropertiesFromStringMap(const std::map<std:
   it = parameters.find("scale_length");
   const double scale_length{it != parameters.end() ? std::stod(it->second) : constants::kScaleLength};
 
-  // TODO(#4): Not being parsed because due to the fact that it is not used in the maliput_malidrive backend.
+  // TODO(#4): Not being parsed because it is not used in the maliput_malidrive backend.
   const InertialToLaneMappingConfig inertial_to_lane(constants::kExplorationRadius, constants::kNumIterations);
 
   it = parameters.find("build_policy");
