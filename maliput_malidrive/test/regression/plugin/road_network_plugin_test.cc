@@ -1,16 +1,17 @@
-#include <gtest/gtest.h>
-
+// Copyright 2021 Toyota Research Institute
 #include <map>
 #include <memory>
 #include <string>
 
+#include <gtest/gtest.h>
+
+#include "maliput/common/filesystem.h"
 #include "maliput/plugin/maliput_plugin.h"
 #include "maliput/plugin/maliput_plugin_manager.h"
 #include "maliput/plugin/maliput_plugin_type.h"
 #include "maliput/plugin/road_network_loader.h"
-#include "maliput_malidrive/base/road_geometry.h"
 
-#include "maliput/common/filesystem.h"
+#include "maliput_malidrive/base/road_geometry.h"
 
 namespace malidrive {
 namespace {
@@ -37,22 +38,19 @@ GTEST_TEST(RoadNetworkLoader, VerifyRoadNetworkPlugin) {
   };
   // Check MaliputPlugin existence.
   maliput::plugin::MaliputPluginManager manager{};
-  maliput::plugin::MaliputPlugin const* rn_plugin{nullptr};
-  EXPECT_NO_THROW(rn_plugin = manager.GetPlugin(kMaliputMalidrivePluginId));
+  const maliput::plugin::MaliputPlugin* rn_plugin{manager.GetPlugin(kMaliputMalidrivePluginId)};
   ASSERT_NE(nullptr, rn_plugin);
 
   // Check maliput_malidrive plugin is obtained.
-  std::unique_ptr<maliput::plugin::RoadNetworkLoader> rn_loader{nullptr};
-  if (rn_plugin != nullptr) {
-    EXPECT_EQ(kMaliputMalidrivePluginId.string(), rn_plugin->GetId());
-    EXPECT_EQ(maliput::plugin::MaliputPluginType::kRoadNetworkLoader, rn_plugin->GetType());
-    EXPECT_NO_THROW(rn_loader = rn_plugin->ExecuteSymbol<std::unique_ptr<maliput::plugin::RoadNetworkLoader>>(
-                        maliput::plugin::RoadNetworkLoader::GetEntryPoint()));
-  }
+  std::unique_ptr<maliput::plugin::RoadNetworkLoader> rn_loader;
+  EXPECT_EQ(kMaliputMalidrivePluginId.string(), rn_plugin->GetId());
+  EXPECT_EQ(maliput::plugin::MaliputPluginType::kRoadNetworkLoader, rn_plugin->GetType());
+  EXPECT_NO_THROW(rn_loader = rn_plugin->ExecuteSymbol<std::unique_ptr<maliput::plugin::RoadNetworkLoader>>(
+                      maliput::plugin::RoadNetworkLoader::GetEntryPoint()));
   ASSERT_NE(nullptr, rn_loader);
 
   // Check maliput_malidrive RoadNetwork is constructible.
-  std::unique_ptr<const maliput::api::RoadNetwork> rn{nullptr};
+  std::unique_ptr<const maliput::api::RoadNetwork> rn;
   EXPECT_NO_THROW(rn = (*rn_loader)(rg_maliput_malidrive_properties));
   ASSERT_NE(nullptr, rn);
   auto maliput_malidrive_rg = dynamic_cast<const RoadGeometry*>(rn->road_geometry());
