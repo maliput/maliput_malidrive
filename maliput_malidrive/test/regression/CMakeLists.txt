@@ -5,6 +5,7 @@
 add_subdirectory(base)
 add_subdirectory(builder)
 add_subdirectory(common)
+add_subdirectory(plugin)
 add_subdirectory(road_curve)
 add_subdirectory(xodr)
 

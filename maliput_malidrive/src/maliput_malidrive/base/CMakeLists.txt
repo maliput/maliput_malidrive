@@ -33,6 +33,7 @@ target_link_libraries(
     maliput::utilities
     maliput_malidrive::common
     maliput_malidrive::road_curve
+    maliput_malidrive::xodr
 )
 
 install(TARGETS base
