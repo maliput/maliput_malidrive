@@ -238,10 +238,6 @@ void RoadGeometryBuilder::BuildLanesForSegment(const std::vector<xodr::Lane>& la
   auto build_lane = [&adjacent_lane_functions, &built_lanes, xodr_lane_section_index, &lane_section, &road_header,
                      &segment, &lane_properties = this->lane_xodr_lane_properties_,
                      factory = this->factory_.get()](const xodr::Lane& xodr_lane) {
-    // TODO(#596): Consider offset of non-driveable lanes.
-    if (!is_driveable_lane(xodr_lane)) {
-      return;
-    }
     std::unique_ptr<Lane> lane = BuildLane(&xodr_lane, adjacent_lane_functions, xodr_lane_section_index, road_header,
                                            lane_section, segment, factory);
     maliput::log()->trace("Built Lane ID: {}.", lane->id().string());

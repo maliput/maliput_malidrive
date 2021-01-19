@@ -365,7 +365,7 @@ std::vector<rules::XodrSpeedProperties> GetMaxSpeedLimitFor(const Lane* lane) {
   if (!speed_data.empty()) {
     if (speed_data[0].s_start != s_track_start) {
       MALIDRIVE_THROW_UNLESS(speed_data[0].s_start > s_track_start);
-      // If there is a gap at the beggining, try to complete it with the RoadType information.
+      // If there is a gap at the beginning, try to complete it with the RoadType information.
       for (auto it = speed_data_from_road.rbegin(); it != speed_data_from_road.rend(); it++) {
         if (it->s_start < speed_data[0].s_start) {
           auto speed_to_be_added{*it};
