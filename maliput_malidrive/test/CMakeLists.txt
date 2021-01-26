@@ -86,6 +86,7 @@ macro(malidrive_build_integration_based_tests)
   set(XODR_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
   set(XODR_FILE_PATHS
     ArcLane.xodr
+    Figure8.xodr
     Highway.xodr
     LShapeRoad.xodr
     LShapeRoadVariableLanes.xodr
@@ -93,17 +94,12 @@ macro(malidrive_build_integration_based_tests)
     LineVariableWidth.xodr
     LineVariableOffset.xodr
     ParkingGarageRamp.xodr
+    RRFigure8.xodr
     RRLongRoad.xodr
     SingleLane.xodr
     SShapeRoad.xodr
     SShapeSuperelevatedRoad.xodr
     TShapeRoad.xodr
-
-    # TODO(#6): The following map needs a different tolerance.
-    # RRFigure8.xodr --> cannot be loaded with current tolerance since we enable
-    #                    non-driveable roads.
-    # Figure8.xodr   --> has issues loading with the current tolerance with
-    #                    driveable roads.
   )
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
@@ -139,6 +135,7 @@ macro(malidrive_build_integration_based_tests)
           maliput_malidrive::base
           maliput_malidrive::builder
           maliput_malidrive::loader
+          maliput_malidrive::test_utilities
           utility
       )
 

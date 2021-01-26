@@ -20,6 +20,7 @@
 #include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
+#include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
 
 #include "utility/file_tools.h"
 
@@ -130,7 +131,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
       const maliput::api::Lane* lane = lane_id_lane.second;
       ASSERT_NE(lane, nullptr);
       const double length = lane->length();
-      const double kSStep{length * kLinearTolerance / kScaleLength};
+      const double kSStep{length * linear_tolerance_ / scale_length_};
 
       bool is_last_point{false};
       for (double s = 0.; s <= length && !is_last_point;) {
@@ -214,7 +215,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     MALIDRIVE_DEMAND(lane != nullptr);
 
     const double length = lane->length();
-    const double kSStep{kLinearTolerance};
+    const double kSStep{linear_tolerance_};
     const double kZ{0.};
     double s0{0.};
 
@@ -239,10 +240,10 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
       // magnitude orders.
       // Once LanePositions are converted to World Frame positions, each
       // conversion ideally has an uncertainty sphere (uniformly distributed
-      // error) with radius kLinearTolerance. The maximum distance between those
+      // error) with radius linear_tolerance_. The maximum distance between those
       // two coordinates in World Frame happens when vectors are aligned and
       // their norms add.
-      EXPECT_LE(world_frame_d, lane_frame_d + 2. * kLinearTolerance)
+      EXPECT_LE(world_frame_d, lane_frame_d + 2. * linear_tolerance_)
           << " on lane " << lane->id().string() << " at lane_pos: " << lane_pos_0 << std::endl;
 
       s0 += kSStep;
@@ -289,10 +290,15 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     features.draw_elevation_bounds = kDrawElevationBounds;
     features.draw_arrows = kDrawArrows;
 
-    rn_ = loader::Load<builder::RoadNetworkBuilder>(
-        {{maliput::api::RoadGeometryId("XODR Map"), xodr_file_path_, kLinearTolerance, kAngularTolerance, kScaleLength,
-          InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)}});
-
+    auto rg_config = GetRoadGeometryConfgurationFor(utility::GetFileNameFromPath(xodr_file_path_));
+    std::cerr << utility::GetFileNameFromPath(xodr_file_path_) << std::endl;
+    ASSERT_TRUE(rg_config.has_value());
+    // Gets linear tolerance and scale length for the map.
+    linear_tolerance_ = rg_config->linear_tolerance;
+    scale_length_ = rg_config->scale_length;
+    // Sets the full xodr map file path.
+    rg_config->opendrive_file = xodr_file_path_;
+    rn_ = loader::Load<builder::RoadNetworkBuilder>({*rg_config});
     ASSERT_NE(rn_, nullptr);
     ASSERT_NE(rn_->road_geometry(), nullptr);
     ASSERT_NO_THROW({
@@ -317,17 +323,19 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
   std::string xodr_file_path_;
   maliput::common::Path directory_;
   std::vector<maliput::common::Path> paths_to_cleanup_;
-  const double kLinearTolerance{5.5e-2};
-  const double kAngularTolerance{1e-3};
-  const double kScaleLength{constants::kScaleLength};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
+  double linear_tolerance_{};
+  double scale_length_{};
 };
 
 TEST_F(MalidriveExtensiveQueriesTest, QueriesTest) {
-  rn_ = loader::Load<builder::RoadNetworkBuilder>(
-      {{maliput::api::RoadGeometryId("XODR Map"), xodr_file_path_, kLinearTolerance, kAngularTolerance, kScaleLength,
-        InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)}});
+  auto rg_config = GetRoadGeometryConfgurationFor(utility::GetFileNameFromPath(xodr_file_path_));
+  ASSERT_TRUE(rg_config.has_value());
+  // Gets linear tolerance and scale length for the map.
+  linear_tolerance_ = rg_config->linear_tolerance;
+  scale_length_ = rg_config->scale_length;
+  // Sets the full xodr map file path.
+  rg_config->opendrive_file = xodr_file_path_;
+  rn_ = loader::Load<builder::RoadNetworkBuilder>({*rg_config});
   ASSERT_NE(rn_, nullptr);
 
   RunLaneBoundsTest();
