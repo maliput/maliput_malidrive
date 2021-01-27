@@ -140,6 +140,8 @@ class RoadCurve {
   /// @return The derivative of @f$ W @f$ with respect to @f$ p @f$ at @p prh.
   /// @throw maliput::common::assertion_error When @p lane_offset is nullptr.
   /// @throw maliput::common::assertion_error When @p prh .x() is not in range [p0, p1].
+  /// @throw maliput::common::assertion_error When @p lane_offset ->p0() is not in range [p0, p1].
+  /// @throw maliput::common::assertion_error When @p lane_offset ->p1() is not in range [p0, p1].
   maliput::math::Vector3 WDot(const maliput::math::Vector3& prh, const Function* lane_offset) const;
 
   /// Evaluates the orientation in the INERTIAL Frame of the RoadCurve at @p p,
