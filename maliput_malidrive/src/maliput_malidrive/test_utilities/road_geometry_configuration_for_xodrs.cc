@@ -10,7 +10,7 @@ namespace malidrive {
 namespace test {
 
 std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfgurationFor(const std::string& xodr_file_name) {
-  const std::unordered_map<std::string, builder::RoadGeometryConfiguration> kXodrConfigurations{
+  const static std::unordered_map<std::string, builder::RoadGeometryConfiguration> kXodrConfigurations{
       {"SingleLane.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"LineSingleLane"},
                                                              {"SingleLane.xodr"},
                                                              5e-2,
