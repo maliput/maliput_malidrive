@@ -20,8 +20,8 @@ target_link_libraries(test_utilities
     maliput::api
     maliput::math
     maliput::utilities
-    maliput_malidrive::common
     maliput_malidrive::builder
+    maliput_malidrive::common
 )
 
 install(
