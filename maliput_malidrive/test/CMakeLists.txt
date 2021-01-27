@@ -36,7 +36,7 @@ macro(maliput_malidrive_build_tests)
     endif()
 
     ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file}
-      TIMEOUT 240)
+      TIMEOUT 280)
 
     target_include_directories(${BINARY_NAME}
       PRIVATE
