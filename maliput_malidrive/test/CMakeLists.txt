@@ -36,7 +36,7 @@ macro(maliput_malidrive_build_tests)
     endif()
 
     ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file}
-      TIMEOUT 300)
+      TIMEOUT 240)
 
     target_include_directories(${BINARY_NAME}
       PRIVATE
@@ -147,7 +147,7 @@ macro(malidrive_build_integration_based_tests)
         --test-command ${BINARY_NAME} "--xodr_file=${XODR_FILE_PREFIX}${XODR_MAP_file}"
       )
 
-      set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 240)
+      set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 300)
 
       if (PYTHONINTERP_FOUND)
         # Check that the test produced a result and create a failure if
