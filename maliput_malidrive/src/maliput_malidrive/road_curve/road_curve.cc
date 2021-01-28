@@ -61,8 +61,11 @@ maliput::math::Vector3 RoadCurve::WDot(const maliput::math::Vector3& prh, const 
   MALIDRIVE_THROW_UNLESS(lane_offset != nullptr);
   MALIDRIVE_IS_IN_RANGE(prh.x(), ground_curve_->p0() - ground_curve_->linear_tolerance(),
                         ground_curve_->p1() + ground_curve_->linear_tolerance());
-  MALIDRIVE_IS_IN_RANGE(prh.x(), lane_offset->p0(), lane_offset->p1());
-  const double p = prh.x();
+  MALIDRIVE_IS_IN_RANGE(lane_offset->p0(), ground_curve_->p0() - ground_curve_->linear_tolerance(),
+                        ground_curve_->p1() + ground_curve_->linear_tolerance());
+  MALIDRIVE_IS_IN_RANGE(lane_offset->p1(), ground_curve_->p0() - ground_curve_->linear_tolerance(),
+                        ground_curve_->p1() + ground_curve_->linear_tolerance());
+  const double p = maliput::math::saturate(prh.x(), lane_offset->p0(), lane_offset->p1());
   const double r = prh.y();
   const double h = prh.z();
   const double r_dot = lane_offset->f_dot(p);
