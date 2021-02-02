@@ -35,7 +35,7 @@ macro(maliput_malidrive_build_tests)
       endif()
     endif()
 
-    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${LIBRARY_DIRS}
+    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
       TIMEOUT 240)
 
     target_include_directories(${BINARY_NAME}
