@@ -290,7 +290,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     features.draw_elevation_bounds = kDrawElevationBounds;
     features.draw_arrows = kDrawArrows;
 
-    auto rg_config = GetRoadGeometryConfgurationFor(utility::GetFileNameFromPath(xodr_file_path_));
+    auto rg_config = GetRoadGeometryConfigurationFor(utility::GetFileNameFromPath(xodr_file_path_));
     std::cerr << utility::GetFileNameFromPath(xodr_file_path_) << std::endl;
     ASSERT_TRUE(rg_config.has_value());
     // Gets linear tolerance and scale length for the map.
@@ -328,7 +328,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
 };
 
 TEST_F(MalidriveExtensiveQueriesTest, QueriesTest) {
-  auto rg_config = GetRoadGeometryConfgurationFor(utility::GetFileNameFromPath(xodr_file_path_));
+  auto rg_config = GetRoadGeometryConfigurationFor(utility::GetFileNameFromPath(xodr_file_path_));
   ASSERT_TRUE(rg_config.has_value());
   // Gets linear tolerance and scale length for the map.
   linear_tolerance_ = rg_config->linear_tolerance;

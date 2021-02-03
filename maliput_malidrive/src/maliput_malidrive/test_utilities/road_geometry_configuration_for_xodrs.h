@@ -17,7 +17,7 @@ namespace test {
 /// @param xodr_file_name The XODR map file name.
 /// @return A builder::RoadGeometryConfiguration for the specified
 /// @p xodr_file_name or std::nullopt when it does not exist.
-std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfgurationFor(const std::string& xodr_file_name);
+std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFor(const std::string& xodr_file_name);
 
 }  // namespace test
 }  // namespace malidrive
