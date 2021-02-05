@@ -147,7 +147,14 @@ macro(malidrive_build_integration_based_tests)
         --test-command ${BINARY_NAME} "--xodr_file=${XODR_FILE_PREFIX}${XODR_MAP_file}"
       )
 
-      set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT 300)
+      # Extensive tests require more time when sanitizers are run due to extra
+      # debug code introduced.
+      set(TEST_TIMEOUT 300)
+      if (ADDRESS_SANITIZER OR THREAD_SANITIZER OR UNDEFINED_SANITIZER)
+        set(TEST_TIMEOUT 340)
+      endif()
+      set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT ${TEST_TIMEOUT})
+      unset(TEST_TIMEOUT)
 
       if (PYTHONINTERP_FOUND)
         # Check that the test produced a result and create a failure if
