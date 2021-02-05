@@ -21,6 +21,50 @@ include(${PROJECT_SOURCE_DIR}/cmake/MaliputMalidriveFlags.cmake)
 # Macros
 ##############################################################################
 
+macro(maliput_malidrive_plugin_tests)
+  # Build all the tests
+  foreach(GTEST_SOURCE_file ${ARGN})
+    string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
+    set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
+
+    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
+      TIMEOUT 240)
+
+    target_include_directories(${BINARY_NAME}
+      PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/include
+        ${PYTHON_INCLUDE_DIRS}
+    )
+
+    # Kind of an ugly catch-all bucket
+    target_link_libraries(${BINARY_NAME}
+        maliput::common
+        maliput::plugin
+        maliput_malidrive::base
+        utility
+    )
+
+    # To avoid a false positive when running ubsan the symbols must be exported
+    # See https://stackoverflow.com/questions/57361776/use-ubsan-with-dynamically-loaded-shared-libraries
+    set_target_properties(${BINARY_NAME}
+      PROPERTIES
+        ENABLE_EXPORTS ON
+    )
+
+    # Remove a warning in GTest.
+    target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
+
+    if (PYTHONINTERP_FOUND)
+      # Check that the test produced a result and create a failure if
+      # it didn't. Guards against crashed and timed out tests.
+      add_test(check_${BINARY_NAME} python
+        ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
+        ${CMAKE_BINARY_DIR}/test_results/maliput_malidrive/${BINARY_NAME}.gtest.xml)
+    endif()
+  endforeach()
+endmacro()
+
 macro(maliput_malidrive_build_tests)
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
@@ -35,8 +79,7 @@ macro(maliput_malidrive_build_tests)
       endif()
     endif()
 
-    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
-      TIMEOUT 240)
+    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} TIMEOUT 240)
 
     target_include_directories(${BINARY_NAME}
       PRIVATE
@@ -54,7 +97,6 @@ macro(maliput_malidrive_build_tests)
         maliput::common
         maliput::geometry_base
         maliput::math
-        maliput::plugin
         maliput::test_utilities
         maliput_malidrive::base
         maliput_malidrive::builder

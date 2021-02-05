@@ -21,4 +21,4 @@ set (MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS
 # Given that the LD_LIBRARY_PATH environment variable isn't correctly set up until setup.bash is sourced,
 # and to avoid sourcing that file just to run one test we should append the paths.
 # This allow to any other backend plugin to find its correspondant backend core library.
-maliput_malidrive_build_tests(${UNIT_PLUGIN_TEST_SOURCES})
+maliput_malidrive_plugin_tests(${UNIT_PLUGIN_TEST_SOURCES})
