@@ -10,6 +10,7 @@ env:
   PACKAGE_NAME: maliput_malidrive
   ROS_DISTRO: dashing
   ROS_WS: maliput_ws
+  UBSAN_OPTIONS: halt_on_error=1
 
 jobs:
   compile_and_test:
