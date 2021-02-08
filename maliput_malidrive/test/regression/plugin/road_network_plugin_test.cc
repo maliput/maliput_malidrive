@@ -42,9 +42,12 @@ GTEST_TEST(RoadNetworkLoader, VerifyRoadNetworkPlugin) {
   // Check maliput_malidrive plugin is obtained.
   EXPECT_EQ(kMaliputMalidrivePluginId.string(), rn_plugin->GetId());
   EXPECT_EQ(maliput::plugin::MaliputPluginType::kRoadNetworkLoader, rn_plugin->GetType());
-  auto rn_loader = rn_plugin->ExecuteSymbol<std::unique_ptr<maliput::plugin::RoadNetworkLoader>>(
-      maliput::plugin::RoadNetworkLoader::GetEntryPoint());
-  ASSERT_NE(nullptr, rn_loader);
+  maliput::plugin::RoadNetworkLoaderPtr rn_loader_ptr{nullptr};
+  EXPECT_NO_THROW(rn_loader_ptr = rn_plugin->ExecuteSymbol<maliput::plugin::RoadNetworkLoaderPtr>(
+                      maliput::plugin::RoadNetworkLoader::GetEntryPoint()));
+  ASSERT_NE(nullptr, rn_loader_ptr);
+  std::unique_ptr<maliput::plugin::RoadNetworkLoader> rn_loader{
+      reinterpret_cast<maliput::plugin::RoadNetworkLoader*>(rn_loader_ptr)};
 
   // Check maliput_malidrive RoadNetwork is constructible.
   std::unique_ptr<const maliput::api::RoadNetwork> rn = (*rn_loader)(rg_maliput_malidrive_properties);
