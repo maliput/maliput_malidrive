@@ -15,7 +15,7 @@ jobs:
       image: ubuntu:18.04
     steps:
     # setup-ros first since it installs git, which is needed to fetch all branches from actions/checkout
-    - uses: ros-tooling/setup-ros@0.0.26
+    - uses: ros-tooling/setup-ros@0.1.2
     # install git from ppa since git 2.18+ is needed to fetch all branches from actions/checkout
     # this step can be removed on 20.04
     - name: install git from ppa
