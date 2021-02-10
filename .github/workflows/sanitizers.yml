@@ -29,9 +29,9 @@ jobs:
           - sanitizer: ubsan
             COMPILER_FLAG: ' -DUNDEFINED_SANITIZER=On'
     env:
-      CC: clang
-      CXX: clang++
-      LINKER_PATH: /usr/bin/llvm-ld
+      CC: clang-8
+      CXX: clang++-8
+      LINKER_PATH: /usr/bin/lld-8
     steps:
     # setup-ros first since it installs git, which is needed to fetch all branches from actions/checkout
     - uses: ros-tooling/setup-ros@0.1.2
