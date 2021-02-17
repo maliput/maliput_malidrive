@@ -48,3 +48,21 @@ install(
   DESTINATION
     ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}/applications
 )
+
+add_executable(maliput_malidrive_measure_load_time maliput_malidrive_measure_load_time.cc)
+target_link_libraries(
+  maliput_malidrive_measure_load_time
+  PUBLIC
+    gflags
+    maliput::common
+    maliput_malidrive::loader
+    maliput_malidrive::utility
+  INTERFACE
+    maliput_malidrive::log_level_flag
+)
+install(
+  TARGETS
+     maliput_malidrive_measure_load_time
+  DESTINATION
+    ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}/applications
+)
