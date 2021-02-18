@@ -39,10 +39,10 @@ std::vector<xodr::DBManager::XodrGeometriesToSimplify> FilterGeometriesToSimplif
   return result;
 }
 
-// Returns the number of threads to be used when building Lane construction tasks.
+// When `build_policy.num_threads.has_value()` it returns its value,
+// otherwise what the hardware supports minus one (running thread).
 //
 // `build_policy` Is the build policy for the RoadGeometryBuilder.
-//
 std::size_t GetEffectiveNumberOfThreads(const malidrive::builder::BuildPolicy& build_policy) {
   return build_policy.num_threads.has_value() ? static_cast<std::size_t>(build_policy.num_threads.value())
                                               : std::thread::hardware_concurrency() - 1;
@@ -60,6 +60,15 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
       factory_(std::move(factory)) {
   MALIDRIVE_THROW_UNLESS(manager_.get());
   MALIDRIVE_THROW_UNLESS(factory_.get());
+  maliput::log()->trace(
+      "Build policy for the RoadGeometry building process: {}",
+      build_policy_.type == BuildPolicy::Type::kSequential
+          ? "sequential"
+          : "parallel -- " +
+                (build_policy_.num_threads.has_value() ? std::to_string(build_policy_.num_threads.value())
+                                                       : "automatic number of") +
+                " threads");
+
   if (simplification_policy_ ==
       RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel) {
     maliput::log()->trace("Enabled the simplification. Mode: SimplifyWithinToleranceAndKeepGeometryModel");
@@ -70,15 +79,15 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
 }
 
 RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
-    const xodr::Lane* lane, road_curve::LaneOffset::AdjacentLaneFunctions& adjacent_lane_functions,
-    int xodr_lane_section_index, const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section,
-    Segment* segment, const RoadCurveFactoryBase* factory) {
-  MALIDRIVE_THROW_UNLESS(xodr_lane_section_index >= 0);
+    const xodr::Lane* lane, const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section,
+    int xodr_lane_section_index, const RoadCurveFactoryBase* factory, Segment* segment,
+    road_curve::LaneOffset::AdjacentLaneFunctions& adjacent_lane_functions) {
   MALIDRIVE_THROW_UNLESS(lane != nullptr);
   MALIDRIVE_THROW_UNLESS(road_header != nullptr);
   MALIDRIVE_THROW_UNLESS(lane_section != nullptr);
-  MALIDRIVE_THROW_UNLESS(segment != nullptr);
+  MALIDRIVE_THROW_UNLESS(xodr_lane_section_index >= 0);
   MALIDRIVE_THROW_UNLESS(factory != nullptr);
+  MALIDRIVE_THROW_UNLESS(segment != nullptr);
   MALIDRIVE_THROW_UNLESS(xodr_lane_section_index >= 0);
   const int xodr_track_id = std::stoi(road_header->id.string());
   MALIDRIVE_THROW_UNLESS(xodr_track_id >= 0);
@@ -126,15 +135,20 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::LanesBuilderParallelPolicy(
     std::size_t num_of_threads, RoadGeometry* rg) {
   MALIDRIVE_THROW_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_UNLESS(num_of_threads > 0);
   maliput::utility::ThreadPool task_executor(num_of_threads);
 
+  // Queue all the tasks in the thread pool. Each task will build all the lanes of a junction.
   std::vector<std::future<std::vector<RoadGeometryBuilder::LaneConstructionResult>>> lanes_construction_results;
   for (const auto& junction_segments_attributes : junctions_segments_attributes_) {
     lanes_construction_results.push_back(
         task_executor.Queue(LanesBuilder(junction_segments_attributes, rg, factory_.get())));
   }
+  // The threads are on hold until start method is called.
   task_executor.Start();
+  // Await the result of the tasks and then destroy the threads.
   task_executor.Finish();
+  // Collects the tasks results.
   std::vector<RoadGeometryBuilder::LaneConstructionResult> lanes_results;
   for (auto& future_lane_construction_result : lanes_construction_results) {
     auto lanes_construction_result = future_lane_construction_result.get();
@@ -151,9 +165,9 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
   for (const auto& junction_segments_attributes : junctions_segments_attributes_) {
     for (const auto& segment_attributes : junction_segments_attributes.second) {
       // Process lanes of the lane section.
-      auto lanes_result = BuildLanesForSegment(segment_attributes.first, segment_attributes.second.road_header,
-                                               segment_attributes.second.lane_section,
-                                               segment_attributes.second.lane_section_index, rg, factory_.get());
+      auto lanes_result = BuildLanesForSegment(
+          segment_attributes.second.road_header, segment_attributes.second.lane_section,
+          segment_attributes.second.lane_section_index, factory_.get(), rg, segment_attributes.first);
       built_lanes_result.insert(built_lanes_result.end(), std::make_move_iterator(lanes_result.begin()),
                                 std::make_move_iterator(lanes_result.end()));
     }
@@ -165,9 +179,9 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
   std::vector<LaneConstructionResult> built_lanes_result;
   for (const auto& segment_attributes : junction_segments_attributes.second) {
     // Process lanes of the lane section.
-    auto lanes_result = BuildLanesForSegment(segment_attributes.first, segment_attributes.second.road_header,
-                                             segment_attributes.second.lane_section,
-                                             segment_attributes.second.lane_section_index, rg, factory);
+    auto lanes_result =
+        BuildLanesForSegment(segment_attributes.second.road_header, segment_attributes.second.lane_section,
+                             segment_attributes.second.lane_section_index, factory, rg, segment_attributes.first);
     built_lanes_result.insert(built_lanes_result.end(), std::make_move_iterator(lanes_result.begin()),
                               std::make_move_iterator(lanes_result.end()));
   }
@@ -256,8 +270,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
                             road_header.first);
 
       // Save all the attributes for building the lanes later on.
-      const SegmentConstructionAttributes segment_attributes{&road_header.second, &lane_section, lane_section_index};
-      junctions_segments_attributes_[junction][segment] = segment_attributes;
+      junctions_segments_attributes_[junction][segment] = {&road_header.second, &lane_section, lane_section_index};
 
       lane_section_index++;
     }
@@ -300,8 +313,8 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
 }
 
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::BuildLanesForSegment(
-    Segment* segment, const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section,
-    int xodr_lane_section_index, RoadGeometry* rg, const RoadCurveFactoryBase* factory) {
+    const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section, int xodr_lane_section_index,
+    const RoadCurveFactoryBase* factory, RoadGeometry* rg, Segment* segment) {
   MALIDRIVE_THROW_UNLESS(lane_section != nullptr);
   MALIDRIVE_THROW_UNLESS(road_header != nullptr);
   MALIDRIVE_THROW_UNLESS(segment != nullptr);
@@ -319,14 +332,14 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
   // order.
   for (auto lane_it = lane_section->right_lanes.crbegin(); lane_it != lane_section->right_lanes.crend(); ++lane_it) {
     LaneConstructionResult lane_construction_result = BuildLane(
-        &(*lane_it), adjacent_lane_functions, xodr_lane_section_index, road_header, lane_section, segment, factory);
+        &(*lane_it), road_header, lane_section, xodr_lane_section_index, factory, segment, adjacent_lane_functions);
     maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
     built_lanes_result.insert(built_lanes_result.begin(), std::move(lane_construction_result));
   }
   adjacent_lane_functions = road_curve::LaneOffset::AdjacentLaneFunctions{nullptr, nullptr};
   for (auto lane_it = lane_section->left_lanes.cbegin(); lane_it != lane_section->left_lanes.cend(); ++lane_it) {
     LaneConstructionResult lane_construction_result = BuildLane(
-        &(*lane_it), adjacent_lane_functions, xodr_lane_section_index, road_header, lane_section, segment, factory);
+        &(*lane_it), road_header, lane_section, xodr_lane_section_index, factory, segment, adjacent_lane_functions);
     maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
     built_lanes_result.push_back(std::move(lane_construction_result));
   }

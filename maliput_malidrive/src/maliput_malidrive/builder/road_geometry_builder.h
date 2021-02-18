@@ -53,7 +53,7 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     MalidriveXodrLaneProperties xodr_lane;
   };
 
-  // Holds the attributes needed to build all the lanes of a segment.
+  // Holds the attributes needed to build all the Lanes of a Segment.
   struct SegmentConstructionAttributes {
     const xodr::RoadHeader* road_header{};
     const xodr::LaneSection* lane_section{};
@@ -64,23 +64,24 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   struct LaneConstructionResult {
     Segment* segment{};
     std::unique_ptr<Lane> lane{};
-    MalidriveXodrLaneProperties xodr_lane_properties{nullptr, nullptr, 0, nullptr};
+    MalidriveXodrLaneProperties xodr_lane_properties{nullptr /*road_header*/, nullptr /*lane_section*/,
+                                                     0 /*lane_section_index*/, nullptr /*lane*/};
   };
 
   // Functor for creating lanes of an entire junction.
   struct LanesBuilder {
     // Constructs a LanesBuilder.
-    // `junction_segments_attributes` Contains all the attributes needed to build all the lanes of a given junction.
-    // `rg` Is a pointer to the Road geometry.
-    // `factory` Is a pointer to the RoadCurveFactoryBase.
+    // `junction_segments_attributes_in` Contains all the attributes needed to build all the Lanes of a given Junction.
+    // `rg_in` Is a pointer to the RoadGeometry.
+    // `factory_in` Is a pointer to the RoadCurveFactoryBase.
     //
     // @throws maliput::common::assertion_error When `rg` is nullptr.
     // @throws maliput::common::assertion_error When `factory` is nullptr.
     LanesBuilder(const std::pair<maliput::geometry_base::Junction*,
                                  std::map<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>&
-                     junction_segments_attributes,
-                 RoadGeometry* rg, const RoadCurveFactoryBase* factory)
-        : junction_segments_attributes(junction_segments_attributes), factory(factory), rg(rg) {
+                     junction_segments_attributes_in,
+                 RoadGeometry* rg_in, const RoadCurveFactoryBase* factory_in)
+        : junction_segments_attributes(junction_segments_attributes_in), factory(factory_in), rg(rg_in) {
       MALIDRIVE_THROW_UNLESS(rg != nullptr);
       MALIDRIVE_THROW_UNLESS(factory != nullptr);
     }
@@ -97,40 +98,42 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     RoadGeometry* rg{};
   };
 
-  // Returns a LaneConstructionResult.
-  // `adjacent_lane_functions` holds the offset and width functions of the immediate inner lane.
+  // Builds a Lane and returns within a LaneConstructionResult that holds extra attributes related to the lane.
   // `lane` must not be nullptr.
-  // `xodr_lane_section_index` must be non-negative.
   // `road_header` must not be nullptr.
   // `lane_section` must not be nullptr.
-  // `segment` must not be nullptr.
+  // `xodr_lane_section_index` must be non-negative.
   // `factory` must not be nullptr.
+  // `segment` must not be nullptr.
+  // `adjacent_lane_functions` holds the offset and width functions of the immediate inner lane.
   //
   // @throws maliput::common::assertion_error When aforementioned conditions aren't met.
-  static LaneConstructionResult BuildLane(const xodr::Lane* lane,
-                                          road_curve::LaneOffset::AdjacentLaneFunctions& adjacent_lane_functions,
-                                          int xodr_lane_section_index, const xodr::RoadHeader* road_header,
-                                          const xodr::LaneSection* lane_section, Segment* segment,
-                                          const RoadCurveFactoryBase* factory);
-
+  static LaneConstructionResult BuildLane(const xodr::Lane* lane, const xodr::RoadHeader* road_header,
+                                          const xodr::LaneSection* lane_section, int xodr_lane_section_index,
+                                          const RoadCurveFactoryBase* factory, Segment* segment,
+                                          road_curve::LaneOffset::AdjacentLaneFunctions& adjacent_lane_functions);
   // Builds malidrive::Lanes from the XODR `lane_section` and returns a vector of
-  // LaneConstructionResult objects containing the built lane and properties needed to later on
-  // add the lane to its correspondant segment.
-  // Lanes are built from the center to the external lanes to correctly compute their
-  // lane offset
+  // LaneConstructionResult objects containing the built Lane and properties needed to later on
+  // add the Lane to its correspondant Segment.
+  // While the Lanes are built from the center to the external lanes to correctly compute their
+  // lane offset, the returned vector is filled with the Lanes in right-to-left order of the segment,
+  // which is the order that should be followed when adding the Lanes to the Segment.
   //
-  // `xodr_lane_section_index` is the index of the LaneSection within the road and mustn't be negative.
-  // `segment` must not be nullptr.
-  // `lane_section` must not be nullptr.
   // `road_header` must not be nullptr.
+  // `lane_section` must not be nullptr.
+  // `xodr_lane_section_index` is the index of the LaneSection within the road and mustn't be negative.
   // `rg` must not be nullptr.
+  // `factory` must not be nullptr.
+  // `segment` must not be nullptr.
   //
   // @throws maliput::common::assertion_error When either `segment`,
   //         `lane_section`, `road_header` or `rg` are nullptr.
-  static std::vector<LaneConstructionResult> BuildLanesForSegment(Segment* segment, const xodr::RoadHeader* road_header,
+
+  static std::vector<LaneConstructionResult> BuildLanesForSegment(const xodr::RoadHeader* road_header,
                                                                   const xodr::LaneSection* lane_section,
-                                                                  int xodr_lane_section_index, RoadGeometry* rg,
-                                                                  const RoadCurveFactoryBase* factory);
+                                                                  int xodr_lane_section_index,
+                                                                  const RoadCurveFactoryBase* factory, RoadGeometry* rg,
+                                                                  Segment* segment);
 
   // Builds a RoadCurve.
   //
@@ -209,25 +212,25 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   std::vector<maliput::api::LaneEnd> FindConnectingLaneEndsForLaneEnd(
       const maliput::api::LaneEnd& lane_end, const MalidriveXodrLaneProperties& xodr_lane_properties, RoadGeometry* rg);
 
-  // Returns the lanes of the road geometry created from multiple threads.
-  // Each thread will take care of build all the lanes of a particualar junction.
+  // Returns the Lanes of the RoadGeometry created from multiple threads.
+  // Each thread will take care of build all the Lanes of a particualar junction.
   //
   // `num_of_threads` Is the number of threads.
-  // `rg` Is a pointer to the Road Geometry.
+  // `rg` Is a pointer to the RoadGeometry.
   //
-  // @throws maliput::common::assertion_error When `rg` is nullptr.
+  // @throws maliput::common::assertion_error When `rg` is nullptr or num_of_threads is less than 1.
   std::vector<LaneConstructionResult> LanesBuilderParallelPolicy(std::size_t num_of_threads, RoadGeometry* rg);
 
-  // Returns the lanes of the road geometry sequentally created.
+  // Returns the Lanes of the RoadGeometry sequentally created.
   //
-  // `rg` Is a pointer to the Road Geometry.
+  // `rg` Is a pointer to the RoadGeometry.
   //
   // @throws maliput::common::assertion_error When `rg` is nullptr.
   std::vector<LaneConstructionResult> LanesBuilderSequentialPolicy(RoadGeometry* rg);
 
-  // Builds all the lanes of the road geometry and adds them to their correspondent segments.
+  // Builds all the Lanes of the RoadGeometry and adds them to their correspondent segments.
   //
-  // `rg` Is a pointer to the Road Geometry.
+  // `rg` Is a pointer to the RoadGeometry.
   //
   // @throws maliput::common::assertion_error When `rg` is nullptr.
   void FillSegmentsWithLanes(RoadGeometry* rg);
