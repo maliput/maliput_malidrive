@@ -105,19 +105,18 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // `xodr_lane_section_index` must be non-negative.
   // `factory` must not be nullptr.
   // `segment` must not be nullptr.
-  // `adjacent_lane_functions` holds the offset and width functions of the immediate inner lane.
+  // `adjacent_lane_functions` holds the offset and width functions of the immediate inner lane, must not be nullptr.
   //
   // @throws maliput::common::assertion_error When aforementioned conditions aren't met.
   static LaneConstructionResult BuildLane(const xodr::Lane* lane, const xodr::RoadHeader* road_header,
                                           const xodr::LaneSection* lane_section, int xodr_lane_section_index,
                                           const RoadCurveFactoryBase* factory, Segment* segment,
-                                          road_curve::LaneOffset::AdjacentLaneFunctions& adjacent_lane_functions);
+                                          road_curve::LaneOffset::AdjacentLaneFunctions* adjacent_lane_functions);
   // Builds malidrive::Lanes from the XODR `lane_section` and returns a vector of
   // LaneConstructionResult objects containing the built Lane and properties needed to later on
   // add the Lane to its correspondant Segment.
   // While the Lanes are built from the center to the external lanes to correctly compute their
-  // lane offset, the returned vector is filled with the Lanes in right-to-left order of the segment,
-  // which is the order that should be followed when adding the Lanes to the Segment.
+  // lane offset, the returned vector is filled with the Lanes in right-to-left order of the Segment.
   //
   // `road_header` must not be nullptr.
   // `lane_section` must not be nullptr.

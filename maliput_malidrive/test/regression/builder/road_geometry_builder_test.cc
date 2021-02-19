@@ -443,35 +443,39 @@ INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderSequentialBuildPolicyTestGroup, RoadG
                         ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
-// @{ Runs the Builder with a parallel lane building process.
-class RoadGeometryBuilderParallelBuildPolicyTest : public RoadGeometryBuilderBaseTest {
+// @{ Runs the Builder with a parallel lane building process using an automatic selection of the number of threads.
+class RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest : public RoadGeometryBuilderBaseTest {
  protected:
   void SetUp() override {
     RoadGeometryBuilderBaseTest::SetUp();
     road_geometry_configuration_.build_policy.type = BuildPolicy::Type::kParallel;
+    // Number of threads will be delimited by the hardward capacity minus one.
+    road_geometry_configuration_.build_policy.num_threads = std::nullopt;
   }
 };
 
-TEST_P(RoadGeometryBuilderParallelBuildPolicyTest, JunctionSegmentLaneTest) { RunTest(); }
+TEST_P(RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderParallelBuildPolicyTestGroup, RoadGeometryBuilderParallelBuildPolicyTest,
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTestGroup,
+                        RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest,
                         ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
-// @{ Runs the Builder with a parallel lane building process using 4 threads.
-class RoadGeometryBuilderParallelBuildPolicy4ThreadsTest : public RoadGeometryBuilderBaseTest {
+// @{ Runs the Builder with a parallel lane building process using a manual selection of the number of threads.
+class RoadGeometryBuilderParallelBuildPolicyManualThreadsTest : public RoadGeometryBuilderBaseTest {
  protected:
   void SetUp() override {
     RoadGeometryBuilderBaseTest::SetUp();
     road_geometry_configuration_.build_policy.type = BuildPolicy::Type::kParallel;
-    road_geometry_configuration_.build_policy.num_threads = 4;
+    road_geometry_configuration_.build_policy.num_threads = num_threads_;
   }
+  static constexpr int num_threads_{4};
 };
 
-TEST_P(RoadGeometryBuilderParallelBuildPolicy4ThreadsTest, JunctionSegmentLaneTest) { RunTest(); }
+TEST_P(RoadGeometryBuilderParallelBuildPolicyManualThreadsTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderParallelBuildPolicy4ThreadsTestGroup,
-                        RoadGeometryBuilderParallelBuildPolicy4ThreadsTest,
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderParallelBuildPolicyManualThreadsTestGroup,
+                        RoadGeometryBuilderParallelBuildPolicyManualThreadsTest,
                         ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
