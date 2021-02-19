@@ -467,9 +467,9 @@ class RoadGeometryBuilderParallelBuildPolicyManualThreadsTest : public RoadGeome
   void SetUp() override {
     RoadGeometryBuilderBaseTest::SetUp();
     road_geometry_configuration_.build_policy.type = BuildPolicy::Type::kParallel;
-    road_geometry_configuration_.build_policy.num_threads = num_threads_;
+    road_geometry_configuration_.build_policy.num_threads = kNumThreads;
   }
-  static constexpr int num_threads_{4};
+  static constexpr int kNumThreads{40};
 };
 
 TEST_P(RoadGeometryBuilderParallelBuildPolicyManualThreadsTest, JunctionSegmentLaneTest) { RunTest(); }
