@@ -298,6 +298,9 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     scale_length_ = rg_config->scale_length;
     // Sets the full xodr map file path.
     rg_config->opendrive_file = xodr_file_path_;
+    // Lane building process is set to parallel.
+    rg_config->build_policy.type = builder::BuildPolicy::Type::kParallel;
+    rg_config->build_policy.num_threads = std::nullopt;
     rn_ = loader::Load<builder::RoadNetworkBuilder>({*rg_config});
     ASSERT_NE(rn_, nullptr);
     ASSERT_NE(rn_->road_geometry(), nullptr);
