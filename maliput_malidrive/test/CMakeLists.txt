@@ -128,7 +128,6 @@ macro(malidrive_build_integration_based_tests)
   set(XODR_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
   set(XODR_FILE_PATHS
     ArcLane.xodr
-    Figure8.xodr
     Highway.xodr
     LShapeRoad.xodr
     LShapeRoadVariableLanes.xodr
@@ -143,6 +142,14 @@ macro(malidrive_build_integration_based_tests)
     SShapeSuperelevatedRoad.xodr
     TShapeRoad.xodr
   )
+  # TODO(#41): Remove this guard for the Figure8 xodr map.
+  if (NOT THREAD_SANITIZER)
+    message("**********************ADD figure8")
+    set(XODR_FILE_PATHS ${XODR_FILE_PATHS}
+      Figure8.xodr
+    )
+  endif()
+
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
     # When integration tests are disabled, we just skip adding them.
