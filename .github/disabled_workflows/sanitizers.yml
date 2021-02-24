@@ -20,7 +20,7 @@ jobs:
       image: ubuntu:18.04
     strategy:
       matrix:
-        sanitizer: [none, asan, ubsan]
+        sanitizer: [none, asan, ubsan, tsan]
         include:
           - sanitizer: none
             COMPILER_FLAG: ''
@@ -28,6 +28,8 @@ jobs:
             COMPILER_FLAG: ' -DADDRESS_SANITIZER=On'
           - sanitizer: ubsan
             COMPILER_FLAG: ' -DUNDEFINED_SANITIZER=On'
+          - sanitizer: tsan
+            COMPILER_FLAG: ' -DTHREAD_SANITIZER=On'
     env:
       CC: clang-8
       CXX: clang++-8
