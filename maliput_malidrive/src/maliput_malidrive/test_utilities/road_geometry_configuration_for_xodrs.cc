@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "maliput/api/road_geometry.h"
+#include "maliput/math/vector.h"
 #include "maliput_malidrive/constants.h"
 
 namespace malidrive {
@@ -16,6 +17,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                              5e-2,
                                                              1e-3,
                                                              constants::kScaleLength,
+                                                             maliput::math::Vector3{0., 0., 0.},
                                                              InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                          constants::kNumIterations)}},
       {"ArcLane.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"ArcSingleLane"},
@@ -23,6 +25,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                           5e-2,
                                                           1e-3,
                                                           constants::kScaleLength,
+                                                          maliput::math::Vector3{0., 0., 0.},
                                                           InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                       constants::kNumIterations)}},
       {"SShapeRoad.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"SShapeRoad"},
@@ -30,6 +33,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                              5e-2,
                                                              1e-3,
                                                              constants::kScaleLength,
+                                                             maliput::math::Vector3{0., 0., 0.},
                                                              InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                          constants::kNumIterations)}},
       {"LShapeRoad.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"LShapeRoad"},
@@ -37,6 +41,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                              5e-2,
                                                              1e-3,
                                                              constants::kScaleLength,
+                                                             maliput::math::Vector3{0., 0., 0.},
                                                              InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                          constants::kNumIterations)}},
       {"LShapeRoadVariableLanes.xodr",
@@ -46,6 +51,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            5e-2,
            1e-3,
            constants::kScaleLength,
+           maliput::math::Vector3{0., 0., 0.},
            InertialToLaneMappingConfig(constants::kExplorationRadius, constants::kNumIterations)}},
       {"LineMultipleSections.xodr",
        builder::RoadGeometryConfiguration{
@@ -54,6 +60,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            5e-2,
            1e-3,
            constants::kScaleLength,
+           maliput::math::Vector3{0., 0., 0.},
            InertialToLaneMappingConfig(constants::kExplorationRadius, constants::kNumIterations)}},
       {"LineVariableOffset.xodr",
        builder::RoadGeometryConfiguration{
@@ -62,6 +69,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            5e-2,
            1e-3,
            constants::kScaleLength,
+           maliput::math::Vector3{0., 0., 0.},
            InertialToLaneMappingConfig(constants::kExplorationRadius, constants::kNumIterations)}},
       {"LineVariableWidth.xodr",
        builder::RoadGeometryConfiguration{
@@ -70,6 +78,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            5e-2,
            1e-3,
            constants::kScaleLength,
+           maliput::math::Vector3{0., 0., 0.},
            InertialToLaneMappingConfig(constants::kExplorationRadius, constants::kNumIterations)}},
       {"ParkingGarageRamp.xodr",
        builder::RoadGeometryConfiguration{
@@ -78,12 +87,14 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            5e-2,
            1e-3,
            constants::kScaleLength,
+           maliput::math::Vector3{0., 0., 0.},
            InertialToLaneMappingConfig(constants::kExplorationRadius, constants::kNumIterations)}},
       {"RRLongRoad.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"RRLongRoad"},
                                                              {"RRLongRoad.xodr"},
                                                              5e-2,
                                                              1e-3,
                                                              constants::kScaleLength,
+                                                             maliput::math::Vector3{0., 0., 0.},
                                                              InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                          constants::kNumIterations)}},
       {"SShapeSuperelevatedRoad.xodr",
@@ -93,12 +104,14 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            5e-2,
            1e-3,
            constants::kScaleLength,
+           maliput::math::Vector3{0., 0., 0.},
            InertialToLaneMappingConfig(constants::kExplorationRadius, constants::kNumIterations)}},
       {"TShapeRoad.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"TShapeRoad"},
                                                              {"TShapeRoad.xodr"},
                                                              5e-2,
                                                              1e-3,
                                                              constants::kScaleLength,
+                                                             maliput::math::Vector3{0., 0., 0.},
                                                              InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                          constants::kNumIterations)}},
       {"Highway.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Highway"},
@@ -106,6 +119,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                           5e-2,
                                                           1e-3,
                                                           constants::kScaleLength,
+                                                          maliput::math::Vector3{0., 0., 0.},
                                                           InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                       constants::kNumIterations)}},
       {"Figure8.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Figure8"},
@@ -113,6 +127,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                           1e-3,
                                                           1e-3,
                                                           constants::kScaleLength,
+                                                          maliput::math::Vector3{0., 0., 0.},
                                                           InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                       constants::kNumIterations)}},
       {"RRFigure8.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"RRFigure8"},
@@ -120,6 +135,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                             3e-1,
                                                             3e-1,
                                                             constants::kScaleLength,
+                                                            maliput::math::Vector3{0., 0., 0.},
                                                             InertialToLaneMappingConfig(constants::kExplorationRadius,
                                                                                         constants::kNumIterations)}},
   };

@@ -224,8 +224,8 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
           ? manager_->GetGeometriesToSimplify(linear_tolerance_)
           : std::vector<xodr::DBManager::XodrGeometriesToSimplify>();
 
-  auto rg =
-      std::make_unique<RoadGeometry>(id_, std::move(manager_), linear_tolerance_, angular_tolerance_, scale_length_);
+  auto rg = std::make_unique<RoadGeometry>(id_, std::move(manager_), linear_tolerance_, angular_tolerance_,
+                                           scale_length_, inertial_to_backend_frame_translation_);
 
   maliput::log()->trace("Visiting XODR Roads...");
   for (const auto& road_header : road_headers) {

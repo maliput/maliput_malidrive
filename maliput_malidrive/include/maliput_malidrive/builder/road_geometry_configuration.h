@@ -2,6 +2,7 @@
 #pragma once
 
 #include "maliput/api/road_network.h"
+#include "maliput/math/vector.h"
 
 #include "maliput_malidrive/base/inertial_to_lane_mapping_config.h"
 #include "maliput_malidrive/constants.h"
@@ -61,6 +62,7 @@ struct RoadGeometryConfiguration {
   double linear_tolerance{constants::kLinearTolerance};
   double angular_tolerance{constants::kAngularTolerance};
   double scale_length{constants::kScaleLength};
+  maliput::math::Vector3 inertial_to_backend_frame_translation{0., 0., 0.};
   InertialToLaneMappingConfig inertial_to_lane_mapping_config;
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};

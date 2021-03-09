@@ -109,6 +109,7 @@ class RoadGeometryBuilderBaseTest : public ::testing::Test {
                                                              constants::kLinearTolerance,
                                                              constants::kAngularTolerance,
                                                              constants::kScaleLength,
+                                                             maliput::math::Vector3{0., 0., 0.},
                                                              InertialToLaneMappingConfig(1e-3, 10)};
   std::unique_ptr<MockRoadGeometryBuilderBase> dut;
 };

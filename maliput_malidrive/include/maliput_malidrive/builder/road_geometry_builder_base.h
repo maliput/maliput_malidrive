@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "maliput/geometry_base/junction.h"
+#include "maliput/math/vector.h"
 #include "maliput_malidrive/base/inertial_to_lane_mapping_config.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
@@ -161,10 +162,12 @@ class RoadGeometryBuilderBase {
   const maliput::api::RoadGeometryId id_;
   const BuildPolicy build_policy_{};
 
-  // @{ Tolerance and scale length values used to construct the RoadGeometry.
+  // @{ Tolerance, scale length and Inertial to Backend Frame translation values
+  //    used to construct the RoadGeometry.
   double linear_tolerance_{};
   double angular_tolerance_{};
   double scale_length_{};
+  maliput::math::Vector3 inertial_to_backend_frame_translation_{};
   // @}
 
   UniqueIntegerProvider branch_point_indexer_;

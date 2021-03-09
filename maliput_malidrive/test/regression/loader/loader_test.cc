@@ -22,6 +22,7 @@ class LoaderTestSingleLane : public ::testing::Test {
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math:: : Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
 
@@ -31,6 +32,7 @@ class LoaderTestSingleLane : public ::testing::Test {
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
 
   const int kNumLanes{2};

@@ -216,6 +216,7 @@ class RoadNetworkBuilderTest : public ::testing::TestWithParam<RoadNetworkBuilde
   const double kAngularTolerance{1e-6};
   const double kScaleLength{constants::kScaleLength};
   //@}
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
 
@@ -225,6 +226,7 @@ class RoadNetworkBuilderTest : public ::testing::TestWithParam<RoadNetworkBuilde
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
 };
 
@@ -249,6 +251,7 @@ class BuilderTest : public ::testing::Test {
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
   const double kSpeedTolerance{constants::kSpeedTolerance};
@@ -259,6 +262,7 @@ class BuilderTest : public ::testing::Test {
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
 };
 
@@ -446,6 +450,7 @@ class DirectionUsageTest : public ::testing::TestWithParam<DirectionUsageTruthTa
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
 
@@ -460,6 +465,7 @@ class DirectionUsageTest : public ::testing::TestWithParam<DirectionUsageTruthTa
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::vector<DirectionUsageReferenceValue> reference_values_;
 };
@@ -722,6 +728,7 @@ class VehicleRulesTest : public ::testing::TestWithParam<VehicleRulesTruthTable>
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
 
@@ -736,6 +743,7 @@ class VehicleRulesTest : public ::testing::TestWithParam<VehicleRulesTruthTable>
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::vector<VehicleRulesReferenceValue> reference_values_;
 };
@@ -799,6 +807,7 @@ class VehicleRulesStateProviderTest : public ::testing::TestWithParam<VehicleRul
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
 
@@ -813,6 +822,7 @@ class VehicleRulesStateProviderTest : public ::testing::TestWithParam<VehicleRul
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::vector<VehicleRulesStateProviderReferenceValue> reference_values_;
 };
@@ -896,6 +906,7 @@ class SpeedLimitRuleBuilderTest : public ::testing::TestWithParam<SpeedLimitRule
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
   const double kSpeedTolerance{constants::kSpeedTolerance};
@@ -911,6 +922,7 @@ class SpeedLimitRuleBuilderTest : public ::testing::TestWithParam<SpeedLimitRule
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::vector<SpeedLimitRuleReferenceValue> reference_values_;
 };
@@ -1148,6 +1160,7 @@ class RangeValueRuleStateProviderTest : public ::testing::TestWithParam<RangeVal
   const double kLinearTolerance{constants::kLinearTolerance};
   const double kAngularTolerance{constants::kAngularTolerance};
   const double kScaleLength{constants::kScaleLength};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
 
@@ -1162,6 +1175,7 @@ class RangeValueRuleStateProviderTest : public ::testing::TestWithParam<RangeVal
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::vector<RangeValueRuleStateProviderReferenceValue> reference_values_;
 };

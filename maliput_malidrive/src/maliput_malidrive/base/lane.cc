@@ -109,15 +109,12 @@ maliput::api::RBounds Lane::do_segment_bounds(double s) const {
           width * (static_cast<double>(left_lanes_count) + 0.5)};
 }
 
-maliput::api::InertialPosition Lane::DoToInertialPosition(const maliput::api::LanePosition& lane_pos) const {
+maliput::math::Vector3 Lane::DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const {
   const double p = p_from_s_(s_range_validation_(lane_pos.s()));
-  const Vector3 inertial_position = road_curve_->W({p, to_reference_r(p, lane_pos.r()), lane_pos.h()});
-  const maliput::api::InertialPosition xodr_inertial_pos(inertial_position.x(), inertial_position.y(),
-                                                         inertial_position.z());
-  return xodr_inertial_pos;
+  return road_curve_->W({p, to_reference_r(p, lane_pos.r()), lane_pos.h()});
 }
 
-Vector3 Lane::InertialFrameToLaneFrame(const Vector3& xyz) const {
+Vector3 Lane::BackendFrameToLaneFrame(const Vector3& xyz) const {
   // Gets initial estimate of `p` from the RoadCurve.
   double p{road_curve_->WInverse(xyz).x()};
   // Delta p, to be reduced iteratively.
@@ -158,10 +155,9 @@ Vector3 Lane::InertialFrameToLaneFrame(const Vector3& xyz) const {
   return {p, r_hat.dot(w_delta) - lane_offset_->f(p), h_hat.dot(w_delta)};
 }
 
-maliput::api::LanePositionResult Lane::DoToLanePosition(
-    const maliput::api::InertialPosition& inertial_pos_world) const {
-  const maliput::math::Vector3 xyz = inertial_pos_world.xyz();
-  const maliput::math::Vector3 unconstrained_prh{InertialFrameToLaneFrame(xyz)};
+void Lane::DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
+                                   maliput::math::Vector3* nearest_backend_pos, double* distance) const {
+  const maliput::math::Vector3 unconstrained_prh{BackendFrameToLaneFrame(backend_pos)};
   MALIDRIVE_IS_IN_RANGE(unconstrained_prh[0], p0_, p1_);
   const double s = s_from_p_(unconstrained_prh[0]);
   const maliput::api::RBounds segment_boundaries = segment_bounds(s);
@@ -170,11 +166,9 @@ maliput::api::LanePositionResult Lane::DoToLanePosition(
   const double h =
       maliput::math::saturate(unconstrained_prh[2], elevation_boundaries.min(), elevation_boundaries.max());
 
-  maliput::api::LanePositionResult result;
-  result.lane_position = {s, r, h};
-  result.nearest_position = ToInertialPosition(result.lane_position);
-  result.distance = (inertial_pos_world.xyz() - result.nearest_position.xyz()).norm();
-  return result;
+  *lane_position = {s, r, h};
+  *nearest_backend_pos = DoToBackendPosition(*lane_position);
+  *distance = (backend_pos - *nearest_backend_pos).norm();
 }
 
 maliput::api::Rotation Lane::DoGetOrientation(const maliput::api::LanePosition& lane_pos) const {

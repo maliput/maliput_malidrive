@@ -33,6 +33,7 @@ GTEST_TEST(RoadNetworkLoader, VerifyRoadNetworkPlugin) {
       {"build_policy", "sequential"},
       {"simplification_policy", "none"},
       {"tolerance_selection_policy", "manual"},
+      {"inertial_to_backend_frame_translation", "{1., 2., 3.}"},
   };
   // Check MaliputPlugin existence.
   maliput::plugin::MaliputPluginManager manager{};

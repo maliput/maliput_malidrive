@@ -44,6 +44,7 @@ class BuilderTestSingleLane : public ::testing::Test {
   const double kScaleLength{constants::kScaleLength};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
 
   const RoadGeometryConfiguration road_geometry_configuration_{
       maliput::api::RoadGeometryId("RoadGeometryId"),
@@ -51,6 +52,7 @@ class BuilderTestSingleLane : public ::testing::Test {
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
 
   std::unique_ptr<xodr::DBManager> manager_ =
@@ -412,6 +414,7 @@ class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometry
   const double kAngularTolerance{1e-6};
   const double kScaleLength{constants::kScaleLength};
   //@}
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
   const std::vector<RoadAttributes> expected_roads = GetParam().roads;
@@ -423,6 +426,7 @@ class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometry
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::unique_ptr<xodr::DBManager> manager_;
   std::unique_ptr<builder::RoadCurveFactoryBase> factory_;
@@ -752,6 +756,7 @@ class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPoin
   const double kAngularTolerance{1e-6};
   const double kScaleLength{constants::kScaleLength};
   //@}
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
   const RoadGeometryConfiguration road_geometry_configuration_{
@@ -760,6 +765,7 @@ class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPoin
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
 
   std::unique_ptr<const maliput::api::RoadGeometry> rg_;
@@ -868,6 +874,7 @@ class RoadGeometryBuilderSurfaceBoundariesTest : public ::testing::TestWithParam
   const double kAngularTolerance{1e-6};
   const double kScaleLength{constants::kScaleLength};
   //@}
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const double kExplorationRadius{constants::kExplorationRadius};
   const int kMaxIntersectIterations{constants::kNumIterations};
   const RoadGeometryConfiguration kRoadGeometryConfiguration{
@@ -876,6 +883,7 @@ class RoadGeometryBuilderSurfaceBoundariesTest : public ::testing::TestWithParam
       kLinearTolerance,
       kAngularTolerance,
       kScaleLength,
+      kInertialToBackendFrameTranslation,
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   const double kSStart{0.};
 

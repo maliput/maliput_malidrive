@@ -34,7 +34,8 @@ class RoadGeometryTest : public ::testing::Test {
   const double kLinearTolerance{constants::kStrictLinearTolerance};    // [m]
   const double kScaleLength{constants::kScaleLength};                  // [m]
   const double kAngularTolerance{constants::kStrictAngularTolerance};  // [rad]
-  const std::optional<double> kParserSTolerance{std::nullopt};         // Disables the check because it is not needed.
+  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
+  const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
   const xodr::RoadHeader::Id kRoadId{"0"};
   const double kP0{0.};
   const double kP1{100.};
@@ -54,7 +55,7 @@ class RoadGeometryTest : public ::testing::Test {
 TEST_F(RoadGeometryTest, EmptyRoadGeometry) {
   const xodr::DBManager* manager_ptr = manager.get();
   const RoadGeometry dut(RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance, kAngularTolerance,
-                         kScaleLength);
+                         kScaleLength, kInertialToBackendFrameTranslation);
   EXPECT_EQ(dut.num_junctions(), 0.);
   EXPECT_EQ(dut.num_branch_points(), 0.);
   EXPECT_DOUBLE_EQ(dut.linear_tolerance(), kLinearTolerance);
@@ -66,7 +67,7 @@ TEST_F(RoadGeometryTest, EmptyRoadGeometry) {
 
 TEST_F(RoadGeometryTest, CorrectRoadCharacteristics) {
   auto rg = std::make_unique<RoadGeometry>(RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
-                                           kAngularTolerance, kScaleLength);
+                                           kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
   const auto expected_road_curve_ptr = road_curve.get();
   const auto expected_reference_line_offset_ptr = reference_line_offset.get();
   rg->AddRoadCharacteristics(kRoadId, std::move(road_curve), std::move(reference_line_offset));
@@ -76,27 +77,27 @@ TEST_F(RoadGeometryTest, CorrectRoadCharacteristics) {
 
 TEST_F(RoadGeometryTest, InvalidRoadCurve) {
   auto rg = std::make_unique<RoadGeometry>(RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
-                                           kAngularTolerance, kScaleLength);
+                                           kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
   EXPECT_THROW(rg->AddRoadCharacteristics(kRoadId, nullptr, std::move(reference_line_offset)),
                maliput::common::assertion_error);
 }
 
 TEST_F(RoadGeometryTest, InvalidReferenceLineOffset) {
   auto rg = std::make_unique<RoadGeometry>(RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
-                                           kAngularTolerance, kScaleLength);
+                                           kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
   EXPECT_THROW(rg->AddRoadCharacteristics(kRoadId, std::move(road_curve), nullptr), maliput::common::assertion_error);
 }
 
 TEST_F(RoadGeometryTest, NonExistentRoadId) {
   auto rg = std::make_unique<RoadGeometry>(RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
-                                           kAngularTolerance, kScaleLength);
+                                           kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
   EXPECT_THROW(rg->GetRoadCurve(kRoadId), maliput::common::assertion_error);
   EXPECT_THROW(rg->GetReferenceLineOffset(kRoadId), maliput::common::assertion_error);
 }
 
 TEST_F(RoadGeometryTest, DuplicatedRoadId) {
   auto rg = std::make_unique<RoadGeometry>(RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
-                                           kAngularTolerance, kScaleLength);
+                                           kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
   auto road_curve_b = std::make_unique<road_curve::RoadCurve>(
       kLinearTolerance, kScaleLength,
       std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
@@ -115,6 +116,7 @@ GTEST_TEST(RoadGeometryFigure8Trafficlights, RoundTripPosition) {
       constants::kLinearTolerance,
       constants::kAngularTolerance,
       constants::kScaleLength,
+      maliput::math::Vector3{0., 0., 0.},
       InertialToLaneMappingConfig(::malidrive::constants::kExplorationRadius, ::malidrive::constants::kNumIterations),
   };
   const builder::RoadNetworkConfiguration road_network_configuration{road_geometry_configuration};

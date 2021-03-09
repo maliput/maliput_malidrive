@@ -18,6 +18,7 @@ RoadGeometryBuilderBase::RoadGeometryBuilderBase(const RoadGeometryConfiguration
       linear_tolerance_(road_geometry_configuration.linear_tolerance),
       angular_tolerance_(road_geometry_configuration.angular_tolerance),
       scale_length_(road_geometry_configuration.scale_length),
+      inertial_to_backend_frame_translation_(road_geometry_configuration.inertial_to_backend_frame_translation),
       branch_point_indexer_(0 /* base ID */) {
   MALIDRIVE_THROW_UNLESS(linear_tolerance_ >= 0.);
   MALIDRIVE_THROW_UNLESS(angular_tolerance_ >= 0.);

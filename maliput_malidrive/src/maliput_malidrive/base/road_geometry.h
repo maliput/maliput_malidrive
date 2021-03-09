@@ -31,8 +31,10 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// maliput::api::RoadGeometry::scale_length() for reference.
   /// @throw maliput::common::assertion_error When @p manager_ is nullptr.
   RoadGeometry(const maliput::api::RoadGeometryId& id, std::unique_ptr<xodr::DBManager> manager,
-               double linear_tolerance, double angular_tolerance, double scale_length)
-      : maliput::geometry_base::RoadGeometry(id, linear_tolerance, angular_tolerance, scale_length),
+               double linear_tolerance, double angular_tolerance, double scale_length,
+               const maliput::math::Vector3& inertial_to_backend_frame_translation)
+      : maliput::geometry_base::RoadGeometry(id, linear_tolerance, angular_tolerance, scale_length,
+                                             inertial_to_backend_frame_translation),
         manager_(std::move(manager)) {
     MALIDRIVE_THROW_UNLESS(manager_ != nullptr);
   }
