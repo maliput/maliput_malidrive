@@ -101,7 +101,7 @@ class Lane : public maliput::geometry_base::Lane {
   maliput::api::HBounds do_elevation_bounds(double, double) const override { return elevation_bounds_; }
   // @{
   // TODO(#43): Move this to the builder in favor of increased performance when
-  //            querying the Lane
+  //            querying the Lane.
   maliput::math::Vector3 DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const override;
   void DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
                                maliput::math::Vector3* nearest_backend_pos, double* distance) const override;
