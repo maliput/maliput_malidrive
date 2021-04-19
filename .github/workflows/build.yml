@@ -43,19 +43,19 @@ jobs:
         token: ${{ secrets.MALIPUT_TOKEN }}
     - uses: actions/checkout@v2
       with:
-        repository: ToyotaResearchInstitute/dsim-repos-index
+        repository: ToyotaResearchInstitute/maliput_infrastructure
         fetch-depth: 0
-        path: dsim-repos-index
+        path: maliput_infrastructure
         token: ${{ secrets.MALIPUT_TOKEN }}
     - name: check if dependencies have a matching branch
       shell: bash
       working-directory: ${{ env.ROS_WS }}/src
       run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} .
-    # install drake_vendor prereqs using dsim-repos-index/tools/prereqs.lib
+    # install drake_vendor prereqs using maliput_infrastructure/tools/prereqs.lib
     - name: install drake_vendor prereqs
       shell: bash
       working-directory: ${{ env.ROS_WS }}/src/drake_vendor
-      run: ${GITHUB_WORKSPACE}/dsim-repos-index/tools/prereqs-install -t drake .
+      run: ${GITHUB_WORKSPACE}/maliput_infrastructure/tools/prereqs-install -t drake .
     # clone public dependencies
     - name: vcs import
       shell: bash
