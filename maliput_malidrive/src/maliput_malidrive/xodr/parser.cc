@@ -871,7 +871,13 @@ Junction NodeParser::As() const {
   // @}
 
   tinyxml2::XMLElement* connection_element(element_->FirstChildElement(Connection::kConnectionTag));
-  MALIDRIVE_THROW_UNLESS(connection_element != nullptr);
+  if (!connection_element) {
+    const std::string msg{"There is no connections defined for junction id: " + id.value()};
+    if (!parser_configuration_.permissive_mode) {
+      MALIDRIVE_THROW_MESSAGE(msg);
+    }
+    maliput::log()->warn(msg);
+  }
   std::unordered_map<Connection::Id, Connection> connections;
   while (connection_element) {
     const auto connection = NodeParser(connection_element, parser_configuration_).As<Connection>();
@@ -881,7 +887,6 @@ Junction NodeParser::As() const {
     connections.insert({connection.id, std::move(connection)});
     connection_element = connection_element->NextSiblingElement(Connection::kConnectionTag);
   }
-  MALIDRIVE_THROW_UNLESS(connections.size() > 0);
   return {Junction::Id(*id), name, type, connections};
 }
 

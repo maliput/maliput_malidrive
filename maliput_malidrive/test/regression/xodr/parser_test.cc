@@ -1036,6 +1036,29 @@ TEST_F(ParsingTests, NodeParserJunction) {
   EXPECT_EQ(kExpectedJunction, junction);
 }
 
+// Template of a XML description that contains a XODR Junction with no connections.
+constexpr const char* kJunctionTemplateNoConnections = R"R(
+<root>
+  <junction id="358" name="JunctionTest" type="default">
+  </junction>
+</root>
+)R";
+
+// Tests `Junction` parsing with no connections.
+TEST_F(ParsingTests, NodeParserJunctionNoConnections) {
+  const std::string xml_description = fmt::format(kJunctionTemplateNoConnections);
+
+  bool permissive_mode{true};
+  const NodeParser dut_permissive(LoadXMLAndGetNodeByName(kJunctionTemplateNoConnections, Junction::kJunctionTag),
+                                  {kStrictParserSTolerance, permissive_mode});
+  EXPECT_NO_THROW(dut_permissive.As<Junction>());
+
+  permissive_mode = false;
+  const NodeParser dut_strict(LoadXMLAndGetNodeByName(kJunctionTemplateNoConnections, Junction::kJunctionTag),
+                              {kStrictParserSTolerance, permissive_mode});
+  EXPECT_THROW(dut_strict.As<Junction>(), maliput::common::assertion_error);
+}
+
 GTEST_TEST(XMLToText, ConvertXMLNodeToText) {
   constexpr const char* kArbitraryXMLDescription = R"R(<root>
     <type s="0." type="rural">
