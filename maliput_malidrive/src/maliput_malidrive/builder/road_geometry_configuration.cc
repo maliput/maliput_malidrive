@@ -21,6 +21,11 @@ const std::map<std::string, RoadGeometryConfiguration::ToleranceSelectionPolicy>
     {"manual", RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection},
     {"automatic", RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection}};
 
+// Holds the conversion from string(keys) to StandardStrictnessPolicy(values);
+const std::map<std::string, RoadGeometryConfiguration::StandardStrictnessPolicy> str_to_standard_strictness_policy{
+    {"strict", RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict},
+    {"flexible", RoadGeometryConfiguration::StandardStrictnessPolicy::kFlexible}};
+
 }  // namespace
 
 BuildPolicy::Type BuildPolicy::FromStrToType(const std::string& type) {
@@ -47,6 +52,15 @@ RoadGeometryConfiguration::ToleranceSelectionPolicy RoadGeometryConfiguration::F
     MALIDRIVE_THROW_MESSAGE("Unknown tolerance selection policy: " + policy);
   }
   return str_to_tolerance_selection_policy.at(policy);
+}
+
+RoadGeometryConfiguration::StandardStrictnessPolicy RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy(
+    const std::string& policy) {
+  const auto it = str_to_standard_strictness_policy.find(policy);
+  if (it == str_to_standard_strictness_policy.end()) {
+    MALIDRIVE_THROW_MESSAGE("Unknown standard strictness policy: " + policy);
+  }
+  return str_to_standard_strictness_policy.at(policy);
 }
 
 }  // namespace builder

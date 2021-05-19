@@ -56,6 +56,7 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
                                          std::unique_ptr<RoadCurveFactoryBase> factory)
     : RoadGeometryBuilderBase(road_geometry_configuration),
       simplification_policy_(road_geometry_configuration.simplification_policy),
+      standard_strictness_policy_(road_geometry_configuration.standard_strictness_policy),
       manager_(std::move(manager)),
       factory_(std::move(factory)) {
   MALIDRIVE_THROW_UNLESS(manager_.get());
@@ -68,6 +69,11 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
                 (build_policy_.num_threads.has_value()
                      ? std::to_string(GetEffectiveNumberOfThreads(build_policy_)) + " threads(manual)"
                      : std::to_string(GetEffectiveNumberOfThreads(build_policy_)) + " threads(automatic)"));
+
+  maliput::log()->trace("Strictness for meeting the OpenDrive standard: {}",
+                        standard_strictness_policy_ == RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict
+                            ? "strict"
+                            : "flexible");
 
   if (simplification_policy_ ==
       RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel) {

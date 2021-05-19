@@ -236,6 +236,7 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
 
   const RoadGeometryConfiguration::SimplificationPolicy simplification_policy_{};
   const RoadGeometryConfiguration::ToleranceSelectionPolicy tolerance_selection_policy_{};
+  const RoadGeometryConfiguration::StandardStrictnessPolicy standard_strictness_policy_{};
   std::unique_ptr<xodr::DBManager> manager_;
   std::unique_ptr<RoadCurveFactoryBase> factory_;
   // Key on LaneId to ensure iteration over this map is deterministic. This

@@ -80,6 +80,11 @@ builder::RoadNetworkConfiguration GetPropertiesFromStringMap(const std::map<std:
       it != parameters.end() ? builder::RoadGeometryConfiguration::FromStrToToleranceSelectionPolicy(it->second)
                              : builder::RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection};
 
+  it = parameters.find("standard_strictness_policy");
+  const builder::RoadGeometryConfiguration::StandardStrictnessPolicy standard_strictness_policy{
+      it != parameters.end() ? builder::RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy(it->second)
+                             : builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict};
+
   it = parameters.find("road_rule_book");
   const std::optional<std::string> road_rule_book{it != parameters.end() ? std::make_optional(it->second)
                                                                          : std::nullopt};
@@ -98,7 +103,7 @@ builder::RoadNetworkConfiguration GetPropertiesFromStringMap(const std::map<std:
 
   return {
       {rg_id, opendrive_file, linear_tolerance, angular_tolerance, scale_length, inertial_to_backend_frame_translation,
-       inertial_to_lane, build_policy, simplification_policy, tolerance_selection_policy},
+       inertial_to_lane, build_policy, simplification_policy, tolerance_selection_policy, standard_strictness_policy},
       road_rule_book,
       traffic_light_book,
       phase_ring_book,

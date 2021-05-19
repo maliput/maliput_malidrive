@@ -30,6 +30,12 @@ struct BuildPolicy {
 
 /// Structure to wrap RoadGeometry parameters.
 struct RoadGeometryConfiguration {
+  /// Determines the flexibility to follow the OpenDrive standard when building the road geometry.
+  enum class StandardStrictnessPolicy {
+    kStrict,    ///< No flexibility at all.
+    kFlexible,  ///< Allows to the road geometry to not completely meet the standard.
+  };
+
   /// Determines whether a simplification to the geometry should be applied or
   /// not.
   enum class SimplificationPolicy {
@@ -56,6 +62,12 @@ struct RoadGeometryConfiguration {
   /// @throws maliput::common::assertion_error When `policy` isn't a valid ToleranceSelectionPolicy.
   static ToleranceSelectionPolicy FromStrToToleranceSelectionPolicy(const std::string& policy);
 
+  /// Convert a string to a StandardStrictnessPolicy.
+  /// @param policy String to be translated to a StandardStrictnessPolicy.
+  /// @returns A StandardStrictnessPolicy value
+  /// @throws maliput::common::assertion_error When `policy` isn't a valid StandardStrictnessPolicy.
+  static StandardStrictnessPolicy FromStrToStandardStrictnessPolicy(const std::string& policy);
+
   // Designed for use with uniform initialization.
   maliput::api::RoadGeometryId id;
   std::optional<std::string> opendrive_file;
@@ -67,6 +79,7 @@ struct RoadGeometryConfiguration {
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
   ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kManualSelection};
+  StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kStrict};
 };
 
 }  // namespace builder
