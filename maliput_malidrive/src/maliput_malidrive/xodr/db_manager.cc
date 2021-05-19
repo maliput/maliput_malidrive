@@ -467,9 +467,10 @@ class DBManager::Impl {
         const auto connections =
             GetConnectionsByRoadId(road_header.id, junction_link->second, true /* incoming road */);
         if (connections.size() == 0) {
-          maliput::log()->warn(
-              "Connection missing. There is no incoming road id: {} that matches with a connection road id: {}",
-              road_header.id.string(), link.element_id);
+          maliput::log()->debug(
+              "Connection missing for Junction id {}. There is no incoming road id: {} that matches with a connection "
+              "road id: {}",
+              junction_link->first.string(), road_header.id.string(), link.element_id);
         } else {
           for (const auto& connection : connections) {
             // Verify that the lanes described in the connection actually exist in the road.
@@ -494,9 +495,10 @@ class DBManager::Impl {
           return c->incoming_road == link.element_id.string();
         });
         if (connection_it == connections.end()) {
-          maliput::log()->warn(
-              "Connection missing. There is no connection road id: {} that matches with an incoming road id: {}",
-              road_header.id.string(), link.element_id);
+          maliput::log()->debug(
+              "Connection missing for Junction id: {}. There is no connection road id: {} that matches with an "
+              "incoming road id: {}",
+              junction->first.string(), road_header.id.string(), link.element_id);
         } else {
           // Verify that the lanes described in the connection actually exist in the road.
           VerifyRoadLanesWithConnectionLanes(*connection_it, false, road_header, is_predecessor);
