@@ -24,7 +24,7 @@ const std::map<std::string, RoadGeometryConfiguration::ToleranceSelectionPolicy>
 // Holds the conversion from string(keys) to StandardStrictnessPolicy(values);
 const std::map<std::string, RoadGeometryConfiguration::StandardStrictnessPolicy> str_to_standard_strictness_policy{
     {"strict", RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict},
-    {"flexible", RoadGeometryConfiguration::StandardStrictnessPolicy::kFlexible}};
+    {"permissive", RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive}};
 
 }  // namespace
 

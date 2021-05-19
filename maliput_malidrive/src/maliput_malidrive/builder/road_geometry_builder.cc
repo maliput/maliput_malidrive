@@ -73,7 +73,7 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
   maliput::log()->trace("Strictness for meeting the OpenDrive standard: {}",
                         standard_strictness_policy_ == RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict
                             ? "strict"
-                            : "flexible");
+                            : "permissive");
 
   if (simplification_policy_ ==
       RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel) {
