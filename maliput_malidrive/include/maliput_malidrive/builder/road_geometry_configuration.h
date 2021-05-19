@@ -32,8 +32,8 @@ struct BuildPolicy {
 struct RoadGeometryConfiguration {
   /// Determines the flexibility to follow the OpenDrive standard when building the road geometry.
   enum class StandardStrictnessPolicy {
-    kStrict,    ///< No flexibility at all.
     kFlexible,  ///< Allows to the road geometry to not completely meet the standard.
+    kStrict,    ///< No flexibility at all.
   };
 
   /// Determines whether a simplification to the geometry should be applied or
@@ -79,7 +79,7 @@ struct RoadGeometryConfiguration {
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
   ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kManualSelection};
-  StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kStrict};
+  StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kFlexible};
 };
 
 }  // namespace builder

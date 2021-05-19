@@ -83,7 +83,7 @@ builder::RoadNetworkConfiguration GetPropertiesFromStringMap(const std::map<std:
   it = parameters.find("standard_strictness_policy");
   const builder::RoadGeometryConfiguration::StandardStrictnessPolicy standard_strictness_policy{
       it != parameters.end() ? builder::RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy(it->second)
-                             : builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict};
+                             : builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kFlexible};
 
   it = parameters.find("road_rule_book");
   const std::optional<std::string> road_rule_book{it != parameters.end() ? std::make_optional(it->second)
