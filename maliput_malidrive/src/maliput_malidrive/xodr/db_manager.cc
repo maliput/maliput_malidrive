@@ -22,12 +22,11 @@ class DBManager::Impl {
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(Impl);
 
   // Creates a DBManager::Impl instance.
-  // @param tolerance Is the tolerance used when verifying values in the XML node. When
-  // it is std::nullopt, no contiguity check is performed.
-  // @throw maliput::common::assertion_error When `tolerance_` is negative.
-  explicit Impl(const std::optional<double>& tolerance) : tolerance_(tolerance) {
-    if (tolerance_.has_value()) {
-      MALIDRIVE_THROW_UNLESS(*tolerance_ >= 0);
+  // @param parser_configuration Holds the configuration for the parser.
+  // @throw maliput::common::assertion_error When `parser_configuration.tolerance` is negative.
+  explicit Impl(const ParserConfiguration parser_configuration) : parser_configuration_(parser_configuration) {
+    if (parser_configuration_.tolerance.has_value()) {
+      MALIDRIVE_THROW_UNLESS(*parser_configuration_.tolerance >= 0);
     }
   };
   ~Impl() = default;
@@ -45,13 +44,13 @@ class DBManager::Impl {
     MALIDRIVE_TRACE("Parsing header node.");
     tinyxml2::XMLElement* header_node = xodr_root_node->FirstChildElement(Header::kHeaderTag);
     MALIDRIVE_THROW_UNLESS(header_node != nullptr);
-    header_ = NodeParser(header_node, tolerance_).As<Header>();
+    header_ = NodeParser(header_node, parser_configuration_).As<Header>();
 
     // Parse XODR `road` headers.
     MALIDRIVE_TRACE("Parsing road headers.");
     tinyxml2::XMLElement* road_header_node = xodr_root_node->FirstChildElement(RoadHeader::kRoadHeaderTag);
     while (road_header_node) {
-      const RoadHeader road_header = NodeParser(road_header_node, tolerance_).As<RoadHeader>();
+      const RoadHeader road_header = NodeParser(road_header_node, parser_configuration_).As<RoadHeader>();
       MALIDRIVE_TRACE("Parsing road id: " + road_header.id.string());
       road_headers_.emplace(road_header.id, road_header);
       road_header_node = road_header_node->NextSiblingElement(RoadHeader::kRoadHeaderTag);
@@ -61,7 +60,7 @@ class DBManager::Impl {
     MALIDRIVE_TRACE("Parsing junction headers.");
     tinyxml2::XMLElement* junction_node = xodr_root_node->FirstChildElement(Junction::kJunctionTag);
     while (junction_node) {
-      const Junction junction = NodeParser(junction_node, tolerance_).As<Junction>();
+      const Junction junction = NodeParser(junction_node, parser_configuration_).As<Junction>();
       const auto id = junctions_.find(junction.id);
       if (id != junctions_.end()) {
         MALIDRIVE_THROW_MESSAGE(std::string("Junction Id: ") + junction.id.string() + " is duplicated.");
@@ -782,7 +781,7 @@ class DBManager::Impl {
   }
 
   // Optional tolerance.
-  std::optional<double> tolerance_{std::nullopt};
+  ParserConfiguration parser_configuration_{};
   // Header of the XODR map.
   Header header_{};
   // Holds the RoadHeaders of the XODR map.
@@ -818,8 +817,8 @@ class DBManager::Impl {
 
 DBManager::~DBManager() = default;
 
-DBManager::DBManager(tinyxml2::XMLDocument* xodr_doc, const std::optional<double>& tolerance)
-    : impl_(std::make_unique<Impl>(tolerance)) {
+DBManager::DBManager(tinyxml2::XMLDocument* xodr_doc, const ParserConfiguration& parser_configuration)
+    : impl_(std::make_unique<Impl>(parser_configuration)) {
   MALIDRIVE_THROW_UNLESS(xodr_doc != nullptr);
   impl_->ParseDoc(xodr_doc);
 }
@@ -872,16 +871,18 @@ const std::vector<DBManager::XodrGeometriesToSimplify> DBManager::GetGeometriesT
   return impl_->GetGeometriesToSimplify(tolerance);
 }
 
-std::unique_ptr<DBManager> LoadDataBaseFromFile(const std::string& filepath, const std::optional<double>& tolerance) {
+std::unique_ptr<DBManager> LoadDataBaseFromFile(const std::string& filepath,
+                                                const ParserConfiguration& parser_configuration) {
   tinyxml2::XMLDocument xodr_doc;
   MALIDRIVE_THROW_UNLESS(xodr_doc.LoadFile(filepath.c_str()) == tinyxml2::XML_SUCCESS);
-  return std::make_unique<DBManager>(&xodr_doc, tolerance);
+  return std::make_unique<DBManager>(&xodr_doc, parser_configuration);
 }
 
-std::unique_ptr<DBManager> LoadDataBaseFromStr(const std::string& xodr_str, const std::optional<double>& tolerance) {
+std::unique_ptr<DBManager> LoadDataBaseFromStr(const std::string& xodr_str,
+                                               const ParserConfiguration& parser_configuration) {
   tinyxml2::XMLDocument xodr_doc;
   MALIDRIVE_THROW_UNLESS(xodr_doc.Parse(xodr_str.c_str()) == tinyxml2::XML_SUCCESS);
-  return std::make_unique<DBManager>(&xodr_doc, tolerance);
+  return std::make_unique<DBManager>(&xodr_doc, parser_configuration);
 }
 
 }  // namespace xodr

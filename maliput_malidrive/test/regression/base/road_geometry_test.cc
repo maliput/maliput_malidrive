@@ -13,6 +13,7 @@
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/xodr/db_manager.h"
+#include "maliput_malidrive/xodr/parser_configuration.h"
 
 #include "maliput/common/assertion_error.h"
 #include "maliput/test_utilities/maliput_types_compare.h"
@@ -36,6 +37,7 @@ class RoadGeometryTest : public ::testing::Test {
   const double kAngularTolerance{constants::kStrictAngularTolerance};  // [rad]
   const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
+  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
   const xodr::RoadHeader::Id kRoadId{"0"};
   const double kP0{0.};
   const double kP1{100.};
@@ -48,7 +50,7 @@ class RoadGeometryTest : public ::testing::Test {
       MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
   std::unique_ptr<road_curve::Function> reference_line_offset = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
   std::unique_ptr<xodr::DBManager> manager =
-      xodr::LoadDataBaseFromFile(utility::FindResource("odr/SingleLane.xodr"), kParserSTolerance);
+      xodr::LoadDataBaseFromFile(utility::FindResource("odr/SingleLane.xodr"), kParserConfiguration);
 };
 
 // Tests getters and the constructor of an empty RoadGeometry.

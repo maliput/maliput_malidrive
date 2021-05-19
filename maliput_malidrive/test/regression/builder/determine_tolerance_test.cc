@@ -32,7 +32,7 @@ TEST_F(DetermineLinearToleranceTest, NullptrArgument) {
 // defined and its length is greater than constants::kLinearTolerance. No gaps
 // are present in the definition.
 TEST_F(DetermineLinearToleranceTest, SingleGeometrySoftConstraintIsUsed) {
-  auto db_manager = xodr::LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry, kLoaderNoToleranceCheck);
+  auto db_manager = xodr::LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry, {kLoaderNoToleranceCheck});
   EXPECT_EQ(constants::kLinearTolerance, DetermineRoadGeometryLinearTolerance(db_manager.get()));
 }
 
@@ -70,7 +70,7 @@ TEST_F(DetermineLinearToleranceTest, TinySingleGeometrySoftConstraintIsUsed) {
 </OpenDRIVE>
 )R";
 
-  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, kLoaderNoToleranceCheck);
+  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, {kLoaderNoToleranceCheck});
   EXPECT_EQ(kMinLinearTolerance, DetermineRoadGeometryLinearTolerance(db_manager.get()));
 }
 
@@ -109,7 +109,7 @@ TEST_F(DetermineLinearToleranceTest, HardConstraintIsUsedBecauseOfGeometryGaps) 
 </OpenDRIVE>
 )R";
 
-  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, kLoaderNoToleranceCheck);
+  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, {kLoaderNoToleranceCheck});
   EXPECT_EQ(1.5, DetermineRoadGeometryLinearTolerance(db_manager.get()));
 }
 
@@ -149,7 +149,7 @@ TEST_F(DetermineLinearToleranceTest, HardConstraintIsUsedBecauseOfElevationGaps)
 </OpenDRIVE>
 )R";
 
-  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, kLoaderNoToleranceCheck);
+  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, {kLoaderNoToleranceCheck});
   EXPECT_EQ(6., DetermineRoadGeometryLinearTolerance(db_manager.get()));
 }
 
@@ -192,7 +192,7 @@ TEST_F(DetermineLinearToleranceTest, HardConstraintIsUsed) {
 </OpenDRIVE>
 )R";
 
-  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, kLoaderNoToleranceCheck);
+  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, {kLoaderNoToleranceCheck});
   EXPECT_EQ(6., DetermineRoadGeometryLinearTolerance(db_manager.get()));
 }
 
@@ -231,7 +231,7 @@ TEST_F(DetermineLinearToleranceTest, HardConstraintIsUsedWithTinyGap) {
 </OpenDRIVE>
 )R";
 
-  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, kLoaderNoToleranceCheck);
+  auto db_manager = xodr::LoadDataBaseFromStr(kXodrMap, {kLoaderNoToleranceCheck});
   EXPECT_EQ(kMinLinearTolerance, DetermineRoadGeometryLinearTolerance(db_manager.get()));
 }
 // @}

@@ -64,7 +64,7 @@ TEST_F(ParsingTests, NumberOfAttributes) {
   const double kExpectedValues[2]{1.57, 35.6};
   const std::string xml_description =
       fmt::format(kBasicXMLNode, kNode, kValue1, kExpectedValues[0], kValue2, kExpectedValues[1], kNode);
-  const ParserBase dut(LoadXMLAndGetNodeByName(xml_description, kNode), kNullParserSTolerance);
+  const ParserBase dut(LoadXMLAndGetNodeByName(xml_description, kNode), {kNullParserSTolerance});
   EXPECT_EQ(kNumberOfAttributes, dut.NumberOfAttributes());
 }
 
@@ -77,7 +77,7 @@ TEST_F(ParsingTests, AttributeParserDouble) {
   std::string xml_description =
       fmt::format(kBasicXMLNode, kNode, kValue1, kExpectedValues[0], kValue2, kExpectedValues[1], kNode);
 
-  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), kNullParserSTolerance);
+  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), {kNullParserSTolerance});
   EXPECT_EQ(kNode, dut.GetName());
   const std::optional<double> version_value_1 = dut.As<double>(kValue1);
   EXPECT_TRUE(version_value_1.has_value());
@@ -94,7 +94,7 @@ TEST_F(ParsingTests, AttributeParserDouble) {
   const double kNanValue{NAN};
 
   xml_description = fmt::format(kBasicXMLNode, kNode, kValue1, kNanValue, kValue2, kNanValue, kNode);
-  const AttributeParser dut2(LoadXMLAndGetNodeByName(xml_description, kNode), kNullParserSTolerance);
+  const AttributeParser dut2(LoadXMLAndGetNodeByName(xml_description, kNode), {kNullParserSTolerance});
   EXPECT_THROW(dut2.As<double>(kValue1), maliput::common::assertion_error);
   EXPECT_THROW(dut2.As<double>(kValue2), maliput::common::assertion_error);
 }
@@ -108,7 +108,7 @@ TEST_F(ParsingTests, AttributeParserString) {
   const std::string xml_description =
       fmt::format(kBasicXMLNode, kNode, kValue1, kExpectedValues[0], kValue2, kExpectedValues[1], kNode);
 
-  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), kNullParserSTolerance);
+  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), {kNullParserSTolerance});
   EXPECT_EQ(kNode, dut.GetName());
   const std::optional<std::string> version_value_1 = dut.As<std::string>(kValue1);
   EXPECT_TRUE(version_value_1.has_value());
@@ -141,7 +141,7 @@ TEST_F(ParsingTests, AttributeParserBool) {
       fmt::format(kBasicXMLNode5Attributes, kNode, kValue[0], kStringValues[0], kValue[1], kStringValues[1], kValue[2],
                   kStringValues[2], kValue[3], kStringValues[3], kValue[4], kStringValues[4], kNode);
 
-  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), kNullParserSTolerance);
+  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), {kNullParserSTolerance});
   EXPECT_EQ(kNode, dut.GetName());
   for (int i = 0; i < 4; i++) {
     const std::optional<bool> parsed_value = dut.As<bool>(kValue[i]);
@@ -164,7 +164,7 @@ TEST_F(ParsingTests, AttributeParserHandTrafficRule) {
   const std::string xml_description =
       fmt::format(kBasicXMLNode, kNode, kValue1, kExpectedValues[0], kValue2, kExpectedValues[1], kNode);
 
-  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), kNullParserSTolerance);
+  const AttributeParser dut(LoadXMLAndGetNodeByName(xml_description, kNode), {kNullParserSTolerance});
   EXPECT_EQ(kNode, dut.GetName());
   const std::optional<RoadHeader::HandTrafficRule> optional_hand_traffic_rule =
       dut.As<RoadHeader::HandTrafficRule>(kValue1);
@@ -206,7 +206,7 @@ TEST_F(ParsingTests, NodeParserHeader) {
                   kExpectedHeader.south.value(), kExpectedHeader.east.value(), kExpectedHeader.west.value(),
                   kExpectedHeader.vendor.value());
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Header::kHeaderTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Header::kHeaderTag), {kNullParserSTolerance});
   EXPECT_EQ(Header::kHeaderTag, dut.GetName());
   EXPECT_EQ(kExpectedHeader, dut.As<Header>());
 }
@@ -238,7 +238,7 @@ TEST_F(ParsingTests, NodeParserRoadLink) {
                   kExpectedRoadLink.successor->element_id.string(),
                   RoadLink::contact_point_to_str(*kExpectedRoadLink.successor->contact_point));
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadLink::kRoadLinkTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadLink::kRoadLinkTag), {kNullParserSTolerance});
   EXPECT_EQ(RoadLink::kRoadLinkTag, dut.GetName());
   const RoadLink road_link = dut.As<RoadLink>();
   EXPECT_EQ(kExpectedRoadLink, road_link);
@@ -258,7 +258,7 @@ TEST_F(ParsingTests, NodeParserRoadSpeed) {
   const std::string xml_description =
       fmt::format(kRoadSpeedTemplate, kExpectedSpeed.max.value(), unit_to_str(kExpectedSpeed.unit));
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadType::Speed::kSpeedTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadType::Speed::kSpeedTag), {kNullParserSTolerance});
   EXPECT_EQ(RoadType::Speed::kSpeedTag, dut.GetName());
   const RoadType::Speed speed = dut.As<RoadType::Speed>();
   EXPECT_EQ(kExpectedSpeed, speed);
@@ -282,7 +282,7 @@ TEST_F(ParsingTests, NodeParserRoadType) {
       fmt::format(kRoadTypeTemplate, kExpectedRoadType.s_0, RoadType::type_to_str(kExpectedRoadType.type),
                   kExpectedRoadType.country.value());
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadType::kRoadTypeTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadType::kRoadTypeTag), {kNullParserSTolerance});
   EXPECT_EQ(RoadType::kRoadTypeTag, dut.GetName());
   const RoadType road_type = dut.As<RoadType>();
   EXPECT_EQ(kExpectedRoadType, road_type);
@@ -308,7 +308,7 @@ TEST_F(ParsingTests, NodeParserLineGeometry) {
       kGeometryTemplate, kExpectedGeometry.s_0, kExpectedGeometry.start_point.x(), kExpectedGeometry.start_point.y(),
       kExpectedGeometry.orientation, kExpectedGeometry.length, Geometry::type_to_str(kExpectedGeometry.type));
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Geometry::kGeometryTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Geometry::kGeometryTag), {kNullParserSTolerance});
   EXPECT_EQ(Geometry::kGeometryTag, dut.GetName());
   const Geometry geometry = dut.As<Geometry>();
   EXPECT_EQ(kExpectedGeometry, geometry);
@@ -326,7 +326,7 @@ TEST_F(ParsingTests, NodeParserArcGeometry) {
       kGeometryTemplate, kExpectedGeometry.s_0, kExpectedGeometry.start_point.x(), kExpectedGeometry.start_point.y(),
       kExpectedGeometry.orientation, kExpectedGeometry.length, geometry_description);
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Geometry::kGeometryTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Geometry::kGeometryTag), {kNullParserSTolerance});
   EXPECT_EQ(Geometry::kGeometryTag, dut.GetName());
   const Geometry geometry = dut.As<Geometry>();
   EXPECT_EQ(kExpectedGeometry, geometry);
@@ -369,7 +369,7 @@ TEST_F(ParsingTests, NodeParserPlanView) {
       kExpectedPlanView.geometries[1].length, Geometry::type_to_str(kExpectedPlanView.geometries[1].type),
       Geometry::Arc::kCurvature, std::get<Geometry::Arc>(kExpectedPlanView.geometries[1].description).curvature);
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, PlanView::kPlanViewTag), kStrictParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, PlanView::kPlanViewTag), {kStrictParserSTolerance});
   EXPECT_EQ(PlanView::kPlanViewTag, dut.GetName());
   const PlanView plan_view = dut.As<PlanView>();
   EXPECT_EQ(kExpectedPlanView, plan_view);
@@ -398,7 +398,7 @@ TEST_F(ParsingTests, NodeParserPlanViewNonContiguous) {
       kExpectedPlanView.geometries[1].length, Geometry::type_to_str(kExpectedPlanView.geometries[1].type),
       Geometry::Arc::kCurvature, std::get<Geometry::Arc>(kExpectedPlanView.geometries[1].description).curvature);
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, PlanView::kPlanViewTag), kStrictParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, PlanView::kPlanViewTag), {kStrictParserSTolerance});
   EXPECT_THROW(dut.As<PlanView>(), maliput::common::assertion_error);
 }
 
@@ -418,7 +418,7 @@ TEST_F(ParsingTests, NodeParserElevation) {
                                                   kExpectedElevation.b, kExpectedElevation.c, kExpectedElevation.d);
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, ElevationProfile::Elevation::kElevationTag),
-                       kNullParserSTolerance);
+                       {kNullParserSTolerance});
   EXPECT_EQ(ElevationProfile::Elevation::kElevationTag, dut.GetName());
   const ElevationProfile::Elevation elevation = dut.As<ElevationProfile::Elevation>();
   EXPECT_EQ(kExpectedElevation, elevation);
@@ -449,7 +449,7 @@ TEST_F(ParsingTests, NodeParserElevationProfile) {
   const std::string xml_description = fmt::format(kElevationProfileTemplate);
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, ElevationProfile::kElevationProfileTag),
-                       kNullParserSTolerance);
+                       {kNullParserSTolerance});
   EXPECT_EQ(ElevationProfile::kElevationProfileTag, dut.GetName());
   const ElevationProfile elevation_profile = dut.As<ElevationProfile>();
   EXPECT_EQ(kExpectedElevationProfile, elevation_profile);
@@ -472,7 +472,7 @@ TEST_F(ParsingTests, NodeParserSuperelevation) {
                   kExpectedSuperelevation.b, kExpectedSuperelevation.c, kExpectedSuperelevation.d);
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LateralProfile::Superelevation::kSuperelevationTag),
-                       kNullParserSTolerance);
+                       {kNullParserSTolerance});
   EXPECT_EQ(LateralProfile::Superelevation::kSuperelevationTag, dut.GetName());
   const LateralProfile::Superelevation superelevation = dut.As<LateralProfile::Superelevation>();
   EXPECT_EQ(kExpectedSuperelevation, superelevation);
@@ -504,7 +504,7 @@ TEST_F(ParsingTests, NodeParserLateralProfile) {
   const std::string xml_description = fmt::format(kLateralProfileTemplate);
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LateralProfile::kLateralProfileTag),
-                       kNullParserSTolerance);
+                       {kNullParserSTolerance});
   EXPECT_EQ(LateralProfile::kLateralProfileTag, dut.GetName());
   const LateralProfile lateral_profile = dut.As<LateralProfile>();
   EXPECT_EQ(kExpectedLateralProfile, lateral_profile);
@@ -524,7 +524,7 @@ TEST_F(ParsingTests, NodeParserLaneWidth) {
   const std::string xml_description = fmt::format(kWidthTemplate, kExpectedLaneWidth.offset, kExpectedLaneWidth.a,
                                                   kExpectedLaneWidth.b, kExpectedLaneWidth.c, kExpectedLaneWidth.d);
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneWidth::kLaneWidthTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneWidth::kLaneWidthTag), {kNullParserSTolerance});
   EXPECT_EQ(LaneWidth::kLaneWidthTag, dut.GetName());
   const LaneWidth lane_width = dut.As<LaneWidth>();
   EXPECT_EQ(kExpectedLaneWidth, lane_width);
@@ -544,7 +544,7 @@ TEST_F(ParsingTests, NodeParserLaneSpeed) {
   const std::string xml_description =
       fmt::format(kLaneSpeedTemplate, kExpectedSpeed.s_offset, kExpectedSpeed.max, unit_to_str(kExpectedSpeed.unit));
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::Speed::kSpeedTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::Speed::kSpeedTag), {kNullParserSTolerance});
   EXPECT_EQ(Lane::Speed::kSpeedTag, dut.GetName());
   const Lane::Speed speed = dut.As<Lane::Speed>();
   EXPECT_EQ(kExpectedSpeed, speed);
@@ -564,7 +564,7 @@ TEST_F(ParsingTests, NodeParserLaneOffset) {
   const std::string xml_description = fmt::format(kLaneOffsetTemplate, kExpectedLaneOffset.s_0, kExpectedLaneOffset.a,
                                                   kExpectedLaneOffset.b, kExpectedLaneOffset.c, kExpectedLaneOffset.d);
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneOffset::kLaneOffsetTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneOffset::kLaneOffsetTag), {kNullParserSTolerance});
   EXPECT_EQ(LaneOffset::kLaneOffsetTag, dut.GetName());
   const LaneOffset lane_offset = dut.As<LaneOffset>();
   EXPECT_EQ(kExpectedLaneOffset, lane_offset);
@@ -587,7 +587,7 @@ TEST_F(ParsingTests, NodeParserLaneLink) {
   const LaneLink kExpectedLaneLink{kPredecessor, kSuccessor};
   const std::string xml_description = fmt::format(kLaneLinkTemplate, kPredecessor.id.string(), kSuccessor.id.string());
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneLink::kLaneLinkTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneLink::kLaneLinkTag), {kNullParserSTolerance});
   EXPECT_EQ(LaneLink::kLaneLinkTag, dut.GetName());
   const LaneLink road_link = dut.As<LaneLink>();
   EXPECT_EQ(kExpectedLaneLink, road_link);
@@ -628,7 +628,7 @@ TEST_F(ParsingTests, NodeParserLane) {
       fmt::format(kLaneTemplate, kExpectedLane.id.string(), Lane::type_to_str(kExpectedLane.type),
                   kExpectedLane.level.value() ? "true" : "false");
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag), {kNullParserSTolerance});
   EXPECT_EQ(Lane::kLaneTag, dut.GetName());
   const Lane lane = dut.As<Lane>();
   EXPECT_EQ(kExpectedLane, lane);
@@ -669,7 +669,7 @@ TEST_F(ParsingTests, NodeParserLaneSection) {
 
   const std::string xml_description = fmt::format(kLaneSectionTemplate, kExpectedLaneSection.s_0);
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneSection::kLaneSectionTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneSection::kLaneSectionTag), {kNullParserSTolerance});
   EXPECT_EQ(LaneSection::kLaneSectionTag, dut.GetName());
   const LaneSection lane_section = dut.As<LaneSection>();
   EXPECT_EQ(kExpectedLaneSection, lane_section);
@@ -758,7 +758,7 @@ TEST_F(ParsingTests, NodeParserLanes) {
                                   {kRightLane} /* right_lanes */};
   const Lanes kExpectedLanes{{{kLaneOffset1}, {kLaneOffset2}}, {{kLaneSection1}, {kLaneSection2}}};
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(kLanesTemplate, Lanes::kLanesTag), kNullParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(kLanesTemplate, Lanes::kLanesTag), {kNullParserSTolerance});
   EXPECT_EQ(Lanes::kLanesTag, dut.GetName());
   const Lanes lanes = dut.As<Lanes>();
   EXPECT_EQ(kExpectedLanes, lanes);
@@ -945,7 +945,7 @@ TEST_F(ParsingTests, NodeParserRoadHeader) {
                   kExpectedRoadHeader.id.string(), kExpectedRoadHeader.junction,
                   RoadHeader::hand_traffic_rule_to_str(kExpectedRoadHeader.rule.value()));
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadHeader::kRoadHeaderTag), kStrictParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, RoadHeader::kRoadHeaderTag), {kStrictParserSTolerance});
   EXPECT_EQ(RoadHeader::kRoadHeaderTag, dut.GetName());
   EXPECT_EQ(kExpectedRoadHeader, dut.As<RoadHeader>());
 }
@@ -979,7 +979,7 @@ TEST_F(ParsingTests, NodeParserConnection) {
       kExpectedConnection.lane_links[0].from.string(), kExpectedConnection.lane_links[0].to.string(),
       kExpectedConnection.lane_links[1].from.string(), kExpectedConnection.lane_links[1].to.string());
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Connection::kConnectionTag), kStrictParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Connection::kConnectionTag), {kStrictParserSTolerance});
   EXPECT_EQ(Connection::kConnectionTag, dut.GetName());
   const Connection connection = dut.As<Connection>();
   EXPECT_EQ(kExpectedConnection, connection);
@@ -1030,7 +1030,7 @@ TEST_F(ParsingTests, NodeParserJunction) {
       fmt::format(kJunctionTemplate, kExpectedJunction.id.string(), kExpectedJunction.name.value(),
                   Junction::type_to_str(kExpectedJunction.type.value()));
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Junction::kJunctionTag), kStrictParserSTolerance);
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Junction::kJunctionTag), {kStrictParserSTolerance});
   EXPECT_EQ(Junction::kJunctionTag, dut.GetName());
   const Junction junction = dut.As<Junction>();
   EXPECT_EQ(kExpectedJunction, junction);

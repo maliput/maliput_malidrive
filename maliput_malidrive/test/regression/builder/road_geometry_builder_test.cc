@@ -56,7 +56,7 @@ class BuilderTestSingleLane : public ::testing::Test {
       InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
 
   std::unique_ptr<xodr::DBManager> manager_ =
-      xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), kLinearTolerance);
+      xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), {kLinearTolerance});
   std::unique_ptr<builder::RoadCurveFactoryBase> factory_ =
       std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
 };
@@ -324,7 +324,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
 class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometryBuilderTestParameters> {
  protected:
   void SetUp() override {
-    manager_ = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), kLinearTolerance);
+    manager_ = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), {kLinearTolerance});
     factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
 
@@ -745,7 +745,7 @@ std::vector<BuilderBranchPointTestParameters> InstantiateBuilderBranchPointParam
 class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPointTestParameters> {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), kLinearTolerance);
+    auto manager = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), {kLinearTolerance});
     auto factory = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
     rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_, std::move(factory))();
     expected_connections = GetParam().expected_connections;
@@ -864,7 +864,7 @@ class RoadGeometryBuilderSurfaceBoundariesTest : public ::testing::TestWithParam
  protected:
   void SetUp() override {
     dut_ = builder::RoadGeometryBuilder(
-        xodr::LoadDataBaseFromFile(kRoadGeometryConfiguration.opendrive_file.value(), kLinearTolerance),
+        xodr::LoadDataBaseFromFile(kRoadGeometryConfiguration.opendrive_file.value(), {kLinearTolerance}),
         kRoadGeometryConfiguration,
         std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance))();
   }

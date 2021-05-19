@@ -187,7 +187,7 @@ std::optional<Unit> AttributeParser::As(const std::string& attribute_name) const
 template <>
 Header NodeParser::As() const {
   Header header{};
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -218,7 +218,7 @@ Header NodeParser::As() const {
 // Specialization to parse `RoadLink::LinkAttributes`'s node.
 template <>
 RoadLink::LinkAttributes NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto element_type = attribute_parser.As<RoadLink::ElementType>(RoadLink::LinkAttributes::kElementType);
   MALIDRIVE_THROW_UNLESS(element_type != std::nullopt);
   const auto element_id = attribute_parser.As<std::string>(RoadLink::LinkAttributes::kElementId);
@@ -245,11 +245,11 @@ RoadLink NodeParser::As() const {
   RoadLink road_link{};
   tinyxml2::XMLElement* predecessor_element(element_->FirstChildElement(RoadLink::kPredecessorTag));
   if (predecessor_element != nullptr) {
-    road_link.predecessor = NodeParser(predecessor_element, tolerance_).As<RoadLink::LinkAttributes>();
+    road_link.predecessor = NodeParser(predecessor_element, parser_configuration_).As<RoadLink::LinkAttributes>();
   }
   tinyxml2::XMLElement* successor_element(element_->FirstChildElement(RoadLink::kSuccessorTag));
   if (successor_element != nullptr) {
-    road_link.successor = NodeParser(successor_element, tolerance_).As<RoadLink::LinkAttributes>();
+    road_link.successor = NodeParser(successor_element, parser_configuration_).As<RoadLink::LinkAttributes>();
   }
   return road_link;
 }
@@ -271,7 +271,7 @@ Geometry::Arc NodeParser::As() const {
     MALIDRIVE_THROW_MESSAGE(std::string("Bad Arc description. Arc demands only one argument: 'curvature'. ") +
                             SerializeNode(element_));
   }
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto curvature = attribute_parser.As<double>(Geometry::Arc::kCurvature);
   MALIDRIVE_THROW_UNLESS(curvature != std::nullopt);
   return Geometry::Arc{curvature.value()};
@@ -280,7 +280,7 @@ Geometry::Arc NodeParser::As() const {
 // Specialization to parse `LaneWidth`'s node.
 template <>
 LaneWidth NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -305,7 +305,7 @@ LaneWidth NodeParser::As() const {
 // Specialization to parse `LaneOffset`'s node.
 template <>
 LaneOffset NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -330,7 +330,7 @@ LaneOffset NodeParser::As() const {
 // Specialization to parse `LaneLink::LinkAttributes`'s node.
 template <>
 LaneLink::LinkAttributes NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto id = attribute_parser.As<std::string>(LaneLink::LinkAttributes::kId);
   MALIDRIVE_THROW_UNLESS(id != std::nullopt);
   return {LaneLink::LinkAttributes::Id(*id)};
@@ -342,11 +342,11 @@ LaneLink NodeParser::As() const {
   LaneLink road_link{};
   tinyxml2::XMLElement* predecessor_element(element_->FirstChildElement(LaneLink::kPredecessorTag));
   if (predecessor_element != nullptr) {
-    road_link.predecessor = NodeParser(predecessor_element, tolerance_).As<LaneLink::LinkAttributes>();
+    road_link.predecessor = NodeParser(predecessor_element, parser_configuration_).As<LaneLink::LinkAttributes>();
   }
   tinyxml2::XMLElement* successor_element(element_->FirstChildElement(LaneLink::kSuccessorTag));
   if (successor_element != nullptr) {
-    road_link.successor = NodeParser(successor_element, tolerance_).As<LaneLink::LinkAttributes>();
+    road_link.successor = NodeParser(successor_element, parser_configuration_).As<LaneLink::LinkAttributes>();
   }
   return road_link;
 }
@@ -354,7 +354,7 @@ LaneLink NodeParser::As() const {
 // Specialization to parse `RoadType::Speed`'s node.
 template <>
 RoadType::Speed NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   RoadType::Speed speed{};
 
   const auto max = attribute_parser.As<std::string>(RoadType::Speed::kMax);
@@ -371,7 +371,7 @@ RoadType::Speed NodeParser::As() const {
 // Specialization to parse `RoadType`'s node.
 template <>
 RoadType NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   RoadType road_type{};
 
   const auto s_0 = attribute_parser.As<double>(RoadType::kS0);
@@ -386,7 +386,7 @@ RoadType NodeParser::As() const {
 
   tinyxml2::XMLElement* speed_element = element_->FirstChildElement(RoadType::Speed::kSpeedTag);
   if (speed_element != nullptr) {
-    road_type.speed = NodeParser(speed_element, tolerance_).As<RoadType::Speed>();
+    road_type.speed = NodeParser(speed_element, parser_configuration_).As<RoadType::Speed>();
   }
   return road_type;
 }
@@ -394,7 +394,7 @@ RoadType NodeParser::As() const {
 // Specialization to parse `Lane::Speed`'s node.
 template <>
 Lane::Speed NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   Lane::Speed speed{};
 
   const auto s_offset = attribute_parser.As<double>(Lane::Speed::kSOffset);
@@ -413,7 +413,7 @@ Lane::Speed NodeParser::As() const {
 // Specialization to parse `Lane`'s node.
 template <>
 Lane NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -433,20 +433,20 @@ Lane NodeParser::As() const {
   LaneLink lane_link{};
   tinyxml2::XMLElement* lane_link_element = element_->FirstChildElement(LaneLink::kLaneLinkTag);
   if (lane_link_element != nullptr) {
-    lane_link = NodeParser(lane_link_element, tolerance_).As<LaneLink>();
+    lane_link = NodeParser(lane_link_element, parser_configuration_).As<LaneLink>();
   }
 
   tinyxml2::XMLElement* width_element = element_->FirstChildElement(LaneWidth::kLaneWidthTag);
   std::vector<LaneWidth> width_description;
   while (width_element) {
-    width_description.push_back(NodeParser(width_element, tolerance_).As<LaneWidth>());
+    width_description.push_back(NodeParser(width_element, parser_configuration_).As<LaneWidth>());
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
   }
 
   tinyxml2::XMLElement* speed_element = element_->FirstChildElement(Lane::Speed::kSpeedTag);
   std::vector<Lane::Speed> speeds;
   while (speed_element) {
-    speeds.push_back(NodeParser(speed_element, tolerance_).As<Lane::Speed>());
+    speeds.push_back(NodeParser(speed_element, parser_configuration_).As<Lane::Speed>());
     speed_element = speed_element->NextSiblingElement(Lane::Speed::kSpeedTag);
   }
 
@@ -463,11 +463,11 @@ namespace {
 // Returns all the lanes located in `element`.
 // `is_center_node` specifies whether the lanes that are being parsed are center lanes or not.
 std::vector<Lane> GetAllLanesFromNode(tinyxml2::XMLElement* element, bool is_center_node,
-                                      const std::optional<double>& tolerance) {
+                                      const ParserConfiguration& parse_configuration) {
   std::vector<Lane> lanes;
   tinyxml2::XMLElement* lane_element_ptr = element->FirstChildElement(Lane::kLaneTag);
   while (lane_element_ptr != nullptr) {
-    const NodeParser node_parser(lane_element_ptr, tolerance);
+    const NodeParser node_parser(lane_element_ptr, parse_configuration);
     const Lane lane = node_parser.As<Lane>();
     // Center lanes must not have `widths` description.
     // While right and left lanes need at least one width entry.
@@ -486,7 +486,7 @@ std::vector<Lane> GetAllLanesFromNode(tinyxml2::XMLElement* element, bool is_cen
 // Specialization to parse `LaneSection`'s node.
 template <>
 LaneSection NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
   // Non-optional attributes.
   // @{
   const std::optional<double> s_0 = attribute_parser.As<double>(LaneSection::kS0);
@@ -504,20 +504,20 @@ LaneSection NodeParser::As() const {
   std::vector<Lane> left_lanes;
   tinyxml2::XMLElement* left_element_ptr = element_->FirstChildElement(LaneSection::kLeft);
   if (left_element_ptr != nullptr) {
-    left_lanes = GetAllLanesFromNode(left_element_ptr, false, tolerance_);
+    left_lanes = GetAllLanesFromNode(left_element_ptr, false, parser_configuration_);
   }
   // Center lane.
   MALIDRIVE_TRACE("Parsing center lane.");
   tinyxml2::XMLElement* center_element_ptr = element_->FirstChildElement(LaneSection::kCenter);
   MALIDRIVE_THROW_UNLESS(center_element_ptr != nullptr);
-  std::vector<Lane> center_lanes = GetAllLanesFromNode(center_element_ptr, true, tolerance_);
+  std::vector<Lane> center_lanes = GetAllLanesFromNode(center_element_ptr, true, parser_configuration_);
   MALIDRIVE_THROW_UNLESS(center_lanes.size() == 1);
   // Right lanes.
   MALIDRIVE_TRACE("Parsing right lanes.");
   std::vector<Lane> right_lanes;
   tinyxml2::XMLElement* right_element_ptr = element_->FirstChildElement(LaneSection::kRight);
   if (right_element_ptr != nullptr) {
-    right_lanes = GetAllLanesFromNode(right_element_ptr, false, tolerance_);
+    right_lanes = GetAllLanesFromNode(right_element_ptr, false, parser_configuration_);
   }
 
   return {s_0.value(), single_side, left_lanes, center_lanes[0], right_lanes};
@@ -531,7 +531,7 @@ Lanes NodeParser::As() const {
   std::vector<LaneOffset> lanes_offset;
   tinyxml2::XMLElement* lane_offset_element_ptr = element_->FirstChildElement(LaneOffset::kLaneOffsetTag);
   while (lane_offset_element_ptr != nullptr) {
-    const NodeParser node_parser(lane_offset_element_ptr, tolerance_);
+    const NodeParser node_parser(lane_offset_element_ptr, parser_configuration_);
     lanes_offset.push_back(node_parser.As<LaneOffset>());
     lane_offset_element_ptr = lane_offset_element_ptr->NextSiblingElement(LaneOffset::kLaneOffsetTag);
   }
@@ -542,7 +542,7 @@ Lanes NodeParser::As() const {
   int index{};
   while (lane_section_element_ptr != nullptr) {
     MALIDRIVE_TRACE("Parsing laneSection #" + std::to_string(index));
-    const NodeParser node_parser(lane_section_element_ptr, tolerance_);
+    const NodeParser node_parser(lane_section_element_ptr, parser_configuration_);
     lanes_section.push_back(node_parser.As<LaneSection>());
     lane_section_element_ptr = lane_section_element_ptr->NextSiblingElement(LaneSection::kLaneSectionTag);
     index++;
@@ -557,7 +557,7 @@ Lanes NodeParser::As() const {
 template <>
 Geometry NodeParser::As() const {
   Geometry geometry{};
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -581,7 +581,7 @@ Geometry NodeParser::As() const {
   MALIDRIVE_THROW_UNLESS(length != std::nullopt);
   geometry.length = length.value();
 
-  const NodeParser geometry_type(element_->FirstChildElement(), tolerance_);
+  const NodeParser geometry_type(element_->FirstChildElement(), parser_configuration_);
   geometry.type = Geometry::str_to_type(geometry_type.GetName());
   switch (geometry.type) {
     case Geometry::Type::kLine:
@@ -602,7 +602,7 @@ Geometry NodeParser::As() const {
 template <>
 ElevationProfile::Elevation NodeParser::As() const {
   ElevationProfile::Elevation elevation{};
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -635,7 +635,7 @@ ElevationProfile NodeParser::As() const {
   std::vector<ElevationProfile::Elevation> elevations;
   tinyxml2::XMLElement* elevation_element(element_->FirstChildElement(ElevationProfile::Elevation::kElevationTag));
   while (elevation_element) {
-    auto elevation = NodeParser(elevation_element, tolerance_).As<ElevationProfile::Elevation>();
+    auto elevation = NodeParser(elevation_element, parser_configuration_).As<ElevationProfile::Elevation>();
     elevations.push_back(std::move(elevation));
     elevation_element = elevation_element->NextSiblingElement(ElevationProfile::Elevation::kElevationTag);
   }
@@ -646,7 +646,7 @@ ElevationProfile NodeParser::As() const {
 template <>
 LateralProfile::Superelevation NodeParser::As() const {
   LateralProfile::Superelevation superelevation{};
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -680,7 +680,8 @@ LateralProfile NodeParser::As() const {
   tinyxml2::XMLElement* superelevation_element(
       element_->FirstChildElement(LateralProfile::Superelevation::kSuperelevationTag));
   while (superelevation_element) {
-    auto superelevation = NodeParser(superelevation_element, tolerance_).As<LateralProfile::Superelevation>();
+    auto superelevation =
+        NodeParser(superelevation_element, parser_configuration_).As<LateralProfile::Superelevation>();
     superelevations.push_back(std::move(superelevation));
     superelevation_element =
         superelevation_element->NextSiblingElement(LateralProfile::Superelevation::kSuperelevationTag);
@@ -695,10 +696,10 @@ PlanView NodeParser::As() const {
   tinyxml2::XMLElement* geometry_element(element_->FirstChildElement(Geometry::kGeometryTag));
   MALIDRIVE_THROW_UNLESS(geometry_element != nullptr);
   while (geometry_element) {
-    const NodeParser geometry_node(geometry_element, tolerance_);
+    const NodeParser geometry_node(geometry_element, parser_configuration_);
     auto geometry = geometry_node.As<Geometry>();
-    if (tolerance_.has_value() && geometries.size() > 0) {
-      if (!IsContiguous(geometries.back(), geometry, *tolerance_)) {
+    if (parser_configuration_.tolerance.has_value() && geometries.size() > 0) {
+      if (!IsContiguous(geometries.back(), geometry, *parser_configuration_.tolerance)) {
         MALIDRIVE_THROW_MESSAGE("Geometries doesn't meet contiguity constraint.");
       };
     }
@@ -712,7 +713,7 @@ PlanView NodeParser::As() const {
 template <>
 RoadHeader NodeParser::As() const {
   RoadHeader road_header{};
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   MALIDRIVE_TRACE("Parsing Road attributes");
   // Non-optional attributes.
@@ -741,14 +742,14 @@ RoadHeader NodeParser::As() const {
   MALIDRIVE_TRACE("Parsing road link.");
   const auto link_element = element_->FirstChildElement(RoadLink::kRoadLinkTag);
   if (link_element) {
-    const NodeParser road_link(link_element, tolerance_);
+    const NodeParser road_link(link_element, parser_configuration_);
     road_header.road_link = road_link.As<RoadLink>();
   }
   // Get Types.
   MALIDRIVE_TRACE("Parsing road type.");
   auto type_element = element_->FirstChildElement(RoadType::kRoadTypeTag);
   while (type_element) {
-    road_header.road_types.push_back(NodeParser(type_element, tolerance_).As<RoadType>());
+    road_header.road_types.push_back(NodeParser(type_element, parser_configuration_).As<RoadType>());
     type_element = type_element->NextSiblingElement(RoadType::kRoadTypeTag);
   }
 
@@ -759,27 +760,27 @@ RoadHeader NodeParser::As() const {
   MALIDRIVE_TRACE("Parsing planView.");
   tinyxml2::XMLElement* plan_view_element(element_->FirstChildElement(PlanView::kPlanViewTag));
   MALIDRIVE_THROW_UNLESS(plan_view_element != nullptr);
-  road_header.reference_geometry.plan_view = NodeParser(plan_view_element, tolerance_).As<PlanView>();
+  road_header.reference_geometry.plan_view = NodeParser(plan_view_element, parser_configuration_).As<PlanView>();
   MALIDRIVE_TRACE("Parsing elevationProfile.");
   // Get ElevationProfile.
   tinyxml2::XMLElement* elevation_profile_element(element_->FirstChildElement(ElevationProfile::kElevationProfileTag));
   if (elevation_profile_element) {
     road_header.reference_geometry.elevation_profile =
-        NodeParser(elevation_profile_element, tolerance_).As<ElevationProfile>();
+        NodeParser(elevation_profile_element, parser_configuration_).As<ElevationProfile>();
   }
   // Get LateralProfile.
   MALIDRIVE_TRACE("Parsing lateralProfile.");
   tinyxml2::XMLElement* lateral_profile_element(element_->FirstChildElement(LateralProfile::kLateralProfileTag));
   if (lateral_profile_element) {
     road_header.reference_geometry.lateral_profile =
-        NodeParser(lateral_profile_element, tolerance_).As<LateralProfile>();
+        NodeParser(lateral_profile_element, parser_configuration_).As<LateralProfile>();
   }
   // @}
 
   // Get Lanes.
   // @{
   MALIDRIVE_TRACE("Parsing lanes.");
-  const NodeParser lanes(element_->FirstChildElement(Lanes::kLanesTag), tolerance_);
+  const NodeParser lanes(element_->FirstChildElement(Lanes::kLanesTag), parser_configuration_);
   road_header.lanes = Lanes{lanes.As<Lanes>()};
   // @}
 
@@ -789,7 +790,7 @@ RoadHeader NodeParser::As() const {
 // Specialization to parse `Connection::LaneLink`'s node.
 template <>
 Connection::LaneLink NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -805,7 +806,7 @@ Connection::LaneLink NodeParser::As() const {
 // Specialization to parse `Connection`'s node.
 template <>
 Connection NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -839,7 +840,7 @@ Connection NodeParser::As() const {
   std::vector<Connection::LaneLink> lane_links;
   if (lane_link_element != nullptr) {
     while (lane_link_element) {
-      const auto lane_link = NodeParser(lane_link_element, tolerance_).As<Connection::LaneLink>();
+      const auto lane_link = NodeParser(lane_link_element, parser_configuration_).As<Connection::LaneLink>();
       lane_links.push_back(std::move(lane_link));
       lane_link_element = lane_link_element->NextSiblingElement(Connection::LaneLink::kLaneLinkTag);
     }
@@ -850,7 +851,7 @@ Connection NodeParser::As() const {
 // Specialization to parse `Junction`'s node.
 template <>
 Junction NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, tolerance_);
+  const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
@@ -873,7 +874,7 @@ Junction NodeParser::As() const {
   MALIDRIVE_THROW_UNLESS(connection_element != nullptr);
   std::unordered_map<Connection::Id, Connection> connections;
   while (connection_element) {
-    const auto connection = NodeParser(connection_element, tolerance_).As<Connection>();
+    const auto connection = NodeParser(connection_element, parser_configuration_).As<Connection>();
     if (connections.find(connection.id) != connections.end()) {
       MALIDRIVE_THROW_MESSAGE(std::string("Connection Id: ") + connection.id.string() + std::string(" is duplicated."));
     }

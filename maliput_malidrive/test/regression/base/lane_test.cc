@@ -131,6 +131,7 @@ class LaneTest : public ::testing::Test {
   const double kWidth{5.};
   const double kLaneOffset{10.};
   const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
+  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
   std::unique_ptr<road_curve::Function> reference_line_offset_;
 };
@@ -230,7 +231,7 @@ constexpr const char* kXODRHeaderTemplate = R"R(
 class MalidriveFlatLineLaneFullyInitializedTest : public LaneTest {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserSTolerance);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -447,7 +448,7 @@ TEST_F(MalidriveFlatLineLaneFullyInitializedTest, EvalMotionDerivatives) {
 class MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslationTest : public LaneTest {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserSTolerance);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -513,7 +514,7 @@ TEST_F(MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslatio
 class MalidriveFlatArcLaneFullyInitializedTest : public LaneTest {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserSTolerance);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -745,7 +746,7 @@ TEST_F(MalidriveFlatArcLaneFullyInitializedTest, EvalMotionDerivatives) {
 class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserSTolerance);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -787,6 +788,8 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
   const int kXodrLaneId{5};
   const maliput::api::HBounds kElevationBounds{0., 5.};
   const std::optional<double> kParserSTolerance{kLinearTolerance};
+  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
+
   const double kRCenterline{0.};
   const double kRLeft{1.};
   const double kRRight{-2.};
@@ -1078,7 +1081,7 @@ std::vector<ElevationValues> InstantiateElevationParameters() {
 class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::TestWithParam<ElevationValues> {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kUnarmedSToleranceParserTest);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -1114,6 +1117,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
   const double kWidth{5.};
   const double kLaneOffset{10.};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
+  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
   const double kLinearTolerance{1e-6};
   const double kAngularTolerance{1e-6};
@@ -1399,7 +1403,7 @@ std::vector<ArcElevationValues> InstantiateElevationParametersForArc() {
 class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::TestWithParam<ArcElevationValues> {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kUnarmedSToleranceParserTest);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -1441,6 +1445,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
   const double kWidth{5.};
   const double kLaneOffset{10.};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
+  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
   const double kLinearTolerance{1e-6};
   const double kAngularTolerance{1e-6};
@@ -1668,7 +1673,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
     : public ::testing::TestWithParam<SuperelevatedLaneTestParams> {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kUnarmedSToleranceParserTest);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -1715,6 +1720,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
   const double kWidth{5.};
   const double kLaneOffset{10.};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
+  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
   const double kLinearTolerance{1e-6};
   const double kAngularTolerance{1e-6};
@@ -1991,7 +1997,7 @@ INSTANTIATE_TEST_CASE_P(MaldriveLaneSingleLaneWithSuperelevationGroup,
 class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kUnarmedSToleranceParserTest);
+    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
     road_geometry_ =
         std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
                                        kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
@@ -2029,6 +2035,7 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
   const double kScaleLength{1.};
   const double kLinearTolerance{1e-9};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
+  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
   const maliput::api::LaneId kId{"dut"};
   const int kXordTrack{1};

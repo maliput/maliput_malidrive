@@ -24,7 +24,7 @@ class SimplifyGeometriesTest : public ::testing::Test {
 };
 
 TEST_F(SimplifyGeometriesTest, NoSimplification) {
-  const auto db_manager = xodr::LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry, kLoaderNoToleranceCheck);
+  const auto db_manager = xodr::LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry, {kLoaderNoToleranceCheck});
   const std::vector<xodr::Geometry>& parsed_geometries =
       db_manager->GetRoadHeaders().at(kRoadId).reference_geometry.plan_view.geometries;
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
@@ -38,7 +38,8 @@ TEST_F(SimplifyGeometriesTest, NoSimplification) {
 }
 
 TEST_F(SimplifyGeometriesTest, NoSimplificationLineAndArc) {
-  const auto db_manager = xodr::LoadDataBaseFromStr(malidrive::test::kXodrLineAndArcGeometry, kLoaderNoToleranceCheck);
+  const auto db_manager =
+      xodr::LoadDataBaseFromStr(malidrive::test::kXodrLineAndArcGeometry, {kLoaderNoToleranceCheck});
   const std::vector<xodr::Geometry>& parsed_geometries =
       db_manager->GetRoadHeaders().at(kRoadId).reference_geometry.plan_view.geometries;
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
@@ -54,7 +55,7 @@ TEST_F(SimplifyGeometriesTest, NoSimplificationLineAndArc) {
 
 TEST_F(SimplifyGeometriesTest, SimplifiesLines) {
   const auto db_manager =
-      xodr::LoadDataBaseFromStr(malidrive::test::kXodrWithLinesToBeSimplified, kLoaderNoToleranceCheck);
+      xodr::LoadDataBaseFromStr(malidrive::test::kXodrWithLinesToBeSimplified, {kLoaderNoToleranceCheck});
   const std::vector<xodr::Geometry>& parsed_geometries =
       db_manager->GetRoadHeaders().at(kRoadId).reference_geometry.plan_view.geometries;
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
@@ -74,7 +75,7 @@ TEST_F(SimplifyGeometriesTest, SimplifiesLines) {
 
 TEST_F(SimplifyGeometriesTest, SimplifiesArcs) {
   const auto db_manager =
-      xodr::LoadDataBaseFromStr(malidrive::test::kXodrWithArcsToBeSimplified, kLoaderNoToleranceCheck);
+      xodr::LoadDataBaseFromStr(malidrive::test::kXodrWithArcsToBeSimplified, {kLoaderNoToleranceCheck});
   const std::vector<xodr::Geometry>& parsed_geometries =
       db_manager->GetRoadHeaders().at(kRoadId).reference_geometry.plan_view.geometries;
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
@@ -94,7 +95,7 @@ TEST_F(SimplifyGeometriesTest, SimplifiesArcs) {
 
 TEST_F(SimplifyGeometriesTest, SimplifiesLinesBetweenArcs) {
   const auto db_manager =
-      xodr::LoadDataBaseFromStr(malidrive::test::kXodrCombinedLinesWithArcs, kLoaderNoToleranceCheck);
+      xodr::LoadDataBaseFromStr(malidrive::test::kXodrCombinedLinesWithArcs, {kLoaderNoToleranceCheck});
   const std::vector<xodr::Geometry>& parsed_geometries =
       db_manager->GetRoadHeaders().at(kRoadId).reference_geometry.plan_view.geometries;
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
@@ -117,7 +118,7 @@ TEST_F(SimplifyGeometriesTest, SimplifiesLinesBetweenArcs) {
 
 TEST_F(SimplifyGeometriesTest, SimplifiesArcsBetweenLines) {
   const auto db_manager =
-      xodr::LoadDataBaseFromStr(malidrive::test::kXodrCombinedArcsWithLines, kLoaderNoToleranceCheck);
+      xodr::LoadDataBaseFromStr(malidrive::test::kXodrCombinedArcsWithLines, {kLoaderNoToleranceCheck});
   const std::vector<xodr::Geometry>& parsed_geometries =
       db_manager->GetRoadHeaders().at(kRoadId).reference_geometry.plan_view.geometries;
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
