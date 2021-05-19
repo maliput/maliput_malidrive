@@ -166,9 +166,15 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
   const std::optional<xodr::RoadLink::LinkAttributes> road_link =
       connection_type == XodrConnectionType::kSuccessor ? xodr_lane_properties.road_header->road_link.successor
                                                         : xodr_lane_properties.road_header->road_link.predecessor;
-  MALIDRIVE_THROW_UNLESS(road_link != std::nullopt);
+  if (road_link == std::nullopt) {
+    maliput::log()->debug("Trying to connect xodr Road: {}, lane: {} {} endpoint but it lacks of a {}.",
+                          xodr_lane_properties.road_header->id.string(), xodr_lane_properties.lane->id.string(),
+                          connection_type == XodrConnectionType::kSuccessor ? "end" : "start",
+                          connection_type == XodrConnectionType::kSuccessor ? "successor" : "predecessor");
+    return {};
+  }
   if (road_link->element_type == xodr::RoadLink::ElementType::kJunction) {
-    MALIDRIVE_THROW_MESSAGE(std::string("Junctions connected to junctions are not supported."));
+    MALIDRIVE_THROW_MESSAGE("Junctions connected to junctions are not supported.");
   }
   return SolveLaneEndsForConnectingRoad(rg, xodr_lane_properties, road_headers, connection_type);
 }

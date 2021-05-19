@@ -91,8 +91,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
 
 /// Searches which LaneEnds connect to `xodr_lane_properties.lane` in `connection_type` direction
 /// considering the LaneEnd belongs to an external interface. The XODR Road that contains the LaneEnd is
-/// assumed to live within an XODR Junction and it could connect either to
-/// another XODR Road.
+/// assumed to live within an XODR Junction and it *could* connect to another XODR Road.
 ///
 /// @param rg Is the pointer to the RoadGeometry is being built. It must not be
 ///        nullptr.
@@ -102,7 +101,6 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
 ///        is solved.
 ///
 /// @throws maliput::common::assertion_error When either `rg` is nullptr.
-/// @throws maliput::common::assertion_error When there isn't a valid RoadLink.
 /// @throws maliput::common::assertion_error When the RoadLink links to a junction.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,

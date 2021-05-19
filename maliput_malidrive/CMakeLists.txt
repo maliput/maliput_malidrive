@@ -89,6 +89,7 @@ install (FILES resources/ArcLane.xodr
                resources/Crossing8Course.xodr
                resources/CrossingComplex8Course.xodr
                resources/DriveableAndPedestrian.xodr
+               resources/DisconnectedRoadInJunction.xodr
                resources/Figure8.xodr
                resources/Highway.xodr
                resources/kpit_map.xodr

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenDRIVE>
+    <header revMajor="1" revMinor="4" name="" version="1" date="2021-05-19T12:00:00" north="0.0" south="0.0" east="0.0" west="0.0" vendor="TRI">
+    </header>
+    <road name="Road 0" length="5.0e+1" id="0" junction="-1">
+        <link>
+            <successor elementType="junction" elementId="2"/>
+        </link>
+        <type s="0.0000000000000000e+0" type="town">
+            <speed max="40" unit="mph"/>
+        </type>
+        <planView>
+            <geometry s="0.0e+0" x="0.0e+0" y="0.0e+0" hdg="0.0e+0" length="5.0e+1">
+                <line/>
+            </geometry>
+        </planView>
+        <lanes>
+            <laneOffset s="0.0e+0" a="0.0e+0" b="0.0e+0" c="0.0e+0" d="0.0e+0"/>
+            <laneSection s="0.0e+0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0e+0" a="3.5e+0" b="0.0e+0" c="0.0e+0" d="0.0e+0"/>
+                        <roadMark sOffset="0.0e+0" type="solid" material="standard" color="white" width="1.25e-1"/>
+                        <userData>
+                            <vectorLane travelDir="forward"/>
+                        </userData>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false">
+                        <roadMark sOffset="0.0e+0" type="solid solid" material="standard" color="yellow" width="1.25e-1"/>
+                        <roadMark sOffset="4.6e+1" type="none" material="standard" color="white"/>
+                    </lane>
+                </center>
+            </laneSection>
+        </lanes>
+    </road>
+    <road name="Road 1" length="5.0e+1" id="1" junction="2">
+        <link>
+            <predecessor elementType="road" elementId="0" contactPoint="end"/>
+        </link>
+        <type s="0.0e+0" type="town">
+            <speed max="40" unit="mph"/>
+        </type>
+        <planView>
+            <geometry s="0.0e+0" x="5.0e+1" y="0.0e+0" hdg="0.0e+0" length="5.0e+1">
+                <line/>
+            </geometry>
+        </planView>
+        <lanes>
+            <laneOffset s="0.0e+0" a="0.0e+0" b="0.0e+0" c="0.0e+0" d="0.0e+0"/>
+            <laneSection s="0.0e+0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0e+0" a="3.5e+0" b="0.0e+0" c="0.0e+0" d="0.0e+0"/>
+                        <roadMark sOffset="0.0e+0" type="solid" material="standard" color="white" width="1.25e-1"/>
+                        <userData>
+                            <vectorLane travelDir="forward"/>
+                        </userData>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false">
+                        <roadMark sOffset="0.0e+0" type="solid solid" material="standard" color="yellow" width="1.25e-1"/>
+                    </lane>
+                </center>
+            </laneSection>
+        </lanes>
+    </road>
+    <junction id="2" name="Junction 2">
+        <connection id="0" incomingRoad="0" connectingRoad="1" contactPoint="start">
+            <laneLink from="1" to="1"/>
+        </connection>
+    </junction>
+</OpenDRIVE>
