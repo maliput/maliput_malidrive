@@ -10,6 +10,7 @@
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/header.h"
 #include "maliput_malidrive/xodr/junction.h"
+#include "maliput_malidrive/xodr/parser_configuration.h"
 #include "maliput_malidrive/xodr/road_header.h"
 
 namespace malidrive {
@@ -99,11 +100,10 @@ class DBManager {
   /// Creates a database manager from a XMLDocument which contains
   /// a XODR description.
   /// @param xodr_doc Contains the XODR description.
-  /// @param tolerance Tolerance used to verify values in the XML node. When
-  /// it is std::nullopt, no contiguity check is performed.
+  /// @param parser_configuration Holds the configuration for the parser.
   /// @throw maliput::common::assertion_error When `xodr_doc` is nullptr.
-  /// @throw maliput::common::assertion_error When `tolerance_` is negative.
-  DBManager(tinyxml2::XMLDocument* xodr_doc, const std::optional<double>& tolerance);
+  /// @throw maliput::common::assertion_error When `parser_configuration.tolerance` is negative.
+  DBManager(tinyxml2::XMLDocument* xodr_doc, const ParserConfiguration& parser_configuration);
   DBManager() = delete;
 
   ~DBManager();
@@ -240,17 +240,19 @@ class DBManager {
 
 /// Loads a XODR description from a file.
 /// @param filepath Filepath to the XODR file.
-/// @param tolerance Tolerance used to verify values in xodr description.
+/// @param parser_configuration Holds the configuration for the parser.
 /// @returns A DBManager.
 /// @throw maliput::common::assertion_error When XODR description couldn't be correctly loaded.
-std::unique_ptr<DBManager> LoadDataBaseFromFile(const std::string& filepath, const std::optional<double>& tolerance);
+std::unique_ptr<DBManager> LoadDataBaseFromFile(const std::string& filepath,
+                                                const ParserConfiguration& parser_configuration);
 
 /// Loads a XODR description from a string.
 /// @param xodr_str String containing the XODR description.
-/// @param tolerance Tolerance used to verify values in xodr description.
+/// @param parser_configuration Holds the configuration for the parser.
 /// @returns A DBManager.
 /// @throw maliput::common::assertion_error When XODR description couldn't be correctly loaded.
-std::unique_ptr<DBManager> LoadDataBaseFromStr(const std::string& xodr_str, const std::optional<double>& tolerance);
+std::unique_ptr<DBManager> LoadDataBaseFromStr(const std::string& xodr_str,
+                                               const ParserConfiguration& parser_configuration);
 
 }  // namespace xodr
 }  // namespace malidrive

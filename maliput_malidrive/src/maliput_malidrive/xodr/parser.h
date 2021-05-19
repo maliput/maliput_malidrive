@@ -6,6 +6,7 @@
 #include <tinyxml2.h>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/parser_configuration.h"
 
 namespace malidrive {
 namespace xodr {
@@ -19,15 +20,14 @@ class ParserBase {
 
   /// Creates an ParserBase from a tinyxml2::XMLElement.
   /// @param element Is the XML Node that contains attributes to be parsed.
-  /// @param tolerance Tolerance used to verify values in the XML node. When
-  /// it is std::nullopt, no contiguity check is performed.
+  /// @param parser_configuration Holds the configuration for the parser.
   /// @throw maliput::common::assertion_error When `element` is nullptr.
-  /// @throw maliput::common::assertion_error When `tolerance_` is negative.
-  ParserBase(tinyxml2::XMLElement* element, const std::optional<double> tolerance)
-      : element_(element), tolerance_(tolerance) {
+  /// @throw maliput::common::assertion_error When `parser_configuration.tolerance` is negative.
+  ParserBase(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
+      : element_(element), parser_configuration_(parser_configuration) {
     MALIDRIVE_THROW_UNLESS(element_ != nullptr);
-    if (tolerance_.has_value()) {
-      MALIDRIVE_THROW_UNLESS(*tolerance_ >= 0);
+    if (parser_configuration_.tolerance.has_value()) {
+      MALIDRIVE_THROW_UNLESS(*parser_configuration_.tolerance >= 0);
     }
   }
 
@@ -41,8 +41,8 @@ class ParserBase {
  protected:
   /// A XML node.
   tinyxml2::XMLElement* element_{};
-  /// Optional tolerance.
-  std::optional<double> tolerance_{std::nullopt};
+  /// Parser configuration.
+  ParserConfiguration parser_configuration_{};
 };
 
 /// Parses XML node's attributes descriptions.
@@ -57,11 +57,10 @@ class AttributeParser : public ParserBase {
 
   /// Creates an AttributeParser from a tinyxml2::XMLElement.
   /// @param element Is the XML Node that contains attributes to be parsed.
-  /// @param tolerance Tolerance used to verify values in the XML node. When
-  /// it is std::nullopt, no contiguity check is performed.
+  /// @param parser_configuration Holds the configuration for the parser.
   /// @throw maliput::common::assertion_error When `element` is nullptr.
-  AttributeParser(tinyxml2::XMLElement* element, const std::optional<double> tolerance)
-      : ParserBase(element, tolerance) {}
+  AttributeParser(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
+      : ParserBase(element, parser_configuration) {}
 
   /// Parses the `attribute_name` as `T`.
   /// @tparam T Is the type to parse the attribute's value into.
@@ -83,10 +82,10 @@ class NodeParser : public ParserBase {
 
   /// Creates a NodeParser from a tinyxml2::XMLElement.
   /// @param element Is the XML Node to be parsed.
-  /// @param tolerance Tolerance used to verify values in the XML node. When
-  /// it is std::nullopt, no contiguity check is performed.
+  /// @param parser_configuration Holds the configuration for the parser.
   /// @throw maliput::common::assertion_error When `element` is nullptr.
-  NodeParser(tinyxml2::XMLElement* element, const std::optional<double> tolerance) : ParserBase(element, tolerance) {}
+  NodeParser(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
+      : ParserBase(element, parser_configuration) {}
 
   /// Parses the node as `T`.
   /// @tparam T Is the type of the node's value.
