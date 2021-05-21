@@ -34,14 +34,6 @@ bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double
   return std::abs(geometry_a.s_0 + geometry_a.length - geometry_b.s_0) <= tolerance;
 }
 
-// Returns a string containing the serialized XML `element` when the latter isn't nullptr. It throws otherwise.
-std::string SerializeNode(const tinyxml2::XMLElement* element) {
-  MALIDRIVE_THROW_UNLESS(element != nullptr);
-  tinyxml2::XMLPrinter printer;
-  element->Accept(&printer);
-  return printer.CStr();
-}
-
 }  // namespace
 
 int ParserBase::NumberOfAttributes() const {
@@ -66,7 +58,7 @@ std::optional<double> AttributeParser::As(const std::string& attribute_name) con
   if (!std::isnan(value)) {
     return std::make_optional(value);
   }
-  const std::string serialized_node{SerializeNode(element_)};
+  const std::string serialized_node{ConvertXMLNodeToText(element_)};
   maliput::log()->error("Attributes with NaN values are not supported. \n {}", serialized_node);
   MALIDRIVE_THROW_MESSAGE("Attributes with NaN values are not supported. " + serialized_node);
 }
@@ -259,7 +251,7 @@ template <>
 Geometry::Line NodeParser::As() const {
   if (NumberOfAttributes()) {
     MALIDRIVE_THROW_MESSAGE(std::string("Bad Line description. Line node doesn't allow attributes: ") +
-                            SerializeNode(element_));
+                            ConvertXMLNodeToText(element_));
   }
   return Geometry::Line{};
 }
@@ -269,7 +261,7 @@ template <>
 Geometry::Arc NodeParser::As() const {
   if (NumberOfAttributes() != 1) {
     MALIDRIVE_THROW_MESSAGE(std::string("Bad Arc description. Arc demands only one argument: 'curvature'. ") +
-                            SerializeNode(element_));
+                            ConvertXMLNodeToText(element_));
   }
   const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto curvature = attribute_parser.As<double>(Geometry::Arc::kCurvature);
@@ -872,7 +864,7 @@ Junction NodeParser::As() const {
 
   tinyxml2::XMLElement* connection_element(element_->FirstChildElement(Connection::kConnectionTag));
   if (!connection_element) {
-    const std::string msg{"Junction (" + id.value() + ") has no connections."};
+    const std::string msg{"Junction (" + id.value() + ") has no connections:\n" + ConvertXMLNodeToText(element_)};
     if (!parser_configuration_.permissive_mode) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }

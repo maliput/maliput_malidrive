@@ -18,6 +18,7 @@ namespace xodr {
 namespace {
 // @{ CLI Arguments
 DEFINE_double(tolerance, 1e-3, "Tolerance to validate continuity in piecewise defined geometries.");
+DEFINE_bool(permissive_mode, false, "If true, the xodr parser is more flexible according to the OpenDrive standard.");
 MALIPUT_MALIDRIVE_APPLICATION_DEFINE_LOG_LEVEL_FLAG();
 // @}
 
@@ -280,7 +281,8 @@ int Main(int argc, char** argv) {
   // Tries to load the XODR map.
   const std::string xodr_path = std::string(argv[1]);
   maliput::log()->trace("About to load: {}", xodr_path);
-  auto db_manager = malidrive::xodr::LoadDataBaseFromFile(xodr_path, {FLAGS_tolerance});
+  maliput::log()->info("Parser permissive mode: " + FLAGS_permissive_mode ? "enabled" : "disabled");
+  auto db_manager = malidrive::xodr::LoadDataBaseFromFile(xodr_path, {FLAGS_tolerance, FLAGS_permissive_mode});
   if (db_manager == nullptr) {
     maliput::log()->error("Error loading the XODR file.");
     return 0;
