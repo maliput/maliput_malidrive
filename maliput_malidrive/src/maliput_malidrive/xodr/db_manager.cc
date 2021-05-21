@@ -24,7 +24,7 @@ class DBManager::Impl {
   // Creates a DBManager::Impl instance.
   // @param parser_configuration Holds the configuration for the parser.
   // @throw maliput::common::assertion_error When `parser_configuration.tolerance` is negative.
-  explicit Impl(const ParserConfiguration parser_configuration) : parser_configuration_(parser_configuration) {
+  explicit Impl(const ParserConfiguration& parser_configuration) : parser_configuration_(parser_configuration) {
     if (parser_configuration_.tolerance.has_value()) {
       MALIDRIVE_THROW_UNLESS(*parser_configuration_.tolerance >= 0);
     }
