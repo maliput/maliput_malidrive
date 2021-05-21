@@ -12,9 +12,8 @@ struct ParserConfiguration {
   /// it is std::nullopt, no contiguity check is performed.
   std::optional<double> tolerance{std::nullopt};
 
-  /// Determines whether the xodr should be parsed in a permissive mode.
-  /// If activated, the OpenDrive standard is relaxed when:
-  ///  1. Junction node doesn't contain any connections.
+  /// When active, the parser will not throw upon the following conditions:
+  /// - Junctions without connections.
   bool permissive_mode{true};
 };
 

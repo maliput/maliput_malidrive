@@ -872,7 +872,7 @@ Junction NodeParser::As() const {
 
   tinyxml2::XMLElement* connection_element(element_->FirstChildElement(Connection::kConnectionTag));
   if (!connection_element) {
-    const std::string msg{"There is no connections defined for junction id: " + id.value()};
+    const std::string msg{"Junction (" + id.value() + ") has no connections."};
     if (!parser_configuration_.permissive_mode) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
