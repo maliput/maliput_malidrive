@@ -85,9 +85,9 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
 
   // Finds the Road and connecting lanes section.
   const xodr::RoadHeader::Id road_header_id(road_link->element_id.string());
-  MALIDRIVE_VALIDATE(road_headers.find(road_header_id) != road_headers.end(), maliput::common::assertion_error,
-                     "SolveLaneEndsForConnectingRoad(). RoadLink pointing to Xodr Road(" + road_header_id.string() +
-                         ") cannot be found.");
+  MALIDRIVE_VALIDATE(
+      road_headers.find(road_header_id) != road_headers.end(), maliput::common::assertion_error,
+      "SolveLaneEndsForConnectingRoad(). RoadLink pointing to missing Xodr Road(" + road_header_id.string() + ").");
 
   const xodr::RoadHeader& road_header = road_headers.at(road_header_id);
 
@@ -140,8 +140,8 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
   // Gets the Junction that this road connects to.
   const auto junction = junctions.find(xodr::Junction::Id(road_link->element_id.string()));
   MALIDRIVE_VALIDATE(junction != junctions.end(), maliput::common::assertion_error,
-                     "SolveLaneEndsForJunction(). RoadLink pointing to Xodr Junction(" +
-                         road_link->element_id.string() + ") cannot be found.");
+                     "SolveLaneEndsForJunction(). RoadLink pointing to missing Xodr Junction(" +
+                         road_link->element_id.string() + ").");
 
   // Look for the junction link that has as incomingRoad this road ID.
   for (const auto& connection : junction->second.connections) {
