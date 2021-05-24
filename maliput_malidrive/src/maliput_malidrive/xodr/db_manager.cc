@@ -426,7 +426,7 @@ class DBManager::Impl {
                              road_header_link.id.string() +
                              (link.contact_point.value() == RoadLink::ContactPoint::kEnd
                                   ? ") but its successor is not reciprocal. It points to RoadHeader("
-                                  : ")but its predecessor  is not reciprocal. It points to RoadHeader(") +
+                                  : ") but its predecessor is not reciprocal. It points to RoadHeader(") +
                              link_s_road_link->element_id.string() + ")");
     } else {
       MALIDRIVE_VALIDATE(Junction::Id(link_s_road_link->element_id.string()) == Junction::Id(road_header.junction),
