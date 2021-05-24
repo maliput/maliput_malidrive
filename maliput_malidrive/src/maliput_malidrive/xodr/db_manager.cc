@@ -420,15 +420,24 @@ class DBManager::Impl {
                                       : road_header_link.road_link.predecessor;
     MALIDRIVE_THROW_UNLESS(link_s_road_link.has_value());
     if (link_s_road_link->element_type == RoadLink::ElementType::kRoad) {
-      if (!(RoadHeader::Id(link_s_road_link->element_id.string()) == road_header.id)) {
-        MALIDRIVE_THROW_MESSAGE(std::string("RoadHeaderId: ") + link_s_road_link->element_id.string() +
-                                std::string(" is different from ") + road_header.id.string());
-      }
+      MALIDRIVE_VALIDATE(RoadHeader::Id(link_s_road_link->element_id.string()) == road_header.id,
+                         maliput::common::assertion_error,
+                         "RoadHeader(" + road_header.id.string() + ") has a link pointing to RoadHeader(" +
+                             road_header_link.id.string() +
+                             (link.contact_point.value() == RoadLink::ContactPoint::kEnd
+                                  ? ") but its successor is not reciprocal. It points to RoadHeader("
+                                  : ")but its predecessor  is not reciprocal. It points to RoadHeader(") +
+                             link_s_road_link->element_id.string() + ")");
     } else {
-      if (!(Junction::Id(link_s_road_link->element_id.string()) == Junction::Id(road_header.junction))) {
-        MALIDRIVE_THROW_MESSAGE(std::string("JunctionId: ") + link_s_road_link->element_id.string() +
-                                std::string(" is different from ") + road_header.junction);
-      }
+      MALIDRIVE_VALIDATE(Junction::Id(link_s_road_link->element_id.string()) == Junction::Id(road_header.junction),
+                         maliput::common::assertion_error,
+                         "RoadHeader(" + road_header.id.string() + ") has a link pointing to RoadHeader(" +
+                             road_header_link.id.string() +
+                             (link.contact_point.value() == RoadLink::ContactPoint::kEnd
+                                  ? ") but its successor is not reciprocal. It points to JunctionId("
+                                  : ") but its predecessor is not reciprocal. It points to JunctionId(") +
+                             link_s_road_link->element_id.string() + ") and RoadHeader(" + road_header.id.string() +
+                             ") has JunctionId(" + road_header.junction + ")");
     }
   }
 
@@ -443,6 +452,9 @@ class DBManager::Impl {
   // @throw maliput::common::assertion_error When predecessor/successor Road ids doesn't exists.
   // @throw maliput::common::assertion_error When predecessor/successor Lane ids doesn't exists.
   void VerifyRoadLinks(const RoadHeader& road_header, const RoadLink::LinkAttributes& link, bool is_predecessor) {
+    maliput::log()->debug("VerifyRoadLinks(Road({}), Link({}({})), {})", road_header.id.string(),
+                          (link.element_type == RoadLink::ElementType::kRoad ? "Road" : "Junction"),
+                          link.element_id.string(), (is_predecessor ? "predecessor" : "successor"));
     if (std::stoi(road_header.junction) < 0) {
       // Road doesn't belong to a junction.
       if (link.element_type == RoadLink::ElementType::kRoad) {
