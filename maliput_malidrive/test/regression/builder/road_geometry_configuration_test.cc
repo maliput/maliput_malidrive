@@ -40,6 +40,17 @@ GTEST_TEST(StandardStrictnessPolicy, StringToPolicyConversion) {
             RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy("permissive"));
 }
 
+GTEST_TEST(StandardStrictnessPolicy, PolicyToStringConversion) {
+  EXPECT_EQ("strict", RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
+                          RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict));
+  EXPECT_EQ("allow_schema_errors", RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
+                                       RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors));
+  EXPECT_EQ("allow_semantic_errors", RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
+                                         RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors));
+  EXPECT_EQ("permissive", RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
+                              RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder

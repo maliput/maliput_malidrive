@@ -82,6 +82,13 @@ struct RoadGeometryConfiguration {
   /// @throws maliput::common::assertion_error When `policy` isn't a valid StandardStrictnessPolicy.
   static StandardStrictnessPolicy FromStrToStandardStrictnessPolicy(const std::string& policy);
 
+  /// Converts a StandardStrictnessPolicy to a string.
+  ///
+  /// @param policy StandardStrictnessPolicy to be translated to a String. Valid strings match the enumerator's name
+  /// except without the leading 'k' and is all lower case.
+  /// @returns A string value.
+  static std::string FromStandardStrictnessPolicyToStr(const StandardStrictnessPolicy& policy);
+
   // Designed for use with uniform initialization.
   maliput::api::RoadGeometryId id;
   std::optional<std::string> opendrive_file;

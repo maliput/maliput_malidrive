@@ -53,9 +53,11 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
       (rg_config.standard_strictness_policy &
        RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
           RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
+  maliput::log()->trace("Loading database from file: {} ...", rg_config.opendrive_file.value());
+  auto db_manager = xodr::LoadDataBaseFromFile(rg_config.opendrive_file.value(), parser_config);
+  maliput::log()->trace("Building RoadGeometry...");
   std::unique_ptr<const maliput::api::RoadGeometry> rg =
-      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file.value(), parser_config),
-                                   rg_config, std::move(road_curve_factory))();
+      builder::RoadGeometryBuilder(std::move(db_manager), rg_config, std::move(road_curve_factory))();
 
   auto direction_usages = DirectionUsageBuilder(rg.get())();
   maliput::common::unused(direction_usages);

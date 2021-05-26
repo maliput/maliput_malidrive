@@ -28,6 +28,14 @@ class DBManager::Impl {
     if (parser_configuration_.tolerance.has_value()) {
       MALIDRIVE_THROW_UNLESS(*parser_configuration_.tolerance >= 0);
     }
+    maliput::log()->trace("XODR Parser configuration:");
+    maliput::log()->trace("|__ tolerance: {}", (parser_configuration_.tolerance.has_value()
+                                                    ? std::to_string(parser_configuration_.tolerance.value())
+                                                    : "None"));
+    maliput::log()->trace("|__ allow_schema_errors: {}",
+                          parser_configuration_.allow_schema_errors ? "Enabled" : "Disabled");
+    maliput::log()->trace("|__ allow_semantic_errors: {}",
+                          parser_configuration_.allow_semantic_errors ? "Enabled" : "Disabled");
   };
   ~Impl() = default;
 

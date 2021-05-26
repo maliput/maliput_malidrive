@@ -29,6 +29,13 @@ const std::map<std::string, RoadGeometryConfiguration::StandardStrictnessPolicy>
     {"allow_semantic_errors", RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors},
     {"permissive", RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive}};
 
+// Holds the conversion from StandardStrictnessPolicy(keys) to string(values);
+const std::map<RoadGeometryConfiguration::StandardStrictnessPolicy, std::string> standard_strictness_policy_to_str{
+    {RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict, "strict"},
+    {RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors, "allow_schema_errors"},
+    {RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors, "allow_semantic_errors"},
+    {RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive, "permissive"}};
+
 // Returns a vector of strings as a result of splitting @p text by @p character.
 // Example:
 //    If `text` is "first|second|three" and the `token` is '|' then
@@ -85,6 +92,29 @@ RoadGeometryConfiguration::StandardStrictnessPolicy RoadGeometryConfiguration::F
     strictness = strictness | str_to_standard_strictness_policy.at(key);
   }
   return strictness;
+}
+
+std::string RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& policy) {
+  switch (policy) {
+    case RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict:
+      return standard_strictness_policy_to_str.at(RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict);
+      break;
+    case RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive:
+      return standard_strictness_policy_to_str.at(RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive);
+      break;
+    case RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors:
+      return standard_strictness_policy_to_str.at(
+          RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors);
+      break;
+    case RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors:
+      return standard_strictness_policy_to_str.at(
+          RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors);
+      break;
+    default:
+      MALIPUT_THROW_MESSAGE("Unknown standard strictness policy.");
+      break;
+  }
 }
 
 RoadGeometryConfiguration::StandardStrictnessPolicy operator|(

@@ -71,9 +71,7 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
                      : std::to_string(GetEffectiveNumberOfThreads(build_policy_)) + " threads(automatic)"));
 
   maliput::log()->trace("Strictness for meeting the OpenDrive standard: {}",
-                        standard_strictness_policy_ == RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict
-                            ? "strict"
-                            : "permissive");
+                        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(standard_strictness_policy_));
 
   if (simplification_policy_ ==
       RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel) {
