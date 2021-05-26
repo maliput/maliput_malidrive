@@ -411,7 +411,7 @@ class DBManager::Impl {
   //
   // @throw maliput::common::assertion_error When `link.contact_point` doesn't have a value.
   // @throw maliput::common::assertion_error When the connection is not reciprocal between `road_header` and
-  // `road_header_link`.
+  // `road_header_link` iff the semantic errors in the xodr aren't allowed.
   void VerifyLinkingIsReciprocal(const RoadHeader& road_header, const RoadLink::LinkAttributes& link,
                                  const RoadHeader& road_header_link) {
     MALIDRIVE_THROW_UNLESS(link.contact_point.has_value());
@@ -420,24 +420,34 @@ class DBManager::Impl {
                                       : road_header_link.road_link.predecessor;
     MALIDRIVE_THROW_UNLESS(link_s_road_link.has_value());
     if (link_s_road_link->element_type == RoadLink::ElementType::kRoad) {
-      MALIDRIVE_VALIDATE(RoadHeader::Id(link_s_road_link->element_id.string()) == road_header.id,
-                         maliput::common::assertion_error,
-                         "RoadHeader(" + road_header.id.string() + ") has a link pointing to RoadHeader(" +
-                             road_header_link.id.string() +
-                             (link.contact_point.value() == RoadLink::ContactPoint::kEnd
-                                  ? ") but its successor is not reciprocal. It points to RoadHeader("
-                                  : ") but its predecessor is not reciprocal. It points to RoadHeader(") +
-                             link_s_road_link->element_id.string() + ")");
+      if (RoadHeader::Id(link_s_road_link->element_id.string()) != road_header.id) {
+        const std::string msg{"RoadHeader(" + road_header.id.string() + ") has a link pointing to RoadHeader(" +
+                              road_header_link.id.string() +
+                              (link.contact_point.value() == RoadLink::ContactPoint::kEnd
+                                   ? ") but its successor is not reciprocal. It points to RoadHeader("
+                                   : ") but its predecessor is not reciprocal. It points to RoadHeader(") +
+                              link_s_road_link->element_id.string() + ")"};
+        if (parser_configuration_.allow_semantic_errors) {
+          maliput::log()->warn(msg);
+        } else {
+          MALIDRIVE_THROW_MESSAGE(msg);
+        }
+      }
     } else {
-      MALIDRIVE_VALIDATE(Junction::Id(link_s_road_link->element_id.string()) == Junction::Id(road_header.junction),
-                         maliput::common::assertion_error,
-                         "RoadHeader(" + road_header.id.string() + ") has a link pointing to RoadHeader(" +
-                             road_header_link.id.string() +
-                             (link.contact_point.value() == RoadLink::ContactPoint::kEnd
-                                  ? ") but its successor is not reciprocal. It points to JunctionId("
-                                  : ") but its predecessor is not reciprocal. It points to JunctionId(") +
-                             link_s_road_link->element_id.string() + ") and RoadHeader(" + road_header.id.string() +
-                             ") has JunctionId(" + road_header.junction + ")");
+      if (Junction::Id(link_s_road_link->element_id.string()) != Junction::Id(road_header.junction)) {
+        const std::string msg{"RoadHeader(" + road_header.id.string() + ") has a link pointing to RoadHeader(" +
+                              road_header_link.id.string() +
+                              (link.contact_point.value() == RoadLink::ContactPoint::kEnd
+                                   ? ") but its successor is not reciprocal. It points to JunctionId("
+                                   : ") but its predecessor is not reciprocal. It points to JunctionId(") +
+                              link_s_road_link->element_id.string() + ") and RoadHeader(" + road_header.id.string() +
+                              ") has JunctionId(" + road_header.junction + ")"};
+        if (parser_configuration_.allow_semantic_errors) {
+          maliput::log()->warn(msg);
+        } else {
+          MALIDRIVE_THROW_MESSAGE(msg);
+        }
+      }
     }
   }
 
