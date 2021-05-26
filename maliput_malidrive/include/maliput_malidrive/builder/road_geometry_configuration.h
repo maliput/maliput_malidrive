@@ -40,10 +40,10 @@ struct RoadGeometryConfiguration {
   /// specified by taking the union of one or more of the following bit
   /// flags.
   enum class StandardStrictnessPolicy : unsigned int {
-    kStrict = 0,                                             //!< Do not permit any errors.
-    kAllowSchemaErrors = 1 << 0,                             //!< Allow schema syntax errors.
-    kAllowSemanticErrors = 1 << 1,                           //!< Allow semantic errors.
-    kPermissive = kAllowSemanticErrors | kAllowSchemaErrors  //!< Allow all previous violations.
+    kStrict = 0,                                             ///< Do not permit any errors.
+    kAllowSchemaErrors = 1 << 0,                             ///< Allow schema syntax errors.
+    kAllowSemanticErrors = 1 << 1,                           ///< Allow semantic errors.
+    kPermissive = kAllowSemanticErrors | kAllowSchemaErrors  ///< Allow all previous violations.
   };
 
   /// Degree to which the RoadGeometry should be simplified.

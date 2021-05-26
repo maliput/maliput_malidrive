@@ -2,6 +2,7 @@
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 
 #include <map>
+#include <sstream>
 
 namespace malidrive {
 namespace builder {
@@ -28,20 +29,18 @@ const std::map<std::string, RoadGeometryConfiguration::StandardStrictnessPolicy>
     {"allow_semantic_errors", RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors},
     {"permissive", RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive}};
 
-// Returns a vector of strings as a result of splitting @p text by "|" character.
+// Returns a vector of strings as a result of splitting @p text by @p character.
 // Example:
-//    If "text" is "first|second|three" then the return value is the collection: {"first", "second", "three"}"
-std::vector<std::string> GetStringsFromText(const std::string& text) {
-  const std::string division{"|"};
-  std::vector<std::string> keys{};
-  const auto pos = text.find(division);
-  if (pos == std::string::npos) {
-    return {text};
+//    If `text` is "first|second|three" and the `token` is '|' then
+//    the return value is the collection: {"first", "second", "three"}"
+std::vector<std::string> SplitTextBy(const std::string& text, char token) {
+  std::istringstream ss{text};
+  std::vector<std::string> strings;
+  std::string split_text;
+  while (std::getline(ss, split_text, token)) {
+    strings.push_back(split_text);
   }
-  keys.push_back(text.substr(0, pos));
-  const auto reduced_text = GetStringsFromText(text.substr(pos + 1));
-  keys.insert(keys.end(), reduced_text.begin(), reduced_text.end());
-  return keys;
+  return strings;
 }
 
 }  // namespace
@@ -74,7 +73,8 @@ RoadGeometryConfiguration::ToleranceSelectionPolicy RoadGeometryConfiguration::F
 
 RoadGeometryConfiguration::StandardStrictnessPolicy RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy(
     const std::string& policy) {
-  const auto keys = GetStringsFromText(policy);
+  const char token = '|';
+  const auto keys = SplitTextBy(policy, token);
   RoadGeometryConfiguration::StandardStrictnessPolicy strictness{
       RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict};
   for (const auto& key : keys) {
