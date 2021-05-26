@@ -27,6 +27,19 @@ GTEST_TEST(ToleranceSelectionPolicy, StringToPolicyConversion) {
             RoadGeometryConfiguration::FromStrToToleranceSelectionPolicy("automatic"));
 }
 
+GTEST_TEST(StandardStrictnessPolicy, StringToPolicyConversion) {
+  EXPECT_EQ(RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict,
+            RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy("strict"));
+  EXPECT_EQ(RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors,
+            RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy("allow_schema_errors"));
+  EXPECT_EQ(RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors,
+            RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy("allow_semantic_errors"));
+  EXPECT_EQ(RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive,
+            RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy("allow_schema_errors|allow_semantic_errors"));
+  EXPECT_EQ(RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive,
+            RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy("permissive"));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder

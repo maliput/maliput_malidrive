@@ -24,7 +24,25 @@ const std::map<std::string, RoadGeometryConfiguration::ToleranceSelectionPolicy>
 // Holds the conversion from string(keys) to StandardStrictnessPolicy(values);
 const std::map<std::string, RoadGeometryConfiguration::StandardStrictnessPolicy> str_to_standard_strictness_policy{
     {"strict", RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict},
+    {"allow_schema_errors", RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors},
+    {"allow_semantic_errors", RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors},
     {"permissive", RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive}};
+
+// Returns a vector of strings as a result of splitting @p text by "|" character.
+// Example:
+//    If "text" is "first|second|three" then the return value is the collection: {"first", "second", "three"}"
+std::vector<std::string> GetStringsFromText(const std::string& text) {
+  const std::string division{"|"};
+  std::vector<std::string> keys{};
+  const auto pos = text.find(division);
+  if (pos == std::string::npos) {
+    return {text};
+  }
+  keys.push_back(text.substr(0, pos));
+  const auto reduced_text = GetStringsFromText(text.substr(pos + 1));
+  keys.insert(keys.end(), reduced_text.begin(), reduced_text.end());
+  return keys;
+}
 
 }  // namespace
 
@@ -56,11 +74,31 @@ RoadGeometryConfiguration::ToleranceSelectionPolicy RoadGeometryConfiguration::F
 
 RoadGeometryConfiguration::StandardStrictnessPolicy RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy(
     const std::string& policy) {
-  const auto it = str_to_standard_strictness_policy.find(policy);
-  if (it == str_to_standard_strictness_policy.end()) {
-    MALIDRIVE_THROW_MESSAGE("Unknown standard strictness policy: " + policy);
+  const auto keys = GetStringsFromText(policy);
+  RoadGeometryConfiguration::StandardStrictnessPolicy strictness{
+      RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict};
+  for (const auto& key : keys) {
+    const auto it = str_to_standard_strictness_policy.find(key);
+    if (it == str_to_standard_strictness_policy.end()) {
+      MALIDRIVE_THROW_MESSAGE("Unknown standard strictness policy: " + key);
+    }
+    strictness = strictness | str_to_standard_strictness_policy.at(key);
   }
-  return str_to_standard_strictness_policy.at(policy);
+  return strictness;
+}
+
+RoadGeometryConfiguration::StandardStrictnessPolicy operator|(
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& first,
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& second) {
+  return RoadGeometryConfiguration::StandardStrictnessPolicy(static_cast<unsigned int>(first) |
+                                                             static_cast<unsigned int>(second));
+}
+
+RoadGeometryConfiguration::StandardStrictnessPolicy operator&(
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& first,
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& second) {
+  return RoadGeometryConfiguration::StandardStrictnessPolicy(static_cast<unsigned int>(first) &
+                                                             static_cast<unsigned int>(second));
 }
 
 }  // namespace builder

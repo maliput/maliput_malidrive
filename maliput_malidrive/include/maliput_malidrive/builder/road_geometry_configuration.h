@@ -34,11 +34,16 @@ struct BuildPolicy {
 
 /// RoadGeometry construction parameters.
 struct RoadGeometryConfiguration {
-  /// Level of flexibility in terms of adhering to the OpenDrive standard when constructing a RoadGeometry. This is
-  /// useful when working with .xodr files that violate the OpenDrive standard.
-  enum class StandardStrictnessPolicy {
-    kPermissive,  ///< Allow the .xodr file to violate the standard. Continue on best-effort-basis.
-    kStrict,      ///< Do not allow violation of the standard.
+  /// Level of flexibility in terms of adhering to the OpenDrive standard
+  /// when constructing a RoadGeometry. This is  useful when working with
+  /// .xodr files that violate the OpenDrive standard. The policy is
+  /// specified by taking the union of one or more of the following bit
+  /// flags.
+  enum class StandardStrictnessPolicy : unsigned int {
+    kStrict = 0,                                             //!< Do not permit any errors.
+    kAllowSchemaErrors = 1 << 0,                             //!< Allow schema syntax errors.
+    kAllowSemanticErrors = 1 << 1,                           //!< Allow semantic errors.
+    kPermissive = kAllowSemanticErrors | kAllowSchemaErrors  //!< Allow all previous violations.
   };
 
   /// Degree to which the RoadGeometry should be simplified.
@@ -90,6 +95,15 @@ struct RoadGeometryConfiguration {
   ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kManualSelection};
   StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kPermissive};
 };
+
+// Union operator.
+RoadGeometryConfiguration::StandardStrictnessPolicy operator|(
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& first,
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& second);
+// Intersection operator.
+RoadGeometryConfiguration::StandardStrictnessPolicy operator&(
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& first,
+    const RoadGeometryConfiguration::StandardStrictnessPolicy& second);
 
 }  // namespace builder
 }  // namespace malidrive
