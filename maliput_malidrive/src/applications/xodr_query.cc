@@ -18,10 +18,9 @@ namespace xodr {
 namespace {
 // @{ CLI Arguments
 DEFINE_double(tolerance, 1e-3, "Tolerance to validate continuity in piecewise defined geometries.");
-DEFINE_bool(allow_schema_errors, false,
-            "If true, the xodr parser is more flexible with schema errors according to the OpenDrive standard.");
+DEFINE_bool(allow_schema_errors, false, "If true, the XODR parser will attempt to work around XODR schema violations.");
 DEFINE_bool(allow_semantic_errors, false,
-            "If true, the xodr parser is more flexible with semantic errors according to the OpenDrive standard.");
+            "If true, the XODR parser will attempt to work around XODR semantic violations.");
 MALIPUT_MALIDRIVE_APPLICATION_DEFINE_LOG_LEVEL_FLAG();
 // @}
 

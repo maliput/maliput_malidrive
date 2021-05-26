@@ -35,7 +35,7 @@ struct BuildPolicy {
 /// RoadGeometry construction parameters.
 struct RoadGeometryConfiguration {
   /// Level of flexibility in terms of adhering to the OpenDrive standard
-  /// when constructing a RoadGeometry. This is  useful when working with
+  /// when constructing a RoadGeometry. This is useful when working with
   /// .xodr files that violate the OpenDrive standard. The policy is
   /// specified by taking the union of one or more of the following bit
   /// flags.
