@@ -33,24 +33,29 @@
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/constants.h"
+#include "maliput_malidrive/xodr/parser_configuration.h"
 #include "maliput_malidrive/xodr/unit.h"
 
 namespace malidrive {
 namespace builder {
 
 std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() const {
-  MALIDRIVE_VALIDATE(road_network_configuration_.road_geometry_configuration.opendrive_file.has_value(),
-                     std::runtime_error, "opendrive_file cannot be empty");
+  const auto& rg_config = road_network_configuration_.road_geometry_configuration;
+  MALIDRIVE_VALIDATE(rg_config.opendrive_file.has_value(), std::runtime_error, "opendrive_file cannot be empty");
   std::unique_ptr<builder::RoadCurveFactoryBase> road_curve_factory = std::make_unique<builder::RoadCurveFactory>(
-      road_network_configuration_.road_geometry_configuration.linear_tolerance,
-      road_network_configuration_.road_geometry_configuration.scale_length,
-      road_network_configuration_.road_geometry_configuration.angular_tolerance);
-  std::unique_ptr<const maliput::api::RoadGeometry> rg = builder::RoadGeometryBuilder(
-      xodr::LoadDataBaseFromFile(road_network_configuration_.road_geometry_configuration.opendrive_file.value(),
-                                 {road_network_configuration_.road_geometry_configuration.linear_tolerance,
-                                  road_network_configuration_.road_geometry_configuration.standard_strictness_policy ==
-                                      RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive}),
-      road_network_configuration_.road_geometry_configuration, std::move(road_curve_factory))();
+      rg_config.linear_tolerance, rg_config.scale_length, rg_config.angular_tolerance);
+
+  const xodr::ParserConfiguration parser_config{
+      rg_config.linear_tolerance,
+      (rg_config.standard_strictness_policy &
+       RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors) ==
+          RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors,
+      (rg_config.standard_strictness_policy &
+       RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
+          RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
+  std::unique_ptr<const maliput::api::RoadGeometry> rg =
+      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file.value(), parser_config),
+                                   rg_config, std::move(road_curve_factory))();
 
   auto direction_usages = DirectionUsageBuilder(rg.get())();
   maliput::common::unused(direction_usages);

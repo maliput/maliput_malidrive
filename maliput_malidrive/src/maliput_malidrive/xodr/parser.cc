@@ -865,7 +865,7 @@ Junction NodeParser::As() const {
   tinyxml2::XMLElement* connection_element(element_->FirstChildElement(Connection::kConnectionTag));
   if (!connection_element) {
     const std::string msg{"Junction (" + id.value() + ") has no connections:\n" + ConvertXMLNodeToText(element_)};
-    if (!parser_configuration_.permissive_mode) {
+    if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
     maliput::log()->warn(msg);
