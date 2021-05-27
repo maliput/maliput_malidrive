@@ -100,9 +100,8 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   const maliput::api::LaneId lane_id = GetLaneId(xodr_track_id, xodr_lane_section_index, xodr_lane_id);
 
   // Build a maliput::api::HBounds.
-  // TODO(francocipollone): Obtain the elevation bounds out of the XODR's elevation profile record once it is parsed
-  // into xodr::RoadHeader.
-  const maliput::api::HBounds elevation_bounds{0., 0.};
+  // TODO(#69): Un-hardcode the elevation bound.
+  const maliput::api::HBounds elevation_bounds{0., 5.};
 
   //@{
   // The ground curve might have just one geometry or multiple geometry definitions. When it is
