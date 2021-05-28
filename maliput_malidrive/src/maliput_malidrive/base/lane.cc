@@ -83,30 +83,25 @@ maliput::api::RBounds Lane::do_lane_bounds(double s) const {
 
 maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   s = s_range_validation_(s);
-  // TODO(agalbachicar):  Once geometry restrictions are released, we should map
-  //                      this lane s coordinate into adjacent lanes' s
-  //                      coordinate to properly compute the asphalt extents.
-
-  // TODO(agalbachicar):  Remove constant width and flat geometries constraint.
-  int left_lanes_count = 0;
+  double bound_left = 0;
   const maliput::api::Lane* other_lane = to_left();
   while (other_lane != nullptr) {
-    left_lanes_count++;
+    const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(s);
+    bound_left += other_lane_bounds.max() - other_lane_bounds.min();
     other_lane = other_lane->to_left();
   }
 
-  int right_lanes_count = 0;
+  double bound_right = 0;
   other_lane = to_right();
   while (other_lane != nullptr) {
-    right_lanes_count++;
+    const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(s);
+    bound_right += other_lane_bounds.max() - other_lane_bounds.min();
     other_lane = other_lane->to_right();
   }
 
-  const double p = p_from_s_(s);
-  const double width = lane_width_->f(p);
+  const maliput::api::RBounds lane_bounds = this->lane_bounds(s);
 
-  return {-width * (static_cast<double>(right_lanes_count) + 0.5),
-          width * (static_cast<double>(left_lanes_count) + 0.5)};
+  return {lane_bounds.min() - bound_right, lane_bounds.max() + bound_left};
 }
 
 maliput::math::Vector3 Lane::DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const {
