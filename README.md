@@ -4,7 +4,7 @@ A maliput backend.
 
 ## Build
 
-1. Setup a maliput_malidrive (or a wider maliput) development workspace as described [here](https://github.com/ToyotaResearchInstitute/maliput-documentation/blob/main/docs/installation_quickstart.rst)
+1. Setup a maliput_malidrive (or a wider maliput) development workspace as described [here](https://github.com/ToyotaResearchInstitute/maliput_documentation/blob/main/docs/installation_quickstart.rst)
 
 2. Bring up your development workspace:
 
@@ -42,4 +42,4 @@ See [maliput_integration](https://github.com/ToyotaResearchInstitute/maliput-int
 
 ## Documentation
 
-See [maliput_documentation](https://github.com/ToyotaResearchInstitute/maliput-documentation) repository for further documentation.
+See [maliput_documentation](https://github.com/ToyotaResearchInstitute/maliput_documentation) repository for further documentation.
