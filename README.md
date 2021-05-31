@@ -38,7 +38,7 @@ And then run one of the sample applications. To fully inspect them, visit the
 `applications` directory.
 
 There are more applications for using `maliput_malidrive` backend.
-See [maliput_integration](https://github.com/ToyotaResearchInstitute/maliput-integration) repository.
+See [maliput_integration](https://github.com/ToyotaResearchInstitute/maliput_integration) repository.
 
 ## Documentation
 
