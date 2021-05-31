@@ -83,7 +83,9 @@ maliput::api::RBounds Lane::do_lane_bounds(double s) const {
 
 maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   s = s_range_validation_(s);
-  double bound_left = 0;
+  const maliput::api::RBounds lane_bounds = do_lane_bounds(s);
+
+  double bound_left = lane_bounds.max();
   const maliput::api::Lane* other_lane = to_left();
   while (other_lane != nullptr) {
     const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(s);
@@ -91,7 +93,7 @@ maliput::api::RBounds Lane::do_segment_bounds(double s) const {
     other_lane = other_lane->to_left();
   }
 
-  double bound_right = 0;
+  double bound_right = -lane_bounds.min();
   other_lane = to_right();
   while (other_lane != nullptr) {
     const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(s);
@@ -99,9 +101,11 @@ maliput::api::RBounds Lane::do_segment_bounds(double s) const {
     other_lane = other_lane->to_right();
   }
 
-  const maliput::api::RBounds lane_bounds = this->lane_bounds(s);
+  const double tolerance = road_curve_->linear_tolerance();
+  bound_left = bound_left < tolerance ? tolerance : bound_left;
+  bound_right = bound_right < tolerance ? tolerance : bound_right;
 
-  return {lane_bounds.min() - bound_right, lane_bounds.max() + bound_left};
+  return {-bound_right, bound_left};
 }
 
 maliput::math::Vector3 Lane::DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const {
