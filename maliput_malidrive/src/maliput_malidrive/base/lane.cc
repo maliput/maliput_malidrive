@@ -9,6 +9,18 @@
 #include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
+namespace {
+
+// Returns the correspondant `s` value of the adjacent lane.
+// @param s Is the `s` coordinate in the LANE frame.
+// @param lane Lane which `s` coordinate is referred to.
+// @param adj_lane Adjacent lane.
+// @return The `s` coordinate in the LANE frame of `adj_lane`.
+double GetSFromAdjLane(double s, const maliput::api::Lane* lane, const maliput::api::Lane* adj_lane) {
+  return s * adj_lane->length() / lane->length();
+}
+
+}  // namespace
 
 using maliput::math::Vector3;
 
@@ -84,11 +96,10 @@ maliput::api::RBounds Lane::do_lane_bounds(double s) const {
 maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   s = s_range_validation_(s);
   const maliput::api::RBounds lane_bounds = do_lane_bounds(s);
-
   double bound_left = lane_bounds.max();
   const maliput::api::Lane* other_lane = to_left();
   while (other_lane != nullptr) {
-    const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(s);
+    const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(GetSFromAdjLane(s, this, other_lane));
     bound_left += other_lane_bounds.max() - other_lane_bounds.min();
     other_lane = other_lane->to_left();
   }
@@ -96,7 +107,7 @@ maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   double bound_right = -lane_bounds.min();
   other_lane = to_right();
   while (other_lane != nullptr) {
-    const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(s);
+    const maliput::api::RBounds other_lane_bounds = other_lane->lane_bounds(GetSFromAdjLane(s, this, other_lane));
     bound_right += other_lane_bounds.max() - other_lane_bounds.min();
     other_lane = other_lane->to_right();
   }
