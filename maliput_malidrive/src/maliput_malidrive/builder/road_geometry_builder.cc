@@ -1,6 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 
+#include <array>
 #include <future>
 #include <iterator>
 #include <thread>
@@ -12,6 +13,7 @@
 #include "maliput_malidrive/builder/determine_tolerance.h"
 #include "maliput_malidrive/builder/road_curve_factory.h"
 #include "maliput_malidrive/builder/simplify_geometries.h"
+#include "maliput_malidrive/builder/xodr_parser_configuration.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/lane_offset.h"
@@ -55,8 +57,7 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
                                          const RoadGeometryConfiguration& road_geometry_configuration,
                                          std::unique_ptr<RoadCurveFactoryBase> factory)
     : RoadGeometryBuilderBase(road_geometry_configuration),
-      simplification_policy_(road_geometry_configuration.simplification_policy),
-      standard_strictness_policy_(road_geometry_configuration.standard_strictness_policy),
+      rg_config_(road_geometry_configuration),
       manager_(std::move(manager)),
       factory_(std::move(factory)) {
   MALIDRIVE_THROW_UNLESS(manager_.get());
@@ -70,14 +71,16 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
                      ? std::to_string(GetEffectiveNumberOfThreads(build_policy_)) + " threads(manual)"
                      : std::to_string(GetEffectiveNumberOfThreads(build_policy_)) + " threads(automatic)"));
 
-  maliput::log()->trace("Strictness for meeting the OpenDrive standard: {}",
-                        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(standard_strictness_policy_));
+  maliput::log()->trace(
+      "Strictness for meeting the OpenDrive standard: {}",
+      RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(rg_config_.standard_strictness_policy));
 
-  if (simplification_policy_ ==
+  if (rg_config_.simplification_policy ==
       RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel) {
     maliput::log()->trace("Enabled the simplification. Mode: SimplifyWithinToleranceAndKeepGeometryModel");
   }
-  if (tolerance_selection_policy_ == RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection) {
+  if (rg_config_.tolerance_selection_policy ==
+      RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection) {
     maliput::log()->trace("Enabled automatic tolerance selection.");
   }
 }
@@ -210,11 +213,57 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator()() {
   maliput::log()->trace("Starting to build malidrive::RoadGeometry.");
 
-  if (tolerance_selection_policy_ == RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection) {
-    linear_tolerance_ = DetermineRoadGeometryLinearTolerance(manager_.get());
-    angular_tolerance_ = DetermineRoadGeometryAngularTolerance(manager_.get());
-    scale_length_ = DetermineRoadGeometryScaleLength(manager_.get(), linear_tolerance_, angular_tolerance_);
+  if (rg_config_.tolerance_selection_policy == RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection) {
+    maliput::log()->trace("Manual tolerance selection builder.");
+    return DoBuild();
   }
+
+  std::array<double, constants::kAutomaticSelectionTrials + 1> linear_tolerances{};
+  std::array<double, constants::kAutomaticSelectionTrials + 1> angular_tolerances{};
+  std::array<double, constants::kAutomaticSelectionTrials + 1> scale_lengths{};
+
+  // Tries with default values first.
+  linear_tolerances[0] = linear_tolerance_;
+  angular_tolerances[0] = angular_tolerance_;
+  scale_lengths[0] = scale_length_;
+
+  // Populates the vector with higher tolerance values but uses always the same scale length.
+  for (size_t i = 1; i < linear_tolerances.size(); ++i) {
+    linear_tolerances[i] = linear_tolerances[i - 1] * 1.1;
+    angular_tolerances[i] = angular_tolerances[i - 1] * 1.1;
+    scale_lengths[i] = constants::kScaleLength;
+  }
+
+  // Iterates over the tolerances.
+  for (size_t i = 0; i < linear_tolerances.size(); ++i) {
+    maliput::log()->debug(
+        "Automatic tolerance selection builder: (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}).",
+        linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
+    try {
+      lane_xodr_lane_properties_.clear();
+      junctions_segments_attributes_.clear();
+      // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
+      factory_ =
+          std::make_unique<builder::RoadCurveFactory>(linear_tolerances[i], scale_lengths[i], angular_tolerances[i]);
+      // @}
+      Reset(linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
+      return DoBuild();
+    } catch (maliput::common::assertion_error& e) {
+      maliput::log()->warn(
+          "Automatic tolerance selection failed with: (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}). "
+          "Error: {}",
+          linear_tolerance_, angular_tolerance_, scale_length_, e.what());
+    }
+    // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
+    maliput::log()->trace("Rebuilding the DBManager");
+    manager_ = xodr::LoadDataBaseFromFile(rg_config_.opendrive_file.value(),
+                                          XodrParserConfigurationFromRoadGeometryConfiguration(rg_config_));
+    // @}
+  }
+  MALIDRIVE_THROW_MESSAGE("None of the tolerances worked to build the RoadGeometry.");
+}
+
+std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild() {
   maliput::log()->trace("Using: linear_tolerance: {}", linear_tolerance_);
   maliput::log()->trace("Using: angular_tolerance: {}", angular_tolerance_);
   maliput::log()->trace("Using: scale_length: {}", scale_length_);
@@ -222,7 +271,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   const std::unordered_map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers = manager_->GetRoadHeaders();
 
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
-      simplification_policy_ ==
+      rg_config_.simplification_policy ==
               RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel
           ? manager_->GetGeometriesToSimplify(linear_tolerance_)
           : std::vector<xodr::DBManager::XodrGeometriesToSimplify>();

@@ -44,6 +44,16 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
                       std::unique_ptr<RoadCurveFactoryBase> factory);
 
   /// Creates a maliput equivalent backend (malidrive::RoadGeometry).
+  ///
+  /// When RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection
+  /// is used, the initial linear_tolerance, angular_tolerance and scale_length
+  /// are used. Otherwise, up to constants::kAutomaticSelectionTrials + 1 trials
+  /// are done with increasing linear_tolerance, angular_tolerance and
+  /// scale_length equal to constants::kScaleLength. Each iteration will add a
+  /// 10% to linear_tolerance and angular_tolerance.
+  ///
+  /// Consider using small or default values of linear_tolerance and
+  /// angular_tolerance to granularly try with different configurations.
   std::unique_ptr<const maliput::api::RoadGeometry> operator()() override;
 
  private:
@@ -127,7 +137,6 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   //
   // @throws maliput::common::assertion_error When either `segment`,
   //         `lane_section`, `road_header` or `rg` are nullptr.
-
   static std::vector<LaneConstructionResult> BuildLanesForSegment(const xodr::RoadHeader* road_header,
                                                                   const xodr::LaneSection* lane_section,
                                                                   int xodr_lane_section_index,
@@ -234,14 +243,26 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // @throws maliput::common::assertion_error When `rg` is nullptr.
   void FillSegmentsWithLanes(RoadGeometry* rg);
 
-  const RoadGeometryConfiguration::SimplificationPolicy simplification_policy_{};
-  const RoadGeometryConfiguration::ToleranceSelectionPolicy tolerance_selection_policy_{};
-  const RoadGeometryConfiguration::StandardStrictnessPolicy standard_strictness_policy_{};
+  // Executes the build process itself.
+  //
+  // Visits nodes in the xodr map via DBManager to build Junctions, Segments and
+  // Lanes. Then it constructs the BranchPoints based on linkage information in
+  // the database.
+  std::unique_ptr<const maliput::api::RoadGeometry> DoBuild();
+
+  // Holds the configuration of this builder.
+  const RoadGeometryConfiguration rg_config_;
+
+  // Holds the xodr database.
   std::unique_ptr<xodr::DBManager> manager_;
+
+  // Holds the factory to build road curves.
   std::unique_ptr<RoadCurveFactoryBase> factory_;
+
   // Key on LaneId to ensure iteration over this map is deterministic. This
   // ensures default branch point selection is deterministic.
   std::map<maliput::api::LaneId, MatchingLanes> lane_xodr_lane_properties_;
+
   // Map holding all the construction attributes used to build the segments and lanes of each junction.
   std::map<maliput::geometry_base::Junction*, std::map<Segment*, SegmentConstructionAttributes>>
       junctions_segments_attributes_;
