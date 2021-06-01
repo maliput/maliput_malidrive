@@ -129,5 +129,18 @@ RoadGeometryBuilderBase::FindBranchpointByLaneEnd(
   return {nullptr, {}};
 }
 
+void RoadGeometryBuilderBase::Reset(double linear_tolerance, double angular_tolerance, double scale_length) {
+  linear_tolerance_ = linear_tolerance;
+  angular_tolerance_ = angular_tolerance;
+  scale_length_ = scale_length;
+  MALIDRIVE_THROW_UNLESS(linear_tolerance_ >= 0.);
+  MALIDRIVE_THROW_UNLESS(angular_tolerance_ >= 0.);
+  MALIDRIVE_THROW_UNLESS(scale_length_ >= 0.);
+
+  branch_point_indexer_ = UniqueIntegerProvider(0 /* base ID */);
+  bps_.clear();
+  junctions_.clear();
+}
+
 }  // namespace builder
 }  // namespace malidrive
