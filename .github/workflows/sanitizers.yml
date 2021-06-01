@@ -61,21 +61,10 @@ jobs:
         fetch-depth: 0
         path: ${{ env.ROS_WS }}/src/drake_vendor
         token: ${{ secrets.MALIPUT_TOKEN }}
-    - uses: actions/checkout@v2
-      with:
-        repository: ToyotaResearchInstitute/maliput_infrastructure
-        fetch-depth: 0
-        path: maliput_infrastructure
-        token: ${{ secrets.MALIPUT_TOKEN }}
     - name: check if dependencies have a matching branch
       shell: bash
       working-directory: ${{ env.ROS_WS }}/src
       run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} .
-    # install drake_vendor prereqs using maliput_infrastructure/tools/prereqs.lib
-    - name: install drake_vendor prereqs
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}/src/drake_vendor
-      run: ${GITHUB_WORKSPACE}/maliput_infrastructure/tools/prereqs-install -t drake .
     - name: clang 8 install
       shell: bash
       run: ${{ env.ROS_WS }}/src/${PACKAGE_NAME}/.github/clang_suite_installation.sh
@@ -95,6 +84,10 @@ jobs:
         rosdep install  -i -y --rosdistro ${ROS_DISTRO} \
           --skip-keys "pybind11" \
           --from-paths src
+    - name: install drake
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}/src/drake_vendor
+      run: ./drake_installer
     - name: colcon build libraries
       shell: bash
       working-directory: ${{ env.ROS_WS }}
