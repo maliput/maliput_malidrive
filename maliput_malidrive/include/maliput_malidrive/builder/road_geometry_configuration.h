@@ -99,7 +99,7 @@ struct RoadGeometryConfiguration {
   InertialToLaneMappingConfig inertial_to_lane_mapping_config;
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
-  ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kManualSelection};
+  ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kAutomaticSelection};
   StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kPermissive};
 };
 
