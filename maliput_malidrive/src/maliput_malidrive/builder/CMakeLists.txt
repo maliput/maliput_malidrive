@@ -18,6 +18,7 @@ add_library(builder
   rule_tools.cc
   simplify_geometries.cc
   speed_limit_builder.cc
+  xodr_parser_configuration.cc
 )
 add_library(maliput_malidrive::builder ALIAS builder)
 set_target_properties(builder
