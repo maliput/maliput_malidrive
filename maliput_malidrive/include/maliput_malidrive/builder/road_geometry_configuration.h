@@ -101,6 +101,7 @@ struct RoadGeometryConfiguration {
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
   ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kAutomaticSelection};
   StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kPermissive};
+  bool omit_nondrivable_lanes{true};
 };
 
 // Union operator.
