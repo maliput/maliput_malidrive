@@ -83,30 +83,29 @@ maliput::api::RBounds Lane::do_lane_bounds(double s) const {
 
 maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   s = s_range_validation_(s);
-  // TODO(agalbachicar):  Once geometry restrictions are released, we should map
-  //                      this lane s coordinate into adjacent lanes' s
-  //                      coordinate to properly compute the asphalt extents.
-
-  // TODO(agalbachicar):  Remove constant width and flat geometries constraint.
-  int left_lanes_count = 0;
-  const maliput::api::Lane* other_lane = to_left();
+  const double p = TrackSFromLaneS(s);
+  const maliput::api::RBounds lane_bounds = do_lane_bounds(s);
+  double bound_left = lane_bounds.max();
+  const malidrive::Lane* other_lane = static_cast<const malidrive::Lane*>(to_left());
   while (other_lane != nullptr) {
-    left_lanes_count++;
-    other_lane = other_lane->to_left();
+    const maliput::api::RBounds other_lane_bounds = other_lane->do_lane_bounds(other_lane->LaneSFromTrackS(p));
+    bound_left += other_lane_bounds.max() - other_lane_bounds.min();
+    other_lane = static_cast<const malidrive::Lane*>(other_lane->to_left());
   }
 
-  int right_lanes_count = 0;
-  other_lane = to_right();
+  double bound_right = -lane_bounds.min();
+  other_lane = static_cast<const malidrive::Lane*>(to_right());
   while (other_lane != nullptr) {
-    right_lanes_count++;
-    other_lane = other_lane->to_right();
+    const maliput::api::RBounds other_lane_bounds = other_lane->do_lane_bounds(other_lane->LaneSFromTrackS(p));
+    bound_right += other_lane_bounds.max() - other_lane_bounds.min();
+    other_lane = static_cast<const malidrive::Lane*>(other_lane->to_right());
   }
 
-  const double p = p_from_s_(s);
-  const double width = lane_width_->f(p);
+  const double tolerance = road_curve_->linear_tolerance();
+  bound_left = bound_left < tolerance ? tolerance : bound_left;
+  bound_right = bound_right < tolerance ? tolerance : bound_right;
 
-  return {-width * (static_cast<double>(right_lanes_count) + 0.5),
-          width * (static_cast<double>(left_lanes_count) + 0.5)};
+  return {-bound_right, bound_left};
 }
 
 maliput::math::Vector3 Lane::DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const {
