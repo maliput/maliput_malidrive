@@ -30,6 +30,7 @@
 #include "maliput_malidrive/builder/road_rulebook_builder.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 #include "maliput_malidrive/builder/speed_limit_builder.h"
+#include "maliput_malidrive/builder/xodr_parser_configuration.h"
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/constants.h"
@@ -45,14 +46,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   std::unique_ptr<builder::RoadCurveFactoryBase> road_curve_factory = std::make_unique<builder::RoadCurveFactory>(
       rg_config.linear_tolerance, rg_config.scale_length, rg_config.angular_tolerance);
 
-  const xodr::ParserConfiguration parser_config{
-      rg_config.linear_tolerance,
-      (rg_config.standard_strictness_policy &
-       RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors) ==
-          RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors,
-      (rg_config.standard_strictness_policy &
-       RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
-          RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
+  const xodr::ParserConfiguration parser_config = XodrParserConfigurationFromRoadGeometryConfiguration(rg_config);
   maliput::log()->trace("Loading database from file: {} ...", rg_config.opendrive_file.value());
   auto db_manager = xodr::LoadDataBaseFromFile(rg_config.opendrive_file.value(), parser_config);
   maliput::log()->trace("Building RoadGeometry...");
