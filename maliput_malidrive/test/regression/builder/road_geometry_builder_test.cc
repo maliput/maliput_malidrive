@@ -12,6 +12,7 @@
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"
+#include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
 
 #include "utility/resources.h"
 
@@ -27,6 +28,8 @@ using maliput::api::RBounds;
 using maliput::api::SegmentId;
 using maliput::api::test::IsRBoundsClose;
 
+using malidrive::test::GetRoadGeometryConfigurationFor;
+
 /*
   Loaded map has the following structure:
 
@@ -39,26 +42,21 @@ using maliput::api::test::IsRBoundsClose;
 */
 class BuilderTestSingleLane : public ::testing::Test {
  protected:
-  const double kLinearTolerance{constants::kStrictLinearTolerance};
-  const double kAngularTolerance{constants::kStrictAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
+  static constexpr double kLinearTolerance{constants::kStrictLinearTolerance};
+  static constexpr double kAngularTolerance{constants::kStrictAngularTolerance};
+  static constexpr double kScaleLength{constants::kScaleLength};
 
-  const RoadGeometryConfiguration road_geometry_configuration_{
-      maliput::api::RoadGeometryId("RoadGeometryId"),
-      utility::FindResource("odr/SingleLane.xodr"),
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+  void SetUp() override {
+    road_geometry_configuration_.linear_tolerance = kLinearTolerance;
+    road_geometry_configuration_.angular_tolerance = kAngularTolerance;
+    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file.value()),
+                                          {kLinearTolerance});
+    factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
+  }
 
-  std::unique_ptr<xodr::DBManager> manager_ =
-      xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), {kLinearTolerance});
-  std::unique_ptr<builder::RoadCurveFactoryBase> factory_ =
-      std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor("SingleLane.xodr").value()};
+  std::unique_ptr<xodr::DBManager> manager_;
+  std::unique_ptr<builder::RoadCurveFactoryBase> factory_;
 };
 
 TEST_F(BuilderTestSingleLane, RoadGeometryBuilderConstructor) {
@@ -71,7 +69,7 @@ TEST_F(BuilderTestSingleLane, RoadGeometryBuilderConstructor) {
   EXPECT_DOUBLE_EQ(dut->linear_tolerance(), kLinearTolerance);
   EXPECT_DOUBLE_EQ(dut->angular_tolerance(), kAngularTolerance);
   EXPECT_DOUBLE_EQ(dut->scale_length(), kScaleLength);
-  EXPECT_EQ(dut->id(), maliput::api::RoadGeometryId("RoadGeometryId"));
+  EXPECT_EQ(dut->id(), road_geometry_configuration_.id);
 }
 
 TEST_F(BuilderTestSingleLane, RoadGeometryBuilderConstructorBadUsed) {
@@ -163,7 +161,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
                           Section 0
       */
       {"SingleLane",
-       "odr/SingleLane.xodr",
+       "SingleLane.xodr",
        {{1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 100.}, {{1, 0, -1}, {1, 0, 1}}}}}}},
       /*
@@ -179,7 +177,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
         Driving   |Width: 2.0 m| L: -1......- '
       */
       {"ArcLane",
-       "odr/ArcLane.xodr",
+       "ArcLane.xodr",
        {{1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 100.}, {{1, 0, -1}, {1, 0, 1}}}}}}},
       /*
@@ -194,7 +192,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
               - Arc: start: [x: -20., y: 80., h: π], curvature: -0.025m, length: 125.663706144m
       */
       {"SShapeRoad",
-       "odr/SShapeRoad.xodr",
+       "SShapeRoad.xodr",
        {{1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 271.327412287}, {{1, 0, -1}, {1, 0, 1}}}}}}},
       /*
@@ -209,7 +207,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
               - Line: start: [x: 140., y: 40., h: π/2], length: 100.m
       */
       {"LShapeRoad",
-       "odr/LShapeRoad.xodr",
+       "LShapeRoad.xodr",
        {{1 /* road_id */, 0.0 /* heading */},
         {2 /* road_id */, 0.0 /* heading */},
         {3 /* road_id */, 1.570796327 /* heading */}},
@@ -226,7 +224,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
                 - Width: 3.5m each, except the center lane.
       */
       {"TShapeRoad",
-       "odr/TShapeRoad.xodr",
+       "TShapeRoad.xodr",
        {{0 /* road_id */, 0.0 /* heading */},
         {1 /* road_id */, 0.0 /* heading */},
         {2 /* road_id */, 1.5707963267948966 /* heading */},
@@ -287,7 +285,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
               - Line: start: [x: 66.6, y: 0., h: 0], length: 33.4m
       */
       {"LineMultipleSections",
-       "odr/LineMultipleSections.xodr",
+       "LineMultipleSections.xodr",
        {{1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("1_0"),
          {{{SegmentId("1_0"), 0, 33.3},
@@ -338,7 +336,7 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
         to anything in one of its endpoints.
       */
       {"DisconnectedRoadInJunction",
-       "odr/DisconnectedRoadInJunction.xodr",
+       "DisconnectedRoadInJunction.xodr",
        {{0 /* road_id */, 0.0 /* heading */}, {1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("0_0"), {{{SegmentId("0_0"), 0., 50.}, {{0, 0, 1}}}}},
         {JunctionId("2"), {{{SegmentId("1_0"), 0., 50.}, {{1, 0, 1}}}}}}},
@@ -349,7 +347,10 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
 class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometryBuilderTestParameters> {
  protected:
   void SetUp() override {
-    manager_ = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), {kLinearTolerance});
+    road_geometry_configuration_.linear_tolerance = kLinearTolerance;
+    road_geometry_configuration_.angular_tolerance = kAngularTolerance;
+    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file.value()),
+                                          {kLinearTolerance});
     factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
 
@@ -435,24 +436,15 @@ class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometry
 
  public:
   //@{  Tolerances set to match the involved geometries and the parser resolution.
-  const double kLinearTolerance{1e-6};
-  const double kAngularTolerance{1e-6};
-  const double kScaleLength{constants::kScaleLength};
+  static constexpr double kLinearTolerance{1e-6};
+  static constexpr double kAngularTolerance{1e-6};
+  static constexpr double kScaleLength{constants::kScaleLength};
   //@}
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
   const std::vector<RoadAttributes> expected_roads = GetParam().roads;
   const std::map<JunctionId, std::vector<std::pair<SegmentAttributes, std::vector<LaneAttributes>>>>
       expected_junctions_segments_lanes_ids = GetParam().junctions_segments_lanes_ids;
   RoadGeometryConfiguration road_geometry_configuration_{
-      maliput::api::RoadGeometryId(GetParam().road_geometry_id),
-      utility::FindResource(GetParam().path_to_xodr_file),
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+      GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
   std::unique_ptr<xodr::DBManager> manager_;
   std::unique_ptr<builder::RoadCurveFactoryBase> factory_;
 };
@@ -478,7 +470,7 @@ class RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest : public RoadGe
   void SetUp() override {
     RoadGeometryBuilderBaseTest::SetUp();
     road_geometry_configuration_.build_policy.type = BuildPolicy::Type::kParallel;
-    // Number of threads will be delimited by the hardward capacity minus one.
+    // Number of threads will be delimited by the hardware capacity minus one.
     road_geometry_configuration_.build_policy.num_threads = std::nullopt;
   }
 };
@@ -600,7 +592,7 @@ struct BuilderBranchPointTestParameters {
 std::vector<BuilderBranchPointTestParameters> InstantiateBuilderBranchPointParameters() {
   return {
       {"LShapeRoad",
-       "odr/LShapeRoad.xodr",
+       "LShapeRoad.xodr",
        {
            {LaneId("1_0_1"),
             {ConnectionExpectation({{LaneId("1_0_1"), LaneEnd::Which::kStart}}, {}),
@@ -617,7 +609,7 @@ std::vector<BuilderBranchPointTestParameters> InstantiateBuilderBranchPointParam
              ConnectionExpectation({{LaneId("3_0_1"), LaneEnd::Which::kFinish}}, {})}},
        }},
       {"LShapeRoadVariableLanes",
-       "odr/LShapeRoadVariableLanes.xodr",
+       "LShapeRoadVariableLanes.xodr",
        {
            {LaneId("1_0_1"),
             {ConnectionExpectation({{LaneId("1_0_1"), LaneEnd::Which::kStart}}, {}),
@@ -645,7 +637,7 @@ std::vector<BuilderBranchPointTestParameters> InstantiateBuilderBranchPointParam
              ConnectionExpectation({{LaneId("3_0_1"), LaneEnd::Which::kFinish}}, {})}},
        }},
       {"TShapeRoad",
-       "odr/TShapeRoad.xodr",
+       "TShapeRoad.xodr",
        {
            {LaneId("0_0_1"),
             {ConnectionExpectation({{LaneId("0_0_1"), LaneEnd::Which::kStart}}, {}),
@@ -729,7 +721,7 @@ std::vector<BuilderBranchPointTestParameters> InstantiateBuilderBranchPointParam
                  {{LaneId("6_0_-1"), LaneEnd::Which::kFinish}, {LaneId("9_0_-1"), LaneEnd::Which::kFinish}})}},
        }},
       {"LineMultipleSections",
-       "odr/LineMultipleSections.xodr",
+       "LineMultipleSections.xodr",
        {
            {LaneId("1_0_1"),
             {ConnectionExpectation({{LaneId("1_0_1"), LaneEnd::Which::kStart}}, {}),
@@ -769,30 +761,24 @@ std::vector<BuilderBranchPointTestParameters> InstantiateBuilderBranchPointParam
 // Class to setup the RoadGeometry and later test BranchPoint formation.
 class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPointTestParameters> {
  protected:
+  //@{  Tolerances set to match the involved geometries and the parser resolution.
+  static constexpr double kLinearTolerance{1e-6};
+  static constexpr double kAngularTolerance{1e-6};
+  static constexpr double kScaleLength{constants::kScaleLength};
+  //@}
+
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file.value(), {kLinearTolerance});
+    road_geometry_configuration_.linear_tolerance = kLinearTolerance;
+    road_geometry_configuration_.angular_tolerance = kAngularTolerance;
+    auto manager = xodr::LoadDataBaseFromFile(
+        utility::FindResource(road_geometry_configuration_.opendrive_file.value()), {kLinearTolerance});
     auto factory = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
     rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_, std::move(factory))();
     expected_connections = GetParam().expected_connections;
   }
 
-  //@{  Tolerances set to match the involved geometries and the parser resolution.
-  const double kLinearTolerance{1e-6};
-  const double kAngularTolerance{1e-6};
-  const double kScaleLength{constants::kScaleLength};
-  //@}
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-  const RoadGeometryConfiguration road_geometry_configuration_{
-      maliput::api::RoadGeometryId(GetParam().road_id),
-      utility::FindResource(GetParam().path_to_xodr_file),
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
-
+  RoadGeometryConfiguration road_geometry_configuration_{
+      GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
   std::unique_ptr<const maliput::api::RoadGeometry> rg_;
   std::map<LaneId, std::pair<ConnectionExpectation, ConnectionExpectation>> expected_connections;
 };
@@ -879,39 +865,32 @@ struct SurfaceBoundariesTestParmeters {
 };
 
 std::vector<SurfaceBoundariesTestParmeters> InstantiateBuilderSurfaceBoundariesParameters() {
-  return {{"SingleLane", "odr/SingleLane.xodr", 2.},
-          {"ArcLane", "odr/ArcLane.xodr", 2.},
-          {"SShapeRoad", "odr/SShapeRoad.xodr", 2.}};
+  return {
+      {"SingleLane", "SingleLane.xodr", 2.}, {"ArcLane", "ArcLane.xodr", 2.}, {"SShapeRoad", "SShapeRoad.xodr", 2.}};
 }
 
 // Set up the RoadGeometry.
 class RoadGeometryBuilderSurfaceBoundariesTest : public ::testing::TestWithParam<SurfaceBoundariesTestParmeters> {
  protected:
+  //@{  Tolerances set to match the involved geometries and the parser resolution.
+  static constexpr double kLinearTolerance{1e-6};
+  static constexpr double kAngularTolerance{1e-6};
+  static constexpr double kScaleLength{constants::kScaleLength};
+  //@}
+  static constexpr double kSStart{0.};
+
   void SetUp() override {
+    road_geometry_configuration_.linear_tolerance = kLinearTolerance;
+    road_geometry_configuration_.angular_tolerance = kAngularTolerance;
     dut_ = builder::RoadGeometryBuilder(
-        xodr::LoadDataBaseFromFile(kRoadGeometryConfiguration.opendrive_file.value(), {kLinearTolerance}),
-        kRoadGeometryConfiguration,
+        xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file.value()),
+                                   {kLinearTolerance}),
+        road_geometry_configuration_,
         std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance))();
   }
 
-  //@{  Tolerances set to match the involved geometries and the parser resolution.
-  const double kLinearTolerance{1e-6};
-  const double kAngularTolerance{1e-6};
-  const double kScaleLength{constants::kScaleLength};
-  //@}
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-  const RoadGeometryConfiguration kRoadGeometryConfiguration{
-      maliput::api::RoadGeometryId(GetParam().road_geometry_id),
-      utility::FindResource(GetParam().path_to_xodr_file),
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
-  const double kSStart{0.};
-
+  RoadGeometryConfiguration road_geometry_configuration_{
+      GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
   std::unique_ptr<const maliput::api::RoadGeometry> dut_;
 };
 

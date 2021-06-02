@@ -90,8 +90,11 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     LanesBuilder(const std::pair<maliput::geometry_base::Junction*,
                                  std::map<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>&
                      junction_segments_attributes_in,
-                 RoadGeometry* rg_in, const RoadCurveFactoryBase* factory_in)
-        : junction_segments_attributes(junction_segments_attributes_in), factory(factory_in), rg(rg_in) {
+                 RoadGeometry* rg_in, const RoadCurveFactoryBase* factory_in, bool omit_nondrivable_lanes_in)
+        : junction_segments_attributes(junction_segments_attributes_in),
+          factory(factory_in),
+          omit_nondrivable_lanes(omit_nondrivable_lanes_in),
+          rg(rg_in) {
       MALIDRIVE_THROW_UNLESS(rg != nullptr);
       MALIDRIVE_THROW_UNLESS(factory != nullptr);
     }
@@ -105,6 +108,7 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
         junction_segments_attributes;
 
     const RoadCurveFactoryBase* factory{};
+    const bool omit_nondrivable_lanes{true};
     RoadGeometry* rg{};
   };
 
@@ -128,6 +132,8 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // While the Lanes are built from the center to the external lanes to correctly compute their
   // lane offset, the returned vector is filled with the Lanes in right-to-left order of the Segment.
   //
+  // When `omit_nondrivable_lanes` is true, nondriveable lanes will be omitted.
+  //
   // `road_header` must not be nullptr.
   // `lane_section` must not be nullptr.
   // `xodr_lane_section_index` is the index of the LaneSection within the road and mustn't be negative.
@@ -137,11 +143,9 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   //
   // @throws maliput::common::assertion_error When either `segment`,
   //         `lane_section`, `road_header` or `rg` are nullptr.
-  static std::vector<LaneConstructionResult> BuildLanesForSegment(const xodr::RoadHeader* road_header,
-                                                                  const xodr::LaneSection* lane_section,
-                                                                  int xodr_lane_section_index,
-                                                                  const RoadCurveFactoryBase* factory, RoadGeometry* rg,
-                                                                  Segment* segment);
+  static std::vector<LaneConstructionResult> BuildLanesForSegment(
+      const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section, int xodr_lane_section_index,
+      const RoadCurveFactoryBase* factory, bool omit_nondrivable_lanes, RoadGeometry* rg, Segment* segment);
 
   // Builds a RoadCurve.
   //

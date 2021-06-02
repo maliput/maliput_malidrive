@@ -10,6 +10,7 @@
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/constants.h"
+#include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
 #include "maliput_malidrive/utility/resources.h"
 
 namespace malidrive {
@@ -19,21 +20,8 @@ namespace {
 
 class LoaderTestSingleLane : public ::testing::Test {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math:: : Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-
   const builder::RoadGeometryConfiguration road_geometry_configuration_{
-      maliput::api::RoadGeometryId("RoadGeometryId"),
-      utility::FindResource("odr/SingleLane.xodr"),
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+      GetRoadGeometryConfigurationFor("SingleLane.xodr").value()};
 
   const int kNumLanes{2};
   const maliput::api::LaneId kLaneId1{"1_0_-1"};

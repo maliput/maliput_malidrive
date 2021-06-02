@@ -30,6 +30,7 @@
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
+#include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
 
 #include "utility/resources.h"
 
@@ -53,6 +54,8 @@ using maliput::api::rules::RightOfWayRule;
 using maliput::api::rules::RoadRulebook;
 using maliput::api::rules::Rule;
 using maliput::api::rules::SpeedLimitRule;
+
+using malidrive::test::GetRoadGeometryConfigurationFor;
 
 // Functor to compare two maliput::api::rules::RangeValueRule::Ranges with
 // a certain tolerance for `min` and `max`.
@@ -110,7 +113,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
                           Road 1
                           Section 0
       */
-      {"SingleLane", "odr/SingleLane.xodr"},
+      {"SingleLane", "SingleLane.xodr"},
       /*
         ArcLane map has the following structure:
                                 (23.9388857642, 72.0457446219, 0.)
@@ -123,7 +126,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
         Track lane|Width: 0.0 m| L: 0 .....- ' _.'
         Driving   |Width: 2.0 m| L: -1......- '
       */
-      {"ArcLane", "odr/ArcLane.xodr"},
+      {"ArcLane", "ArcLane.xodr"},
       /*
         SShapeRoad map has the following structure:
         - 1 Road
@@ -135,7 +138,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
             - Line: start: [x: 0., y: 80., h: π], length: 20.m
             - Arc: start: [x: -20., y: 80., h: π], curvature: -0.025m, length: 125.663706144m
       */
-      {"SShapeRoad", "odr/SShapeRoad.xodr"},
+      {"SShapeRoad", "SShapeRoad.xodr"},
       /*
         LShapeRoad map has the following structure:
           - 3 Roads
@@ -147,7 +150,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
               - Arc: start: [x: 100., y: 0., h: 0.], curvature: 0.025, length: 62.831853072m
               - Line: start: [x: 140., y: 40., h: π/2], length: 100.m
       */
-      {"LShapeRoad", "odr/LShapeRoad.xodr"},
+      {"LShapeRoad", "LShapeRoad.xodr"},
       /*
         LShapeRoadVariableLanes map has the following structure:
           - Road 1
@@ -170,7 +173,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
               - Line: start: [x: 140., y: 40., h: π/2], length: 100.m
 
       */
-      {"LShapeRoadVariableLanes", "odr/LShapeRoadVariableLanes.xodr"},
+      {"LShapeRoadVariableLanes", "LShapeRoadVariableLanes.xodr"},
       /*
         TShapeRoad describes a T shape intersection.
          - 3 Roads dont belong to a Junction.
@@ -196,45 +199,30 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
       /*
         ParkingGarageRamp describes a Road in the form of a parking garage ramp.
       */
-      {"ParkingGarageRamp", "odr/ParkingGarageRamp.xodr"},
+      {"ParkingGarageRamp", "ParkingGarageRamp.xodr"},
       /*
         SShapeSuperelevatedRoad describes a road like SShapeRoad.xodr but it also includes superelevation.
       */
-      {"SShapeSuperelevatedRoad", "odr/SShapeSuperelevatedRoad.xodr"},
+      {"SShapeSuperelevatedRoad", "SShapeSuperelevatedRoad.xodr"},
       /*
         LineVariableWidth describes a straight road with variable width.
       */
-      {"LineVariableWidth", "odr/LineVariableWidth.xodr"},
+      {"LineVariableWidth", "LineVariableWidth.xodr"},
   };
 }
 
 // Set up basic configuration for the road geometry.
-class RoadNetworkBuilderTest : public ::testing::TestWithParam<RoadNetworkBuilderTestParameters> {
- protected:
-  //@{  Tolerances set to match the involved geometries and the parser resolution.
-  const double kLinearTolerance{1e-6};
-  const double kAngularTolerance{1e-6};
-  const double kScaleLength{constants::kScaleLength};
-  //@}
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-
-  const RoadGeometryConfiguration road_geometry_configuration_{
-      maliput::api::RoadGeometryId(GetParam().road_geometry_id),
-      utility::FindResource(GetParam().path_to_xodr_file),
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
-};
+class RoadNetworkBuilderTest : public ::testing::TestWithParam<RoadNetworkBuilderTestParameters> {};
 
 TEST_P(RoadNetworkBuilderTest, RoadGeometryBuilding) {
+  RoadGeometryConfiguration road_geometry_configuration{
+      GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
+  road_geometry_configuration.opendrive_file =
+      utility::FindResource(road_geometry_configuration.opendrive_file.value());
   const std::unique_ptr<maliput::api::RoadNetwork> dut = builder::RoadNetworkBuilder(
-      {road_geometry_configuration_, std::nullopt, std::nullopt, std::nullopt, std::nullopt})();
+      {road_geometry_configuration, std::nullopt, std::nullopt, std::nullopt, std::nullopt})();
   ASSERT_NE(dynamic_cast<const malidrive::RoadGeometry*>(dut->road_geometry()), nullptr);
-  EXPECT_EQ(road_geometry_configuration_.id, dut->road_geometry()->id());
+  EXPECT_EQ(road_geometry_configuration.id, dut->road_geometry()->id());
   EXPECT_NO_THROW(maliput::api::ValidateRoadNetwork(
       *dut, {false, true /* Invariants */, false, false, false, false, false, false}));
 }
@@ -248,22 +236,7 @@ INSTANTIATE_TEST_CASE_P(RoadNetworkBuilderTestGroup, RoadNetworkBuilderTest,
 // Base testing class for the builder test.
 class BuilderTest : public ::testing::Test {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-  const double kSpeedTolerance{constants::kSpeedTolerance};
-
-  RoadGeometryConfiguration road_geometry_configuration_{
-      RoadGeometryId("RoadGeometryId"),
-      std::nullopt,
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+  static constexpr double kSpeedTolerance{constants::kSpeedTolerance};
 };
 
 // Evaluates registered rule types in RuleRegistry.
@@ -271,8 +244,9 @@ class RuleRegistryBuildTest : public BuilderTest {
  protected:
   void SetUp() override {
     const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
-    road_geometry_configuration_.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
-    const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration_, kTShapeRoadYAMLPath,
+    RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
+    road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
+    const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, kTShapeRoadYAMLPath,
                                                               kTShapeRoadYAMLPath, kTShapeRoadYAMLPath};
     rn_ = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration);
     ASSERT_NE(rn_.get(), nullptr);
@@ -359,9 +333,10 @@ TEST_F(RuleRegistryBuildTest, RangeValueRuleTypesLoadTest) {
 
 TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
   const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
-  road_geometry_configuration_.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
+  RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
+  road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
   const RoadNetworkConfiguration road_network_configuration{
-      road_geometry_configuration_, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath};
+      road_geometry_configuration, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath};
 
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration);
   ASSERT_NE(rn.get(), nullptr);
@@ -408,8 +383,9 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
 // parsed.
 TEST_F(BuilderTest, StubProperties) {
   const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
-  road_geometry_configuration_.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
-  const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration_, kTShapeRoadYAMLPath,
+  RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
+  road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
+  const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, kTShapeRoadYAMLPath,
                                                             kTShapeRoadYAMLPath, kTShapeRoadYAMLPath};
 
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration);
@@ -447,26 +423,15 @@ std::ostream& operator<<(std::ostream& os, const DirectionUsageTruthTable& tt) {
 // Class to hold common DirectionUsageRule test.
 class DirectionUsageTest : public ::testing::TestWithParam<DirectionUsageTruthTable> {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
+  static constexpr double kLinearTolerance{constants::kLinearTolerance};
 
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(GetParam().file_path);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
     reference_values_ = GetParam().reference_values;
   }
 
-  RoadGeometryConfiguration road_geometry_configuration_{
-      RoadGeometryId("RoadGeometryId"),
-      std::nullopt,
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor(GetParam().file_path).value()};
   std::vector<DirectionUsageReferenceValue> reference_values_;
 };
 
@@ -474,7 +439,7 @@ class DirectionUsageTest : public ::testing::TestWithParam<DirectionUsageTruthTa
 std::vector<DirectionUsageTruthTable> InstantiateDirectionUsageBuilderParameters() {
   const int strict_severity{Rule::State::kStrict};
   return {
-      {"odr/LineMultipleSections.xodr",
+      {"LineMultipleSections.xodr",
        {
            {LaneId("1_0_4"), SRange(0., 33.3), "Bidirectional", strict_severity},
            {LaneId("1_0_3"), SRange(0., 33.3), "Bidirectional", strict_severity},
@@ -501,7 +466,7 @@ std::vector<DirectionUsageTruthTable> InstantiateDirectionUsageBuilderParameters
            {LaneId("1_2_-3"), SRange(0., 33.4), "Bidirectional", strict_severity},
            {LaneId("1_2_-4"), SRange(0., 33.4), "Bidirectional", strict_severity},
        }},
-      {"odr/LineMultipleSectionsMoreCases.xodr",
+      {"LineMultipleSectionsMoreCases.xodr",
        {
            {LaneId("1_0_4"), SRange(0., 33.3), "Bidirectional", strict_severity},
            {LaneId("1_0_3"), SRange(0., 33.3), "Bidirectional", strict_severity},
@@ -528,7 +493,7 @@ std::vector<DirectionUsageTruthTable> InstantiateDirectionUsageBuilderParameters
            {LaneId("1_2_-3"), SRange(0., 33.4), "Bidirectional", strict_severity},
            {LaneId("1_2_-4"), SRange(0., 33.4), "Bidirectional", strict_severity},
        }},
-      {"odr/TShapeRoad.xodr",
+      {"TShapeRoad.xodr",
        {
            {LaneId("0_0_4"), SRange(0., 46.), "Bidirectional", strict_severity},
            {LaneId("0_0_3"), SRange(0., 46.), "Bidirectional", strict_severity},
@@ -677,7 +642,7 @@ std::vector<VehicleRulesTruthTable> InstantiateVehicleRulesTestParameters() {
   const Rule::RelatedRules empty_related_rules{};
 
   return {
-      {"odr/TShapeRoad.xodr",
+      {"TShapeRoad.xodr",
        {
            {LaneId("0_0_1"), rules::VehicleUsageRuleTypeId(), strict_severity, non_pedestrians, empty_related_rules,
             SRange(0., 46.)},
@@ -704,7 +669,7 @@ std::vector<VehicleRulesTruthTable> InstantiateVehicleRulesTestParameters() {
            {LaneId("9_0_-1"), rules::VehicleUsageRuleTypeId(), strict_severity, non_pedestrians, empty_related_rules,
             SRange(0., 3.5587412868786292)},
        }},
-      {"odr/BikingLineLane.xodr",
+      {"BikingLineLane.xodr",
        {
            {LaneId("1_0_2"), rules::VehicleExclusiveRuleTypeId(), strict_severity, non_motorized_vehicles_only,
             empty_related_rules, SRange(0., 100.)},
@@ -725,26 +690,15 @@ std::vector<VehicleRulesTruthTable> InstantiateVehicleRulesTestParameters() {
 
 class VehicleRulesTest : public ::testing::TestWithParam<VehicleRulesTruthTable> {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
+  static constexpr double kLinearTolerance{constants::kLinearTolerance};
 
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(GetParam().file_path);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
     reference_values_ = GetParam().reference_values;
   }
 
-  RoadGeometryConfiguration road_geometry_configuration_{
-      RoadGeometryId("RoadGeometryId"),
-      std::nullopt,
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor(GetParam().file_path).value()};
   std::vector<VehicleRulesReferenceValue> reference_values_;
 };
 
@@ -804,33 +758,20 @@ struct VehicleRulesStateProviderTruthTable {
 
 class VehicleRulesStateProviderTest : public ::testing::TestWithParam<VehicleRulesStateProviderTruthTable> {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(GetParam().file_path);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
     reference_values_ = GetParam().reference_values;
   }
 
-  RoadGeometryConfiguration road_geometry_configuration_{
-      RoadGeometryId("RoadGeometryId"),
-      std::nullopt,
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor(GetParam().file_path).value()};
   std::vector<VehicleRulesStateProviderReferenceValue> reference_values_;
 };
 
 // Returns a vector containing expected values for different maps.
 std::vector<VehicleRulesStateProviderTruthTable> InstantiateVehicleRulesStateProviderTestParameters() {
   return {
-      {"odr/TShapeRoad.xodr",
+      {"TShapeRoad.xodr",
        {
            {LaneId("0_0_4"), rules::VehicleUsageRuleTypeId()},  {LaneId("0_0_3"), rules::VehicleUsageRuleTypeId()},
            {LaneId("0_0_2"), rules::VehicleUsageRuleTypeId()},  {LaneId("0_0_1"), rules::VehicleUsageRuleTypeId()},
@@ -848,7 +789,7 @@ std::vector<VehicleRulesStateProviderTruthTable> InstantiateVehicleRulesStatePro
            {LaneId("6_0_-1"), rules::VehicleUsageRuleTypeId()}, {LaneId("7_0_-1"), rules::VehicleUsageRuleTypeId()},
            {LaneId("8_0_-1"), rules::VehicleUsageRuleTypeId()}, {LaneId("9_0_-1"), rules::VehicleUsageRuleTypeId()},
        }},
-      {"odr/BikingLineLane.xodr",
+      {"BikingLineLane.xodr",
        {
            {LaneId("1_0_4"), rules::VehicleUsageRuleTypeId()},
            {LaneId("1_0_3"), rules::VehicleUsageRuleTypeId()},
@@ -903,33 +844,22 @@ struct SpeedLimitRuleTruthTable {
 
 class SpeedLimitRuleBuilderTest : public ::testing::TestWithParam<SpeedLimitRuleTruthTable> {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-  const double kSpeedTolerance{constants::kSpeedTolerance};
+  static constexpr double kLinearTolerance{constants::kLinearTolerance};
+  static constexpr double kSpeedTolerance{constants::kSpeedTolerance};
 
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(GetParam().file_path);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
     reference_values_ = GetParam().reference_values;
   }
 
-  RoadGeometryConfiguration road_geometry_configuration_{
-      RoadGeometryId("RoadGeometryId"),
-      std::nullopt,
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor(GetParam().file_path).value()};
   std::vector<SpeedLimitRuleReferenceValue> reference_values_;
 };
 
 std::vector<SpeedLimitRuleTruthTable> SpeedLimitRuleTestParameters() {
   return {
-      {"odr/LineMultipleSections.xodr",
+      {"LineMultipleSections.xodr",
        {
            {LaneId{"1_0_4"},
             static_cast<int>(SpeedLimitRule::Severity::kStrict),
@@ -1009,7 +939,7 @@ std::vector<SpeedLimitRuleTruthTable> SpeedLimitRuleTestParameters() {
             static_cast<int>(SpeedLimitRule::Severity::kStrict),
             {{1, {constants::kDefaultMaxSpeedLimit, SRange(0., 33.4)}}}},
        }},
-      {"odr/TShapeRoad.xodr",
+      {"TShapeRoad.xodr",
        {
            {LaneId("0_0_-4"), Rule::State::kStrict, {{1, {xodr::ConvertToMs(40., xodr::Unit::kMph), SRange(0., 46.)}}}},
            {LaneId("0_0_-3"), Rule::State::kStrict, {{1, {xodr::ConvertToMs(40., xodr::Unit::kMph), SRange(0., 46.)}}}},
@@ -1050,7 +980,7 @@ std::vector<SpeedLimitRuleTruthTable> SpeedLimitRuleTestParameters() {
             Rule::State::kStrict,
             {{1, {constants::kDefaultMaxSpeedLimit, SRange(0., 3.558741286878631)}}}},
        }},
-      {"odr/LineMultipleSpeeds.xodr",
+      {"LineMultipleSpeeds.xodr",
        {
            {LaneId("1_0_1"),
             Rule::State::kStrict,
@@ -1157,33 +1087,20 @@ struct RangeValueRuleStateProviderTruthTable {
 
 class RangeValueRuleStateProviderTest : public ::testing::TestWithParam<RangeValueRuleStateProviderTruthTable> {
  protected:
-  const double kLinearTolerance{constants::kLinearTolerance};
-  const double kAngularTolerance{constants::kAngularTolerance};
-  const double kScaleLength{constants::kScaleLength};
-  const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const double kExplorationRadius{constants::kExplorationRadius};
-  const int kMaxIntersectIterations{constants::kNumIterations};
-
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(GetParam().file_path);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
     reference_values_ = GetParam().reference_values;
   }
 
-  RoadGeometryConfiguration road_geometry_configuration_{
-      RoadGeometryId("RoadGeometryId"),
-      std::nullopt,
-      kLinearTolerance,
-      kAngularTolerance,
-      kScaleLength,
-      kInertialToBackendFrameTranslation,
-      InertialToLaneMappingConfig(kExplorationRadius, kMaxIntersectIterations)};
   std::vector<RangeValueRuleStateProviderReferenceValue> reference_values_;
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor(GetParam().file_path).value()};
 };
 
 // Returns a vector containing expected values for different maps.
 std::vector<RangeValueRuleStateProviderTruthTable> RangeValueRuleStateProviderTestParameters() {
   return {
-      {"odr/LineMultipleSections.xodr",
+      {"LineMultipleSections.xodr",
        {
            {LaneId{"1_0_1"}, maliput::SpeedLimitRuleTypeId()},
            {LaneId{"1_0_-1"}, maliput::SpeedLimitRuleTypeId()},
@@ -1192,7 +1109,7 @@ std::vector<RangeValueRuleStateProviderTruthTable> RangeValueRuleStateProviderTe
            {LaneId{"1_2_1"}, maliput::SpeedLimitRuleTypeId()},
            {LaneId{"1_2_-1"}, maliput::SpeedLimitRuleTypeId()},
        }},
-      {"odr/TShapeRoad.xodr",
+      {"TShapeRoad.xodr",
        {
            {LaneId("0_0_1"), maliput::SpeedLimitRuleTypeId()},
            {LaneId("0_0_-1"), maliput::SpeedLimitRuleTypeId()},
