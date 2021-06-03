@@ -1,7 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #pragma once
 
-#include "maliput/math/vector.h"
+#include <maliput/math/vector.h>
 #include "maliput_malidrive/xodr/geometry.h"
 
 namespace malidrive {

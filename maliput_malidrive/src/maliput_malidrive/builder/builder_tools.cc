@@ -5,8 +5,8 @@
 
 #include <tinyxml2.h>
 
-#include "maliput/api/lane.h"
-#include "maliput/common/logger.h"
+#include <maliput/api/lane.h>
+#include <maliput/common/logger.h>
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"

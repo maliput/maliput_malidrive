@@ -9,7 +9,7 @@
 
 #include "maliput_malidrive/test_utilities/function_stub.h"
 
-#include "maliput/common/assertion_error.h"
+#include <maliput/common/assertion_error.h>
 
 namespace malidrive {
 namespace road_curve {

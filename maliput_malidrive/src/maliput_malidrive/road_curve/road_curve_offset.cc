@@ -5,9 +5,9 @@
 
 #include "drake/common/eigen_types.h"
 
-#include "maliput/common/logger.h"
-#include "maliput/common/maliput_unused.h"
-#include "maliput/math/saturate.h"
+#include <maliput/common/logger.h>
+#include <maliput/common/maliput_unused.h>
+#include <maliput/math/saturate.h>
 
 namespace malidrive {
 namespace road_curve {

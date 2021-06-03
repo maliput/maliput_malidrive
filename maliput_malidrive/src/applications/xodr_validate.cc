@@ -9,7 +9,7 @@
 #include <gflags/gflags.h>
 
 #include "log_level_flag.h"
-#include "maliput/common/logger.h"
+#include <maliput/common/logger.h>
 #include "maliput_malidrive/xodr/db_manager.h"
 
 namespace malidrive {

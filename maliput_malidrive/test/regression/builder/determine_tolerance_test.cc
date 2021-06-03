@@ -5,7 +5,7 @@
 
 #include <gtest/gtest.h>
 
-#include "maliput/common/assertion_error.h"
+#include <maliput/common/assertion_error.h>
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/test_utilities/xodr_testing_map_descriptions.h"
 #include "maliput_malidrive/xodr/db_manager.h"

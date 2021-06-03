@@ -19,7 +19,7 @@
 #include "maliput_malidrive/xodr/road_type.h"
 #include "maliput_malidrive/xodr/unit.h"
 
-#include "maliput/common/logger.h"
+#include <maliput/common/logger.h>
 
 #include <map>
 #include <vector>

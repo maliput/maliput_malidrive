@@ -6,25 +6,25 @@
 
 #include <gtest/gtest.h>
 
-#include "maliput/api/lane.h"
-#include "maliput/api/regions.h"
-#include "maliput/api/road_network_validator.h"
-#include "maliput/api/rules/direction_usage_rule.h"
-#include "maliput/api/rules/discrete_value_rule_state_provider.h"
-#include "maliput/api/rules/phase.h"
-#include "maliput/api/rules/range_value_rule_state_provider.h"
-#include "maliput/api/rules/right_of_way_rule.h"
-#include "maliput/api/rules/road_rulebook.h"
-#include "maliput/api/rules/speed_limit_rule.h"
-#include "maliput/base/intersection_book.h"
-#include "maliput/base/manual_phase_provider.h"
-#include "maliput/base/manual_phase_ring_book.h"
-#include "maliput/base/manual_range_value_rule_state_provider.h"
-#include "maliput/base/manual_right_of_way_rule_state_provider.h"
-#include "maliput/base/manual_rulebook.h"
-#include "maliput/base/phase_based_right_of_way_rule_state_provider.h"
-#include "maliput/base/rule_registry.h"
-#include "maliput/base/traffic_light_book.h"
+#include <maliput/api/lane.h>
+#include <maliput/api/regions.h>
+#include <maliput/api/road_network_validator.h>
+#include <maliput/api/rules/direction_usage_rule.h>
+#include <maliput/api/rules/discrete_value_rule_state_provider.h>
+#include <maliput/api/rules/phase.h>
+#include <maliput/api/rules/range_value_rule_state_provider.h>
+#include <maliput/api/rules/right_of_way_rule.h>
+#include <maliput/api/rules/road_rulebook.h>
+#include <maliput/api/rules/speed_limit_rule.h>
+#include <maliput/base/intersection_book.h>
+#include <maliput/base/manual_phase_provider.h>
+#include <maliput/base/manual_phase_ring_book.h>
+#include <maliput/base/manual_range_value_rule_state_provider.h>
+#include <maliput/base/manual_right_of_way_rule_state_provider.h>
+#include <maliput/base/manual_rulebook.h>
+#include <maliput/base/phase_based_right_of_way_rule_state_provider.h>
+#include <maliput/base/rule_registry.h>
+#include <maliput/base/traffic_light_book.h>
 
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/rule_tools.h"

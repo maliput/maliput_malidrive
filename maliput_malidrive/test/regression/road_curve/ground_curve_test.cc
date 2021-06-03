@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "maliput/test_utilities/maliput_math_compare.h"
+#include <maliput/test_utilities/maliput_math_compare.h>
 #include "maliput_malidrive/test_utilities/ground_curve_stub.h"
 
 namespace malidrive {

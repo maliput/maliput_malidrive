@@ -5,7 +5,7 @@
 #include <optional>
 #include <vector>
 
-#include "maliput/geometry_base/road_geometry.h"
+#include <maliput/geometry_base/road_geometry.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/road_curve.h"

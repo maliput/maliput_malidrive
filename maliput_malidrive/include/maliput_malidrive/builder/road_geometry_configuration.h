@@ -4,8 +4,8 @@
 #include <optional>
 #include <string>
 
-#include "maliput/api/road_network.h"
-#include "maliput/math/vector.h"
+#include <maliput/api/road_network.h>
+#include <maliput/math/vector.h>
 
 #include "maliput_malidrive/base/inertial_to_lane_mapping_config.h"
 #include "maliput_malidrive/constants.h"
