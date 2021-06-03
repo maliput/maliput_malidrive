@@ -6,8 +6,8 @@
 #include <utility>
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
+
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"

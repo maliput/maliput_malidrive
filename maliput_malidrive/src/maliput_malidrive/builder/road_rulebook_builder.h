@@ -8,6 +8,7 @@
 #include <maliput/api/rules/road_rulebook.h>
 #include <maliput/base/manual_rulebook.h>
 #include <maliput/base/rule_registry.h>
+
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/common/macros.h"

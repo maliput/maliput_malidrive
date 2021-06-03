@@ -4,7 +4,6 @@
 #include <string>
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/filesystem.h>
 #include <maliput/plugin/maliput_plugin.h>
 #include <maliput/plugin/maliput_plugin_manager.h>
@@ -12,7 +11,6 @@
 #include <maliput/plugin/road_network_loader.h>
 
 #include "maliput_malidrive/base/road_geometry.h"
-
 #include "utility/resources.h"
 
 namespace malidrive {

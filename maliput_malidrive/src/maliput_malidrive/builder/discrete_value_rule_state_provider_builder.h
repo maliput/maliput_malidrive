@@ -5,6 +5,7 @@
 #include <maliput/api/rules/phase_provider.h>
 #include <maliput/api/rules/phase_ring_book.h>
 #include <maliput/api/rules/road_rulebook.h>
+
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {

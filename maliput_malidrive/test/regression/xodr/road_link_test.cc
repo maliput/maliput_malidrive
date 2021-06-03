@@ -2,7 +2,6 @@
 #include "maliput_malidrive/xodr/road_link.h"
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
 
 namespace malidrive {

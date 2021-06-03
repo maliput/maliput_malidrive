@@ -5,6 +5,7 @@
 
 #include <maliput/math/roll_pitch_yaw.h>
 #include <maliput/math/vector.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/ground_curve.h"

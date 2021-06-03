@@ -6,6 +6,7 @@
 
 #include <maliput/math/vector.h>
 #include <maliput/plugin/road_network_loader.h>
+
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/constants.h"
 

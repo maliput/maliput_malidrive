@@ -8,6 +8,7 @@
 
 #include <maliput/common/assertion_error.h>
 #include <maliput/test_utilities/mock.h>
+
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "utility/resources.h"

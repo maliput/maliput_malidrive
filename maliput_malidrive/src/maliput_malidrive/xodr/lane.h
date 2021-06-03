@@ -5,6 +5,7 @@
 #include <optional>
 
 #include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/xodr/lane_link.h"
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/unit.h"

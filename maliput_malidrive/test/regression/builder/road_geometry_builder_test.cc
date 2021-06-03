@@ -9,10 +9,10 @@
 #include <maliput/api/lane_data.h>
 #include <maliput/common/assertion_error.h>
 #include <maliput/test_utilities/maliput_types_compare.h>
+
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"
-
 #include "utility/resources.h"
 
 namespace malidrive {

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include <maliput/geometry_base/junction.h>
+
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/base/segment.h"

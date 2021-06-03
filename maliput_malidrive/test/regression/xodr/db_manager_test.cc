@@ -5,8 +5,8 @@
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
+
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/test_utilities/xodr_testing_map_descriptions.h"
 #include "utility/resources.h"

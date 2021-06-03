@@ -6,6 +6,7 @@
 
 #include <maliput/math/matrix.h>
 #include <maliput/math/saturate.h>
+
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 
 namespace malidrive {

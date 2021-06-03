@@ -7,6 +7,7 @@
 #include <variant>
 
 #include <maliput/math/vector.h>
+
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {

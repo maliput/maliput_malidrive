@@ -3,6 +3,7 @@
 
 #include <maliput/api/junction.h>
 #include <maliput/common/logger.h>
+
 #include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"

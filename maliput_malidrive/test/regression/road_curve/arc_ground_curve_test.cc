@@ -2,7 +2,6 @@
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
 #include <maliput/test_utilities/maliput_math_compare.h>
 

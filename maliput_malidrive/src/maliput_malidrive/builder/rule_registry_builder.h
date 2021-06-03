@@ -5,6 +5,7 @@
 
 #include <maliput/api/road_geometry.h>
 #include <maliput/base/rule_registry.h>
+
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/common/macros.h"

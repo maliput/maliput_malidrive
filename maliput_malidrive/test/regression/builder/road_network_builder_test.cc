@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-
 #include <maliput/api/lane.h>
 #include <maliput/api/regions.h>
 #include <maliput/api/road_network_validator.h>
@@ -30,7 +29,6 @@
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
-
 #include "utility/resources.h"
 
 namespace malidrive {

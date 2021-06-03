@@ -2,7 +2,6 @@
 #include "maliput_malidrive/xodr/geometry.h"
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
 
 namespace malidrive {

@@ -2,8 +2,8 @@
 #include "maliput_malidrive/road_curve/function.h"
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
+
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {

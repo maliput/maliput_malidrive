@@ -5,6 +5,7 @@
 
 #include <maliput/common/logger.h>
 #include <maliput/math/saturate.h>
+
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/road_curve/open_range_validator.h"
 

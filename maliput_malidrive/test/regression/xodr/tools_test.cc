@@ -4,8 +4,8 @@
 #include <cmath>
 
 #include <gtest/gtest.h>
-
 #include <maliput/common/assertion_error.h>
+
 #include "maliput_malidrive/xodr/elevation_profile.h"
 #include "maliput_malidrive/xodr/lateral_profile.h"
 

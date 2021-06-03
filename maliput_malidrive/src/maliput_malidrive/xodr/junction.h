@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/connection.h"
 

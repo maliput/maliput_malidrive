@@ -2,6 +2,7 @@
 #pragma once
 
 #include <maliput/math/vector.h>
+
 #include "maliput_malidrive/xodr/geometry.h"
 
 namespace malidrive {
