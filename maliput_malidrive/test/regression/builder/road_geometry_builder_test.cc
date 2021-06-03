@@ -534,6 +534,96 @@ INSTANTIATE_TEST_CASE_P(AutomaticToleranceSelectionBuilderTestGroup, AutomaticTo
                         ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
+// @{ Runs the Builder with the `omit_nondrivable_lanes` flag enabled.
+class RoadGeometryBuilderOmitNonDrivableLanesPolicyTest : public RoadGeometryBuilderBaseTest {
+ protected:
+  void SetUp() override {
+    RoadGeometryBuilderBaseTest::SetUp();
+    road_geometry_configuration_.omit_nondrivable_lanes = true;
+  }
+};
+
+// Returns a vector of test parameters for the Builder test.
+// Only driveable lanes are expected to be built.
+std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderNonDrivableLanesParameters() {
+  return {
+      /*
+        TShapeRoad map has the following structure:
+          - 3 Roads that don't belong to a Junction.
+          - 6 Roads that belong to a Junction.
+          - 1 Lane Section per Road.
+          - 3 Lanes(Only counting center and driving lanes.): {-1 <Right, Driving>, 0 <Center, Track>, 1 <Left,
+        Driving>}
+                - Width: 3.5m each, except the center lane.
+      */
+      {"TShapeRoad",
+       "TShapeRoad.xodr",
+       {{0 /* road_id */, 0.0 /* heading */},
+        {1 /* road_id */, 0.0 /* heading */},
+        {2 /* road_id */, 1.5707963267948966 /* heading */},
+        {4 /* road_id */, 0.0 /* heading */},
+        {5 /* road_id */, 0.0 /* heading */},
+        {6 /* road_id */, 3.1415926535897931 /* heading */},
+        {7 /* road_id */, 1.5707963267948966 /* heading */},
+        {8 /* road_id */, 1.5707963267948966 /* heading */},
+        {9 /* road_id */, 0.0 /* heading */}},
+       {
+           {JunctionId("0_0"),
+            {{{SegmentId("0_0"), 0, 46.},
+              {/* left { */ {0, 0, 1} /* } left */,
+               /* right { */ {0, 0, -1} /* } right */}}}},
+           {JunctionId("1_0"),
+            {{{SegmentId("1_0"), 0, 46.},
+              {/* left { */ {1, 0, 1} /* } left */,
+               /* right { */ {1, 0, -1} /* } right */}}}},
+           {JunctionId("2_0"),
+            {{{SegmentId("2_0"), 0, 46.},
+              {/* left { */ {2, 0, 1} /* } left */,
+               /* right { */ {2, 0, -1} /* } right */}}}},
+           {JunctionId("3"),
+            {{{SegmentId("4_0"), 0, 8.}, {{4, 0, 1}}},
+             {{SegmentId("5_0"), 0, 8.}, {{5, 0, -1}}},
+             {{SegmentId("6_0"), 0, 6.31248635281257}, {{6, 0, -1}}},
+             {{SegmentId("7_0"), 0, 6.312486352812575}, {{7, 0, -1}}},
+             {{SegmentId("8_0"), 0, 6.3124863528125745}, {{8, 0, -1}}},
+             {{SegmentId("9_0"), 0, 6.312486352812572}, {{9, 0, -1}}}}},
+       }},
+      /*
+        LineMultpleSections map has the following structure:
+          - 1 Road
+            - 3 Lane Section.
+              - 2 Driveable Lanes: {-1 <right, Driving>, 0 <Center, Track>, 1 <Left, Driving>}
+                - Width: 2m each, except the center lane.
+            - 3 geometries(1 per road):
+              - Line: start: [x: 0., y: 0., h: 0.], length: 33.3m
+              - Line: start: [x: 33.3, y: 0., h: 0.], length: 33.3m
+              - Line: start: [x: 66.6, y: 0., h: 0], length: 33.4m
+      */
+      {"LineMultipleSections",
+       "LineMultipleSections.xodr",
+       {{1 /* road_id */, 0.0 /* heading */}},
+       {{JunctionId("1_0"),
+         {{{SegmentId("1_0"), 0, 33.3},
+           {/* left { */ {1, 0, 1} /* } left */,
+            /* right { */ {1, 0, -1} /* } right */}}}},
+        {JunctionId("1_1"),
+         {{{SegmentId("1_1"), 33.3, 66.6},
+           {/* left { */ {1, 1, 1} /* } left */,
+            /* right { */ {1, 1, -1} /* } right */}}}},
+        {JunctionId("1_2"),
+         {{{SegmentId("1_2"), 66.6, 100.},
+           {/* left { */ {1, 2, 1} /* } left */,
+            /* right { */ {1, 2, -1} /* } right */}}}}}},
+  };
+}
+
+TEST_P(RoadGeometryBuilderOmitNonDrivableLanesPolicyTest, JunctionSegmentLaneTest) { RunTest(); }
+
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderOmitNonDrivableLanesPolicyTestGroup,
+                        RoadGeometryBuilderOmitNonDrivableLanesPolicyTest,
+                        ::testing::ValuesIn(InstantiateBuilderNonDrivableLanesParameters()));
+// @}
+
 // Alternative to BranchPoint that instead of using Lane pointers, uses LaneIds
 // which are easy to define from the test description point of view.
 struct ConnectionExpectation {
