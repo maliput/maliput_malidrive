@@ -5,8 +5,7 @@
 #include <string>
 
 #include <gtest/gtest.h>
-
-#include "maliput/common/assertion_error.h"
+#include <maliput/common/assertion_error.h>
 
 // This test file only tests the behavior of non copy-pasted macros that come
 // from Maliput / Delphyne.

@@ -6,14 +6,14 @@
 #include <utility>
 
 #include <gtest/gtest.h>
+#include <maliput/api/lane.h>
+#include <maliput/api/lane_data.h>
+#include <maliput/common/assertion_error.h>
+#include <maliput/geometry_base/junction.h>
+#include <maliput/geometry_base/road_geometry.h>
+#include <maliput/math/roll_pitch_yaw.h>
+#include <maliput/test_utilities/maliput_types_compare.h>
 
-#include "maliput/api/lane.h"
-#include "maliput/api/lane_data.h"
-#include "maliput/common/assertion_error.h"
-#include "maliput/geometry_base/junction.h"
-#include "maliput/geometry_base/road_geometry.h"
-#include "maliput/math/roll_pitch_yaw.h"
-#include "maliput/test_utilities/maliput_types_compare.h"
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/base/segment.h"
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"

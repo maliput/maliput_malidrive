@@ -2,9 +2,8 @@
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 
 #include <gtest/gtest.h>
-
-#include "maliput/common/assertion_error.h"
-#include "maliput/test_utilities/maliput_math_compare.h"
+#include <maliput/common/assertion_error.h>
+#include <maliput/test_utilities/maliput_math_compare.h>
 
 namespace malidrive {
 namespace road_curve {

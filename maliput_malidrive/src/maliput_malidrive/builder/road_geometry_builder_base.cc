@@ -3,8 +3,8 @@
 
 #include "maliput_malidrive/common/macros.h"
 
-#include "maliput/common/logger.h"
-#include "maliput/geometry_base/branch_point.h"
+#include <maliput/common/logger.h>
+#include <maliput/geometry_base/branch_point.h>
 
 namespace malidrive {
 namespace builder {

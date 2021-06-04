@@ -11,7 +11,7 @@
 #include "maliput_malidrive/road_curve/piecewise_function.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
 
-#include "maliput/math/vector.h"
+#include <maliput/math/vector.h>
 
 namespace malidrive {
 namespace builder {

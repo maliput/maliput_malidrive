@@ -6,8 +6,8 @@
 
 #include "maliput_malidrive/road_curve/open_range_validator.h"
 
-#include "maliput/common/assertion_error.h"
-#include "maliput/common/logger.h"
+#include <maliput/common/assertion_error.h>
+#include <maliput/common/logger.h>
 
 namespace malidrive {
 namespace road_curve {

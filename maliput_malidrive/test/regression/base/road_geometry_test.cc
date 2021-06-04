@@ -15,8 +15,8 @@
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/parser_configuration.h"
 
-#include "maliput/common/assertion_error.h"
-#include "maliput/test_utilities/maliput_types_compare.h"
+#include <maliput/common/assertion_error.h>
+#include <maliput/test_utilities/maliput_types_compare.h>
 
 #include "utility/resources.h"
 

@@ -3,8 +3,8 @@
 
 #include <functional>
 
-#include "maliput/api/rules/discrete_value_rule.h"
-#include "maliput/api/rules/rule.h"
+#include <maliput/api/rules/discrete_value_rule.h>
+#include <maliput/api/rules/rule.h>
 
 namespace malidrive {
 

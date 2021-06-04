@@ -7,13 +7,12 @@
 #include <utility>
 
 #include <gtest/gtest.h>
-
-#include "maliput/api/lane.h"
-#include "maliput/api/lane_data.h"
-#include "maliput/api/road_geometry.h"
-#include "maliput/api/road_network.h"
-#include "maliput/common/filesystem.h"
-#include "maliput/utilities/generate_obj.h"
+#include <maliput/api/lane.h>
+#include <maliput/api/lane_data.h>
+#include <maliput/api/road_geometry.h>
+#include <maliput/api/road_network.h>
+#include <maliput/common/filesystem.h>
+#include <maliput/utilities/generate_obj.h>
 
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
@@ -21,7 +20,6 @@
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
 #include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
-
 #include "utility/file_tools.h"
 
 namespace malidrive {

@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-#include "maliput/geometry_base/segment.h"
+#include <maliput/geometry_base/segment.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/road_curve.h"

@@ -3,7 +3,8 @@
 
 #include <optional>
 
-#include "maliput/api/type_specific_identifier.h"
+#include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
