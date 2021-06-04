@@ -14,7 +14,7 @@ set(UNIT_TEST_ROAD_CURVE_SOURCES
   cubic_polynomial_test.cc
   function_test.cc
   ground_curve_test.cc
-  lane_offset_function_test.cc
+  lane_offset_test.cc
   line_ground_curve_test.cc
   open_range_validator_test.cc
   piecewise_function_test.cc

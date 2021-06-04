@@ -3,7 +3,7 @@
 ##############################################################################
 
 # Test binary name prefix, used by malidrive_build_tests
-set(TEST_TYPE UNIT)
+set(TEST_TYPE UNIT_XODR)
 
 ##############################################################################
 # Tests
@@ -20,6 +20,7 @@ set(UNIT_TEST_XODR_SOURCES
   lanes_test.cc
   lane_offset_test.cc
   lane_section_test.cc
+  lane_test.cc
   lane_width_test.cc
   lateral_profile_test.cc
   parser_test.cc
@@ -30,7 +31,6 @@ set(UNIT_TEST_XODR_SOURCES
   road_type_test.cc
   tools_test.cc
   unit_test.cc
-  xodr_lane_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_TEST_XODR_SOURCES})
