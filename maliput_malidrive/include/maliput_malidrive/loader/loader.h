@@ -2,7 +2,7 @@
 
 #include <memory>
 
-#include "maliput/api/road_network.h"
+#include <maliput/api/road_network.h>
 
 #include "maliput_malidrive/base/inertial_to_lane_mapping_config.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"

@@ -2,7 +2,7 @@
 // TODO(#701): Move file to malidrive package when this is no longer needed at RoadGeometryConfiguration.
 #pragma once
 
-#include "maliput/common/maliput_abort.h"
+#include <maliput/common/maliput_abort.h>
 
 #include "maliput_malidrive/common/macros.h"
 

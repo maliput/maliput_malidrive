@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-#include "maliput/geometry_base/brute_force_find_road_positions_strategy.h"
+#include <maliput/geometry_base/brute_force_find_road_positions_strategy.h>
 
 namespace {
 

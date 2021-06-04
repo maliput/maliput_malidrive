@@ -2,8 +2,7 @@
 #include "maliput_malidrive/xodr/road_header.h"
 
 #include <gtest/gtest.h>
-
-#include "maliput/common/assertion_error.h"
+#include <maliput/common/assertion_error.h>
 
 namespace malidrive {
 namespace xodr {

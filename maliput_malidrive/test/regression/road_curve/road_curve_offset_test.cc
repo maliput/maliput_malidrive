@@ -10,8 +10,8 @@
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 
-#include "maliput/common/assertion_error.h"
-#include "maliput/math/vector.h"
+#include <maliput/common/assertion_error.h>
+#include <maliput/math/vector.h>
 
 namespace malidrive {
 namespace road_curve {

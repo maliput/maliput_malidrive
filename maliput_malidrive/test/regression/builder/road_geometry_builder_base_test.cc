@@ -4,9 +4,8 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-
-#include "maliput/geometry_base/branch_point.h"
-#include "maliput/geometry_base/lane.h"
+#include <maliput/geometry_base/branch_point.h>
+#include <maliput/geometry_base/lane.h>
 
 #include "maliput_malidrive/common/macros.h"
 

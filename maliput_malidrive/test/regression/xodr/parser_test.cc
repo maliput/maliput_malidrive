@@ -22,7 +22,7 @@
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
 
-#include "maliput/common/assertion_error.h"
+#include <maliput/common/assertion_error.h>
 #include "maliput_malidrive/constants.h"
 
 #include "utility/resources.h"

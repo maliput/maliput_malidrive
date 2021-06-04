@@ -1,7 +1,7 @@
 // Copyright 2019 Toyota Research Institute
 #include "maliput_malidrive/builder/rule_tools.h"
 
-#include "maliput/base/manual_rulebook.h"
+#include <maliput/base/manual_rulebook.h>
 
 #include <map>
 #include <string>
