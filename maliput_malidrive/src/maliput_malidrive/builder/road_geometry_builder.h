@@ -250,8 +250,20 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // the database.
   std::unique_ptr<const maliput::api::RoadGeometry> DoBuild();
 
+  // Resets this builder state and loads new values of
+  // maliput::api::RoadGeometry geometric invariants.
+  //
+  // Also, clears the collections branch_point_indexer_, bps_ and junctions_.
+  //
+  // Resulting maliput::api::RoadGeometry will have `linear_tolerance`,
+  // `angular_tolerance` and `scale_length` properties.
+  //
+  // @throws maliput::common::assertion_error When any of `linear_tolerance`,
+  //         `angular_tolerance` or `scale_length` are negative.
+  void Reset(double linear_tolerance, double angular_tolerance, double scale_length);
+
   // Holds the configuration of this builder.
-  const RoadGeometryConfiguration rg_config_;
+  RoadGeometryConfiguration rg_config_;
 
   // Holds the xodr database.
   std::unique_ptr<xodr::DBManager> manager_;

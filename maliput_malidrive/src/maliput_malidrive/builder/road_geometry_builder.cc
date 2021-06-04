@@ -218,39 +218,44 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
     return DoBuild();
   }
 
-  std::array<double, constants::kAutomaticSelectionTrials + 1> linear_tolerances{};
-  std::array<double, constants::kAutomaticSelectionTrials + 1> angular_tolerances{};
-  std::array<double, constants::kAutomaticSelectionTrials + 1> scale_lengths{};
+  std::array<double, constants::kMaxToleranceSelectionRounds + 1> linear_tolerances{};
+  std::array<double, constants::kMaxToleranceSelectionRounds + 1> angular_tolerances{};
+  std::array<double, constants::kMaxToleranceSelectionRounds + 1> scale_lengths{};
 
   // Tries with default values first.
   linear_tolerances[0] = linear_tolerance_;
   angular_tolerances[0] = angular_tolerance_;
   scale_lengths[0] = scale_length_;
 
-  // Populates the vector with higher tolerance values but uses always the same scale length.
+  // Populates the vector with higher tolerance values but always use the same scale length.
   for (size_t i = 1; i < linear_tolerances.size(); ++i) {
     linear_tolerances[i] = linear_tolerances[i - 1] * 1.1;
     angular_tolerances[i] = angular_tolerances[i - 1] * 1.1;
     scale_lengths[i] = constants::kScaleLength;
   }
 
+  // @{ Code in doc-bloc goes against https://drake.mit.edu/styleguide/cppguide.html#Exceptions
+  //    See https://github.com/ToyotaResearchInstitute/maliput_malidrive/pull/77#discussion_r643434626
+  //    for the discussion about it.
+  //    There is a try-catch block that captures maliput::common::assertion_error
+  //    exception types which are only thrown by maliput and maliput_malidrive.
+  //    Because of extensive testing, maliput::common::assertion_error types are
+  //    expected only when a linear or angular tolerance constraint is violated.
+  //    In order to comply with the style-guide, a major refactor to the code
+  //    is required. In case none of the tolerances are suitable to construct
+  //    the RoadGeometry, a maliput::common::assertion_error exception will be
+  //    thrown.
   // Iterates over the tolerances.
+  maliput::log()->debug("Starting linear and angular tolerance trials to build the RoadGeometry.");
   for (size_t i = 0; i < linear_tolerances.size(); ++i) {
-    maliput::log()->debug(
-        "Automatic tolerance selection builder: (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}).",
-        linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
+    maliput::log()->debug("Iteration [{}] with (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}).", i,
+                          linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
     try {
-      lane_xodr_lane_properties_.clear();
-      junctions_segments_attributes_.clear();
-      // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
-      factory_ =
-          std::make_unique<builder::RoadCurveFactory>(linear_tolerances[i], scale_lengths[i], angular_tolerances[i]);
-      // @}
       Reset(linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
       return DoBuild();
     } catch (maliput::common::assertion_error& e) {
       maliput::log()->warn(
-          "Automatic tolerance selection failed with: (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}). "
+          "Iteration [{}] failed with : (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}). "
           "Error: {}",
           linear_tolerance_, angular_tolerance_, scale_length_, e.what());
     }
@@ -261,6 +266,32 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
     // @}
   }
   MALIDRIVE_THROW_MESSAGE("None of the tolerances worked to build the RoadGeometry.");
+  // @}
+}
+
+void RoadGeometryBuilder::Reset(double linear_tolerance, double angular_tolerance, double scale_length) {
+  // @{ Reset this' members
+  rg_config_.linear_tolerance = linear_tolerance;
+  rg_config_.angular_tolerance = angular_tolerance;
+  rg_config_.scale_length = scale_length;
+  lane_xodr_lane_properties_.clear();
+  junctions_segments_attributes_.clear();
+  // TODO(#12): It goes against dependency injection. Should use a provider instead.
+  factory_ = std::make_unique<builder::RoadCurveFactory>(linear_tolerance, scale_length, angular_tolerance);
+  // @}
+
+  // @{ Reset parent members
+  linear_tolerance_ = linear_tolerance;
+  angular_tolerance_ = angular_tolerance;
+  scale_length_ = scale_length;
+  MALIDRIVE_THROW_UNLESS(linear_tolerance_ >= 0.);
+  MALIDRIVE_THROW_UNLESS(angular_tolerance_ >= 0.);
+  MALIDRIVE_THROW_UNLESS(scale_length_ >= 0.);
+
+  branch_point_indexer_ = UniqueIntegerProvider(0 /* base ID */);
+  bps_.clear();
+  junctions_.clear();
+  // @}
 }
 
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild() {
