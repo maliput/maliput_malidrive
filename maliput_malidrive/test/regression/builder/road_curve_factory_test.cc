@@ -4,15 +4,14 @@
 #include <memory>
 
 #include <gtest/gtest.h>
+#include <maliput/common/assertion_error.h>
+#include <maliput/math/vector.h>
+#include <maliput/test_utilities/maliput_math_compare.h>
 
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
-
-#include <maliput/common/assertion_error.h>
-#include <maliput/math/vector.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
 
 namespace malidrive {
 namespace builder {

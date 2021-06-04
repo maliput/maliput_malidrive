@@ -4,6 +4,8 @@
 #include <memory>
 
 #include <gtest/gtest.h>
+#include <maliput/common/assertion_error.h>
+#include <maliput/test_utilities/maliput_types_compare.h>
 
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
@@ -14,10 +16,6 @@
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/parser_configuration.h"
-
-#include <maliput/common/assertion_error.h>
-#include <maliput/test_utilities/maliput_types_compare.h>
-
 #include "utility/resources.h"
 
 using maliput::api::RoadGeometryId;

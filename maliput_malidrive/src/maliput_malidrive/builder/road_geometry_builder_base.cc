@@ -1,10 +1,10 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/road_geometry_builder_base.h"
 
-#include "maliput_malidrive/common/macros.h"
-
 #include <maliput/common/logger.h>
 #include <maliput/geometry_base/branch_point.h>
+
+#include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
 namespace builder {

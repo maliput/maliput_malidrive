@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <cmath>
 
-#include "maliput_malidrive/road_curve/open_range_validator.h"
-
 #include <maliput/common/assertion_error.h>
 #include <maliput/common/logger.h>
+
+#include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
 namespace road_curve {

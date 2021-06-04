@@ -1,11 +1,10 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/builder_tools.h"
 
-#include <gtest/gtest.h>
-
 #include <memory>
 #include <vector>
 
+#include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
 #include <maliput/test_utilities/mock.h>
 

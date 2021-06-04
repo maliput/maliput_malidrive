@@ -1,11 +1,10 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 
-#include <gtest/gtest.h>
-
 #include <algorithm>
 #include <map>
 
+#include <gtest/gtest.h>
 #include <maliput/api/lane_data.h>
 #include <maliput/common/assertion_error.h>
 #include <maliput/test_utilities/maliput_types_compare.h>
@@ -14,7 +13,6 @@
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
-
 #include "utility/resources.h"
 
 namespace malidrive {

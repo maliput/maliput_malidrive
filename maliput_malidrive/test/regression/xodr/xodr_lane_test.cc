@@ -1,8 +1,8 @@
 // Copyright 2020 Toyota Research Institute
-#include "maliput_malidrive/xodr/lane.h"
-
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
+
+#include "maliput_malidrive/xodr/lane.h"
 
 namespace malidrive {
 namespace xodr {

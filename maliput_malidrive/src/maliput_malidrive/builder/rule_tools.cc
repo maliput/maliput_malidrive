@@ -1,9 +1,9 @@
 // Copyright 2019 Toyota Research Institute
 #include "maliput_malidrive/builder/rule_tools.h"
 
-#include "maliput_malidrive/common/macros.h"
-
 #include <string>
+
+#include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
 namespace builder {

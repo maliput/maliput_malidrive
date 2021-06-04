@@ -1,6 +1,11 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/xodr/parser.h"
 
+#include <map>
+#include <vector>
+
+#include <maliput/common/logger.h>
+
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
 #include "maliput_malidrive/xodr/geometry.h"
@@ -18,11 +23,6 @@
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
 #include "maliput_malidrive/xodr/unit.h"
-
-#include <maliput/common/logger.h>
-
-#include <map>
-#include <vector>
 
 namespace malidrive {
 namespace xodr {

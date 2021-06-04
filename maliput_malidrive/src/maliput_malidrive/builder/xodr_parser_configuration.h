@@ -2,7 +2,6 @@
 #pragma once
 
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
-
 #include "maliput_malidrive/xodr/parser_configuration.h"
 
 namespace malidrive {

@@ -3,10 +3,10 @@
 
 #include <memory>
 
+#include <maliput/api/road_network.h>
+
 #include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/common/macros.h"
-
-#include <maliput/api/road_network.h>
 
 namespace malidrive {
 namespace builder {

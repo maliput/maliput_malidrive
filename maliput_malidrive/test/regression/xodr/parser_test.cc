@@ -1,11 +1,13 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/xodr/parser.h"
 
-#include <gtest/gtest.h>
-
 #include <algorithm>
-#include <fmt/format.h>
 
+#include <fmt/format.h>
+#include <gtest/gtest.h>
+#include <maliput/common/assertion_error.h>
+
+#include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
 #include "maliput_malidrive/xodr/geometry.h"
@@ -21,10 +23,6 @@
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
-
-#include <maliput/common/assertion_error.h>
-#include "maliput_malidrive/constants.h"
-
 #include "utility/resources.h"
 
 namespace malidrive {

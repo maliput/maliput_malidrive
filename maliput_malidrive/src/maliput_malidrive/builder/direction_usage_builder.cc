@@ -1,10 +1,10 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/direction_usage_builder.h"
 
-#include "maliput_malidrive/builder/builder_tools.h"
-
 #include <map>
 #include <unordered_map>
+
+#include "maliput_malidrive/builder/builder_tools.h"
 
 namespace malidrive {
 namespace builder {

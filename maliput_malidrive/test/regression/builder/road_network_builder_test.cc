@@ -30,7 +30,6 @@
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
 #include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
-
 #include "utility/resources.h"
 
 namespace malidrive {

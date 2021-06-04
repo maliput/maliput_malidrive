@@ -5,13 +5,13 @@
 #include <type_traits>
 #include <utility>
 
+#include <maliput/math/vector.h>
+
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_function.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
-
-#include <maliput/math/vector.h>
 
 namespace malidrive {
 namespace builder {
