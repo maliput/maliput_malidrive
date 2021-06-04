@@ -101,6 +101,23 @@ struct RoadGeometryConfiguration {
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
   ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kAutomaticSelection};
   StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kPermissive};
+  // Note: this flag will change its default to false. It might lead to badly
+  // constructed RoadGeometries. Consider the following case:
+  // @code{xml}
+  // <left>
+  //   <lane id="2" type="driving" level="false">
+  //     <width sOffset="0.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+  //   </lane>
+  //   <lane id="1" type="shoulder" level= "0">
+  //     <width sOffset="0.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+  //   </lane>
+  // </left>
+  // <center>
+  //     <lane id="0" type="none" level= "0"/>
+  // </center>
+  // @endcode
+  // Lane 1 will not be considered but lane 2 yes. However, because of omitting
+  // lane 1, the lane 2 will have an incorrect lane offset function.
   bool omit_nondrivable_lanes{true};
 };
 
