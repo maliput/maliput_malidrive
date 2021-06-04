@@ -9,7 +9,7 @@
 find_package(ament_cmake_gtest REQUIRED)
 
 # Find the Python interpreter for running the check_test_ran.py script
-find_package(PythonInterp QUIET)
+find_package(PythonInterp 3 QUIET)
 
 ##############################################################################
 # Handle CFlags
@@ -58,7 +58,7 @@ macro(maliput_malidrive_plugin_tests)
     if (PYTHONINTERP_FOUND)
       # Check that the test produced a result and create a failure if
       # it didn't. Guards against crashed and timed out tests.
-      add_test(check_${BINARY_NAME} python
+      add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE}
         ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
         ${CMAKE_BINARY_DIR}/test_results/maliput_malidrive/${BINARY_NAME}.gtest.xml)
     endif()
@@ -114,7 +114,7 @@ macro(maliput_malidrive_build_tests)
     if (PYTHONINTERP_FOUND)
       # Check that the test produced a result and create a failure if
       # it didn't. Guards against crashed and timed out tests.
-      add_test(check_${BINARY_NAME} python
+      add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE}
         ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
         ${CMAKE_BINARY_DIR}/test_results/maliput_malidrive/${BINARY_NAME}.gtest.xml)
     endif()
@@ -208,7 +208,7 @@ macro(malidrive_build_integration_based_tests)
       if (PYTHONINTERP_FOUND)
         # Check that the test produced a result and create a failure if
         # it didn't. Guards against crashed and timed out tests.
-        add_test(check_${BINARY_NAME} python
+        add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE}
           ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
           ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
       endif()
