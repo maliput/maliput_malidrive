@@ -66,9 +66,7 @@ jobs:
       working-directory: ${{ env.ROS_WS }}
       run: |
         rosdep update;
-        rosdep install  -i -y --rosdistro ${ROS_DISTRO} \
-          --skip-keys "pybind11" \
-          --from-paths src
+        rosdep install  -i -y --rosdistro ${ROS_DISTRO} --from-paths src
     - name: install drake
       shell: bash
       working-directory: ${{ env.ROS_WS }}/src/drake_vendor
