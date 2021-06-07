@@ -267,7 +267,9 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
                                           XodrParserConfigurationFromRoadGeometryConfiguration(rg_config_));
     // @}
   }
-  MALIDRIVE_THROW_MESSAGE("None of the tolerances worked to build the RoadGeometry.");
+  const std::string file_description =
+      rg_config_.opendrive_file ? ("from " + rg_config_.opendrive_file.value()) : "(No OpenDRIVE file specified)";
+  MALIDRIVE_THROW_MESSAGE("None of the tolerances worked to build a RoadGeometry " + file_description + ".");
   // @}
 }
 
