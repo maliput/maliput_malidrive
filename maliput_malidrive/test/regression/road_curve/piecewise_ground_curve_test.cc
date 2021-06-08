@@ -316,7 +316,7 @@ class PiecewiseGroundCurveGInverseTest : public PiecewiseGroundCurveConstructorT
   }
 
  protected:
-  const double kStrictLinearTolerance{malidrive::constants::kStrictLinearTolerance};
+  const double kStrictLinearTolerance{1e-10};
   const std::unique_ptr<GroundCurve> kExpectedLineXDirection =
       std::make_unique<LineGroundCurve>(kLinearTolerance, kXY0LineX, kDxyLineX, kP0LineX, kP1LineX);
   const std::unique_ptr<GroundCurve> kExpectedArc = std::make_unique<ArcGroundCurve>(

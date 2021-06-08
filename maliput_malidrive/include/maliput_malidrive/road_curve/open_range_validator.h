@@ -17,6 +17,10 @@ namespace road_curve {
 class OpenRangeValidator {
  public:
   MALIDRIVE_DEFAULT_COPY_AND_MOVE_AND_ASSIGN(OpenRangeValidator)
+
+  /// The provided epsilon can be used relatively or absolutely.
+  enum class EpsilonUse { kAbsolute = 0, kRelative };
+
   OpenRangeValidator() = delete;
 
   /// Constructs the functor.
@@ -26,22 +30,14 @@ class OpenRangeValidator {
   /// @param tolerance is the range extension to be accepted.
   /// @param epsilon is minimum difference that separates a number within the
   ///        range to be distinct from range extremes (`min` and `max`).
+  /// @param epsilon_mode selects how `epsilon` will be used: absolute or relative.
   /// @throws maliput::common::assertion_error When `tolerance` is non positive.
   /// @throws maliput::common::assertion_error When `epsilon` is not in
   ///         [0, tolerance].
   /// @throws maliput::common::assertion_error When `min` + `epsilon` > `max` or
   ///         `max` - `epsilon` < `min`
-  OpenRangeValidator(double min, double max, double tolerance, double epsilon)
-      : min_(min), max_(max), tolerance_(tolerance), epsilon_(epsilon) {
-    MALIDRIVE_THROW_UNLESS(tolerance_ > 0.);
-    MALIDRIVE_IS_IN_RANGE(epsilon_, 0., tolerance_);
-    MALIDRIVE_VALIDATE((min_ + epsilon_) <= max_, maliput::common::assertion_error,
-                       std::string("Open range lower bound <") + std::to_string((min_ + epsilon_)) +
-                           "> is greater than <" + std::to_string(max_) + ">");
-    MALIDRIVE_VALIDATE(min <= (max_ - epsilon_), maliput::common::assertion_error,
-                       std::string("Open range upper bound <") + std::to_string((max_ - epsilon_)) +
-                           "> is less than <" + std::to_string(min) + ">");
-  }
+  OpenRangeValidator(double min, double max, double tolerance, double epsilon,
+                     const EpsilonUse& epsilon_mode = EpsilonUse::kAbsolute);
 
   /// Evaluates whether `s` is in range or not.
   /// @returns `s` when it is within the open range. If `s` is equal to either
