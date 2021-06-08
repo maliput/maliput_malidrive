@@ -76,14 +76,21 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
       "Strictness for meeting the OpenDrive standard: {}",
       RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(rg_config_.standard_strictness_policy));
 
-  if (rg_config_.simplification_policy ==
-      RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel) {
-    maliput::log()->trace("Enabled the simplification. Mode: SimplifyWithinToleranceAndKeepGeometryModel");
-  }
-  if (rg_config_.tolerance_selection_policy ==
-      RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection) {
-    maliput::log()->trace("Enabled automatic tolerance selection.");
-  }
+  maliput::log()->trace("Omit non-drivable lanes policy: {}",
+                        rg_config_.omit_nondrivable_lanes ? "enabled" : "disabled");
+
+  maliput::log()->trace(
+      "Geometry simplification policy: {}",
+      rg_config_.simplification_policy ==
+              RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel
+          ? "SimplifyWithinToleranceAndKeepGeometryModel"
+          : "None");
+
+  maliput::log()->trace(
+      "Tolerance selection policy: {}",
+      rg_config_.tolerance_selection_policy == RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection
+          ? "Automatic"
+          : "Manual");
 }
 
 RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
@@ -216,7 +223,6 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   maliput::log()->trace("Starting to build malidrive::RoadGeometry.");
 
   if (rg_config_.tolerance_selection_policy == RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection) {
-    maliput::log()->trace("Manual tolerance selection builder.");
     return DoBuild();
   }
 
@@ -420,6 +426,8 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
     if (omit_nondrivable_lanes && !is_driveable_lane(*lane_it)) {
       continue;
     }
+    maliput::log()->trace("Building Lane ID: {}_{}_{}.", road_header->id.string(), xodr_lane_section_index,
+                          lane_it->id.string());
     LaneConstructionResult lane_construction_result = BuildLane(
         &(*lane_it), road_header, lane_section, xodr_lane_section_index, factory, segment, &adjacent_lane_functions);
     maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
