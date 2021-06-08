@@ -217,7 +217,7 @@ TEST_P(RoadNetworkBuilderTest, RoadGeometryBuilding) {
   RoadGeometryConfiguration road_geometry_configuration{
       GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
   road_geometry_configuration.opendrive_file =
-      utility::FindResource(road_geometry_configuration.opendrive_file.value());
+      utility::FindResource(road_geometry_configuration.opendrive_file);
   const std::unique_ptr<maliput::api::RoadNetwork> dut = builder::RoadNetworkBuilder(
       {road_geometry_configuration, std::nullopt, std::nullopt, std::nullopt, std::nullopt})();
   ASSERT_NE(dynamic_cast<const malidrive::RoadGeometry*>(dut->road_geometry()), nullptr);
@@ -426,7 +426,7 @@ class DirectionUsageTest : public ::testing::TestWithParam<DirectionUsageTruthTa
 
   void SetUp() override {
     road_geometry_configuration_.opendrive_file =
-        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
+        utility::FindResource(road_geometry_configuration_.opendrive_file);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -693,7 +693,7 @@ class VehicleRulesTest : public ::testing::TestWithParam<VehicleRulesTruthTable>
 
   void SetUp() override {
     road_geometry_configuration_.opendrive_file =
-        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
+        utility::FindResource(road_geometry_configuration_.opendrive_file);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -759,7 +759,7 @@ class VehicleRulesStateProviderTest : public ::testing::TestWithParam<VehicleRul
  protected:
   void SetUp() override {
     road_geometry_configuration_.opendrive_file =
-        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
+        utility::FindResource(road_geometry_configuration_.opendrive_file);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -848,7 +848,7 @@ class SpeedLimitRuleBuilderTest : public ::testing::TestWithParam<SpeedLimitRule
 
   void SetUp() override {
     road_geometry_configuration_.opendrive_file =
-        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
+        utility::FindResource(road_geometry_configuration_.opendrive_file);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -1088,7 +1088,7 @@ class RangeValueRuleStateProviderTest : public ::testing::TestWithParam<RangeVal
  protected:
   void SetUp() override {
     road_geometry_configuration_.opendrive_file =
-        utility::FindResource(road_geometry_configuration_.opendrive_file.value());
+        utility::FindResource(road_geometry_configuration_.opendrive_file);
     reference_values_ = GetParam().reference_values;
   }
 

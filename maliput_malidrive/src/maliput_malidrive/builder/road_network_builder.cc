@@ -41,13 +41,13 @@ namespace builder {
 
 std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() const {
   const auto& rg_config = road_network_configuration_.road_geometry_configuration;
-  MALIDRIVE_VALIDATE(rg_config.opendrive_file.has_value(), std::runtime_error, "opendrive_file cannot be empty");
+  MALIDRIVE_VALIDATE(!rg_config.opendrive_file.empty(), std::runtime_error, "opendrive_file cannot be empty");
   std::unique_ptr<builder::RoadCurveFactoryBase> road_curve_factory = std::make_unique<builder::RoadCurveFactory>(
       rg_config.linear_tolerance, rg_config.scale_length, rg_config.angular_tolerance);
 
   const xodr::ParserConfiguration parser_config = XodrParserConfigurationFromRoadGeometryConfiguration(rg_config);
-  maliput::log()->trace("Loading database from file: {} ...", rg_config.opendrive_file.value());
-  auto db_manager = xodr::LoadDataBaseFromFile(rg_config.opendrive_file.value(), parser_config);
+  maliput::log()->trace("Loading database from file: {} ...", rg_config.opendrive_file);
+  auto db_manager = xodr::LoadDataBaseFromFile(rg_config.opendrive_file, parser_config);
   maliput::log()->trace("Building RoadGeometry...");
   std::unique_ptr<const maliput::api::RoadGeometry> rg =
       builder::RoadGeometryBuilder(std::move(db_manager), rg_config, std::move(road_curve_factory))();

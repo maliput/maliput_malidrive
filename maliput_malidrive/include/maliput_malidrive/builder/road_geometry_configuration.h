@@ -91,7 +91,7 @@ struct RoadGeometryConfiguration {
 
   // Designed for use with uniform initialization.
   maliput::api::RoadGeometryId id;
-  std::optional<std::string> opendrive_file;
+  std::string opendrive_file;
   double linear_tolerance{constants::kLinearTolerance};
   double angular_tolerance{constants::kAngularTolerance};
   double scale_length{constants::kScaleLength};

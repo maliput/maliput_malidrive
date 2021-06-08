@@ -263,12 +263,11 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
     }
     // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
     maliput::log()->trace("Rebuilding the DBManager");
-    manager_ = xodr::LoadDataBaseFromFile(rg_config_.opendrive_file.value(),
+    manager_ = xodr::LoadDataBaseFromFile(rg_config_.opendrive_file,
                                           XodrParserConfigurationFromRoadGeometryConfiguration(rg_config_));
     // @}
   }
-  const std::string file_description =
-      rg_config_.opendrive_file ? ("from " + rg_config_.opendrive_file.value()) : "(No OpenDRIVE file specified)";
+  const std::string file_description = "from " + rg_config_.opendrive_file;
   MALIDRIVE_THROW_MESSAGE("None of the tolerances worked to build a RoadGeometry " + file_description + ".");
   // @}
 }

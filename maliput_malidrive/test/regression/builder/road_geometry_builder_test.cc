@@ -50,7 +50,7 @@ class BuilderTestSingleLane : public ::testing::Test {
   void SetUp() override {
     road_geometry_configuration_.linear_tolerance = kLinearTolerance;
     road_geometry_configuration_.angular_tolerance = kAngularTolerance;
-    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file.value()),
+    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                           {kLinearTolerance});
     factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
@@ -350,7 +350,7 @@ class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometry
   void SetUp() override {
     road_geometry_configuration_.linear_tolerance = kLinearTolerance;
     road_geometry_configuration_.angular_tolerance = kAngularTolerance;
-    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file.value()),
+    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                           {kLinearTolerance});
     factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
@@ -862,7 +862,7 @@ class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPoin
     road_geometry_configuration_.linear_tolerance = kLinearTolerance;
     road_geometry_configuration_.angular_tolerance = kAngularTolerance;
     auto manager = xodr::LoadDataBaseFromFile(
-        utility::FindResource(road_geometry_configuration_.opendrive_file.value()), {kLinearTolerance});
+        utility::FindResource(road_geometry_configuration_.opendrive_file), {kLinearTolerance});
     auto factory = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
     rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_, std::move(factory))();
     expected_connections = GetParam().expected_connections;
@@ -974,7 +974,7 @@ class RoadGeometryBuilderSurfaceBoundariesTest : public ::testing::TestWithParam
     road_geometry_configuration_.linear_tolerance = kLinearTolerance;
     road_geometry_configuration_.angular_tolerance = kAngularTolerance;
     dut_ = builder::RoadGeometryBuilder(
-        xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file.value()),
+        xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                    {kLinearTolerance}),
         road_geometry_configuration_,
         std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance))();
