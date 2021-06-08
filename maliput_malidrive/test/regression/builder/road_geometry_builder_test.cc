@@ -861,8 +861,8 @@ class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPoin
   void SetUp() override {
     road_geometry_configuration_.linear_tolerance = kLinearTolerance;
     road_geometry_configuration_.angular_tolerance = kAngularTolerance;
-    auto manager = xodr::LoadDataBaseFromFile(
-        utility::FindResource(road_geometry_configuration_.opendrive_file), {kLinearTolerance});
+    auto manager = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
+                                              {kLinearTolerance});
     auto factory = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
     rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_, std::move(factory))();
     expected_connections = GetParam().expected_connections;

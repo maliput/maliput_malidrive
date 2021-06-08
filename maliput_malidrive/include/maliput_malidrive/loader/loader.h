@@ -26,8 +26,8 @@ namespace loader {
 ///         builder::RoadNetworkBuilder.
 template <class RoadNetworkBuilderT>
 std::unique_ptr<maliput::api::RoadNetwork> Load(const builder::RoadNetworkConfiguration& road_network_configuration) {
-  MALIDRIVE_VALIDATE(!road_network_configuration.road_geometry_configuration.opendrive_file.empty(),
-                     std::runtime_error, "opendrive_file cannot be empty");
+  MALIDRIVE_VALIDATE(!road_network_configuration.road_geometry_configuration.opendrive_file.empty(), std::runtime_error,
+                     "opendrive_file cannot be empty");
   return RoadNetworkBuilderT(road_network_configuration)();
 }
 
