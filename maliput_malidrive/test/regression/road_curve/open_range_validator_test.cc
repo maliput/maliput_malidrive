@@ -115,6 +115,31 @@ GTEST_TEST(OpenRangeValidatorTest, RelativeEpsilonRangeTest) {
   }
 }
 
+// Tests behavior when working close to the limit of the precision for both relative and absolute use of epsilon value.
+// Considering that the number of useful digits for the double type is about 15(or 16) digits.
+GTEST_TEST(OpenRangeValidatorTest, OutOfPrecisionTest) {
+  const double kMin{0.5};
+  const double kMax{100000.5};
+  const double kTolerance{1e-3};
+  const double kEpsilon{1e-14};
+
+  const OpenRangeValidator dut_abs(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kAbsolute);
+  // In the maximum of the range.
+  {
+    const double kS{kMax};
+    // The value isn't clamped because it is beyond of the double precision.
+    EXPECT_DOUBLE_EQ(dut_abs(kS), kS);
+  }
+  const double kRelativeEpsilon{kEpsilon * (kMax - kMin)};
+  const OpenRangeValidator dut_rel(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kRelative);
+  // In the maximum of the range.
+  {
+    const double kS{kMax};
+    // The value is clamped because the epsilon value is weighten by the length of the range.
+    EXPECT_DOUBLE_EQ(dut_rel(kS), kS - kRelativeEpsilon);
+  }
+}
+
 }  // namespace test
 }  // namespace road_curve
 }  // namespace malidrive
