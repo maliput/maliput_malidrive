@@ -14,25 +14,24 @@ GTEST_TEST(OpenRangeValidatorTest, ConstructorValidationTest) {
   const double kEpsilon{1e-5};
 
   // no throw
-  EXPECT_NO_THROW({ OpenRangeValidator(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kAbsolute); });
+  EXPECT_NO_THROW({ OpenRangeValidator::GetAbsoluteEpsilonValidator(kMin, kMax, kTolerance, kEpsilon); });
 
   // relative epsilon > tolerance
   // kEpsilon * (kMax - kMin) > tolerance
-  EXPECT_THROW({ OpenRangeValidator(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kRelative); },
+  EXPECT_THROW({ OpenRangeValidator::GetRelativeEpsilonValidator(kMin, kMax, kTolerance, kEpsilon); },
                std::runtime_error);
 
   // min > max
-  EXPECT_THROW({ OpenRangeValidator(kMax, kMin, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kAbsolute); },
+  EXPECT_THROW({ OpenRangeValidator::GetAbsoluteEpsilonValidator(kMax, kMin, kTolerance, kEpsilon); },
                std::runtime_error);
 
   // epsilon > tolerance
-  EXPECT_THROW({ OpenRangeValidator(kMin, kMax, kEpsilon, kTolerance, OpenRangeValidator::EpsilonUse::kAbsolute); },
+  EXPECT_THROW({ OpenRangeValidator::GetAbsoluteEpsilonValidator(kMin, kMax, kEpsilon, kTolerance); },
                std::runtime_error);
 
   // min + epsilon > max (applies the other way around, it's specially provided
   // in constructor code to validate numerical error).
-  EXPECT_THROW({ OpenRangeValidator(kMin, kMax, 2 * kMax, kMax, OpenRangeValidator::EpsilonUse::kAbsolute); },
-               std::runtime_error);
+  EXPECT_THROW({ OpenRangeValidator::GetAbsoluteEpsilonValidator(kMin, kMax, 2 * kMax, kMax); }, std::runtime_error);
 }
 
 GTEST_TEST(OpenRangeValidatorTest, RangeTest) {
@@ -41,7 +40,7 @@ GTEST_TEST(OpenRangeValidatorTest, RangeTest) {
   const double kTolerance{1e-3};
   const double kEpsilon{1e-5};
 
-  const OpenRangeValidator dut(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kAbsolute);
+  const OpenRangeValidator dut{OpenRangeValidator::GetAbsoluteEpsilonValidator(kMin, kMax, kTolerance, kEpsilon)};
   // In the middle of the range.
   {
     const double kS{2.};
@@ -82,7 +81,7 @@ GTEST_TEST(OpenRangeValidatorTest, RelativeEpsilonRangeTest) {
   const double kEpsilon{1e-8};
   const double kRelativeEpsilon{kEpsilon * kRange};
 
-  const OpenRangeValidator dut(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kRelative);
+  const OpenRangeValidator dut{OpenRangeValidator::GetRelativeEpsilonValidator(kMin, kMax, kTolerance, kEpsilon)};
   // In the middle of the range.
   {
     const double kS{2.};
@@ -123,7 +122,7 @@ GTEST_TEST(OpenRangeValidatorTest, OutOfPrecisionTest) {
   const double kTolerance{1e-3};
   const double kEpsilon{1e-14};
 
-  const OpenRangeValidator dut_abs(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kAbsolute);
+  const OpenRangeValidator dut_abs{OpenRangeValidator::GetAbsoluteEpsilonValidator(kMin, kMax, kTolerance, kEpsilon)};
   // In the maximum of the range.
   {
     const double kS{kMax};
@@ -131,7 +130,7 @@ GTEST_TEST(OpenRangeValidatorTest, OutOfPrecisionTest) {
     EXPECT_DOUBLE_EQ(dut_abs(kS), kS);
   }
   const double kRelativeEpsilon{kEpsilon * (kMax - kMin)};
-  const OpenRangeValidator dut_rel(kMin, kMax, kTolerance, kEpsilon, OpenRangeValidator::EpsilonUse::kRelative);
+  const OpenRangeValidator dut_rel{OpenRangeValidator::GetRelativeEpsilonValidator(kMin, kMax, kTolerance, kEpsilon)};
   // In the maximum of the range.
   {
     const double kS{kMax};

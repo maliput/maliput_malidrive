@@ -6,6 +6,16 @@
 namespace malidrive {
 namespace road_curve {
 
+OpenRangeValidator OpenRangeValidator::GetRelativeEpsilonValidator(double min, double max, double tolerance,
+                                                                   double epsilon) {
+  return OpenRangeValidator{min, max, tolerance, epsilon, EpsilonUse::kRelative};
+}
+
+OpenRangeValidator OpenRangeValidator::GetAbsoluteEpsilonValidator(double min, double max, double tolerance,
+                                                                   double epsilon) {
+  return OpenRangeValidator{min, max, tolerance, epsilon, EpsilonUse::kAbsolute};
+}
+
 OpenRangeValidator::OpenRangeValidator(double min, double max, double tolerance, double epsilon,
                                        const EpsilonUse& epsilon_mode)
     : min_(min), max_(max), tolerance_(tolerance), epsilon_(epsilon) {

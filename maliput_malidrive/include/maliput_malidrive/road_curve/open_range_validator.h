@@ -18,26 +18,36 @@ class OpenRangeValidator {
  public:
   MALIDRIVE_DEFAULT_COPY_AND_MOVE_AND_ASSIGN(OpenRangeValidator)
 
-  /// The provided epsilon can be used relatively or absolutely.
-  enum class EpsilonUse { kAbsolute = 0, kRelative };
-
-  OpenRangeValidator() = delete;
-
-  /// Constructs the functor.
-  ///
+  /// Creates a OpenRangeValidator instance that uses a relative epsilon to validate the values.
+  /// This relative epsilon is computed by multiplying `epsilon` by the range.
   /// @param min lower extreme of the range.
   /// @param max upper extreme of the range.
   /// @param tolerance is the range extension to be accepted.
   /// @param epsilon is minimum difference that separates a number within the
   ///        range to be distinct from range extremes (`min` and `max`).
-  /// @param epsilon_mode selects how `epsilon` will be used: absolute or relative.
+  /// @returns A OpenRangeValidator instance.
   /// @throws maliput::common::assertion_error When `tolerance` is non positive.
   /// @throws maliput::common::assertion_error When `epsilon` is not in
   ///         [0, tolerance].
   /// @throws maliput::common::assertion_error When `min` + `epsilon` > `max` or
   ///         `max` - `epsilon` < `min`
-  OpenRangeValidator(double min, double max, double tolerance, double epsilon,
-                     const EpsilonUse& epsilon_mode = EpsilonUse::kAbsolute);
+  static OpenRangeValidator GetRelativeEpsilonValidator(double min, double max, double tolerance, double epsilon);
+
+  /// Creates a OpenRangeValidator instance that uses a `epsilon` as the absolute epsilon to validate the values.
+  /// @param min lower extreme of the range.
+  /// @param max upper extreme of the range.
+  /// @param tolerance is the range extension to be accepted.
+  /// @param epsilon is minimum difference that separates a number within the
+  ///        range to be distinct from range extremes (`min` and `max`).
+  /// @returns A OpenRangeValidator instance.
+  /// @throws maliput::common::assertion_error When `tolerance` is non positive.
+  /// @throws maliput::common::assertion_error When `epsilon` is not in
+  ///         [0, tolerance].
+  /// @throws maliput::common::assertion_error When `min` + `epsilon` > `max` or
+  ///         `max` - `epsilon` < `min`
+  static OpenRangeValidator GetAbsoluteEpsilonValidator(double min, double max, double tolerance, double epsilon);
+
+  OpenRangeValidator() = delete;
 
   /// Evaluates whether `s` is in range or not.
   /// @returns `s` when it is within the open range. If `s` is equal to either
@@ -47,6 +57,25 @@ class OpenRangeValidator {
   double operator()(double s) const;
 
  private:
+  // The provided epsilon can be used relatively or absolutely.
+  enum class EpsilonUse { kAbsolute = 0, kRelative };
+
+  // Constructs the functor.
+  //
+  // @param min lower extreme of the range.
+  // @param max upper extreme of the range.
+  // @param tolerance is the range extension to be accepted.
+  // @param epsilon is minimum difference that separates a number within the
+  //        range to be distinct from range extremes (`min` and `max`).
+  // @param epsilon_mode selects how `epsilon` will be used: absolute or relative.
+  // @throws maliput::common::assertion_error When `tolerance` is non positive.
+  // @throws maliput::common::assertion_error When `epsilon` is not in
+  //         [0, tolerance].
+  // @throws maliput::common::assertion_error When `min` + `epsilon` > `max` or
+  //         `max` - `epsilon` < `min`
+  OpenRangeValidator(double min, double max, double tolerance, double epsilon,
+                     const EpsilonUse& epsilon_mode = EpsilonUse::kAbsolute);
+
   double min_{};
   double max_{};
   double tolerance_{};
