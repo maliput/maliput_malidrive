@@ -76,7 +76,7 @@ PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCur
   p0_ = 0.;
   p1_ = cumulative_p;
   MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= linear_tolerance_);
-  validate_p_ = OpenRangeValidator(p0_, p1_, linear_tolerance_, kEpsilon, OpenRangeValidator::EpsilonUse::kRelative);
+  validate_p_ = OpenRangeValidator::GetRelativeEpsilonValidator(p0_, p1_, linear_tolerance_, kEpsilon);
 }
 
 std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(double p) const {

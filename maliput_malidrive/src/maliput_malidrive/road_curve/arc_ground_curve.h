@@ -55,7 +55,8 @@ class ArcGroundCurve : public GroundCurve {
         d_theta_(arc_length * curvature),
         theta0_(start_heading - std::copysign(M_PI / 2., d_theta_)),
         center_(xy0_ - std::abs(radius_) * maliput::math::Vector2{std::cos(theta0_), std::sin(theta0_)}),
-        validate_p_(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon) {
+        validate_p_(
+            OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0);
     MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0.);

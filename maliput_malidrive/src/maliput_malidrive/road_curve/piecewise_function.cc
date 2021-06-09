@@ -60,7 +60,7 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
 }
 
 std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p) const {
-  p = OpenRangeValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  p = OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
 
   auto search_it = interval_function_.find(FunctionInterval(p));
   if (search_it == interval_function_.end()) {
@@ -80,19 +80,19 @@ std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p
 }
 
 double PiecewiseFunction::do_f(double p) const {
-  p = OpenRangeValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  p = OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
   const std::pair<const Function*, double> function_p = GetFunctionAndPAt(p);
   return function_p.first->f(function_p.second);
 }
 
 double PiecewiseFunction::do_f_dot(double p) const {
-  p = OpenRangeValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  p = OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
   const std::pair<const Function*, double> function_p = GetFunctionAndPAt(p);
   return function_p.first->f_dot(function_p.second);
 }
 
 double PiecewiseFunction::do_f_dot_dot(double p) const {
-  p = OpenRangeValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  p = OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
   const std::pair<const Function*, double> function_p = GetFunctionAndPAt(p);
   return function_p.first->f_dot_dot(function_p.second);
 }

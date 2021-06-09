@@ -43,7 +43,8 @@ class LineGroundCurve : public GroundCurve {
         heading_(std::atan2(dxy.y(), dxy.x())),
         p0_(p0),
         p1_(p1),
-        validate_p_(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon) {
+        validate_p_(
+            OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0);
     MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0.);

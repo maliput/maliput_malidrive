@@ -32,7 +32,10 @@ class ScaledDomainFunction : public Function {
   /// @throws maliput::common::assertion_error When @p p0 is negative.
   /// @throws maliput::common::assertion_error When @p p1 is less than @p p0.
   ScaledDomainFunction(std::unique_ptr<Function> function, double p0, double p1, double linear_tolerance)
-      : function_(std::move(function)), p0_(p0), p1_(p1), validate_p_(p0_, p1_, linear_tolerance, Function::kEpsilon) {
+      : function_(std::move(function)),
+        p0_(p0),
+        p1_(p1),
+        validate_p_(OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance, Function::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(function_ != nullptr);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
     MALIDRIVE_THROW_UNLESS(p1_ > p0_);

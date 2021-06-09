@@ -38,7 +38,13 @@ class CubicPolynomial : public Function {
   /// @throws maliput::common::assertion_error When @p linear_tolerance is not
   ///         positive.
   CubicPolynomial(double a, double b, double c, double d, double p0, double p1, double linear_tolerance)
-      : a_(a), b_(b), c_(c), d_(d), p0_(p0), p1_(p1), validate_p_(p0_, p1_, linear_tolerance, Function::kEpsilon) {
+      : a_(a),
+        b_(b),
+        c_(c),
+        d_(d),
+        p0_(p0),
+        p1_(p1),
+        validate_p_(OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance, Function::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(p0_ >= 0);
     MALIDRIVE_THROW_UNLESS(p1_ > p0_);
     MALIDRIVE_THROW_UNLESS(linear_tolerance > 0.);
