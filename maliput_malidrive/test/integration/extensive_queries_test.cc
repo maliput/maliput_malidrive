@@ -201,7 +201,9 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
         r = bounds.min();
         break;
       }
+      // clang-format off
       default: { MALIDRIVE_ABORT_MSG("Invalid lane_line value."); }
+        // clang-format on
     }
     return r;
   }
