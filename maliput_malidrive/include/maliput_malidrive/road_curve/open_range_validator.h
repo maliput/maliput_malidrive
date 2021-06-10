@@ -23,8 +23,8 @@ class OpenRangeValidator {
   /// @param min lower extreme of the range.
   /// @param max upper extreme of the range.
   /// @param tolerance is the range extension to be accepted.
-  /// @param epsilon is minimum difference that separates a number within the
-  ///        range to be distinct from range extremes (`min` and `max`).
+  /// @param epsilon is the relative minimum difference that separates a number within
+  ///                range to be distinct from extremes. It is relative to the range.
   /// @returns A OpenRangeValidator instance.
   /// @throws maliput::common::assertion_error When `tolerance` is non positive.
   /// @throws maliput::common::assertion_error When `epsilon` is not in
@@ -73,8 +73,7 @@ class OpenRangeValidator {
   //         [0, tolerance].
   // @throws maliput::common::assertion_error When `min` + `epsilon` > `max` or
   //         `max` - `epsilon` < `min`
-  OpenRangeValidator(double min, double max, double tolerance, double epsilon,
-                     const EpsilonUse& epsilon_mode = EpsilonUse::kAbsolute);
+  OpenRangeValidator(double min, double max, double tolerance, double epsilon, const EpsilonUse& epsilon_mode);
 
   double min_{};
   double max_{};
