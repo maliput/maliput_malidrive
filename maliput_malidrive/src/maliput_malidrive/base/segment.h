@@ -7,6 +7,7 @@
 
 #include <maliput/geometry_base/segment.h>
 
+#include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/road_curve/road_curve_offset.h"
@@ -62,11 +63,30 @@ class Segment : public maliput::geometry_base::Segment {
   /// @return The reference line offset function.
   const road_curve::Function* reference_line_offset() const { return reference_line_offset_; }
 
+  /// Adds @p lane to the segment.
+  /// @details If `hide_lane` is false, the call is forwarded to maliput::geometry_base::Segment::AddLane.
+  /// If `hide_lane` is true, the segment becomes the lane's owner but the lane is hidden.
+  /// This behavior is needed to correctly compute the offset of the lanes when
+  /// the non-drivable lanes are omitted from the Road Network.
+  /// @returns `lane`s raw pointer.
+  Lane* AddLane(std::unique_ptr<Lane> lane, bool hide_lane) {
+    if (!hide_lane) {
+      return maliput::geometry_base::Segment::AddLane(std::move(lane));
+    }
+    Lane* raw_pointer = lane.get();
+    hidden_lanes_.push_back(std::move(lane));
+    return raw_pointer;
+  }
+
  private:
   const road_curve::RoadCurve* road_curve_;
   const road_curve::Function* reference_line_offset_;
   const double p0_{};
   const double p1_{};
+  // Lanes that belongs to the segment but they aren't meant to be public.
+  // Tipically used when non-drivable lane should be omitted but their creation is
+  // neccesary to be consistent with other lanes.
+  std::vector<std::unique_ptr<Lane>> hidden_lanes_;
 };
 
 }  // namespace malidrive

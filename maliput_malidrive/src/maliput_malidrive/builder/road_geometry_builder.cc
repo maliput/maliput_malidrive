@@ -155,8 +155,8 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
   // Queue all the tasks in the thread pool. Each task will build all the lanes of a junction.
   std::vector<std::future<std::vector<RoadGeometryBuilder::LaneConstructionResult>>> lanes_construction_results;
   for (const auto& junction_segments_attributes : junctions_segments_attributes_) {
-    lanes_construction_results.push_back(task_executor.Queue(
-        LanesBuilder(junction_segments_attributes, rg, factory_.get(), rg_config_.omit_nondrivable_lanes)));
+    lanes_construction_results.push_back(
+        task_executor.Queue(LanesBuilder(junction_segments_attributes, rg, factory_.get())));
   }
   // The threads are on hold until start method is called.
   task_executor.Start();
@@ -178,10 +178,9 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
   for (const auto& junction_segments_attributes : junctions_segments_attributes_) {
     for (const auto& segment_attributes : junction_segments_attributes.second) {
       // Process lanes of the lane section.
-      auto lanes_result =
-          BuildLanesForSegment(segment_attributes.second.road_header, segment_attributes.second.lane_section,
-                               segment_attributes.second.lane_section_index, factory_.get(),
-                               rg_config_.omit_nondrivable_lanes, rg, segment_attributes.first);
+      auto lanes_result = BuildLanesForSegment(
+          segment_attributes.second.road_header, segment_attributes.second.lane_section,
+          segment_attributes.second.lane_section_index, factory_.get(), rg, segment_attributes.first);
       built_lanes_result.insert(built_lanes_result.end(), std::make_move_iterator(lanes_result.begin()),
                                 std::make_move_iterator(lanes_result.end()));
     }
@@ -193,9 +192,9 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
   std::vector<LaneConstructionResult> built_lanes_result;
   for (const auto& segment_attributes : junction_segments_attributes.second) {
     // Process lanes of the lane section.
-    auto lanes_result = BuildLanesForSegment(
-        segment_attributes.second.road_header, segment_attributes.second.lane_section,
-        segment_attributes.second.lane_section_index, factory, omit_nondrivable_lanes, rg, segment_attributes.first);
+    auto lanes_result =
+        BuildLanesForSegment(segment_attributes.second.road_header, segment_attributes.second.lane_section,
+                             segment_attributes.second.lane_section_index, factory, rg, segment_attributes.first);
     built_lanes_result.insert(built_lanes_result.end(), std::make_move_iterator(lanes_result.begin()),
                               std::make_move_iterator(lanes_result.end()));
   }
@@ -213,9 +212,11 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
         {built_lane.lane->id(), {built_lane.lane.get(), built_lane.xodr_lane_properties}});
     MALIDRIVE_THROW_UNLESS(result.second == true);
 
-    maliput::log()->trace("Lane ID: {} added to segment {}", built_lane.lane->id().string(),
-                          built_lane.segment->id().string());
-    built_lane.segment->AddLane(std::move(built_lane.lane));
+    const bool hide_lane =
+        rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*built_lane.xodr_lane_properties.lane);
+    maliput::log()->trace("Lane ID: {}{} added to segment {}", built_lane.lane->id().string(),
+                          hide_lane ? "(hidden)" : "", built_lane.segment->id().string());
+    built_lane.segment->AddLane(std::move(built_lane.lane), hide_lane);
   }
 }
 
@@ -405,7 +406,7 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
 
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::BuildLanesForSegment(
     const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section, int xodr_lane_section_index,
-    const RoadCurveFactoryBase* factory, bool omit_nondrivable_lanes, RoadGeometry* rg, Segment* segment) {
+    const RoadCurveFactoryBase* factory, RoadGeometry* rg, Segment* segment) {
   MALIDRIVE_THROW_UNLESS(lane_section != nullptr);
   MALIDRIVE_THROW_UNLESS(road_header != nullptr);
   MALIDRIVE_THROW_UNLESS(segment != nullptr);
@@ -422,10 +423,6 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
   // the top most left. Code below guarantees the right construction and registration
   // order.
   for (auto lane_it = lane_section->right_lanes.crbegin(); lane_it != lane_section->right_lanes.crend(); ++lane_it) {
-    // Skip nondriveable lanes when the builder flag is turned on.
-    if (omit_nondrivable_lanes && !is_driveable_lane(*lane_it)) {
-      continue;
-    }
     maliput::log()->trace("Building Lane ID: {}_{}_{}.", road_header->id.string(), xodr_lane_section_index,
                           lane_it->id.string());
     LaneConstructionResult lane_construction_result = BuildLane(
@@ -435,10 +432,6 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
   }
   adjacent_lane_functions = road_curve::LaneOffset::AdjacentLaneFunctions{nullptr, nullptr};
   for (auto lane_it = lane_section->left_lanes.cbegin(); lane_it != lane_section->left_lanes.cend(); ++lane_it) {
-    // Skip nondriveable lanes when the builder flag is turned on.
-    if (omit_nondrivable_lanes && !is_driveable_lane(*lane_it)) {
-      continue;
-    }
     LaneConstructionResult lane_construction_result = BuildLane(
         &(*lane_it), road_header, lane_section, xodr_lane_section_index, factory, segment, &adjacent_lane_functions);
     maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
@@ -490,6 +483,9 @@ void RoadGeometryBuilder::BuildBranchPointsForLanes(RoadGeometry* rg) {
   maliput::log()->trace("Building BranchPoints for Lanes...");
 
   for (auto& lane_xodr_lane_properties : lane_xodr_lane_properties_) {
+    if (rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*lane_xodr_lane_properties.second.xodr_lane.lane)) {
+      continue;
+    }
     FindOrCreateBranchPointFor(lane_xodr_lane_properties.second.xodr_lane,
                                lane_xodr_lane_properties.second.malidrive_lane, rg);
   }
