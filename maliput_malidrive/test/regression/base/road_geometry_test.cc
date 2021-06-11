@@ -157,8 +157,8 @@ GTEST_TEST(RoadGeometryFigure8Trafficlights, RoundTripPositionWithInertialToBack
 
 GTEST_TEST(RoadGeometryStraightForward, ToInertialPosition) {
   const builder::RoadGeometryConfiguration road_geometry_configuration{
-      maliput::api::RoadGeometryId("straight_forward"),
-      utility::FindResource("odr/straight_forward.xodr"),
+      maliput::api::RoadGeometryId("StraightForward"),
+      utility::FindResource("odr/StraightForward.xodr"),
       constants::kLinearTolerance,
       constants::kAngularTolerance,
       constants::kScaleLength,
@@ -170,10 +170,11 @@ GTEST_TEST(RoadGeometryStraightForward, ToInertialPosition) {
 
   const maliput::api::LanePosition position(9.499999999999886, 0., 0.);
   const maliput::api::LaneId lane_id("0_0_-5");
-  auto lane = road_network->road_geometry()->ById().GetLane(lane_id);
-  auto inertial_position = lane->ToInertialPosition(position);
-  // Expect inertial_position to be (1.75, -490.5, 0.).
-  EXPECT_GT(inertial_position.x(), 0);
+  const auto lane = road_network->road_geometry()->ById().GetLane(lane_id);
+  const auto inertial_position = lane->ToInertialPosition(position);
+  EXPECT_DOUBLE_EQ(inertial_position.x(), 1.75);
+  EXPECT_DOUBLE_EQ(inertial_position.y(), -490.5);
+  EXPECT_DOUBLE_EQ(inertial_position.z(), 0.);
 }
 
 // TODO(francocipollone): Adds tests for ToRoadPosition and FindRoadPosition methods

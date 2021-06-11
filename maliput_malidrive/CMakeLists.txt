@@ -111,9 +111,9 @@ install (FILES resources/ArcLane.xodr
                resources/SpiralRoad.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr
+               resources/StraightForward.xodr
                resources/TShapeRoad.xodr
                resources/TShapeRoad.yaml
-               resources/straight_forward.xodr
          DESTINATION ${OPENDRIVE_SAMPLES_PATH})
 
 install (FILES resources/cloverleaf/cloverleaf.xodr
