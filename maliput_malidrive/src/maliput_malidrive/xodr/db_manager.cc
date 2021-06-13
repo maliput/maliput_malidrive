@@ -905,7 +905,8 @@ const std::vector<DBManager::XodrGeometriesToSimplify> DBManager::GetGeometriesT
 std::unique_ptr<DBManager> LoadDataBaseFromFile(const std::string& filepath,
                                                 const ParserConfiguration& parser_configuration) {
   tinyxml2::XMLDocument xodr_doc;
-  MALIDRIVE_THROW_UNLESS(xodr_doc.LoadFile(filepath.c_str()) == tinyxml2::XML_SUCCESS);
+  MALIDRIVE_VALIDATE(xodr_doc.LoadFile(filepath.c_str()) == tinyxml2::XML_SUCCESS, maliput::common::assertion_error,
+                     std::string("XODR file couldn't be loaded: ") + filepath.c_str());
   return std::make_unique<DBManager>(&xodr_doc, parser_configuration);
 }
 
