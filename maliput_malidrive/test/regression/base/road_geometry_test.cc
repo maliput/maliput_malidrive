@@ -155,28 +155,6 @@ GTEST_TEST(RoadGeometryFigure8Trafficlights, RoundTripPositionWithInertialToBack
   EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
 }
 
-GTEST_TEST(RoadGeometryStraightForward, ToInertialPosition) {
-  const builder::RoadGeometryConfiguration road_geometry_configuration{
-      maliput::api::RoadGeometryId("StraightForward"),
-      utility::FindResource("odr/StraightForward.xodr"),
-      constants::kLinearTolerance,
-      constants::kAngularTolerance,
-      constants::kScaleLength,
-      maliput::math::Vector3{0., 0., 0.},
-      InertialToLaneMappingConfig(::malidrive::constants::kExplorationRadius, ::malidrive::constants::kNumIterations),
-  };
-  const builder::RoadNetworkConfiguration road_network_configuration{road_geometry_configuration};
-  auto road_network = ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_network_configuration);
-
-  const maliput::api::LanePosition position(9.499999999999886, 0., 0.);
-  const maliput::api::LaneId lane_id("0_0_-5");
-  const auto lane = road_network->road_geometry()->ById().GetLane(lane_id);
-  const auto inertial_position = lane->ToInertialPosition(position);
-  EXPECT_DOUBLE_EQ(inertial_position.x(), 1.75);
-  EXPECT_DOUBLE_EQ(inertial_position.y(), -490.5);
-  EXPECT_DOUBLE_EQ(inertial_position.z(), 0.);
-}
-
 // TODO(francocipollone): Adds tests for ToRoadPosition and FindRoadPosition methods
 //                        when MalidriveLoader, MalidriveBuilder and MalidriveLane classes are implemented.
 
