@@ -185,7 +185,7 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
       const std::vector<xodr::DBManager::XodrGeometriesToSimplify>& geometries_to_simplify);
 
   // Finds or creates for each lane a BranchPoint for each end.
-  // If #rg_config_.omit_nondrivable_lane is true then no BranchPoint is built for the non-drivable lanes.
+  // When #rg_config_.omit_nondrivable_lane is true, no BranchPoints are built for the non-drivable lanes.
   //
   // `rg` must not be nullptr.
   //
@@ -239,7 +239,7 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   std::vector<LaneConstructionResult> LanesBuilderSequentialPolicy(RoadGeometry* rg);
 
   // Builds all the Lanes of the RoadGeometry and adds them to their correspondent segments.
-  // If #rg_config_.omit_nondrivable_lane is true then the non-drivable lanes
+  // When #rg_config_.omit_nondrivable_lane is true, non-drivable lanes
   // are added to the segment but they will be hidden.
   //
   // `rg` Is a pointer to the RoadGeometry.

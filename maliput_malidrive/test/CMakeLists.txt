@@ -140,6 +140,7 @@ macro(malidrive_build_integration_based_tests)
     SingleLane.xodr
     SShapeRoad.xodr
     SShapeSuperelevatedRoad.xodr
+    StraightForward.xodr
     TShapeRoad.xodr
   )
   # TODO(#41): Remove this guard for the Figure8 xodr map.

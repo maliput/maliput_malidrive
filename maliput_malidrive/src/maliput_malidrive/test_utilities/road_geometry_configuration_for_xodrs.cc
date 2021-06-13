@@ -255,6 +255,18 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                             kToleranceSelectionPolicy,
                                                             kStandardStrictnessPolicy,
                                                             kOmitNondrivableLanes}},
+      {"StraightForward.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"StraightForward"},
+                                                                  {"odr/StraightForward.xodr"},
+                                                                  1e-3,
+                                                                  1e-3,
+                                                                  constants::kScaleLength,
+                                                                  kZeroVector,
+                                                                  kInertialToLaneMappingConfig,
+                                                                  kBuildPolicy,
+                                                                  kSimplificationPolicy,
+                                                                  kToleranceSelectionPolicy,
+                                                                  kStandardStrictnessPolicy,
+                                                                  kOmitNondrivableLanes}},
   };
   return kXodrConfigurations.find(xodr_file_name) != kXodrConfigurations.end()
              ? std::make_optional<builder::RoadGeometryConfiguration>(kXodrConfigurations.at(xodr_file_name))

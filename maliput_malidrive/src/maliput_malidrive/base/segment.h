@@ -83,9 +83,8 @@ class Segment : public maliput::geometry_base::Segment {
   const road_curve::Function* reference_line_offset_;
   const double p0_{};
   const double p1_{};
-  // Lanes that belongs to the segment but they aren't meant to be public.
-  // Tipically used when non-drivable lane should be omitted but their creation is
-  // neccesary to be consistent with other lanes.
+  // When RoadCurveConfiguration::omit_nondriveable_lanes is true the non-drivable lanes should be omitted
+  // but their creation is neccesary to be consistent with other lanes.
   std::vector<std::unique_ptr<Lane>> hidden_lanes_;
 };
 

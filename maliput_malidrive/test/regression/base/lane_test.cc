@@ -248,7 +248,7 @@ class MalidriveFlatLineLaneFullyInitializedTest : public LaneTest {
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -466,7 +466,7 @@ class MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslation
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -534,7 +534,7 @@ class MalidriveFlatArcLaneFullyInitializedTest : public LaneTest {
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -773,7 +773,7 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -1103,7 +1103,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -1427,7 +1427,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -1700,7 +1700,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
@@ -2031,7 +2031,7 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
         kLinearTolerance);
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        std::move(lane_width), std::move(lane_offset), kP0, kP1);
-    const bool kNotHideLane{false};
+    constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
