@@ -1007,17 +1007,15 @@ INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderSurfaceBoundariesTestGroup, RoadGeome
 
 // Holds the parameters for checking the road geometry when non-drivable lanes are omitted.
 struct RoadGeometryOmittingNonDrivableLanesParameters {
-  using LaneIdLanePosInertialPos =
-      std::pair<LaneId, std::pair<maliput::api::LanePosition, maliput::api::InertialPosition>>;
-
   MALIDRIVE_DEFAULT_COPY_AND_MOVE_AND_ASSIGN(RoadGeometryOmittingNonDrivableLanesParameters)
 
   RoadGeometryOmittingNonDrivableLanesParameters() = delete;
 
-  RoadGeometryOmittingNonDrivableLanesParameters(const std::string& xodr_file, bool omit_nondrivable_lanes,
-                                                 const LaneIdLanePosInertialPos& laneid_lanepos_inertialpos,
-                                                 const std::vector<LaneId>& lanes_to_left,
-                                                 const std::vector<LaneId>& lanes_to_right)
+  RoadGeometryOmittingNonDrivableLanesParameters(
+      const std::string& xodr_file, bool omit_nondrivable_lanes,
+      const std::pair<LaneId, std::pair<maliput::api::LanePosition, maliput::api::InertialPosition>>&
+          laneid_lanepos_inertialpos,
+      const std::vector<LaneId>& lanes_to_left, const std::vector<LaneId>& lanes_to_right)
       : xodr_file(xodr_file),
         omit_nondrivable_lanes(omit_nondrivable_lanes),
         laneid_lanepos_inertialpos(laneid_lanepos_inertialpos),
@@ -1030,10 +1028,14 @@ struct RoadGeometryOmittingNonDrivableLanesParameters {
   bool omit_nondrivable_lanes{};
   // Holds a LanePosition and InertialPosition pair for a particular Lane Id.
   // The Lane Id is the key and the value is the aforementioned pair.
-  LaneIdLanePosInertialPos laneid_lanepos_inertialpos;
+  std::pair<LaneId, std::pair<maliput::api::LanePosition, maliput::api::InertialPosition>> laneid_lanepos_inertialpos;
   // Lanes located to the left of lane added in #laneid_lanepos_inertialpos.first;
+  // The order of the LaneIds should replicate what is expected to get when calling `maliput::api::Lane::to_left()`
+  // method.
   std::vector<LaneId> lanes_to_left;
   // Lanes located to the right of lane added in #laneid_lanepos_inertialpos.first;
+  // The order of the LaneIds should replicate what is expected to get when calling `maliput::api::Lane::to_right()`
+  // method.
   std::vector<LaneId> lanes_to_right;
 };
 
@@ -1098,7 +1100,6 @@ TEST_P(RoadGeometryOmittingNonDrivableLanesTest, LanesToLeft) {
   const std::vector<LaneId>& expected_lanes_to_left{GetParam().lanes_to_left};
 
   auto lefter_lane = lane_->to_left();
-
   int index{0};
   while (lefter_lane != nullptr) {
     EXPECT_EQ(expected_lanes_to_left[index], lefter_lane->id());
@@ -1111,7 +1112,6 @@ TEST_P(RoadGeometryOmittingNonDrivableLanesTest, LanesToRight) {
   const std::vector<LaneId>& expected_lanes_to_right{GetParam().lanes_to_right};
 
   auto righter_lane = lane_->to_right();
-
   int index{0};
   while (righter_lane != nullptr) {
     EXPECT_EQ(expected_lanes_to_right[index], righter_lane->id());
