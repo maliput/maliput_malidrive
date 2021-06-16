@@ -1106,7 +1106,6 @@ GTEST_TEST(TextToLoggableText, EscapingFormat) {
   std::string text{"Adapt {text} to {be} loggable."};
   DuplicateCurlyBracesForFmtLogging(&text);
   EXPECT_EQ(text, kExpectedText);
-
 }
 
 }  // namespace
