@@ -1099,6 +1099,12 @@ GTEST_TEST(XMLToText, ConvertXMLNodeToText) {
   EXPECT_EQ(kArbitraryXMLDescription, str_xml);
 }
 
+GTEST_TEST(TextToLoggableText, EscapingFormat) {
+  constexpr const char* kExpectedText{"Adapt {{text}} to {{be}} loggable."};
+  std::string text{"Adapt {text} to {be} loggable."};
+  EXPECT_EQ(ConvertTextToLoggableText(text), kExpectedText);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace xodr
