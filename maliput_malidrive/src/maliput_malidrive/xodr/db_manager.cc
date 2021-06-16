@@ -647,14 +647,26 @@ class DBManager::Impl {
       if (lane_link_a.has_value()) {
         const auto lane_id_lane_b = lanes_b.find(Lane::Id(lane_link_a->id.string()));
         if (lane_id_lane_b == lanes_b.end()) {
-          MALIDRIVE_THROW_MESSAGE(std::string("Unknown ") + std::string("successor lane ") + lane_link_a->id.string() +
-                                  std::string(" for lane id ") + lane_id_lane_a.first.string());
+          const std::string msg = std::string("Unknown ") + std::string("successor lane ") + lane_link_a->id.string() +
+                                  std::string(" for lane id ") + lane_id_lane_a.first.string();
+          if (parser_configuration_.allow_semantic_errors) {
+            maliput::log()->warn(msg);
+            continue;
+          } else {
+            MALIDRIVE_THROW_MESSAGE(msg);
+          }
         }
         const std::optional<LaneLink::LinkAttributes> lane_link_b = lane_id_lane_b->second->lane_link.predecessor;
         if (!lane_link_b.has_value() || (lane_link_b->id.string() != lane_id_lane_a.first.string())) {
-          MALIDRIVE_THROW_MESSAGE(std::string("Lane ids ") + lane_id_lane_a.first.string() + std::string(" and ") +
-                                  lane_id_lane_b->first.string() +
-                                  std::string(" don't match successor/predecessor values."));
+          const std::string msg = "Lane id " + lane_id_lane_a.first.string() +
+                                  " from one segment doesn't match successor/predecessor values with Lane id " +
+                                  lane_id_lane_b->first.string() + " of the next segment.";
+          if (parser_configuration_.allow_semantic_errors) {
+            maliput::log()->warn(msg);
+            continue;
+          } else {
+            MALIDRIVE_THROW_MESSAGE(msg);
+          }
         }
       }
     }
@@ -664,15 +676,27 @@ class DBManager::Impl {
       if (lane_link_b.has_value()) {
         const auto lane_id_lane_a = lanes_a.find(Lane::Id(lane_link_b->id.string()));
         if (lane_id_lane_a == lanes_a.end()) {
-          MALIDRIVE_THROW_MESSAGE(std::string("Unknown ") + std::string("predecessor lane ") +
+          const std::string msg = std::string("Unknown ") + std::string("predecessor lane ") +
                                   lane_link_b->id.string() + std::string(" for lane id ") +
-                                  lane_id_lane_b.first.string());
+                                  lane_id_lane_b.first.string();
+          if (parser_configuration_.allow_semantic_errors) {
+            maliput::log()->warn(msg);
+            continue;
+          } else {
+            MALIDRIVE_THROW_MESSAGE(msg);
+          }
         }
         const std::optional<LaneLink::LinkAttributes> lane_link_a = lane_id_lane_a->second->lane_link.successor;
         if (!lane_link_a.has_value() || (lane_link_a->id.string() != lane_id_lane_b.first.string())) {
-          MALIDRIVE_THROW_MESSAGE(std::string("Lane ids ") + lane_id_lane_b.first.string() + std::string(" and ") +
-                                  lane_id_lane_a->first.string() +
-                                  std::string("don't match successor/predecessor values."));
+          const std::string msg = "Lane id " + lane_id_lane_b.first.string() +
+                                  " from one segment doesn't match successor/predecessor values with Lane id " +
+                                  lane_id_lane_a->first.string() + " of the next segment.";
+          if (parser_configuration_.allow_semantic_errors) {
+            maliput::log()->warn(msg);
+            continue;
+          } else {
+            MALIDRIVE_THROW_MESSAGE(msg);
+          }
         }
       }
     }
@@ -683,7 +707,9 @@ class DBManager::Impl {
   //
   // @throws maliput::common::assertion_error When LaneLinks are not coherent between LaneSections.
   void VerifyLinksBetweenLaneSectionsOfARoad(const RoadHeader& road_header) {
+    maliput::log()->trace("Verify lane links within Road Id: {}", road_header.id.string());
     for (int i = 0; i < static_cast<int>(road_header.lanes.lanes_section.size()) - 1; i++) {
+      maliput::log()->trace("Verify lane links between lane section {} and {}", i, i + 1);
       VerifyLaneLinksBetweenTwoLaneSections(GetLanesFromLaneSection(road_header.id, i),
                                             GetLanesFromLaneSection(road_header.id, i + 1));
     }

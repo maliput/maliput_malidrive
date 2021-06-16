@@ -19,6 +19,7 @@ struct ParserConfiguration {
   /// When active, the parser will relaxe constraints related to xodr semantic.
   /// It will not throw upon the following conditions:
   /// - Non reciprocal Road linkage.
+  /// - Non reciprocal Lane linkage within a Road.
   bool allow_semantic_errors{true};
 };
 
