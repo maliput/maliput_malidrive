@@ -1100,9 +1100,13 @@ GTEST_TEST(XMLToText, ConvertXMLNodeToText) {
 }
 
 GTEST_TEST(TextToLoggableText, EscapingFormat) {
+  EXPECT_THROW(DuplicateCurlyBracesForFmtLogging(nullptr), maliput::common::assertion_error);
+
   constexpr const char* kExpectedText{"Adapt {{text}} to {{be}} loggable."};
   std::string text{"Adapt {text} to {be} loggable."};
-  EXPECT_EQ(ConvertTextToLoggableText(text), kExpectedText);
+  DuplicateCurlyBracesForFmtLogging(&text);
+  EXPECT_EQ(text, kExpectedText);
+
 }
 
 }  // namespace

@@ -868,7 +868,8 @@ Junction NodeParser::As() const {
     if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
-    maliput::log()->warn(ConvertTextToLoggableText(msg));
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    maliput::log()->warn(msg);
   }
   std::unordered_map<Connection::Id, Connection> connections;
   while (connection_element) {
@@ -889,18 +890,18 @@ std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element) {
   return printer.CStr();
 }
 
-std::string& ConvertTextToLoggableText(std::string& text) {
+void DuplicateCurlyBracesForFmtLogging(std::string* text) {
+  MALIDRIVE_THROW_UNLESS(text != nullptr);
   // Duplicates `key` if found in `text`.
-  auto duplicates_key = [](const std::string& key, std::string& text) {
-    std::size_t last_pos = text.find(key);
-    while (last_pos != text.npos) {
-      text.insert(last_pos, key);
-      last_pos = text.find(key, last_pos + 2);
+  auto duplicates_key = [](const std::string& key, std::string* text) {
+    std::size_t last_pos = text->find(key);
+    while (last_pos != text->npos) {
+      text->insert(last_pos, key);
+      last_pos = text->find(key, last_pos + 2);
     }
   };
   duplicates_key("{", text);
   duplicates_key("}", text);
-  return text;
 }
 
 }  // namespace xodr

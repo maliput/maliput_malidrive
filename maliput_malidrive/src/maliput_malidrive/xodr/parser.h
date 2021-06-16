@@ -104,8 +104,8 @@ std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element);
 /// Modifies `text` to adapt the message to be compatible with maliput::common::Logger.
 /// @details Escapes formatting when having curly braces in the text that aren't meant to be formatted as arguments.
 /// @param text Text to be adapted.
-/// @returns A reference to `text`.
-std::string& ConvertTextToLoggableText(std::string& text);
+/// @throws maliput::common::assertion_error When text is nullptr.
+void DuplicateCurlyBracesForFmtLogging(std::string* text);
 
 }  // namespace xodr
 }  // namespace malidrive
