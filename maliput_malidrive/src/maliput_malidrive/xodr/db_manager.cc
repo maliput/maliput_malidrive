@@ -647,7 +647,7 @@ class DBManager::Impl {
       if (lane_link_a.has_value()) {
         const auto lane_id_lane_b = lanes_b.find(Lane::Id(lane_link_a->id.string()));
         if (lane_id_lane_b == lanes_b.end()) {
-          const std::string msg = std::string("Unknown ") + std::string("successor lane ") + lane_link_a->id.string() +
+          const std::string msg = std::string("Unknown successor lane ") + lane_link_a->id.string() +
                                   std::string(" for lane id ") + lane_id_lane_a.first.string();
           if (parser_configuration_.allow_semantic_errors) {
             maliput::log()->warn(msg);
@@ -676,9 +676,8 @@ class DBManager::Impl {
       if (lane_link_b.has_value()) {
         const auto lane_id_lane_a = lanes_a.find(Lane::Id(lane_link_b->id.string()));
         if (lane_id_lane_a == lanes_a.end()) {
-          const std::string msg = std::string("Unknown ") + std::string("predecessor lane ") +
-                                  lane_link_b->id.string() + std::string(" for lane id ") +
-                                  lane_id_lane_b.first.string();
+          const std::string msg = std::string("Unknown predecessor lane ") + lane_link_b->id.string() +
+                                  std::string(" for lane id ") + lane_id_lane_b.first.string();
           if (parser_configuration_.allow_semantic_errors) {
             maliput::log()->warn(msg);
             continue;
