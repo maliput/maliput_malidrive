@@ -103,21 +103,29 @@ std::unique_ptr<road_curve::Function> RoadCurveFactory::MakeCubicPolynomial(doub
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeArcGroundCurve(
     const xodr::Geometry& arc_geometry) const {
   MALIDRIVE_THROW_UNLESS(arc_geometry.type == xodr::Geometry::Type::kArc);
-
+  const double p0{arc_geometry.s_0};
+  const double p1{arc_geometry.s_0 + arc_geometry.length};
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
+                     "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
+                         "\n\tp1: " + std::to_string(p1) +
+                         "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
   return std::make_unique<road_curve::ArcGroundCurve>(
       linear_tolerance(), arc_geometry.start_point, arc_geometry.orientation,
-      std::get<xodr::Geometry::Arc>(arc_geometry.description).curvature, arc_geometry.length, arc_geometry.s_0,
-      arc_geometry.s_0 + arc_geometry.length);
+      std::get<xodr::Geometry::Arc>(arc_geometry.description).curvature, arc_geometry.length, p0, p1);
 }
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeLineGroundCurve(
     const xodr::Geometry& line_geometry) const {
   MALIDRIVE_THROW_UNLESS(line_geometry.type == xodr::Geometry::Type::kLine);
-
+  const double p0{line_geometry.s_0};
+  const double p1{line_geometry.s_0 + line_geometry.length};
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
+                     "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
+                         "\n\tp1: " + std::to_string(p1) +
+                         "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
   return std::make_unique<road_curve::LineGroundCurve>(
       linear_tolerance(), line_geometry.start_point,
-      line_geometry.length * Vector2(std::cos(line_geometry.orientation), std::sin(line_geometry.orientation)),
-      line_geometry.s_0, line_geometry.s_0 + line_geometry.length);
+      line_geometry.length * Vector2(std::cos(line_geometry.orientation), std::sin(line_geometry.orientation)), p0, p1);
 }
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCurve(
@@ -221,10 +229,13 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
     const double p1_i{end ? p1 : xodr_data[i + 1].s_0};
     if (std::abs(p1_i - p0_i) < road_curve::GroundCurve::kEpsilon) {
       if (!end) {
-        MALIDRIVE_THROW_MESSAGE("Functions in a " + xodr_data_type + " description can't share same start point.");
+        MALIDRIVE_THROW_MESSAGE("Functions with indexes " + std::to_string(i) + " and " + std::to_string(i + 1) +
+                                " in " + xodr_data_type +
+                                " description share same start point -> p0: " + std::to_string(p0_i));
       } else {
-        MALIDRIVE_THROW_MESSAGE("Functions that compound " + xodr_data_type +
-                                " must be larger than a epsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
+        MALIDRIVE_THROW_MESSAGE("Last function that compounds " + xodr_data_type +
+                                " must be larger than a epsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon) +
+                                "\n\tp0_end: " + std::to_string(p0_i) + "\n\tp1_end: " + std::to_string(p1_i));
       }
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));
