@@ -961,8 +961,9 @@ TEST_F(DBManagerLaneLinksWithinARoad, ErrorInLaneLinkLaneSection2) {
                maliput::common::assertion_error);
 }
 
+// Allow semantic errors when lane links withing a Road aren't consistent.
 TEST_F(DBManagerLaneLinksWithinARoad, RelaxErrorsInLaneLinkVerification) {
-  const bool kAllowSchemaErrors{true};
+  constexpr bool kAllowSemanticErrors{true};
   // Lane links of laneSection 0.
   const OptLaneLink kLane0LeftPredecessor(std::nullopt);
   const OptLaneLink kLane0LeftSuccessor({LaneLink::LinkAttributes::Id("1")});
@@ -982,9 +983,13 @@ TEST_F(DBManagerLaneLinksWithinARoad, RelaxErrorsInLaneLinkVerification) {
                                          {kLane1LeftSuccessor, LaneLink::kSuccessorTag},
                                          {kLane1RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane1RightSuccessor, LaneLink::kSuccessorTag}}});
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xodr_description, {kStrictParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  // Semantic errors aren't allowed.
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
+                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
+  // Semantic errors are allowed.
+  EXPECT_NO_THROW(
+      LoadDataBaseFromStr(xodr_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kAllowSemanticErrors}));
 }
 
 // Template of a XODR description that contains several road headers.
