@@ -49,14 +49,14 @@ bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double
 //  - When `allow_semantic_errors` is false and only `new_function.s_0` value is equal to `functions->back().s_0` value
 //  it throws.
 //
-// @param functions Collection of functions.
 // @param new_function New function to be added.
 // @param node_id Name of the xml node under analysis, used for proper logging messages.
 // @param allow_semantic_errors Indicates the permittivity.
+// @param functions Collection of functions.
 // @param xml_node XML node that is used to improve logging messages.
 template <typename T>
-void AddPolynomialDescriptionToCollection(std::vector<T>* functions, const T& new_function, const std::string& node_id,
-                                          bool allow_semantic_errors, tinyxml2::XMLElement* xml_node) {
+void AddPolynomialDescriptionToCollection(const T& new_function, const std::string& node_id, bool allow_semantic_errors,
+                                          std::vector<T>* functions, tinyxml2::XMLElement* xml_node) {
   if (functions->size()) {
     if (new_function == functions->back()) {
       maliput::log()->trace(
@@ -474,24 +474,10 @@ Lane NodeParser::As() const {
   std::vector<LaneWidth> width_description;
   while (width_element) {
     auto lane_width = NodeParser(width_element, parser_configuration_).As<LaneWidth>();
-    if (width_description.size()) {
-      if (lane_width == width_description.back()) {
-        maliput::log()->trace(
-            "Lane node describes two identical width functions \n{}Discarding the first repeated description.",
-            ConvertXMLNodeToText(element_));
-        width_description.pop_back();
-      } else if (lane_width.offset == width_description.back().offset) {
-        const std::string msg{"Lane node describes two width functions starting at the same s offset. \n" +
-                              ConvertXMLNodeToText(element_)};
-        if (!parser_configuration_.allow_semantic_errors) {
-          MALIDRIVE_THROW_MESSAGE(msg);
-        }
-        maliput::log()->warn(msg + "Discarding the first description starting at offset = {}", lane_width.offset);
-        width_description.pop_back();
-      }
-    }
 
-    width_description.push_back(std::move(lane_width));
+    AddPolynomialDescriptionToCollection(std::move(lane_width), Lane::kLaneTag,
+                                         parser_configuration_.allow_semantic_errors, &width_description, element_);
+
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
   }
 
@@ -584,8 +570,8 @@ Lanes NodeParser::As() const {
   tinyxml2::XMLElement* lane_offset_element_ptr = element_->FirstChildElement(LaneOffset::kLaneOffsetTag);
   while (lane_offset_element_ptr != nullptr) {
     auto lane_offset = NodeParser(lane_offset_element_ptr, parser_configuration_).As<LaneOffset>();
-    AddPolynomialDescriptionToCollection(&lanes_offsets, std::move(lane_offset), LaneOffset::kLaneOffsetTag,
-                                         parser_configuration_.allow_semantic_errors, element_);
+    AddPolynomialDescriptionToCollection(std::move(lane_offset), LaneOffset::kLaneOffsetTag,
+                                         parser_configuration_.allow_semantic_errors, &lanes_offsets, element_);
     lane_offset_element_ptr = lane_offset_element_ptr->NextSiblingElement(LaneOffset::kLaneOffsetTag);
   }
   // Non optional element.
@@ -689,8 +675,8 @@ ElevationProfile NodeParser::As() const {
   tinyxml2::XMLElement* elevation_element(element_->FirstChildElement(ElevationProfile::Elevation::kElevationTag));
   while (elevation_element) {
     auto elevation = NodeParser(elevation_element, parser_configuration_).As<ElevationProfile::Elevation>();
-    AddPolynomialDescriptionToCollection(&elevations, std::move(elevation), ElevationProfile::kElevationProfileTag,
-                                         parser_configuration_.allow_semantic_errors, element_);
+    AddPolynomialDescriptionToCollection(std::move(elevation), ElevationProfile::kElevationProfileTag,
+                                         parser_configuration_.allow_semantic_errors, &elevations, element_);
     elevation_element = elevation_element->NextSiblingElement(ElevationProfile::Elevation::kElevationTag);
   }
   return {elevations};
@@ -736,9 +722,8 @@ LateralProfile NodeParser::As() const {
   while (superelevation_element) {
     auto superelevation =
         NodeParser(superelevation_element, parser_configuration_).As<LateralProfile::Superelevation>();
-    AddPolynomialDescriptionToCollection(&superelevations, std::move(superelevation),
-                                         LateralProfile::kLateralProfileTag,
-                                         parser_configuration_.allow_semantic_errors, element_);
+    AddPolynomialDescriptionToCollection(std::move(superelevation), LateralProfile::kLateralProfileTag,
+                                         parser_configuration_.allow_semantic_errors, &superelevations, element_);
     superelevation_element =
         superelevation_element->NextSiblingElement(LateralProfile::Superelevation::kSuperelevationTag);
   }

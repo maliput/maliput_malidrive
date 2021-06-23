@@ -5,7 +5,7 @@ namespace malidrive {
 namespace xodr {
 
 bool LaneWidth::operator==(const LaneWidth& other) const {
-  return offset == other.offset && a == other.a && b == other.b && c == other.c && d == other.d;
+  return s_0 == other.s_0 && a == other.a && b == other.b && c == other.c && d == other.d;
 }
 
 bool LaneWidth::operator!=(const LaneWidth& other) const { return !(*this == other); }

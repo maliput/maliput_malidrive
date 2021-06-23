@@ -13,9 +13,9 @@ GTEST_TEST(LaneWidth, EqualityOperator) {
   LaneWidth lane_width = kLaneWidth;
 
   EXPECT_EQ(kLaneWidth, lane_width);
-  lane_width.offset = 5.;
+  lane_width.s_0 = 5.;
   EXPECT_NE(kLaneWidth, lane_width);
-  lane_width.offset = 1.1;
+  lane_width.s_0 = 1.1;
   lane_width.a = 5.;
   EXPECT_NE(kLaneWidth, lane_width);
   lane_width.a = 2.2;

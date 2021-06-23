@@ -39,7 +39,7 @@ struct LaneWidth {
   bool operator!=(const LaneWidth& other) const;
 
   /// Start position (s-coordinate) relative to the position of the preceding laneSection.
-  double offset{};
+  double s_0{};
   /// Coefficients of a cubic polynomial: @f$a + b * p + c * p^2 + d * p^3@f$.
   /// @{
   double a{};
