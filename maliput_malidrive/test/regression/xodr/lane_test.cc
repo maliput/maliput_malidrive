@@ -69,9 +69,9 @@ GTEST_TEST(Lane, EqualityOperator) {
   lane.lane_link.predecessor->id = LaneLink::LinkAttributes::Id("150");
   EXPECT_NE(kLane, lane);
   lane.lane_link.predecessor->id = LaneLink::LinkAttributes::Id("35");
-  lane.width_description[0].offset = 5.;
+  lane.width_description[0].s_0 = 5.;
   EXPECT_NE(kLane, lane);
-  lane.width_description[0].offset = 1.1;
+  lane.width_description[0].s_0 = 1.1;
   lane.speed[0].max = 35.;
   EXPECT_NE(kLane, lane);
   lane.speed[0].max = 15.;

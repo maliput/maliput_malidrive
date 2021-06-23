@@ -24,7 +24,7 @@ GTEST_TEST(Lanes, EqualityOperator) {
   lanes.lanes_offset[0].s_0 = 5.;
   EXPECT_NE(kLanes, lanes);
   lanes.lanes_offset[0].s_0 = 2.1;
-  lanes.lanes_section[0].left_lanes[0].width_description[0].offset = 5.;
+  lanes.lanes_section[0].left_lanes[0].width_description[0].s_0 = 5.;
   EXPECT_NE(kLanes, lanes);
 }
 

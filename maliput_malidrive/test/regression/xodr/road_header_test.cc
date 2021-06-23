@@ -91,9 +91,9 @@ GTEST_TEST(RoadHeader, EqualityOperator) {
   road_header.reference_geometry.plan_view.geometries[0].s_0 = 56;
   EXPECT_NE(kRoadHeader, road_header);
   road_header.reference_geometry.plan_view.geometries[0].s_0 = 1.23;
-  road_header.lanes.lanes_section[0].left_lanes[0].width_description[0].offset = 99.23;
+  road_header.lanes.lanes_section[0].left_lanes[0].width_description[0].s_0 = 99.23;
   EXPECT_NE(kRoadHeader, road_header);
-  road_header.lanes.lanes_section[0].left_lanes[0].width_description[0].offset = 1.1;
+  road_header.lanes.lanes_section[0].left_lanes[0].width_description[0].s_0 = 1.1;
   EXPECT_EQ(kRoadHeader, road_header);
 }
 

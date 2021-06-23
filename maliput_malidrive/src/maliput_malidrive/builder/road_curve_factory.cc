@@ -172,15 +172,15 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
   MALIDRIVE_THROW_UNLESS(p1 > p0);
   const int num_polynomials = static_cast<int>(lane_widths.size());
   MALIDRIVE_THROW_UNLESS(num_polynomials > 0);
-  MALIDRIVE_THROW_UNLESS(lane_widths[0].offset == 0);
+  MALIDRIVE_THROW_UNLESS(lane_widths[0].s_0 == 0);
   std::vector<std::unique_ptr<road_curve::Function>> polynomials;
   for (int i = 0; i < num_polynomials; i++) {
     // Last polynomial's range will be delitimed by p1 instead of next (non-existent) polynomial's offset.
     const bool end{i == num_polynomials - 1};
-    const auto coeffs = TranslateCubic(lane_widths[i].a, lane_widths[i].b, lane_widths[i].c, lane_widths[i].d,
-                                       lane_widths[i].offset + p0);
-    const double p0_i{lane_widths[i].offset + p0};
-    const double p1_i{end ? p1 : lane_widths[i + 1].offset + p0};
+    const auto coeffs =
+        TranslateCubic(lane_widths[i].a, lane_widths[i].b, lane_widths[i].c, lane_widths[i].d, lane_widths[i].s_0 + p0);
+    const double p0_i{lane_widths[i].s_0 + p0};
+    const double p1_i{end ? p1 : lane_widths[i + 1].s_0 + p0};
     if (std::abs(p1_i - p0_i) < road_curve::GroundCurve::kEpsilon) {
       if (!end) {
         MALIDRIVE_THROW_MESSAGE("Functions in a laneWidth description can't share same start point.");

@@ -35,8 +35,8 @@ bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double
 }
 
 // Adds `new_function` description into `functions` collection.
-// The functions descriptions defines several aspect of a Road in the xodr like elevation, superelevation and lane
-// offset of the lanes.
+// The functions descriptions defines several aspect of a Road in the xodr like elevation, superelevation, lane
+// offset and lane width of the lanes.
 // The type `T` should define the following members:
 //     - s_0: start position.
 //     - a,b,c and d : Coefficients of a cubic polynomial: @f$ a + b * p + c * p^2 + d * p^3 @f$.

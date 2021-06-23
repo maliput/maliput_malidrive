@@ -537,7 +537,7 @@ constexpr const char* kWidthTemplate = R"R(
 TEST_F(ParsingTests, NodeParserLaneWidth) {
   const LaneWidth kExpectedLaneWidth{1.1 /* sOffset */, 2.2 /* a */, 3.3 /* b */, 4.4 /* c */, 5.5 /* d */};
 
-  const std::string xml_description = fmt::format(kWidthTemplate, kExpectedLaneWidth.offset, kExpectedLaneWidth.a,
+  const std::string xml_description = fmt::format(kWidthTemplate, kExpectedLaneWidth.s_0, kExpectedLaneWidth.a,
                                                   kExpectedLaneWidth.b, kExpectedLaneWidth.c, kExpectedLaneWidth.d);
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneWidth::kLaneWidthTag),
@@ -1106,7 +1106,6 @@ GTEST_TEST(TextToLoggableText, EscapingFormat) {
   std::string text{"Adapt {text} to {be} loggable."};
   DuplicateCurlyBracesForFmtLogging(&text);
   EXPECT_EQ(text, kExpectedText);
-
 }
 
 // Template of a XML description that contains function description that matches with ElevationProfile or Lateralprofile
