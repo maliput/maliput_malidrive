@@ -59,13 +59,15 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
                                           std::vector<T>* functions, tinyxml2::XMLElement* xml_node) {
   if (functions->size()) {
     if (new_function == functions->back()) {
-      maliput::log()->trace(
-          node_id + " node describes two identical functions:\n{}Discarding the first repeated description.",
-          ConvertXMLNodeToText(xml_node));
+      std::string msg{node_id + " node describes two identical functions:\n" + ConvertXMLNodeToText(xml_node) +
+                      "Discarding the first repeated description."};
+      DuplicateCurlyBracesForFmtLogging(&msg);
+      maliput::log()->trace(msg);
       functions->pop_back();
     } else if (new_function.s_0 == functions->back().s_0) {
-      const std::string msg{node_id + " node describes two functions starting at the same s:\n" +
-                            ConvertXMLNodeToText(xml_node)};
+      std::string msg{node_id + " node describes two functions starting at the same s:\n" +
+                      ConvertXMLNodeToText(xml_node)};
+      DuplicateCurlyBracesForFmtLogging(&msg);
       if (!allow_semantic_errors) {
         MALIDRIVE_THROW_MESSAGE(msg);
       }
