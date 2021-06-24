@@ -181,7 +181,12 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
         TranslateCubic(lane_widths[i].a, lane_widths[i].b, lane_widths[i].c, lane_widths[i].d, lane_widths[i].s_0 + p0);
     const double p0_i{lane_widths[i].s_0 + p0};
     const double p1_i{end ? p1 : lane_widths[i + 1].s_0 + p0};
-    if (p0_i >= p1_i) {
+    // We are using an epsilon equal to zero because:
+    // - The range of the polynomial is determined by its own start point and the start point of the next polynomial. So
+    // it isn't expected to have gap in the `p` domain.
+    // - MakeCubicPolynomial method will end up creating a road_curve::CubicPolynomial instance which internally uses an
+    // epsilon determined by Function::kEpsilon which value is zero. So it makes sense to match the same behavior.
+    if (p0_i - p1_i >= 0.) {
       if (!end) {
         MALIDRIVE_THROW_MESSAGE("Invalid range for the " + std::to_string(i) + "th laneWidth's function: p0_i: " +
                                 std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
@@ -228,7 +233,12 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
         TranslateCubic(xodr_data[i].a, xodr_data[i].b, xodr_data[i].c, xodr_data[i].d, xodr_data[i].s_0);
     const double p0_i{xodr_data[i].s_0};
     const double p1_i{end ? p1 : xodr_data[i + 1].s_0};
-    if (p0_i >= p1_i) {
+    // We are using an epsilon equal to zero because:
+    // - The range of the polynomial is determined by its own start point and the start point of the next polynomial. So
+    // it isn't expected to have gap in the `p` domain.
+    // - MakeCubicPolynomial method will end up creating a road_curve::CubicPolynomial instance which internally uses an
+    // epsilon determined by Function::kEpsilon which value is zero. So it makes sense to match the same behavior.
+    if (p0_i - p1_i >= 0.) {
       if (!end) {
         MALIDRIVE_THROW_MESSAGE("Invalid range for the " + std::to_string(i) +
                                 "th function: p0_i: " + std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
