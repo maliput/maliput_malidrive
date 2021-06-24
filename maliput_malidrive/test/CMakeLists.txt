@@ -138,6 +138,7 @@ macro(malidrive_build_integration_based_tests)
     RRFigure8.xodr
     RRLongRoad.xodr
     SingleLane.xodr
+    SingleRoadComplexDescription.xodr
     SShapeRoad.xodr
     SShapeSuperelevatedRoad.xodr
     StraightForward.xodr

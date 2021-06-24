@@ -206,6 +206,11 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
         LineVariableWidth describes a straight road with variable width.
       */
       {"LineVariableWidth", "LineVariableWidth.xodr"},
+      /*
+        SingleRoadComplexDescription describes a straight road with particular short elevation, superelevation,
+        laneOffset and width polynomial descriptions.
+      */
+      {"SingleRoadComplexDescription", "SingleRoadComplexDescription.xodr"},
   };
 }
 
@@ -213,8 +218,9 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
 class RoadNetworkBuilderTest : public ::testing::TestWithParam<RoadNetworkBuilderTestParameters> {};
 
 TEST_P(RoadNetworkBuilderTest, RoadGeometryBuilding) {
-  RoadGeometryConfiguration road_geometry_configuration{
-      GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
+  const auto rg_config_opt = GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file);
+  ASSERT_NE(rg_config_opt, std::nullopt);
+  RoadGeometryConfiguration road_geometry_configuration{rg_config_opt.value()};
   road_geometry_configuration.opendrive_file = utility::FindResource(road_geometry_configuration.opendrive_file);
   const std::unique_ptr<maliput::api::RoadNetwork> dut = builder::RoadNetworkBuilder(
       {road_geometry_configuration, std::nullopt, std::nullopt, std::nullopt, std::nullopt})();

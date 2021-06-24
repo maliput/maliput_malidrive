@@ -108,6 +108,7 @@ install (FILES resources/ArcLane.xodr
                resources/RRFigure8.xodr
                resources/RRLongRoad.xodr
                resources/SingleLane.xodr
+               resources/SingleRoadComplexDescription.xodr
                resources/SpiralRoad.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr
