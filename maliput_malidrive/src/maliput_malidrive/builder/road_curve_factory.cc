@@ -191,8 +191,13 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
         MALIDRIVE_THROW_MESSAGE("Invalid range for the laneWidth's function in position " + std::to_string(i) +
                                 ": p0_i: " + std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
       } else {
-        MALIDRIVE_THROW_MESSAGE("Last laneWidth's function has invalid length: p0_i: " + std::to_string(p0_i) +
-                                " | p1_i: " + std::to_string(p1_i));
+        if (p0_i != p1_i) {
+          MALIDRIVE_THROW_MESSAGE("Last laneWidth's function has invalid length: p0_i: " + std::to_string(p0_i) +
+                                  " | p1_i: " + std::to_string(p1_i));
+        } else {
+          maliput::log()->warn("Last laneWidth's function has null length: p0_i = p1_1 = {}", p1_i);
+          continue;
+        }
       }
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));
@@ -240,11 +245,18 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
     // the same epsilon(Function::kEpsilon) which value is zero. So it makes sense to match the same behavior.
     if (p0_i - p1_i >= road_curve::Function::kEpsilon) {
       if (!end) {
-        MALIDRIVE_THROW_MESSAGE("Invalid range for the function in position " + std::to_string(i) +
-                                ": p0_i: " + std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
+        MALIDRIVE_THROW_MESSAGE("Invalid range for the " + xodr_data_type + "'s function in position " +
+                                std::to_string(i) + ": p0_i: " + std::to_string(p0_i) +
+                                " | p1_i: " + std::to_string(p1_i));
       } else {
-        MALIDRIVE_THROW_MESSAGE("Last function that compounds " + xodr_data_type + " has invalid length: p0_i: " +
-                                std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
+        if (p0_i != p1_i) {
+          MALIDRIVE_THROW_MESSAGE("Last " + xodr_data_type + "'s function has invalid length: p0_i: " +
+                                  std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
+        } else {
+          maliput::log()->warn("Last function that compounds {} has null length: p0_i = p1_1 = {}", xodr_data_type,
+                               p1_i);
+          continue;
+        }
       }
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));
