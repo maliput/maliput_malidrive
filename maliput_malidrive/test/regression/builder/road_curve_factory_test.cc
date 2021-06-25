@@ -163,9 +163,13 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Throw
   EXPECT_THROW(
       road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}, {1. /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1),
       maliput::common::assertion_error);
-  // Function length is zero.
-  EXPECT_THROW(road_curve_factory_->MakeElevation({{{kP1 /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1),
-               maliput::common::assertion_error);
+}
+
+// MakeElevation, MakeSuperElevation and MakeReferenceLineOffset methods share same implementation: MakeCubicFromXodr.
+TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, LastFunctionLengthZero) {
+  // Last function length is zero so is discarded.
+  EXPECT_NO_THROW(
+      road_curve_factory_->MakeElevation({{{kP0 /* s_0 */, 2., 3., 4, 5.}, {kP1 /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1));
 }
 
 TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, ZeroFunctions) {
