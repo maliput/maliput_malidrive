@@ -110,7 +110,7 @@ class DBManager::Impl {
   const Header& get_header() const { return header_; }
 
   // @returns A constant reference to road headers map.
-  const std::unordered_map<RoadHeader::Id, RoadHeader>& get_road_headers() const { return road_headers_; }
+  const std::map<RoadHeader::Id, RoadHeader>& get_road_headers() const { return road_headers_; }
 
   // @returns A constant reference to junction map.
   const std::unordered_map<Junction::Id, Junction>& get_junctions() const { return junctions_; }
@@ -816,7 +816,7 @@ class DBManager::Impl {
   // Header of the XODR map.
   Header header_{};
   // Holds the RoadHeaders of the XODR map.
-  std::unordered_map<RoadHeader::Id, RoadHeader> road_headers_{};
+  std::map<RoadHeader::Id, RoadHeader> road_headers_{};
   // Holds the Junctions of the XODR map.
   std::unordered_map<Junction::Id, Junction> junctions_{};
   // {@ Holds data of the shortest and largest geometries.
@@ -856,9 +856,7 @@ DBManager::DBManager(tinyxml2::XMLDocument* xodr_doc, const ParserConfiguration&
 
 const Header& DBManager::GetXodrHeader() const { return impl_->get_header(); }
 
-const std::unordered_map<RoadHeader::Id, RoadHeader>& DBManager::GetRoadHeaders() const {
-  return impl_->get_road_headers();
-};
+const std::map<RoadHeader::Id, RoadHeader>& DBManager::GetRoadHeaders() const { return impl_->get_road_headers(); };
 
 const std::unordered_map<Junction::Id, Junction>& DBManager::GetJunctions() const { return impl_->get_junctions(); };
 

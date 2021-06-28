@@ -1122,7 +1122,7 @@ GTEST_TEST(DBManagerTest, GetRoadHeaders) {
                                  {kRightLane} /* right_lanes */};
   const Lanes kLanes{{{kLaneOffset}}, {{kLaneSection}}};
   const RoadHeader::Id kExpectedRoadHeaderIds[2]{RoadHeader::Id{"15"}, RoadHeader::Id{"30"}};
-  const std::unordered_map<RoadHeader::Id, RoadHeader> kExpectedRoadHeaders{
+  const std::map<RoadHeader::Id, RoadHeader> kExpectedRoadHeaders{
       {kExpectedRoadHeaderIds[0],
        {"TestRoadHeader1" /* name */,
         10.65 /* length */,
@@ -1146,7 +1146,7 @@ GTEST_TEST(DBManagerTest, GetRoadHeaders) {
 
   const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
       kXODRRoadHeaderTemplate, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  const std::unordered_map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
+  const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
 
   EXPECT_EQ(kExpectedRoadHeaders, road_headers);
 }
@@ -1523,7 +1523,7 @@ GTEST_TEST(DBManagerTest, Highway) {
   const std::unique_ptr<DBManager> dut =
       LoadDataBaseFromFile(utility::FindResource(kXodrFile), {kStrictParserSTolerance});
 
-  const std::unordered_map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
+  const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
   EXPECT_EQ(NumOfRoads, static_cast<int>(road_headers.size()));
   EXPECT_EQ(kExpectedRoadHeader, road_headers.at(kExpectedRoadHeader.id));
 
@@ -1672,7 +1672,7 @@ GTEST_TEST(DBManager, GetGeometriesLengthInformation) {
   const std::string kXodrFile = "odr/TShapeRoad.xodr";
   const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
   const DBManager::XodrGeometryLengthData kExpectedShortest{RoadHeader::Id("6"), 3, 6.8474312421988870e-2};
-  const DBManager::XodrGeometryLengthData kExpectedLargest{RoadHeader::Id("1"), 0, 46.};
+  const DBManager::XodrGeometryLengthData kExpectedLargest{RoadHeader::Id("0"), 0, 46.};
   const auto shortest_geometry{db_manager->GetShortestGeometry()};
   const auto largest_geometry{db_manager->GetLargestGeometry()};
   EXPECT_EQ(kExpectedShortest.road_header_id, shortest_geometry.road_header_id);
@@ -1705,8 +1705,8 @@ GTEST_TEST(DBManager, GetGeometriesGapInformation) {
   const double kTolerance{1e-14};
   const std::string kXodrFile = "odr/TShapeRoad.xodr";
   const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
-  const DBManager::XodrGapBetweenGeometries kExpectedShortest{RoadHeader::Id("7"), {0, 1}, 0.};
-  const DBManager::XodrGapBetweenGeometries kExpectedLargest{RoadHeader::Id("7"), {2, 3}, 1.77636e-15};
+  const DBManager::XodrGapBetweenGeometries kExpectedShortest{RoadHeader::Id("6"), {2, 3}, 0.};
+  const DBManager::XodrGapBetweenGeometries kExpectedLargest{RoadHeader::Id("6"), {1, 2}, 1.77636e-15};
   const auto shortest_geometry{db_manager->GetShortestGap()};
   const auto largest_geometry{db_manager->GetLargestGap()};
   EXPECT_EQ(kExpectedShortest.road_header_id, shortest_geometry.road_header_id);

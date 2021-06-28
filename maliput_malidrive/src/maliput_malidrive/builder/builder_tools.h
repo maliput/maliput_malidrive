@@ -68,7 +68,7 @@ struct MalidriveXodrLaneProperties {
 /// @throws maliput::common::assertion_error When there isn't a valid LaneLink.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
-    const std::unordered_map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
+    const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
 
 /// Searches which LaneEnds connect to `xodr_lane_properties.lane` in `connection_type` direction
 /// considering the LaneEnd belongs to an external interface with a XODR Junction but the XODR Road does
@@ -87,7 +87,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
 /// @throws maliput::common::assertion_error When the junction where the road is connected to doesn't exist.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
-    const std::unordered_map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers,
+    const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers,
     const std::unordered_map<xodr::Junction::Id, xodr::Junction>& junctions, XodrConnectionType connection_type);
 
 /// Searches which LaneEnds connect to `xodr_lane_properties.lane` in `connection_type` direction
@@ -105,7 +105,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
 /// @throws maliput::common::assertion_error When the RoadLink links to a junction.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
-    const std::unordered_map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
+    const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
 
 /// Searches which LaneEnds connect to `lane_end` considering it
 /// belongs to an inner interface.

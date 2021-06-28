@@ -136,7 +136,7 @@ class DBManagerQuery {
   /// @param road_id The malidrive::xodr::RoadHeader::Id of the road to look
   /// for.
   void FindRoad(const malidrive::xodr::RoadHeader::Id& road_id) const {
-    const std::unordered_map<malidrive::xodr::RoadHeader::Id, malidrive::xodr::RoadHeader>& road_headers =
+    const std::map<malidrive::xodr::RoadHeader::Id, malidrive::xodr::RoadHeader>& road_headers =
         db_manager_->GetRoadHeaders();
     const auto road_it = road_headers.find(road_id);
     if (road_it == road_headers.end()) {

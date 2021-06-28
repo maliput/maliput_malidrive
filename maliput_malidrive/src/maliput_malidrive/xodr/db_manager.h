@@ -1,6 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #pragma once
 
+#include <map>
 #include <memory>
 #include <unordered_map>
 #include <utility>
@@ -112,7 +113,7 @@ class DBManager {
   const Header& GetXodrHeader() const;
 
   /// @returns A xodr::RoadHeader map which contains all the road information about the XODR description.
-  const std::unordered_map<RoadHeader::Id, RoadHeader>& GetRoadHeaders() const;
+  const std::map<RoadHeader::Id, RoadHeader>& GetRoadHeaders() const;
 
   /// @returns A xodr::Junction map which contains all the junction information about the XODR description.
   const std::unordered_map<Junction::Id, Junction>& GetJunctions() const;

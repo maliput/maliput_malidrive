@@ -309,7 +309,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
   maliput::log()->trace("Using: angular_tolerance: {}", angular_tolerance_);
   maliput::log()->trace("Using: scale_length: {}", scale_length_);
 
-  const std::unordered_map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers = manager_->GetRoadHeaders();
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers = manager_->GetRoadHeaders();
 
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
       rg_config_.simplification_policy ==
