@@ -68,11 +68,11 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
       DuplicateCurlyBracesForFmtLogging(&msg);
       maliput::log()->trace(msg);
       functions->pop_back();
+    } else if (new_function.s_0 == functions->back().s_0) {
       // Comparing double values is controversial. However, the values here share the same origin:
       // They come from the tinyxml2's parser so it is expected that if they are the same in the xodr file description
       // then they are the same after being parsed.
       // (even though not necessarily the values in the XML and the values after parsing are the same).
-    } else if (new_function.s_0 == functions->back().s_0) {
       std::string msg{node_id + " node describes two functions starting at the same s:\n" +
                       ConvertXMLNodeToText(xml_node)};
       DuplicateCurlyBracesForFmtLogging(&msg);
