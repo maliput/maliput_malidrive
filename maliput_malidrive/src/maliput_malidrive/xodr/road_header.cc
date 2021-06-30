@@ -91,6 +91,13 @@ std::vector<const RoadType*> RoadHeader::GetRoadTypesInRange(double s_start, dou
   return road_types_in_range;
 }
 
+double RoadHeader::s0() const { return reference_geometry.plan_view.geometries.begin()->s_0; }
+
+double RoadHeader::s1() const {
+  return (reference_geometry.plan_view.geometries.end() - 1)->s_0 +
+         (reference_geometry.plan_view.geometries.end() - 1)->length;
+}
+
 bool RoadHeader::operator==(const RoadHeader& other) const {
   return name == other.name && length == other.length && id == other.id && junction == other.junction &&
          rule == other.rule && road_link == other.road_link && road_types == other.road_types &&

@@ -121,6 +121,14 @@ struct RoadHeader {
   /// @throw maliput::common::assertion_error When `s_start` is negative.
   std::vector<const RoadType*> GetRoadTypesInRange(double s_start, double s_end) const;
 
+  /// Get start s value of the Road.
+  /// It is delimited by the start point of the first geometry in the planView.
+  double s0() const;
+
+  /// Get start s value of the Road.
+  /// It is computed as the sum of the last geometry's start point and its length.
+  double s1() const;
+
   /// Equality operator.
   bool operator==(const RoadHeader& other) const;
 

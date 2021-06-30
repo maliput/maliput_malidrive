@@ -211,6 +211,11 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
         laneOffset and width polynomial descriptions.
       */
       {"SingleRoadComplexDescription", "SingleRoadComplexDescription.xodr"},
+      /*
+        SingleRoadComplexDescription2 describes a straight road with particular elevation, superelevation,
+        laneOffset and width polynomial descriptions in which they start at the end of the range.
+      */
+      {"SingleRoadComplexDescription2", "SingleRoadComplexDescription2.xodr"},
   };
 }
 

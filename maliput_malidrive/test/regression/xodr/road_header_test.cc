@@ -98,7 +98,8 @@ GTEST_TEST(RoadHeader, EqualityOperator) {
 }
 
 struct RoadHeaderTest : public ::testing::Test {
-  const ReferenceGeometry kReferenceGeometry{{{{1.23, {523.2, 83.27}, 0.77, 100., Geometry::Type::kLine}}}};
+  const ReferenceGeometry kReferenceGeometry{{{{1.23, {523.2, 83.27}, 0.77, 50., Geometry::Type::kLine},
+                                               {51.23, {523.2, 83.27}, 0.77, 50., Geometry::Type::kLine}}}};
   const LaneOffset kLaneOffset{2.1, 2.2, 3.3, 4.4, 5.5};
   const std::vector<LaneSection> kLaneSections{
       {10.0,
@@ -220,6 +221,14 @@ TEST_F(RoadHeaderTest, GetRoadTypesInRange) {
     EXPECT_EQ(kRoadType1, *road_types[1]);
     EXPECT_EQ(kRoadType2, *road_types[2]);
   }
+}
+
+TEST_F(RoadHeaderTest, S0AndS1) {
+  const double kExpectedS0{kReferenceGeometry.plan_view.geometries[0].s_0};
+  const double kExpectedS1{kReferenceGeometry.plan_view.geometries[1].s_0 +
+                           kReferenceGeometry.plan_view.geometries[1].length};
+  EXPECT_EQ(kExpectedS0, kRoadHeader.s0());
+  EXPECT_EQ(kExpectedS1, kRoadHeader.s1());
 }
 
 }  // namespace

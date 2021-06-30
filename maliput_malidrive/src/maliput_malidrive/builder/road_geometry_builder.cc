@@ -115,36 +115,40 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   const maliput::api::HBounds elevation_bounds{0., 5.};
 
   //@{
+
+  maliput::log()->trace("Creating LaneWidth for lane id {}_{}_{}", road_header->id.string(),
+                        std::to_string(xodr_lane_section_index), lane->id.string());
+
+  const double xodr_p_0_lane{lane_section->s_0};
+  const double xodr_p_1_lane{lane_section->s_0 + road_header->GetLaneSectionLength(xodr_lane_section_index)};
   // The ground curve might have just one geometry or multiple geometry definitions. When it is
   // defined as a piecewise curve, the XODR Track s parameter, known as p parameter might not be
   // exactly the same at the intersection of two adjacent pieces. That would lead to a mismatch
   // between the parameter the ground curve exposes and those constructed by the width and offset.
   // To keep them coupled, ScaledDomainFunction wraps them to use the same domain as the ground
   // curve.
-
-  const double p_0{segment->road_curve()->PFromP(lane_section->s_0)};
-  const double p_1{
-      segment->road_curve()->PFromP(lane_section->s_0 + road_header->GetLaneSectionLength(xodr_lane_section_index))};
-  maliput::log()->trace("Creating LaneWidth for lane id {}_{}_{}", road_header->id.string(),
-                        std::to_string(xodr_lane_section_index), lane->id.string());
+  const double road_curve_p_0_lane{segment->road_curve()->PFromP(xodr_p_0_lane)};
+  const double road_curve_p_1_lane{segment->road_curve()->PFromP(xodr_p_1_lane)};
   // Build a road_curve::CubicPolynomial for the lane width.
   std::unique_ptr<road_curve::Function> lane_width = std::make_unique<road_curve::ScaledDomainFunction>(
-      factory->MakeLaneWidth(lane->width_description, p_0, p_1), p_0, p_1, factory->linear_tolerance());
+      factory->MakeLaneWidth(lane->width_description, xodr_p_0_lane, xodr_p_1_lane), road_curve_p_0_lane,
+      road_curve_p_1_lane, factory->linear_tolerance());
 
   // Build a road_curve::CubicPolynomial for the lane offset.
   const bool no_adjacent_lane{adjacent_lane_functions->width == nullptr && adjacent_lane_functions->offset == nullptr};
   std::unique_ptr<road_curve::Function> lane_offset = std::make_unique<road_curve::ScaledDomainFunction>(
       std::make_unique<road_curve::LaneOffset>(
           (no_adjacent_lane ? std::nullopt : std::make_optional(*adjacent_lane_functions)), lane_width.get(),
-          segment->reference_line_offset(), xodr_lane_id < 0 ? true : false, p_0, p_1, factory->linear_tolerance()),
-      p_0, p_1, factory->linear_tolerance());
+          segment->reference_line_offset(), xodr_lane_id < 0 ? true : false, road_curve_p_0_lane, road_curve_p_1_lane,
+          factory->linear_tolerance()),
+      road_curve_p_0_lane, road_curve_p_1_lane, factory->linear_tolerance());
 
   //@}
   adjacent_lane_functions->width = lane_width.get();
   adjacent_lane_functions->offset = lane_offset.get();
   auto built_lane =
       std::make_unique<Lane>(lane_id, xodr_track_id, xodr_lane_id, elevation_bounds, segment->road_curve(),
-                             std::move(lane_width), std::move(lane_offset), p_0, p_1);
+                             std::move(lane_width), std::move(lane_offset), road_curve_p_0_lane, road_curve_p_1_lane);
   return {segment, std::move(built_lane), {road_header, lane_section, xodr_lane_section_index, lane}};
 }
 
@@ -328,8 +332,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     auto road_curve = BuildRoadCurve(
         road_header.second, FilterGeometriesToSimplifyByRoadHeaderId(geometries_to_simplify, road_header.first));
     maliput::log()->trace("Creating ReferenceLineOffset for road id {}", road_header.first.string());
-    auto reference_line_offset =
-        factory_->MakeReferenceLineOffset(road_header.second.lanes.lanes_offset, road_curve->p0(), road_curve->p1());
+    auto reference_line_offset = std::make_unique<road_curve::ScaledDomainFunction>(
+        factory_->MakeReferenceLineOffset(road_header.second.lanes.lanes_offset, road_header.second.s0(),
+                                          road_header.second.s1()),
+        road_curve->p0(), road_curve->p1(), linear_tolerance_);
     // Add RoadCurve and the reference-line-offset function to the RoadGeometry.
     rg->AddRoadCharacteristics(road_header.first, std::move(road_curve), std::move(reference_line_offset));
     int lane_section_index = 0;
@@ -399,13 +405,11 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
   auto ground_curve = MakeGroundCurve(geometries, geometries_to_simplify);
   maliput::log()->trace("Creating elevation function for road id {}", road_header.id.string());
   auto elevation = std::make_unique<road_curve::ScaledDomainFunction>(
-      factory_->MakeElevation(road_header.reference_geometry.elevation_profile, geometries.begin()->s_0,
-                              (geometries.end() - 1)->s_0 + (geometries.end() - 1)->length),
+      factory_->MakeElevation(road_header.reference_geometry.elevation_profile, road_header.s0(), road_header.s1()),
       ground_curve->p0(), ground_curve->p1(), linear_tolerance_);
   maliput::log()->trace("Creating superelevation function for road id {}", road_header.id.string());
   auto superelevation = std::make_unique<road_curve::ScaledDomainFunction>(
-      factory_->MakeSuperelevation(road_header.reference_geometry.lateral_profile, geometries.begin()->s_0,
-                                   (geometries.end() - 1)->s_0 + (geometries.end() - 1)->length),
+      factory_->MakeSuperelevation(road_header.reference_geometry.lateral_profile, road_header.s0(), road_header.s1()),
       ground_curve->p0(), ground_curve->p1(), linear_tolerance_);
   maliput::log()->trace("Creating RoadCurve for road id {}", road_header.id.string());
   auto road_curve =
