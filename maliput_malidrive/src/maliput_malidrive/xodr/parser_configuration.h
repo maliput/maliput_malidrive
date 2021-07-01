@@ -15,6 +15,9 @@ struct ParserConfiguration {
   /// When active, the parser will relaxe constraints related to xodr syntax.
   /// It will not throw upon the following conditions:
   /// - Junctions without connections.
+  /// - Functions starting at the same `s`.
+  /// - Functions with NaN values as coefficients starting at same `s` as the following function.
+  /// - Functions starting at the end of the road.
   bool allow_schema_errors{true};
   /// When active, the parser will relaxe constraints related to xodr semantic.
   /// It will not throw upon the following conditions:

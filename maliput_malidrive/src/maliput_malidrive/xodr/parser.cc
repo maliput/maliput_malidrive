@@ -28,6 +28,27 @@ namespace malidrive {
 namespace xodr {
 namespace {
 
+// {@ Constants used during parsing process.
+static constexpr bool kDontAllowNan{false};
+// }@
+
+// Validates that `opt` contains a valid double-type value.
+// If it isn't valid, it throws.
+//
+// @param opt Optional object
+// @param allow_nan Determines whether to accept having NaN values or not.
+// @returns The validated value.
+//
+// @throws maliput::common::assertion_error When `opt` is std::nullopt.
+// @throws maliput::common::assertion_error When `opt.value()` is a NaN value iff `allow_nan` is false.
+double ValidateDouble(const std::optional<double>& opt, bool allow_nan) {
+  MALIDRIVE_THROW_UNLESS(opt != std::nullopt);
+  if (!allow_nan) {
+    MALIDRIVE_THROW_UNLESS(!std::isnan(opt.value()));
+  }
+  return opt.value();
+}
+
 // Determines whether `geometry_a` and `geometry_b` geometries are continguos in terms of the arc length parameter.
 bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double tolerance) {
   MALIDRIVE_THROW_UNLESS(tolerance >= 0);
@@ -45,21 +66,21 @@ bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double
 //
 //  - When `new_function` description is identical to `functions->back()` description then the latter is discarded and
 //  replaced by `new_function`.
-//  - When `allow_semantic_errors` is true and only `new_function.s_0` value is equal to `functions->back().s_0` value
+//  - When `allow_schema_errors` is true and only `new_function.s_0` value is equal to `functions->back().s_0` value
 //  then latter description is discarded and replaced by `new_function`.
-//  - When `allow_semantic_errors` is false and only `new_function.s_0` value is equal to `functions->back().s_0` value
+//  - When `allow_schema_errors` is false and only `new_function.s_0` value is equal to `functions->back().s_0` value
 //  it throws.
 //
 // @param new_function New function to be added.
 // @param node_id Name of the xml node under analysis, used for proper logging messages.
-// @param allow_semantic_errors Indicates the permittivity.
+// @param allow_schema_errors Indicates the permittivity.
 // @param xml_node XML node that is used to improve logging messages.
 // @param functions Collection of functions.
 //
-// @throws maliput::common::assertion_error When `allow_semantic_errors` is false and only `new_function.s_0` value is
+// @throws maliput::common::assertion_error When `allow_schema_errors` is false and only `new_function.s_0` value is
 // equal to `functions->back().s_0` value.
 template <typename T>
-void AddPolynomialDescriptionToCollection(const T& new_function, const std::string& node_id, bool allow_semantic_errors,
+void AddPolynomialDescriptionToCollection(const T& new_function, const std::string& node_id, bool allow_schema_errors,
                                           tinyxml2::XMLElement* xml_node, std::vector<T>* functions) {
   if (!functions->empty()) {
     if (new_function == functions->back()) {
@@ -76,7 +97,7 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
       std::string msg{node_id + " node describes two functions starting at the same s:\n" +
                       ConvertXMLNodeToText(xml_node)};
       DuplicateCurlyBracesForFmtLogging(&msg);
-      if (!allow_semantic_errors) {
+      if (!allow_schema_errors) {
         MALIDRIVE_THROW_MESSAGE(msg);
       }
       maliput::log()->warn(msg + "Discarding the first description starting at s = {}", new_function.s_0);
@@ -84,6 +105,25 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
     }
   }
   functions->push_back(std::move(new_function));
+}
+
+// Determines whether a collection of `T` functions has valid coefficients or they are "NaN" values.
+//
+// The type `T` should define the following members:
+//     - a,b,c and d : Coefficients of a cubic polynomial: @f$ a + b * (s - s_0) + c * (s - s_0)^2 + d * (s - s_0)^3
+//     @f$.
+// Tipically to be used with  ElevationProfile::Elevation, LateralProfile::Superelevation, LaneOffset and LaneWidth.
+//
+// @param functions Collection of functions.
+// @returns True when the functions' coeffcients don't contain "NaN" values.
+template <typename T>
+bool AreFunctionsCoeffValid(const std::vector<T>& functions) {
+  for (const auto& function : functions) {
+    if (std::isnan(function.a) || std::isnan(function.b) || std::isnan(function.c) || std::isnan(function.d)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace
@@ -107,12 +147,15 @@ std::optional<double> AttributeParser::As(const std::string& attribute_name) con
   if (result != tinyxml2::XML_SUCCESS) {
     return std::nullopt;
   }
-  if (!std::isnan(value)) {
-    return std::make_optional(value);
+  if (std::isnan(value)) {
+    std::string msg{"Attributes with NaN values has been found. " + ConvertXMLNodeToText(element_)};
+    if (!parser_configuration_.allow_schema_errors) {
+      MALIDRIVE_THROW_MESSAGE(msg);
+    }
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    maliput::log()->warn(msg);
   }
-  const std::string serialized_node{ConvertXMLNodeToText(element_)};
-  maliput::log()->error("Attributes with NaN values are not supported. \n {}", serialized_node);
-  MALIDRIVE_THROW_MESSAGE("Attributes with NaN values are not supported. " + serialized_node);
+  return std::make_optional(value);
 }
 
 // Specialization to parse as `std::string` the attribute's value.
@@ -236,12 +279,10 @@ Header NodeParser::As() const {
   // Non-optional attributes.
   // @{
   const auto rev_major = attribute_parser.As<double>(Header::kXodrRevMajor);
-  MALIDRIVE_THROW_UNLESS(rev_major != std::nullopt);
-  header.rev_major = rev_major.value();
+  header.rev_major = ValidateDouble(rev_major, kDontAllowNan);
 
   const auto rev_minor = attribute_parser.As<double>(Header::kXodrRevMinor);
-  MALIDRIVE_THROW_UNLESS(rev_minor != std::nullopt);
-  header.rev_minor = rev_minor.value();
+  header.rev_minor = ValidateDouble(rev_minor, kDontAllowNan);
   // @}
 
   // Optional attributes.
@@ -317,58 +358,41 @@ Geometry::Arc NodeParser::As() const {
   }
   const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto curvature = attribute_parser.As<double>(Geometry::Arc::kCurvature);
-  MALIDRIVE_THROW_UNLESS(curvature != std::nullopt);
-  return Geometry::Arc{curvature.value()};
+  return Geometry::Arc{ValidateDouble(curvature, kDontAllowNan)};
 }
 
 // Specialization to parse `LaneWidth`'s node.
 template <>
 LaneWidth NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
+  const bool allow_nan = parser_configuration_.allow_schema_errors;
 
   // Non-optional attributes.
   // @{
-  const auto offset = attribute_parser.As<double>(LaneWidth::kOffset);
-  MALIDRIVE_THROW_UNLESS(offset != std::nullopt);
-
-  const auto a_param = attribute_parser.As<double>(LaneWidth::kA);
-  MALIDRIVE_THROW_UNLESS(a_param != std::nullopt);
-
-  const auto b_param = attribute_parser.As<double>(LaneWidth::kB);
-  MALIDRIVE_THROW_UNLESS(b_param != std::nullopt);
-
-  const auto c_param = attribute_parser.As<double>(LaneWidth::kC);
-  MALIDRIVE_THROW_UNLESS(c_param != std::nullopt);
-
-  const auto d_param = attribute_parser.As<double>(LaneWidth::kD);
-  MALIDRIVE_THROW_UNLESS(d_param != std::nullopt);
+  const double offset = ValidateDouble(attribute_parser.As<double>(LaneWidth::kOffset), kDontAllowNan);
+  const double a_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kA), allow_nan);
+  const double b_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kB), allow_nan);
+  const double c_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kC), allow_nan);
+  const double d_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kD), allow_nan);
   // @}
-  return {offset.value(), a_param.value(), b_param.value(), c_param.value(), d_param.value()};
+  return {offset, a_param, b_param, c_param, d_param};
 }
 
 // Specialization to parse `LaneOffset`'s node.
 template <>
 LaneOffset NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
+  const bool allow_nan = parser_configuration_.allow_schema_errors;
 
   // Non-optional attributes.
   // @{
-  const auto s_0 = attribute_parser.As<double>(LaneOffset::kS0);
-  MALIDRIVE_THROW_UNLESS(s_0 != std::nullopt);
-
-  const auto a_param = attribute_parser.As<double>(LaneOffset::kA);
-  MALIDRIVE_THROW_UNLESS(a_param != std::nullopt);
-
-  const auto b_param = attribute_parser.As<double>(LaneWidth::kB);
-  MALIDRIVE_THROW_UNLESS(b_param != std::nullopt);
-
-  const auto c_param = attribute_parser.As<double>(LaneWidth::kC);
-  MALIDRIVE_THROW_UNLESS(c_param != std::nullopt);
-
-  const auto d_param = attribute_parser.As<double>(LaneWidth::kD);
-  MALIDRIVE_THROW_UNLESS(d_param != std::nullopt);
+  const double s_0 = ValidateDouble(attribute_parser.As<double>(LaneOffset::kS0), kDontAllowNan);
+  const double a_param = ValidateDouble(attribute_parser.As<double>(LaneOffset::kA), allow_nan);
+  const double b_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kB), allow_nan);
+  const double c_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kC), allow_nan);
+  const double d_param = ValidateDouble(attribute_parser.As<double>(LaneWidth::kD), allow_nan);
   // @}
-  return {s_0.value(), a_param.value(), b_param.value(), c_param.value(), d_param.value()};
+  return {s_0, a_param, b_param, c_param, d_param};
 }
 
 // Specialization to parse `LaneLink::LinkAttributes`'s node.
@@ -419,8 +443,7 @@ RoadType NodeParser::As() const {
   RoadType road_type{};
 
   const auto s_0 = attribute_parser.As<double>(RoadType::kS0);
-  MALIDRIVE_THROW_UNLESS(s_0 != std::nullopt);
-  road_type.s_0 = *s_0;
+  road_type.s_0 = ValidateDouble(s_0, kDontAllowNan);
 
   const auto type = attribute_parser.As<RoadType::Type>(RoadType::kRoadTypeTag);
   MALIDRIVE_THROW_UNLESS(type != std::nullopt);
@@ -442,12 +465,10 @@ Lane::Speed NodeParser::As() const {
   Lane::Speed speed{};
 
   const auto s_offset = attribute_parser.As<double>(Lane::Speed::kSOffset);
-  MALIDRIVE_THROW_UNLESS(s_offset != std::nullopt);
-  speed.s_offset = s_offset.value();
+  speed.s_offset = ValidateDouble(s_offset, kDontAllowNan);
 
   const auto max = attribute_parser.As<double>(Lane::Speed::kMax);
-  MALIDRIVE_THROW_UNLESS(max != std::nullopt);
-  speed.max = max.value();
+  speed.max = ValidateDouble(max, kDontAllowNan);
 
   const auto unit = attribute_parser.As<Unit>(Lane::Speed::kUnit);
   speed.unit = unit.has_value() ? unit.value() : Unit::kMs;
@@ -486,9 +507,15 @@ Lane NodeParser::As() const {
     auto lane_width = NodeParser(width_element, parser_configuration_).As<LaneWidth>();
 
     AddPolynomialDescriptionToCollection(std::move(lane_width), Lane::kLaneTag,
-                                         parser_configuration_.allow_semantic_errors, element_, &width_description);
-
+                                         parser_configuration_.allow_schema_errors, element_, &width_description);
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
+  }
+  // Only when schema errors are allowed is possible to find nan values in the functions.
+  if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(width_description)) {
+    std::string msg{std::string(Lane::kLaneTag) + " node describes a width description with nan values:\n" +
+                    ConvertXMLNodeToText(element_)};
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    MALIDRIVE_THROW_MESSAGE(msg);
   }
 
   tinyxml2::XMLElement* speed_element = element_->FirstChildElement(Lane::Speed::kSpeedTag);
@@ -537,8 +564,7 @@ LaneSection NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
   // Non-optional attributes.
   // @{
-  const std::optional<double> s_0 = attribute_parser.As<double>(LaneSection::kS0);
-  MALIDRIVE_THROW_UNLESS(s_0 != std::nullopt);
+  const double s_0 = ValidateDouble(attribute_parser.As<double>(LaneSection::kS0), kDontAllowNan);
   // @}
 
   // Optional attributes.
@@ -568,7 +594,7 @@ LaneSection NodeParser::As() const {
     right_lanes = GetAllLanesFromNode(right_element_ptr, false, parser_configuration_);
   }
 
-  return {s_0.value(), single_side, left_lanes, center_lanes[0], right_lanes};
+  return {s_0, single_side, left_lanes, center_lanes[0], right_lanes};
 }
 
 // Specialization to parse `Lanes`'s node.
@@ -581,9 +607,17 @@ Lanes NodeParser::As() const {
   while (lane_offset_element_ptr != nullptr) {
     auto lane_offset = NodeParser(lane_offset_element_ptr, parser_configuration_).As<LaneOffset>();
     AddPolynomialDescriptionToCollection(std::move(lane_offset), LaneOffset::kLaneOffsetTag,
-                                         parser_configuration_.allow_semantic_errors, element_, &lanes_offsets);
+                                         parser_configuration_.allow_schema_errors, element_, &lanes_offsets);
     lane_offset_element_ptr = lane_offset_element_ptr->NextSiblingElement(LaneOffset::kLaneOffsetTag);
   }
+  // Only when schema errors are allowed is possible to find nan values in the functions.
+  if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(lanes_offsets)) {
+    std::string msg{std::string(LaneOffset::kLaneOffsetTag) +
+                    " node describes a lane offset description with nan values:\n" + ConvertXMLNodeToText(element_)};
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    MALIDRIVE_THROW_MESSAGE(msg);
+  }
+
   // Non optional element.
   MALIDRIVE_TRACE("Parsing all laneSections.");
   std::vector<LaneSection> lanes_section;
@@ -610,25 +644,11 @@ Geometry NodeParser::As() const {
 
   // Non-optional attributes.
   // @{
-  const auto s_0 = attribute_parser.As<double>(Geometry::kS0);
-  MALIDRIVE_THROW_UNLESS(s_0 != std::nullopt);
-  geometry.s_0 = s_0.value();
-
-  const auto x = attribute_parser.As<double>(Geometry::kStartPointX);
-  MALIDRIVE_THROW_UNLESS(x != std::nullopt);
-  geometry.start_point.x() = x.value();
-
-  const auto y = attribute_parser.As<double>(Geometry::kStartPointY);
-  MALIDRIVE_THROW_UNLESS(y != std::nullopt);
-  geometry.start_point.y() = y.value();
-
-  const auto orientation = attribute_parser.As<double>(Geometry::kOrientation);
-  MALIDRIVE_THROW_UNLESS(orientation != std::nullopt);
-  geometry.orientation = orientation.value();
-
-  const auto length = attribute_parser.As<double>(Geometry::kLength);
-  MALIDRIVE_THROW_UNLESS(length != std::nullopt);
-  geometry.length = length.value();
+  geometry.s_0 = ValidateDouble(attribute_parser.As<double>(Geometry::kS0), kDontAllowNan);
+  geometry.start_point.x() = ValidateDouble(attribute_parser.As<double>(Geometry::kStartPointX), kDontAllowNan);
+  geometry.start_point.y() = ValidateDouble(attribute_parser.As<double>(Geometry::kStartPointY), kDontAllowNan);
+  geometry.orientation = ValidateDouble(attribute_parser.As<double>(Geometry::kOrientation), kDontAllowNan);
+  geometry.length = ValidateDouble(attribute_parser.As<double>(Geometry::kLength), kDontAllowNan);
 
   const NodeParser geometry_type(element_->FirstChildElement(), parser_configuration_);
   geometry.type = Geometry::str_to_type(geometry_type.GetName());
@@ -652,28 +672,14 @@ template <>
 ElevationProfile::Elevation NodeParser::As() const {
   ElevationProfile::Elevation elevation{};
   const AttributeParser attribute_parser(element_, parser_configuration_);
-
+  const bool allow_nan = parser_configuration_.allow_schema_errors;
   // Non-optional attributes.
   // @{
-  const auto s_0 = attribute_parser.As<double>(ElevationProfile::Elevation::kS0);
-  MALIDRIVE_THROW_UNLESS(s_0 != std::nullopt);
-  elevation.s_0 = s_0.value();
-
-  const auto a = attribute_parser.As<double>(ElevationProfile::Elevation::kA);
-  MALIDRIVE_THROW_UNLESS(a != std::nullopt);
-  elevation.a = a.value();
-
-  const auto b = attribute_parser.As<double>(ElevationProfile::Elevation::kB);
-  MALIDRIVE_THROW_UNLESS(b != std::nullopt);
-  elevation.b = b.value();
-
-  const auto c = attribute_parser.As<double>(ElevationProfile::Elevation::kC);
-  MALIDRIVE_THROW_UNLESS(c != std::nullopt);
-  elevation.c = c.value();
-
-  const auto d = attribute_parser.As<double>(ElevationProfile::Elevation::kD);
-  MALIDRIVE_THROW_UNLESS(d != std::nullopt);
-  elevation.d = d.value();
+  elevation.s_0 = ValidateDouble(attribute_parser.As<double>(ElevationProfile::Elevation::kS0), kDontAllowNan);
+  elevation.a = ValidateDouble(attribute_parser.As<double>(ElevationProfile::Elevation::kA), allow_nan);
+  elevation.b = ValidateDouble(attribute_parser.As<double>(ElevationProfile::Elevation::kB), allow_nan);
+  elevation.c = ValidateDouble(attribute_parser.As<double>(ElevationProfile::Elevation::kC), allow_nan);
+  elevation.d = ValidateDouble(attribute_parser.As<double>(ElevationProfile::Elevation::kD), allow_nan);
   // @}
   return elevation;
 }
@@ -686,8 +692,15 @@ ElevationProfile NodeParser::As() const {
   while (elevation_element) {
     auto elevation = NodeParser(elevation_element, parser_configuration_).As<ElevationProfile::Elevation>();
     AddPolynomialDescriptionToCollection(std::move(elevation), ElevationProfile::kElevationProfileTag,
-                                         parser_configuration_.allow_semantic_errors, element_, &elevations);
+                                         parser_configuration_.allow_schema_errors, element_, &elevations);
     elevation_element = elevation_element->NextSiblingElement(ElevationProfile::Elevation::kElevationTag);
+  }
+  // Only when schema errors are allowed is possible to find nan values in the functions.
+  if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(elevations)) {
+    std::string msg{std::string(ElevationProfile::kElevationProfileTag) +
+                    " node describes a elevation description with nan values:\n" + ConvertXMLNodeToText(element_)};
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    MALIDRIVE_THROW_MESSAGE(msg);
   }
   return {elevations};
 }
@@ -697,28 +710,15 @@ template <>
 LateralProfile::Superelevation NodeParser::As() const {
   LateralProfile::Superelevation superelevation{};
   const AttributeParser attribute_parser(element_, parser_configuration_);
+  const bool allow_nan = parser_configuration_.allow_schema_errors;
 
   // Non-optional attributes.
   // @{
-  const auto s_0 = attribute_parser.As<double>(LateralProfile::Superelevation::kS0);
-  MALIDRIVE_THROW_UNLESS(s_0 != std::nullopt);
-  superelevation.s_0 = s_0.value();
-
-  const auto a = attribute_parser.As<double>(LateralProfile::Superelevation::kA);
-  MALIDRIVE_THROW_UNLESS(a != std::nullopt);
-  superelevation.a = a.value();
-
-  const auto b = attribute_parser.As<double>(LateralProfile::Superelevation::kB);
-  MALIDRIVE_THROW_UNLESS(b != std::nullopt);
-  superelevation.b = b.value();
-
-  const auto c = attribute_parser.As<double>(LateralProfile::Superelevation::kC);
-  MALIDRIVE_THROW_UNLESS(c != std::nullopt);
-  superelevation.c = c.value();
-
-  const auto d = attribute_parser.As<double>(LateralProfile::Superelevation::kD);
-  MALIDRIVE_THROW_UNLESS(d != std::nullopt);
-  superelevation.d = d.value();
+  superelevation.s_0 = ValidateDouble(attribute_parser.As<double>(LateralProfile::Superelevation::kS0), kDontAllowNan);
+  superelevation.a = ValidateDouble(attribute_parser.As<double>(LateralProfile::Superelevation::kA), allow_nan);
+  superelevation.b = ValidateDouble(attribute_parser.As<double>(LateralProfile::Superelevation::kB), allow_nan);
+  superelevation.c = ValidateDouble(attribute_parser.As<double>(LateralProfile::Superelevation::kC), allow_nan);
+  superelevation.d = ValidateDouble(attribute_parser.As<double>(LateralProfile::Superelevation::kD), allow_nan);
   // @}
   return superelevation;
 }
@@ -733,9 +733,16 @@ LateralProfile NodeParser::As() const {
     auto superelevation =
         NodeParser(superelevation_element, parser_configuration_).As<LateralProfile::Superelevation>();
     AddPolynomialDescriptionToCollection(std::move(superelevation), LateralProfile::kLateralProfileTag,
-                                         parser_configuration_.allow_semantic_errors, element_, &superelevations);
+                                         parser_configuration_.allow_schema_errors, element_, &superelevations);
     superelevation_element =
         superelevation_element->NextSiblingElement(LateralProfile::Superelevation::kSuperelevationTag);
+  }
+  // Only when schema errors are allowed is possible to find nan values in the functions.
+  if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(superelevations)) {
+    std::string msg{std::string(LateralProfile::kLateralProfileTag) +
+                    " node describes a superelevation description with nan values:\n" + ConvertXMLNodeToText(element_)};
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    MALIDRIVE_THROW_MESSAGE(msg);
   }
   return {superelevations};
 }
@@ -775,8 +782,7 @@ RoadHeader NodeParser::As() const {
   MALIDRIVE_TRACE("Parsing road id: " + road_header.id.string());
 
   const auto length = attribute_parser.As<double>(RoadHeader::kLength);
-  MALIDRIVE_THROW_UNLESS(length != std::nullopt);
-  road_header.length = length.value();
+  road_header.length = ValidateDouble(length, kDontAllowNan);
 
   const auto junction = attribute_parser.As<std::string>(RoadHeader::kJunction);
   MALIDRIVE_THROW_UNLESS(junction != std::nullopt);

@@ -139,6 +139,7 @@ macro(malidrive_build_integration_based_tests)
     SingleLane.xodr
     SingleRoadComplexDescription.xodr
     SingleRoadComplexDescription2.xodr
+    SingleRoadNanValues.xodr
     SShapeRoad.xodr
     SShapeSuperelevatedRoad.xodr
     StraightForward.xodr
