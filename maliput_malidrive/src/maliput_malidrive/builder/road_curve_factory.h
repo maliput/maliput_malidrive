@@ -115,7 +115,7 @@ class RoadCurveFactoryBase {
   /// @param geometries A vector of xodr::Geometry definitions to construct a
   ///        road_curve::PiecewiseGroundCurve. Item's type must be one of
   ///        {xodr::Geometry::Type::kArc, xodr::Geometry::Type::kLine}. It must
-  ///        not be empty.
+  ///        not be empty. Geometries whose length is less than GroundCurve::kEpsilon are discarded.
   /// @return A road_curve::PiecewiseGroundCurve.
   /// @throws maliput::common::assertion_error When any item of @p geometries
   ///         has other type than {xodr::Geometry::Type::kArc,

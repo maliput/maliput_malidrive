@@ -227,6 +227,11 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
         length.
       */
       {"SingleRoadHighCoefficients", "SingleRoadHighCoefficients.xodr"},
+      /*
+        SingleRoadTinyGeometry describes a straight road with particular planView description: one of the geometry's
+        length is of the order of 1e-15.
+      */
+      {"SingleRoadTinyGeometry", "SingleRoadTinyGeometry.xodr"},
   };
 }
 

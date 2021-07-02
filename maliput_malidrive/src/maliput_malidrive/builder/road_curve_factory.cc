@@ -135,6 +135,10 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
 
   std::vector<std::unique_ptr<road_curve::GroundCurve>> ground_curves;
   for (const xodr::Geometry& geometry : geometries) {
+    if (geometry.length < road_curve::GroundCurve::kEpsilon) {
+      maliput::log()->warn("A geometry description is discarded because its length is: {}", geometry.length);
+      continue;
+    }
     switch (geometry.type) {
       case xodr::Geometry::Type::kArc:
         ground_curves.emplace_back(MakeArcGroundCurve(geometry));
