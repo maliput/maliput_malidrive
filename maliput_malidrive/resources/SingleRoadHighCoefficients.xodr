@@ -1,0 +1,38 @@
+<OpenDRIVE>
+    <header revMajor="1" revMinor="4" name="SingleRoadHighCoefficients" />
+    <road name="Road 4451" length="100.0" id="4451" junction="-1">
+        <planView>
+            <geometry s="0.0000000000000000e+0" x="0.0" y="0.0" hdg="0.0" length="100">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0.000000+0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+            <elevation s="1.7559999999999999e+1" a="0.0" b="0.0" c="1e+9" d="1e+19"/>
+            <elevation s="1.7560000000000006e+1" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        </elevationProfile>
+        <lateralProfile>
+            <superelevation s="0.000000+0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+            <superelevation s="1.7559999999999999e+1" a="0.0" b="0.0" c="1e+9" d="1e+19"/>
+            <superelevation s="1.7560000000000006e+1" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        </lateralProfile>
+        <lanes>
+        <laneOffset s="0.000000+0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+        <laneOffset s="1.7559999999999999e+1" a="0.0" b="0.0" c="1e+9" d="1e+19"/>
+        <laneOffset s="1.7560000000000006e+1" a="0.0" b="0.0" c="0.0" d="0.0"/>
+            <laneSection s="0.0000000000000000e+0">
+                <center>
+                    <lane id="0" type="none" level="false">
+                    </lane>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                      <width sOffset="0.0000000000000000e+0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+                      <width sOffset="1.7559999999999999e+1" a="2.0" b="0.0" c="1e+9" d="1e+19"/>
+                      <width sOffset="1.7560000000000006e+1" a="2.0" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+</OpenDRIVE>

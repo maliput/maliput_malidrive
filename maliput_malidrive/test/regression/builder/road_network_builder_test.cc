@@ -221,6 +221,12 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
         laneOffset and width polynomial descriptions in which they have nan values as coefficients of the polynomials.
       */
       {"SingleRoadNanValues", "SingleRoadNanValues.xodr"},
+      /*
+        SingleRoadHighCoefficients describes a straight road with particular elevation, superelevation,
+        laneOffset and width polynomial descriptions in which they have extremely high coefficients combined with short
+        length.
+      */
+      {"SingleRoadHighCoefficients", "SingleRoadHighCoefficients.xodr"},
   };
 }
 
