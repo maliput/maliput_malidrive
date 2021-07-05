@@ -201,9 +201,9 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
         }
       }
     }
-    // Even though the builder supports having shorter functions, some XODR synthesizer may create epsilon-length
-    // functions (~1e-15) in combination with high coefficients values (1e+20). To avoid any kind of numerical error all
-    // the functions with a length less than constants::kStrictLinearTolerance are being discarded. See #117.
+    // Even though the builder supports having shorter functions, some XODR synthesizer may create epsilon-long
+    // functions (~1e-15) in combination with high coefficients values (1e+20). To avoid any kind of numerical error,
+    // all the functions whose length is less than constants::kStrictLinearTolerance are discarded. See #117.
     if (p1_i - p0_i < constants::kStrictLinearTolerance) {
       maliput::log()->trace(
           "LaneWidth's function in position {} is discarded to avoid numerical errors: Length ({}) is less than "
@@ -270,9 +270,9 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
         }
       }
     }
-    // Even though the builder supports having shorter functions, some XODR synthesizer may create epsilon-length
-    // functions (~1e-15) in combination with high coefficients values (1e+20). To avoid any kind of numerical error all
-    // the functions with a length less than constants::kStrictLinearTolerance are being discarded. See #117.
+    // Even though the builder supports having shorter functions, some XODR synthesizer may create epsilon-long
+    // functions (~1e-15) in combination with high coefficients values (1e+20). To avoid any kind of numerical error,
+    // all the functions whose length is less than constants::kStrictLinearTolerance are discarded. See #117.
     if (p1_i - p0_i < constants::kStrictLinearTolerance) {
       maliput::log()->trace(
           "{}'s function in position {} is discarded to avoid numerical errors: Length ({}) is less than epsilon ({})",
