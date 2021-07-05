@@ -148,11 +148,11 @@ std::optional<double> AttributeParser::As(const std::string& attribute_name) con
   }
   if (std::isnan(value)) {
     std::string msg{"Attributes with NaN values has been found. " + ConvertXMLNodeToText(element_)};
+    DuplicateCurlyBracesForFmtLogging(&msg);
+    maliput::log()->warn(msg);
     if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
-    DuplicateCurlyBracesForFmtLogging(&msg);
-    maliput::log()->warn(msg);
   }
   return std::make_optional(value);
 }
@@ -509,7 +509,11 @@ Lane NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &width_description);
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
   }
-  // Only when schema errors are allowed is possible to find NaN values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions, otherwise
+  // the NaN values would have caused an error when parsing the double value in the XODR file.
+  // (See `AttributeParser` specialization for double types).
+  // To avid the calling `AreFunctionsCoeffValid` method when the conditions were already verified is
+  // that the `parser_configuration_.allow_schema_errors` flag is first checked.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(width_description)) {
     std::string msg{std::string(Lane::kLaneTag) + " node has a width description with NaN values:\n" +
                     ConvertXMLNodeToText(element_)};
@@ -609,7 +613,11 @@ Lanes NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &lanes_offsets);
     lane_offset_element_ptr = lane_offset_element_ptr->NextSiblingElement(LaneOffset::kLaneOffsetTag);
   }
-  // Only when schema errors are allowed is possible to find NaN values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions, otherwise
+  // the NaN values would have caused an error when parsing the double value in the XODR file.
+  // (See `AttributeParser` specialization for double types).
+  // To avid the calling `AreFunctionsCoeffValid` method when the conditions were already verified is
+  // that the `parser_configuration_.allow_schema_errors` flag is first checked.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(lanes_offsets)) {
     std::string msg{std::string(LaneOffset::kLaneOffsetTag) +
                     " node describes a lane offset description with NaN values:\n" + ConvertXMLNodeToText(element_)};
@@ -694,7 +702,11 @@ ElevationProfile NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &elevations);
     elevation_element = elevation_element->NextSiblingElement(ElevationProfile::Elevation::kElevationTag);
   }
-  // Only when schema errors are allowed is possible to find NaN values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions, otherwise
+  // the NaN values would have caused an error when parsing the double value in the XODR file.
+  // (See `AttributeParser` specialization for double types).
+  // To avid the calling `AreFunctionsCoeffValid` method when the conditions were already verified is
+  // that the `parser_configuration_.allow_schema_errors` flag is first checked.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(elevations)) {
     std::string msg{std::string(ElevationProfile::kElevationProfileTag) +
                     " node describes a elevation description with NaN values:\n" + ConvertXMLNodeToText(element_)};
@@ -736,7 +748,11 @@ LateralProfile NodeParser::As() const {
     superelevation_element =
         superelevation_element->NextSiblingElement(LateralProfile::Superelevation::kSuperelevationTag);
   }
-  // Only when schema errors are allowed is possible to find NaN values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions, otherwise
+  // the NaN values would have caused an error when parsing the double value in the XODR file.
+  // (See `AttributeParser` specialization for double types).
+  // To avid the calling `AreFunctionsCoeffValid` method when the conditions were already verified is
+  // that the `parser_configuration_.allow_schema_errors` flag is first checked.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(superelevations)) {
     std::string msg{std::string(LateralProfile::kLateralProfileTag) +
                     " node describes a superelevation description with NaN values:\n" + ConvertXMLNodeToText(element_)};
