@@ -32,21 +32,20 @@ namespace {
 static constexpr bool kDontAllowNan{false};
 // }@
 
-// Validates that `opt` contains a valid double-type value.
-// If it isn't valid, it throws.
+// Validates that `value` contains a valid double-type value.
 //
-// @param opt Optional object
+// @param value double value
 // @param allow_nan Determines whether to accept having NaN values or not.
 // @returns The validated value.
 //
-// @throws maliput::common::assertion_error When `opt` is std::nullopt.
-// @throws maliput::common::assertion_error When `opt.value()` is a NaN value iff `allow_nan` is false.
-double ValidateDouble(const std::optional<double>& opt, bool allow_nan) {
-  MALIDRIVE_THROW_UNLESS(opt != std::nullopt);
+// @throws maliput::common::assertion_error When `value` is std::nullopt.
+// @throws maliput::common::assertion_error When `value.value()` is a NaN value iff `allow_nan` is false.
+double ValidateDouble(const std::optional<double>& value, bool allow_nan) {
+  MALIDRIVE_THROW_UNLESS(value != std::nullopt);
   if (!allow_nan) {
-    MALIDRIVE_THROW_UNLESS(!std::isnan(opt.value()));
+    MALIDRIVE_THROW_UNLESS(!std::isnan(value.value()));
   }
-  return opt.value();
+  return value.value();
 }
 
 // Determines whether `geometry_a` and `geometry_b` geometries are continguos in terms of the arc length parameter.
@@ -107,12 +106,12 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
   functions->push_back(std::move(new_function));
 }
 
-// Determines whether a collection of `T` functions has valid coefficients or they are "NaN" values.
+// Determines whether a collection of `T` functions has valid coefficients. "NaN" values are invalid.
 //
 // The type `T` should define the following members:
-//     - a,b,c and d : Coefficients of a cubic polynomial: @f$ a + b * (s - s_0) + c * (s - s_0)^2 + d * (s - s_0)^3
-//     @f$.
-// Tipically to be used with  ElevationProfile::Elevation, LateralProfile::Superelevation, LaneOffset and LaneWidth.
+//     - {a, b, c, d} : coefficients of a cubic polynomial
+//                      such @f$ a + b * (s - s_0) + c * (s - s_0)^2 + d * (s - s_0)^3 @f$.
+// Tipically used with ElevationProfile::Elevation, LateralProfile::Superelevation, LaneOffset and LaneWidth.
 //
 // @param functions Collection of functions.
 // @returns True when the functions' coeffcients don't contain "NaN" values.
@@ -510,9 +509,9 @@ Lane NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &width_description);
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
   }
-  // Only when schema errors are allowed is possible to find nan values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(width_description)) {
-    std::string msg{std::string(Lane::kLaneTag) + " node describes a width description with nan values:\n" +
+    std::string msg{std::string(Lane::kLaneTag) + " node has a width description with NaN values:\n" +
                     ConvertXMLNodeToText(element_)};
     DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
@@ -610,10 +609,10 @@ Lanes NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &lanes_offsets);
     lane_offset_element_ptr = lane_offset_element_ptr->NextSiblingElement(LaneOffset::kLaneOffsetTag);
   }
-  // Only when schema errors are allowed is possible to find nan values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(lanes_offsets)) {
     std::string msg{std::string(LaneOffset::kLaneOffsetTag) +
-                    " node describes a lane offset description with nan values:\n" + ConvertXMLNodeToText(element_)};
+                    " node describes a lane offset description with NaN values:\n" + ConvertXMLNodeToText(element_)};
     DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }
@@ -695,10 +694,10 @@ ElevationProfile NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &elevations);
     elevation_element = elevation_element->NextSiblingElement(ElevationProfile::Elevation::kElevationTag);
   }
-  // Only when schema errors are allowed is possible to find nan values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(elevations)) {
     std::string msg{std::string(ElevationProfile::kElevationProfileTag) +
-                    " node describes a elevation description with nan values:\n" + ConvertXMLNodeToText(element_)};
+                    " node describes a elevation description with NaN values:\n" + ConvertXMLNodeToText(element_)};
     DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }
@@ -737,10 +736,10 @@ LateralProfile NodeParser::As() const {
     superelevation_element =
         superelevation_element->NextSiblingElement(LateralProfile::Superelevation::kSuperelevationTag);
   }
-  // Only when schema errors are allowed is possible to find nan values in the functions.
+  // Only when schema errors are allowed is possible to find NaN values in the functions.
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(superelevations)) {
     std::string msg{std::string(LateralProfile::kLateralProfileTag) +
-                    " node describes a superelevation description with nan values:\n" + ConvertXMLNodeToText(element_)};
+                    " node describes a superelevation description with NaN values:\n" + ConvertXMLNodeToText(element_)};
     DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }

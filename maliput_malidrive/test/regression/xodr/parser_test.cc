@@ -1272,21 +1272,53 @@ class FunctionsWithNanValuesTests : public ParsingTests {
  protected:
   static constexpr double kSameStartS{3.0};
   static constexpr double kDifferentStartS{1.0};
+  // Template of a XML description that contains function description that matches with ElevationProfile or
+  // Lateralprofile descriptions.
+  // - 1st function has nan values
+  //   - It is loadable only when `s=3.0`(same as the next function) and schema errors are allowed.
+  static constexpr const char* kNanElevationSuperelevationTemplate = R"R(
+  <root>
+    <{0}>
+      <{1} s="{2}" a="nan" b="nan" c="nan" d="nan"/>
+      <{1} s="3.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+      <{1} s="5.0" a="2.1" b="0.0" c="0.0" d="0.0"/>
+    </{0}>
+  </root>
+  )R";
+  // Template of a XML description that contains a XODR Lane node with width descriptions filled with nan values.
+  // - 1st function has nan values
+  //   - It is loadable only when `s=3.0`(same as the next function) and schema errors are allowed.
+  static constexpr const char* kNanLaneWidthTemplate = R"R(
+  <root>
+    <lane id='1' type='driving' >
+      <width sOffset="{0}" a="nan" b="nan" c="nan" d="nan"/>
+      <width sOffset="3.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+      <width sOffset="5.0" a="2.1" b="0.0" c="0.0" d="0.0"/>
+    </lane>
+  </root>
+  )R";
+  // Template of a XML description that contains a XODR Lanes node with laneOffset descriptions filled with nan values.
+  static constexpr const char* kLanesNodeWithNanLaneOffsetTemplate = R"R(
+  <root>
+    <lanes>
+      <laneOffset s="{0}" a="nan" b="nan" c="nan" d="nan"/>
+      <laneOffset s="3.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+      <laneOffset s="5.0" a="2.1" b="0.0" c="0.0" d="0.0"/>
+      <laneSection s='0.'>
+          <left>
+              <lane id='1' type='driving' level= '0'>
+                  <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
+              </lane>
+          </left>
+          <center>
+              <lane id='0' type='driving' level= '0'>
+              </lane>
+          </center>
+      </laneSection>
+    </lanes>
+  </root>
+  )R";
 };
-
-// Template of a XML description that contains function description that matches with ElevationProfile or Lateralprofile
-// descriptions.
-// - 1st function has nan values
-//   - It is loadable only when `s=3.0`(same as the next function) and schema errors are allowed.
-constexpr const char* kNanElevationSuperelevationTemplate = R"R(
-<root>
-  <{0}>
-    <{1} s="{2}" a="nan" b="nan" c="nan" d="nan"/>
-    <{1} s="3.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
-    <{1} s="5.0" a="2.1" b="0.0" c="0.0" d="0.0"/>
-  </{0}>
-</root>
-)R";
 
 // Tests `ElevationProfile` and `LateralProfile` parsing when having nan values.
 // @{
@@ -1301,6 +1333,9 @@ TEST_F(ElevationNanDescriptionsParsingTests, NotAllowingSchemaErrors) {
   EXPECT_THROW(dut_strict.As<ElevationProfile>(), maliput::common::assertion_error);
 }
 
+// A function has NaN values and schema errors are allowed.
+// However it throws because NaN values are allowed in the function iff
+// the next function description starts at the same `s` value so as to discard the one with NaN values.
 TEST_F(ElevationNanDescriptionsParsingTests, AllowingSchemaErrorsDifferentStartPoint) {
   const std::string xml_description =
       fmt::format(kNanElevationSuperelevationTemplate, ElevationProfile::kElevationProfileTag,
@@ -1335,6 +1370,9 @@ TEST_F(SuperelevationNanDescriptionsParsingTests, NotAllowingSchemaErrors) {
   EXPECT_THROW(dut_strict.As<LateralProfile>(), maliput::common::assertion_error);
 }
 
+// A function has NaN values and schema errors are allowed.
+// However it throws because NaN values are allowed in the function iff
+// the next function description starts at the same `s` value so as to discard the one with NaN values.
 TEST_F(SuperelevationNanDescriptionsParsingTests, AllowingSchemaErrorsDifferentStartPoint) {
   const std::string xml_description =
       fmt::format(kNanElevationSuperelevationTemplate, LateralProfile::kLateralProfileTag,
@@ -1359,19 +1397,6 @@ TEST_F(SuperelevationNanDescriptionsParsingTests, AllowingSchemaErrorsSameStartP
 }
 // @}
 
-// Template of a XML description that contains a XODR Lane node with width descriptions filled with nan values.
-// - 1st function has nan values
-//   - It is loadable only when `s=3.0`(same as the next function) and schema errors are allowed.
-constexpr const char* kNanLaneWidthTemplate = R"R(
-<root>
-  <lane id='1' type='driving' >
-     <width sOffset="{0}" a="nan" b="nan" c="nan" d="nan"/>
-     <width sOffset="3.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
-     <width sOffset="5.0" a="2.1" b="0.0" c="0.0" d="0.0"/>
-  </lane>
-</root>
-)R";
-
 // Tests `Lane` parsing when having width descriptions with nan values.
 class LaneWithNanWidthDescriptionsParsingTests : public FunctionsWithNanValuesTests {};
 
@@ -1382,6 +1407,9 @@ TEST_F(LaneWithNanWidthDescriptionsParsingTests, NotAllowingSchemaErrors) {
   EXPECT_THROW(dut_strict.As<Lane>(), maliput::common::assertion_error);
 }
 
+// A function has NaN values and schema errors are allowed.
+// However it throws because NaN values are allowed in the function iff
+// the next function description starts at the same `s` value so as to discard the one with NaN values.
 TEST_F(LaneWithNanWidthDescriptionsParsingTests, AllowingSchemaErrorsDifferentStartPoint) {
   const std::string xml_description = fmt::format(kNanLaneWidthTemplate, kDifferentStartS);
   const NodeParser dut_permissive(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
@@ -1409,28 +1437,6 @@ TEST_F(LaneWithNanWidthDescriptionsParsingTests, AllowingSchemaErrorsSameStartPo
   EXPECT_EQ(kExpectedLane, lane);
 }
 
-// Template of a XML description that contains a XODR Lanes node with laneOffset descriptions filled with nan values.
-constexpr const char* kLanesNodeWithNanLaneOffsetTemplate = R"R(
-<root>
-  <lanes>
-    <laneOffset s="{0}" a="nan" b="nan" c="nan" d="nan"/>
-    <laneOffset s="3.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
-    <laneOffset s="5.0" a="2.1" b="0.0" c="0.0" d="0.0"/>
-    <laneSection s='0.'>
-        <left>
-            <lane id='1' type='driving' level= '0'>
-                <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
-            </lane>
-        </left>
-        <center>
-            <lane id='0' type='driving' level= '0'>
-            </lane>
-        </center>
-    </laneSection>
-  </lanes>
-</root>
-)R";
-
 // Tests `Lanes` parsing when having offset descriptions with nan values.
 class LanesWithNanLaneOffsetParsingTests : public FunctionsWithNanValuesTests {};
 
@@ -1441,6 +1447,9 @@ TEST_F(LanesWithNanLaneOffsetParsingTests, NotAllowingSchemaErrors) {
   EXPECT_THROW(dut_strict.As<Lanes>(), maliput::common::assertion_error);
 }
 
+// A function has NaN values and schema errors are allowed.
+// However it throws because NaN values are allowed in the function iff
+// the next function description starts at the same `s` value so as to discard the one with NaN values.
 TEST_F(LanesWithNanLaneOffsetParsingTests, AllowingSchemaErrorsDifferentStartPoint) {
   const std::string xml_description = fmt::format(kLanesNodeWithNanLaneOffsetTemplate, kDifferentStartS);
   const NodeParser dut_permissive(LoadXMLAndGetNodeByName(xml_description, Lanes::kLanesTag),
