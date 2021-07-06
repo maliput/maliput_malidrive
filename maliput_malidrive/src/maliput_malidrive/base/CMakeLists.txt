@@ -18,11 +18,6 @@ target_include_directories(
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-ament_target_dependencies(base
-  "drake"
-  "maliput"
-)
-
 target_link_libraries(
   base
     drake::drake

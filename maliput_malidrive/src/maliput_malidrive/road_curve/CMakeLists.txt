@@ -25,11 +25,6 @@ target_include_directories(
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-ament_target_dependencies(road_curve
-  "drake"
-  "maliput"
-)
-
 target_link_libraries(
   road_curve
     drake::drake

@@ -16,7 +16,7 @@ install(
 add_executable(xodr_query xodr_query.cc)
 target_link_libraries(
   xodr_query
-  PUBLIC
+  PRIVATE
     gflags
     maliput::common
     utility
@@ -34,7 +34,7 @@ install(
 add_executable(xodr_validate xodr_validate.cc)
 target_link_libraries(
   xodr_validate
-  PUBLIC
+  PRIVATE
     gflags
     maliput::common
     utility

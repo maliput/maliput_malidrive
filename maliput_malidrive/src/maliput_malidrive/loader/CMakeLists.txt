@@ -17,10 +17,6 @@ target_include_directories(
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-ament_target_dependencies(loader
-  "maliput"
-)
-
 target_link_libraries(
   loader
     maliput::api

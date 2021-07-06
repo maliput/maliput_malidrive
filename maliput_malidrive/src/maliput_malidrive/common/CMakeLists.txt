@@ -17,12 +17,6 @@ target_include_directories(
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-
-ament_target_dependencies(common
-  PUBLIC
-    "maliput"
-)
-
 target_link_libraries(common
   PUBLIC
     maliput::common
