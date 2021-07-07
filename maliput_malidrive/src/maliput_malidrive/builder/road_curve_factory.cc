@@ -151,6 +151,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
         break;
     }
   }
+  MALIDRIVE_THROW_UNLESS(!ground_curves.empty());
   return std::make_unique<road_curve::PiecewiseGroundCurve>(std::move(ground_curves), linear_tolerance(),
                                                             angular_tolerance());
 }
