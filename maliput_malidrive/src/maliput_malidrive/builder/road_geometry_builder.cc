@@ -385,7 +385,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
   }
 
   maliput::log()->trace("RoadGeometry is built.");
-  return std::move(rg);
+  return rg;
 }
 
 std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
@@ -415,7 +415,7 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
   auto road_curve =
       factory_->MakeMalidriveRoadCurve(std::move(ground_curve), std::move(elevation), std::move(superelevation));
   maliput::log()->trace("RoadCurve for road id {} created.", road_header.id.string());
-  return std::move(road_curve);
+  return road_curve;
 }
 
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::BuildLanesForSegment(
@@ -451,7 +451,7 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
     maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
     built_lanes_result.push_back(std::move(lane_construction_result));
   }
-  return std::move(built_lanes_result);
+  return built_lanes_result;
 }
 
 std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunction(const std::string& xodr_track_id,
