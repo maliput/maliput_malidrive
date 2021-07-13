@@ -134,6 +134,8 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
       factory->MakeLaneWidth(lane->width_description, xodr_p_0_lane, xodr_p_1_lane), road_curve_p_0_lane,
       road_curve_p_1_lane, factory->linear_tolerance());
 
+  maliput::log()->trace("Creating LaneOffset for lane id {}_{}_{}", road_header->id.string(),
+                        std::to_string(xodr_lane_section_index), lane->id.string());
   // Build a road_curve::CubicPolynomial for the lane offset.
   const bool no_adjacent_lane{adjacent_lane_functions->width == nullptr && adjacent_lane_functions->offset == nullptr};
   std::unique_ptr<road_curve::Function> lane_offset = std::make_unique<road_curve::ScaledDomainFunction>(
@@ -146,6 +148,8 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   //@}
   adjacent_lane_functions->width = lane_width.get();
   adjacent_lane_functions->offset = lane_offset.get();
+  maliput::log()->trace("Building lane id {}_{}_{}", road_header->id.string(), std::to_string(xodr_lane_section_index),
+                        lane->id.string());
   auto built_lane =
       std::make_unique<Lane>(lane_id, xodr_track_id, xodr_lane_id, elevation_bounds, segment->road_curve(),
                              std::move(lane_width), std::move(lane_offset), road_curve_p_0_lane, road_curve_p_1_lane);
