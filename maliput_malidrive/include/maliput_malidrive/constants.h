@@ -18,8 +18,10 @@ static constexpr double kStrictAngularTolerance{1e-12};  // [rad]
 static constexpr double kSpeedTolerance{1e-4};             // [m/s]
 static constexpr double kDefaultMinSpeedLimit{0.};         // [m/s]
 static constexpr double kDefaultMaxSpeedLimit{40. / 3.6};  // [m/s] --> 40km/h
-// Number of trials the Builder will run with different tolerances.
-static constexpr int kMaxToleranceSelectionRounds{20};
+/// Number of trials the Builder will run with different tolerances.
+/// Using default linear tolerance value it is expected that the builder tries with
+/// tolerances in a range between 0.05 and 0.49. (`kLinearTolerance` and @f$ kLinearTolerance*1.1^24 @f$)
+static constexpr int kMaxToleranceSelectionRounds{24};
 
 /// TODO(#701): Remove the following two constants once #701 is merged.
 static constexpr double kExplorationRadius{1.};  // [m]
