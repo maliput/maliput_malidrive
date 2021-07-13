@@ -232,6 +232,11 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
         length is of the order of 1e-15.
       */
       {"SingleRoadTinyGeometry", "SingleRoadTinyGeometry.xodr"},
+      /*
+        SingleRoadTwoGeometries describes a road with two geomtries which with such a descritpion that causes a negative
+        value in the RoadCurveOffset's integrator.
+      */
+      {"SingleRoadTwoGeometries", "SingleRoadTwoGeometries.xodr"},
   };
 }
 
