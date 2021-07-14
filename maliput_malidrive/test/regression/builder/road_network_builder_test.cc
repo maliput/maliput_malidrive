@@ -233,8 +233,8 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
       */
       {"SingleRoadTinyGeometry", "SingleRoadTinyGeometry.xodr"},
       /*
-        SingleRoadTwoGeometries describes a road with two geomtries which with such a descritpion that causes a negative
-        value in the RoadCurveOffset's integrator.
+        SingleRoadTwoGeometries describes a road with two geometries that cause a negative
+        value in the RoadCurveOffset's integrator when linear tolerance is lower than 0.12m.
       */
       {"SingleRoadTwoGeometries", "SingleRoadTwoGeometries.xodr"},
   };
