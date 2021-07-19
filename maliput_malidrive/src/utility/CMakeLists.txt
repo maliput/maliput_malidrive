@@ -2,12 +2,6 @@
 # Malidrive utility
 ##############################################################################
 
-##############################################################################
-# Handle CFlags
-
-include(${PROJECT_SOURCE_DIR}/cmake/MaliputMalidriveFlags.cmake)
-##############################################################################
-
 add_library(utility
   file_tools.cc
   resources.cc

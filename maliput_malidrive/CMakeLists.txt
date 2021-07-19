@@ -35,6 +35,8 @@ find_package(maliput REQUIRED)
 
 message(STATUS "\n\n========= Project Configuration ========\n")
 
+include(${PROJECT_SOURCE_DIR}/cmake/MaliputMalidriveFlags.cmake)
+
 set(BUILD_SHARED_LIBS true)
 
 ##############################################################################

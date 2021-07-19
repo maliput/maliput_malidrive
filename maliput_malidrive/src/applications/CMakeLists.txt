@@ -1,5 +1,3 @@
-include(${PROJECT_SOURCE_DIR}/cmake/MaliputMalidriveFlags.cmake)
-
 add_library(log_level_flag INTERFACE)
 target_sources(log_level_flag
   INTERFACE
