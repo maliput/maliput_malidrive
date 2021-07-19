@@ -38,8 +38,6 @@ class ParsingTests : public ::testing::Test {
   static constexpr bool kDontAllowSemanticErrors{false};
   // Flag to allow schema errors.
   static constexpr bool kAllowSchemaErrors{true};
-  // Flag to allow semantic errors.
-  static constexpr bool kAllowSemanticErrors{true};
 
   tinyxml2::XMLElement* LoadXMLAndGetNodeByName(const std::string& xml_str, const std::string& node_name) {
     MALIDRIVE_THROW_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS);
@@ -316,11 +314,9 @@ constexpr const char* kGeometryTemplate = R"R(
 
 // Tests `Geometry` parsing.
 TEST_F(ParsingTests, NodeParserLineGeometry) {
-  const Geometry kExpectedGeometry{1.23 /* s_0 */,
-                                   {523.2 /* x */, 83.27 /* y */},
-                                   0.77 /* orientation */,
-                                   100. /* length */,
-                                   Geometry::Type::kLine /* Type */};
+  const Geometry kExpectedGeometry{
+      1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},   0.77 /* orientation */,
+      100. /* length */, Geometry::Type::kLine /* Type */, {Geometry::Line{}} /* description */};
   const std::string xml_description = fmt::format(
       kGeometryTemplate, kExpectedGeometry.s_0, kExpectedGeometry.start_point.x(), kExpectedGeometry.start_point.y(),
       kExpectedGeometry.orientation, kExpectedGeometry.length, Geometry::type_to_str(kExpectedGeometry.type));

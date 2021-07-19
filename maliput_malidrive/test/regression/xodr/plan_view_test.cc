@@ -13,12 +13,14 @@ GTEST_TEST(PlanView, EqualityOperator) {
                              {523.2 /* x */, 83.27 /* y */},
                              0.77 /* orientation */,
                              100. /* length */,
-                             Geometry::Type::kLine /* Type */},
+                             Geometry::Type::kLine /* Type */,
+                             {Geometry::Line{}} /* description */},
                             {1.23 /* s_0 */,
                              {523.2 /* x */, 83.27 /* y */},
                              0.77 /* orientation */,
                              100. /* length */,
-                             Geometry::Type::kLine /* Type */}}};
+                             Geometry::Type::kLine /* Type */,
+                             {Geometry::Line{}} /* description */}}};
   PlanView plan_view = kPlanView;
 
   EXPECT_EQ(kPlanView, plan_view);

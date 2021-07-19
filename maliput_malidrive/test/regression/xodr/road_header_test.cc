@@ -30,7 +30,8 @@ GTEST_TEST(RoadHeader, EqualityOperator) {
                                                 {523.2 /* x */, 83.27 /* y */},
                                                 0.77 /* orientation */,
                                                 100. /* length */,
-                                                Geometry::Type::kLine /* Type */}}}};
+                                                Geometry::Type::kLine /* Type */,
+                                                {Geometry::Line{}} /* description */}}}};
   const LaneLink kLaneLinkA{LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id{"1"}} /* predecessor */,
                             LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id{"1"}} /* successor */};
   const LaneLink kLaneLinkB{LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id{"-1"}} /* predecessor */,
@@ -98,8 +99,9 @@ GTEST_TEST(RoadHeader, EqualityOperator) {
 }
 
 struct RoadHeaderTest : public ::testing::Test {
-  const ReferenceGeometry kReferenceGeometry{{{{1.23, {523.2, 83.27}, 0.77, 50., Geometry::Type::kLine},
-                                               {51.23, {523.2, 83.27}, 0.77, 50., Geometry::Type::kLine}}}};
+  const ReferenceGeometry kReferenceGeometry{
+      {{{1.23, {523.2, 83.27}, 0.77, 50., Geometry::Type::kLine, {Geometry::Line{}} /* description */},
+        {51.23, {523.2, 83.27}, 0.77, 50., Geometry::Type::kLine, {Geometry::Line{}} /* description */}}}};
   const LaneOffset kLaneOffset{2.1, 2.2, 3.3, 4.4, 5.5};
   const std::vector<LaneSection> kLaneSections{
       {10.0,

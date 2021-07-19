@@ -293,7 +293,8 @@ TEST_F(LanePropertiesTest, VehicleExclusiveValue) {
 }
 
 struct GetRoadTypeSpeedPropertiesInRangeTest : public ::testing::Test {
-  const xodr::ReferenceGeometry kReferenceGeometry{{{{1.23, {523.2, 83.27}, 0.77, 100., xodr::Geometry::Type::kLine}}}};
+  const xodr::ReferenceGeometry kReferenceGeometry{
+      {{{1.23, {523.2, 83.27}, 0.77, 100., xodr::Geometry::Type::kLine, {xodr::Geometry::Line{}}}}}};
   const std::vector<xodr::LaneSection> kLaneSections{{0.,
                                                       true,
                                                       {{xodr::Lane::Id("1"),

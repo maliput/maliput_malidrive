@@ -23,11 +23,8 @@ GTEST_TEST(Geometry, StrToTypeMethod) {
 }
 
 GTEST_TEST(Geometry, EqualityOperator) {
-  const Geometry kGeometry{1.23 /* s_0 */,
-                           {523.2 /* x */, 83.27 /* y */},
-                           0.77 /* orientation */,
-                           100. /* length */,
-                           Geometry::Type::kLine /* Type */};
+  const Geometry kGeometry{1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},   0.77 /* orientation */,
+                           100. /* length */, Geometry::Type::kLine /* Type */, {Geometry::Line{}} /* description */};
   Geometry geometry = kGeometry;
 
   EXPECT_EQ(kGeometry, geometry);

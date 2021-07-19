@@ -50,6 +50,7 @@ class RoadCurveFactoryTest : public ::testing::Test {
   const double kP0{0.};
   const double kP1{1.};
   const double kP2{2.};
+  const double kCurvature{-0.002};
   const Vector2 kStartPoint{1., 2.};
   const Vector2 kStartPointB{1. + std::sqrt(2.) / 2., 2. + std::sqrt(2.) / 2.};
   const double kHeading{M_PI / 4.};
@@ -59,7 +60,6 @@ class RoadCurveFactoryTest : public ::testing::Test {
       kP0, kStartPoint, kHeading, kP1 - kP0, xodr::Geometry::Type::kLine, {xodr::Geometry::Line{}}};
   const xodr::Geometry kArcGeometryB{
       kP1, kStartPointB, kHeading, kP2 - kP1, xodr::Geometry::Type::kArc, {xodr::Geometry::Arc{kCurvature}}};
-  const double kCurvature{-0.002};
   const RoadCurveFactory dut_{kLinearTolerance, kScaleLength, kAngularTolerance};
 };
 
