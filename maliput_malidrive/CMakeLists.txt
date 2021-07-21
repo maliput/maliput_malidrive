@@ -60,7 +60,7 @@ if(BUILD_TESTING)
   if(NOT MALIPUT_MALIDRIVE_INTEGRATION_TESTS)
     set(MALIPUT_MALIDRIVE_INTEGRATION_TESTS ON CACHE BOOL "Enable disable integration tests")
   endif()
-  message("INTEGRATION Tests are: " ${MALIPUT_MALIDRIVE_INTEGRATION_TESTS})
+  message(STATUS "INTEGRATION Tests are: " ${MALIPUT_MALIDRIVE_INTEGRATION_TESTS})
 
   add_subdirectory(test)
 endif()

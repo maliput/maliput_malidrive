@@ -8,9 +8,6 @@
 
 find_package(ament_cmake_gtest REQUIRED)
 
-# Find the Python interpreter for running the check_test_ran.py script
-find_package(PythonInterp 3 QUIET)
-
 ##############################################################################
 # Macros
 ##############################################################################
@@ -49,13 +46,6 @@ macro(maliput_malidrive_plugin_tests)
     # Remove a warning in GTest.
     target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
 
-    if (PYTHONINTERP_FOUND)
-      # Check that the test produced a result and create a failure if
-      # it didn't. Guards against crashed and timed out tests.
-      add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE}
-        ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
-        ${CMAKE_BINARY_DIR}/test_results/maliput_malidrive/${BINARY_NAME}.gtest.xml)
-    endif()
   endforeach()
 endmacro()
 
@@ -68,7 +58,7 @@ macro(maliput_malidrive_build_tests)
     # When integration tests are disabled, we just skip adding them.
     if(NOT MALIDRIVE_INTEGRATION_TESTS)
       if(${TEST_TYPE} MATCHES "INTEGRATION")
-        message("Integration tests are disarmed, skipping: " ${BINARY_NAME})
+        message(STATUS "Integration tests are disarmed, skipping: " ${BINARY_NAME})
         continue()
       endif()
     endif()
@@ -104,13 +94,6 @@ macro(maliput_malidrive_build_tests)
     # Remove a warning in GTest.
     target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
 
-    if (PYTHONINTERP_FOUND)
-      # Check that the test produced a result and create a failure if
-      # it didn't. Guards against crashed and timed out tests.
-      add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE}
-        ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
-        ${CMAKE_BINARY_DIR}/test_results/maliput_malidrive/${BINARY_NAME}.gtest.xml)
-    endif()
   endforeach()
 endmacro()
 
@@ -154,7 +137,7 @@ macro(malidrive_build_integration_based_tests)
     # When integration tests are disabled, we just skip adding them.
     if(NOT MALIPUT_MALIDRIVE_INTEGRATION_TESTS)
       if(${TEST_TYPE} MATCHES "INTEGRATION")
-        message("Integration tests are disarmed, skipping: " ${GTEST_SOURCE_file})
+        message(STATUS "Integration tests are disarmed, skipping: " ${GTEST_SOURCE_file})
         continue()
       endif()
     endif()
@@ -163,7 +146,7 @@ macro(malidrive_build_integration_based_tests)
       string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
       set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME}_${XODR_MAP_file})
 
-      ament_add_gtest_executable(${BINARY_NAME} ${GTEST_SOURCE_file})
+      ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file})
 
       target_include_directories(${BINARY_NAME}
         PRIVATE
@@ -190,9 +173,9 @@ macro(malidrive_build_integration_based_tests)
       # Remove a warning in GTest.
       target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
 
-      add_test(${BINARY_NAME} ${CMAKE_CURRENT_BINARY_DIR}/${BINARY_NAME}
-        --gtest_output=xml:${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml
-        --test-command ${BINARY_NAME} "--xodr_file=${XODR_FILE_PREFIX}${XODR_MAP_file}"
+      target_compile_definitions(${BINARY_NAME}
+        PRIVATE
+          XODR_FILE="${XODR_FILE_PREFIX}${XODR_MAP_file}"
       )
 
       # Extensive tests require more time when sanitizers are run due to extra
@@ -204,13 +187,6 @@ macro(malidrive_build_integration_based_tests)
       set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT ${TEST_TIMEOUT})
       unset(TEST_TIMEOUT)
 
-      if (PYTHONINTERP_FOUND)
-        # Check that the test produced a result and create a failure if
-        # it didn't. Guards against crashed and timed out tests.
-        add_test(check_${BINARY_NAME} ${PYTHON_EXECUTABLE}
-          ${PROJECT_SOURCE_DIR}/test/utils/check_test_ran.py
-          ${CMAKE_BINARY_DIR}/test_results/${BINARY_NAME}.xml)
-      endif()
     endforeach()
   endforeach()
 endmacro()

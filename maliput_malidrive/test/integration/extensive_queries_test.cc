@@ -1,7 +1,5 @@
 // Copyright 2020 Toyota Research Institute
 #include <iostream>
-#include <optional>
-#include <regex>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -24,76 +22,6 @@
 
 namespace malidrive {
 namespace test {
-namespace {
-
-// @brief Parses `arg` and returnd an optional pair with key and value if `arg`
-//        follows '--key=value'.
-// @param[in] arg A string to parse.
-// @returns A pair whose first value is the key, and the second is the value.
-std::optional<std::pair<std::string, std::string>> ExtractKeyAndValue(const std::string& arg) {
-  // 2 for "--" + 1+ for parameter name + 1 for "=" + 1+ for parameter value.
-  if (arg.size() < 5) {
-    return {};
-  }
-  // Finds spaces, carry returns, new line or tabs in the string.
-  const std::regex invalid_characters("[ \r|\n|\t]");
-  std::smatch matcher;
-  if (std::regex_search(arg, matcher, invalid_characters)) {
-    return {};
-  }
-
-  // Checks that arg starts with "--".
-  const std::string start_token("--");
-  const auto start_it = arg.find(start_token);
-  if (start_it != 0) {
-    return {};
-  }
-
-  // Checks that arg contains with "=" after "--".
-  const std::string separator_token("=");
-  const auto separator_it = arg.find(separator_token, 2);
-  if (separator_it == std::string::npos) {
-    return {};
-  }
-
-  // Gets the key and the value.
-  const std::string key = arg.substr(start_token.size(), separator_it - start_token.size());
-  if (key.size() == 0) {
-    return {};
-  }
-  const std::string value = arg.substr(separator_it + separator_token.size());
-  if (value.size() == 0) {
-    return {};
-  }
-  return std::make_pair(key, value);
-}
-
-// Key of the XODR file.
-const std::string kXodrFileKey{"xodr_file"};
-// Parsed value.
-std::optional<std::string> xodr_file_path{};
-
-}  // namespace
-
-void LoadCLIArgs(int argc, char** argv) {
-  if (argc <= 1) {
-    throw std::runtime_error("Missing arguments. Expecting --xodr_file=<file_path>.");
-  }
-
-  for (int i = 1; i < argc; ++i) {
-    std::cerr << argv[i] << std::endl;
-    const std::string argument(argv[i]);
-    const std::optional<std::pair<std::string, std::string>> key_value = ExtractKeyAndValue(argument);
-    if (!key_value.has_value()) {
-      continue;
-    }
-    if (key_value->first == kXodrFileKey) {
-      xodr_file_path = key_value->second;
-      return;
-    }
-  }
-  throw std::runtime_error("Could not find '--xodr_file=<file_path>'.");
-}
 
 // To improve test speed, each test should be written inside a function of this
 // class, that way the same RoadNetwork is used every time and Load() is only
@@ -102,8 +30,8 @@ void LoadCLIArgs(int argc, char** argv) {
 class MalidriveExtensiveQueriesTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    ASSERT_TRUE(!!xodr_file_path);
-    xodr_file_path_ = xodr_file_path.value();
+    xodr_file_path_ = XODR_FILE;
+    ASSERT_TRUE(!xodr_file_path_.empty());
   }
 
   void TearDown() override {
@@ -359,7 +287,6 @@ TEST_F(MalidriveExtensiveQueriesTest, MeshGenerationTest) {
 }  // namespace malidrive
 
 int main(int argc, char** argv) {
-  malidrive::test::LoadCLIArgs(argc, argv);
   testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
