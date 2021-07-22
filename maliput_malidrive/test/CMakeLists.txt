@@ -124,13 +124,8 @@ macro(malidrive_build_integration_based_tests)
     SShapeSuperelevatedRoad.xodr
     StraightForward.xodr
     TShapeRoad.xodr
+    Figure8.xodr
   )
-  # TODO(#41): Remove this guard for the Figure8 xodr map.
-  if (NOT THREAD_SANITIZER)
-    set(XODR_FILE_PATHS ${XODR_FILE_PATHS}
-      Figure8.xodr
-    )
-  endif()
 
   # Build all the tests
   foreach(GTEST_SOURCE_file ${ARGN})
