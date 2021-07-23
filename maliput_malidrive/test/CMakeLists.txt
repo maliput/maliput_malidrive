@@ -176,11 +176,8 @@ macro(malidrive_build_integration_based_tests)
       # Extensive tests require more time when sanitizers are run due to extra
       # debug code introduced.
       set(TEST_TIMEOUT 300)
-      if (ADDRESS_SANITIZER OR UNDEFINED_SANITIZER)
+      if (SANITIZERS)
         set(TEST_TIMEOUT 340)
-      endif()
-      if (THREAD_SANITIZER)
-        set(TEST_TIMEOUT 440)
       endif()
       set_tests_properties(${BINARY_NAME} PROPERTIES TIMEOUT ${TEST_TIMEOUT})
       unset(TEST_TIMEOUT)
