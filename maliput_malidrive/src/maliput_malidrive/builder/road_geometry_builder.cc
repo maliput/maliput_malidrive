@@ -272,10 +272,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
                           linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
     try {
       std::unique_ptr<const maliput::api::RoadGeometry> rg = DoBuild();
-      maliput::log()->info("RoadGeometry loaded successfully after iteration [{}] using:", i);
-      maliput::log()->info("|__ linear_tolerance = {}", linear_tolerance_);
-      maliput::log()->info("|__ angular_tolerance = {}", angular_tolerance_);
-      maliput::log()->info("|__ scale_length = {}", scale_length_);
+      maliput::log()->info(
+          "RoadGeometry loaded successfully after iteration [{}] using:\n\t|__ linear_tolerance = {}\n\t|__ "
+          "angular_tolerance = {}\n\t|__ scale_length = {}",
+          i, linear_tolerance_, angular_tolerance_, scale_length_);
       return rg;
     } catch (maliput::common::assertion_error& e) {
       maliput::log()->warn(
