@@ -252,6 +252,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
     angular_tolerances[i] = angular_tolerances[i - 1] * 1.1;
     scale_lengths[i] = constants::kScaleLength;
   }
+  Reset(linear_tolerances[0], angular_tolerances[0], scale_lengths[0]);
 
   // @{ Code in doc-bloc goes against https://drake.mit.edu/styleguide/cppguide.html#Exceptions
   //    See https://github.com/ToyotaResearchInstitute/maliput_malidrive/pull/77#discussion_r643434626
@@ -266,18 +267,23 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   //    thrown.
   // Iterates over the tolerances.
   maliput::log()->debug("Starting linear and angular tolerance trials to build the RoadGeometry.");
-  for (size_t i = 0; i < linear_tolerances.size(); ++i) {
+  for (size_t i = 0; i < linear_tolerances.size() - 1; ++i) {
     maliput::log()->debug("Iteration [{}] with (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}).", i,
                           linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
     try {
-      Reset(linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
-      return DoBuild();
+      std::unique_ptr<const maliput::api::RoadGeometry> rg = DoBuild();
+      maliput::log()->info("RoadGeometry loaded successfully after iteration [{}] using:", i);
+      maliput::log()->info("|__ linear_tolerance = {}", linear_tolerance_);
+      maliput::log()->info("|__ angular_tolerance = {}", angular_tolerance_);
+      maliput::log()->info("|__ scale_length = {}", scale_length_);
+      return rg;
     } catch (maliput::common::assertion_error& e) {
       maliput::log()->warn(
           "Iteration [{}] failed with : (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}). "
           "Error: {}",
-          linear_tolerance_, angular_tolerance_, scale_length_, e.what());
+          i, linear_tolerance_, angular_tolerance_, scale_length_, e.what());
     }
+    Reset(linear_tolerances[i + 1], angular_tolerances[i + 1], scale_lengths[i + 1]);
     // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
     maliput::log()->trace("Rebuilding the DBManager");
     manager_ = xodr::LoadDataBaseFromFile(rg_config_.opendrive_file,
