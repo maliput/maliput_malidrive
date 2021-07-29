@@ -119,24 +119,28 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
       return lane_width.d * p * p * p + lane_width.c * p * p + lane_width.b * p + lane_width.a;
     };
     // clang-format on
+
+    // Verifies the image of the functions at p0 and p1.
     const double f_p0 = eval_cubic_polynomial(p0);
     const double f_p1 = eval_cubic_polynomial(p1);
-
-    if (f_p0 < -linear_tolerance) {
+    bool non_negative_limits{true};
+    if (f_p0 < -linear_tolerance / 2.) {
+      non_negative_limits = false;
       const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
                             "] function which range is [" + std::to_string(p0) + " , " + std::to_string(p1) +
-                            "] is negative at beginning of the range [lane_width_s = " + std::to_string(p0) +
-                            " | lane_s = " + std::to_string(lane_widths[i].s_0) +
+                            "] is negative at the beginning of the range, at [lane_width_s = " + std::to_string(p0) +
+                            " | lane_s = " + std::to_string(lane_widths[i].s_0 + p0) +
                             "] with a width value of: " + std::to_string(f_p0)};
       maliput::log()->warn(msg);
       if (!allow_negative_width) {
         MALIPUT_THROW_MESSAGE(msg);
       }
     }
-    if (f_p1 < -linear_tolerance) {
+    if (f_p1 < -linear_tolerance / 2.) {
+      non_negative_limits = false;
       const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
                             "] function which range is [" + std::to_string(p0) + " , " + std::to_string(p1) +
-                            "] is negative at the end of the range [lane_width_s = " + std::to_string(p1) +
+                            "] is negative at the end of the range, at [lane_width_s = " + std::to_string(p1) +
                             " | lane_s = " + std::to_string(lane_widths[i].s_0 + p1) +
                             "] with a width value of: " + std::to_string(f_p1)};
       maliput::log()->warn(msg);
@@ -144,19 +148,26 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
         MALIPUT_THROW_MESSAGE(msg);
       }
     }
-
-    const std::vector<std::pair<double, int>> roots =
-        GetRealRootsFromCubicPol(lane_widths[i].d, lane_widths[i].c, lane_widths[i].b, lane_widths[i].a);
-    for (const auto& root : roots) {
-      if (root.first > p0 + linear_tolerance && root.first < p1 - linear_tolerance) {
-        // There is a change of sign in the range.
-        const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
-                              "] function which range is [" + std::to_string(p0) + " , " + std::to_string(p1) +
-                              "] presents a change of sign at [lane_width_s = " + std::to_string(root.first) +
-                              " | lane_s = " + std::to_string(root.first + lane_widths[i].s_0) + "]"};
-        maliput::log()->warn(msg);
-        if (!allow_negative_width) {
-          MALIPUT_THROW_MESSAGE(msg);
+    if (non_negative_limits) {
+      // Once is checked that we have non-negative width at the ends of the range we can analyze the
+      // roots to verify that there is no negative values in between.
+      const std::vector<std::pair<double, int>> roots =
+          GetRealRootsFromCubicPol(lane_widths[i].d, lane_widths[i].c, lane_widths[i].b, lane_widths[i].a);
+      for (const auto& root : roots) {
+        // We've already verified that the initial and final value of the range is non-negative.
+        // Therefore in order to guarantee that there is no sign change within the range we must verify that
+        // there are no roots located within the range, unless it is just one double root. (pairs roots represents a
+        // "bounce" in the abscissa axis.)
+        if (root.first > p0 + linear_tolerance && root.first < p1 - linear_tolerance && root.second != 2) {
+          // There is a change of sign in the range.
+          const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
+                                "] function which range is [" + std::to_string(p0) + " , " + std::to_string(p1) +
+                                "] presents a change of sign at [lane_width_s = " + std::to_string(root.first) +
+                                " | lane_s = " + std::to_string(root.first + lane_widths[i].s_0) + "]"};
+          maliput::log()->warn(msg);
+          if (!allow_negative_width) {
+            MALIPUT_THROW_MESSAGE(msg);
+          }
         }
       }
     }
