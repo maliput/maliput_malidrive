@@ -139,15 +139,15 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
       }
     }
 
-    std::vector<double> roots =
+    std::vector<std::pair<double, int>> roots =
         GetRealRootsFromCubicPol(lane_widths[i].d, lane_widths[i].c, lane_widths[i].b, lane_widths[i].a);
-    for (const double& root : roots) {
-      if (root > p0 + linear_tolerance && root < p1 - linear_tolerance) {
+    for (const auto& root : roots) {
+      if (root.first > p0 + linear_tolerance && root.first < p1 - linear_tolerance) {
         // There is a change of sign in the range.
         const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
                               "] function which range is [" + std::to_string(p0) + " , " + std::to_string(p1) +
-                              "] presents a change of sign at [lane_width_s = " + std::to_string(root) +
-                              " | lane_s = " + std::to_string(root + lane_widths[i].s_0) + "]"};
+                              "] presents a change of sign at [lane_width_s = " + std::to_string(root.first) +
+                              " | lane_s = " + std::to_string(root.first + lane_widths[i].s_0) + "]"};
         maliput::log()->warn(msg);
         if (!allow_negative_width) {
           MALIPUT_THROW_MESSAGE(msg);

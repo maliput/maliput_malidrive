@@ -1,6 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/builder_tools.h"
 
+#include <algorithm>
 #include <map>
 
 #include <maliput/api/lane.h>
@@ -418,48 +419,60 @@ std::pair<std::string, std::optional<std::string>> VehicleUsageAndExclusiveRuleS
   return std::make_pair(VehicleUsageValueForXodrLane(xodr_lane), VehicleExclusiveValueForXodrLane(xodr_lane));
 }
 
-std::vector<double> GetRealRootsFromCubicPol(double a, double b, double c, double d) {
-  if (a == 0.) {
+std::vector<std::pair<double, int>> GetRealRootsFromCubicPol(double a, double b, double c, double d) {
+  std::vector<std::pair<double, int>> roots{};
+  if (std::abs(a) < constants::kStrictLinearTolerance) {
     // Quadratic polynomial
     const double det = c * c - 4 * b * d;
-    if (det < 0) {
+    if (det < - constants::kStrictLinearTolerance) {
       // Only complex roots.
       return {};
+    } else if(std::abs(det) <= constants::kStrictLinearTolerance) {
+      // Double real root.
+      roots.push_back({(-c + std::sqrt(det)) / (2 * b), 2});
+    } else {
+      // Simple unequal real roots.
+      roots.push_back({(-c + std::sqrt(det)) / (2 * b), 1});
+      roots.push_back({(-c - std::sqrt(det)) / (2 * b), 1});
     }
-    return {(-c + std::sqrt(det)) / (2 * b), (-c - std::sqrt(det)) / (2 * b)};
-  }
-  // Applying Shengjin's formula for the cubic polynomial which is valid only when a ≠ 0.
-  const double A = b * b - 3 * a * c;
-  const double B = b * c - 9 * a * d;
-  const double C = c * c - 3 * b * d;
-  const double D = B * B - 4 * A * C;
-  if (A == B && B == 0.) {
-    // It has a triple real root
-    return {-b / (3 * a)};
-  } else if (D > 0) {
-    // It has a real root and a pair of conjugate complex roots
-    const double Y1 = A * b + 3. * a * (0.5 * (-1.0 * B + std::sqrt(D)));
-    const double Y2 = A * b + 3. * a * (0.5 * (-1.0 * B - std::sqrt(D)));
-    const double x1 = (-b - std::cbrt(Y1) - std::cbrt(Y2)) / (3 * a);
-    return {x1};
-  } else if (D == 0) {
-    // It has three real roots, including one double root
-    const double K = B / A;
-    const double x1 = -b / a + K;
-    const double x2 = -K / 2;  // double root.
-    return {x1, x2};
-  } else if (D < 0) {
-    // It has three unequal real roots
-    const double T = (2 * A * b - 3 * a * B) / (2 * A * sqrt(A));
-    const double theta = acos(T);
-    const double xt = theta / 3.0;
-    const double x1 = (-1 * b - 2 * sqrt(A) * cos(xt)) / (3.0 * a);
-    const double x2 = (-1 * b + sqrt(A) * (cos(xt) - sqrt(3) * sin(xt))) / (3 * a);
-    const double x3 = (-1 * b + sqrt(A) * (cos(xt) + sqrt(3) * sin(xt))) / (3 * a);
-    return {x1, x2, x3};
   } else {
-    MALIDRIVE_THROW_MESSAGE("Code shouldn't reach here.");
+    // Applying Shengjin's formula for the cubic polynomial which is valid only when a ≠ 0.
+    const double A = b * b - 3 * a * c;
+    const double B = b * c - 9 * a * d;
+    const double C = c * c - 3 * b * d;
+    const double D = B * B - 4 * A * C;
+    if (std::abs(A) < constants::kStrictLinearTolerance &&
+        std::abs(B) < constants::kStrictLinearTolerance) {
+      // It has a triple real root
+      roots.push_back({-b / (3 * a), 3});
+    } else if (D > constants::kStrictLinearTolerance) {
+      // It has a real root and a pair of complex conjugate roots.
+      const double Y1 = A * b + 3. * a * (0.5 * (-1.0 * B + std::sqrt(D)));
+      const double Y2 = A * b + 3. * a * (0.5 * (-1.0 * B - std::sqrt(D)));
+      const double x1 = (-b - std::cbrt(Y1) - std::cbrt(Y2)) / (3 * a);
+      roots.push_back({x1, 1});
+    } else if (std::abs(D) < constants::kStrictLinearTolerance) {
+      // It has three real roots, including one double root.
+      const double K = B / A;
+      const double x1 = -b / a + K;
+      const double x2 = -K / 2;  // double root.
+      roots.push_back({x1, 1});
+      roots.push_back({x2, 2});
+    } else {
+      // It has three unequal real roots.
+      const double T = (2 * A * b - 3 * a * B) / (2 * A * sqrt(A));
+      const double theta = acos(T);
+      const double xt = theta / 3.0;
+      const double x1 = (-1 * b - 2 * sqrt(A) * cos(xt)) / (3.0 * a);
+      const double x2 = (-1 * b + sqrt(A) * (cos(xt) - sqrt(3) * sin(xt))) / (3 * a);
+      const double x3 = (-1 * b + sqrt(A) * (cos(xt) + sqrt(3) * sin(xt))) / (3 * a);
+      roots.push_back({x1, 1});
+      roots.push_back({x2, 1});
+      roots.push_back({x3, 1});
+    }
   }
+  std::sort(roots.begin(), roots.end());
+  return roots;
 }
 
 }  // namespace builder

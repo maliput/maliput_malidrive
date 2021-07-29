@@ -3,6 +3,7 @@
 
 #include <optional>
 #include <string>
+#include <utility>
 
 #include <maliput/api/lane_data.h>
 #include <maliput/api/road_geometry.h>
@@ -306,12 +307,11 @@ std::pair<std::string, std::optional<std::string>> VehicleUsageAndExclusiveRuleS
 
 /// Computes the real roots of the cubic polynomial
 ///
-/// @f$ y(x) = a x^3 + b x^2 + c x + d / x,a,b,c ∈ ℝ @f$.
+/// @f$ f(p) = a p^3 + b p^2 + c p + d / p,a,b,c ∈ ℝ @f$.
 ///
 /// @details Some considerations:
 /// 1 - Only real roots are computed.
-/// 2 - When having repeated roots only one is returned.
-/// 3 - To calculate the roots of the cubic polynomial Shengjin's formula [1989] is used. It was
+/// 2 - To calculate the roots of the cubic polynomial Shengjin's formula [1989] is used. It was
 ///     preferred over the general cubic formula given that to get real roots
 ///     there is no need to deal with complex numbers.
 ///     See https://blog.karthisoftek.com/a?ID=01500-491cda51-8686-4845-82d4-bd6b41d2e316
@@ -320,8 +320,8 @@ std::pair<std::string, std::optional<std::string>> VehicleUsageAndExclusiveRuleS
 /// @param b Quadratic coefficient.
 /// @param c Linear coefficient.
 /// @param d Constant coefficient.
-/// @returns The real roots of the cubic polynomial.
-std::vector<double> GetRealRootsFromCubicPol(double a, double b, double c, double d);
+/// @returns A vector containing pairs of real root value and order of the root.
+std::vector<std::pair<double, int>> GetRealRootsFromCubicPol(double a, double b, double c, double d);
 
 }  // namespace builder
 }  // namespace malidrive
