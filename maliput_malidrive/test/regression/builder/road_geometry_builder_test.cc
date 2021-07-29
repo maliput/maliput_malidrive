@@ -1147,49 +1147,50 @@ INSTANTIATE_TEST_CASE_P(RoadGeometryOmittingNonDrivableLanesTestGroup, RoadGeome
 class RoadGeometryNegativeLaneWidthTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    factory_ = std::make_unique<builder::RoadCurveFactory>(road_geometry_configuration_.linear_tolerance,
-                                                           road_geometry_configuration_.scale_length,
-                                                           road_geometry_configuration_.angular_tolerance);
+    factory_ = std::make_unique<builder::RoadCurveFactory>(rg_config.linear_tolerance, rg_config.scale_length,
+                                                           rg_config.angular_tolerance);
   }
 
   const std::string kXodrFile{"SingleRoadNegativeWidth.xodr"};
-  builder::RoadGeometryConfiguration road_geometry_configuration_{
-      malidrive::test::GetRoadGeometryConfigurationFor(kXodrFile).value()};
+  builder::RoadGeometryConfiguration rg_config{malidrive::test::GetRoadGeometryConfigurationFor(kXodrFile).value()};
   std::unique_ptr<const maliput::api::RoadGeometry> dut_;
   std::unique_ptr<builder::RoadCurveFactory> factory_;
 };
 
 // Throws if negative width descriptions are found because of the strictness in the builder.
 TEST_F(RoadGeometryNegativeLaneWidthTest, Strict) {
-  road_geometry_configuration_.standard_strictness_policy =
-      builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict;
+  rg_config.standard_strictness_policy = builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict;
 
-  EXPECT_THROW(builder::RoadGeometryBuilder(
-                   xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
-                                              {road_geometry_configuration_.linear_tolerance}),
-                   road_geometry_configuration_, std::move(factory_))(),
+  EXPECT_THROW(builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file),
+                                                                       {rg_config.linear_tolerance}),
+                                            rg_config, std::move(factory_))(),
                maliput::common::assertion_error);
 }
 
 // Allow having negative width descriptions.
 // Width is clamped to zero when a lane-bound query is called.
 TEST_F(RoadGeometryNegativeLaneWidthTest, AllowNegativeWidthDescriptions) {
-  road_geometry_configuration_.standard_strictness_policy =
+  rg_config.standard_strictness_policy =
       builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors;
 
-  ASSERT_NO_THROW(dut_ = builder::RoadGeometryBuilder(
-                      xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
-                                                 {road_geometry_configuration_.linear_tolerance}),
-                      road_geometry_configuration_, std::move(factory_))());
+  ASSERT_NO_THROW(
+      dut_ = builder::RoadGeometryBuilder(
+          xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file), {rg_config.linear_tolerance}),
+          rg_config, std::move(factory_))());
   ASSERT_NE(dut_, nullptr);
 
   // Let's make a lane bound query to a conflictive lane to verify.
   const maliput::api::LaneId lane_id("265_0_-5");
-  const auto lane = dut_->ById().GetLane(maliput::api::LaneId("265_0_-5"));
+  const auto lane = dut_->ById().GetLane(lane_id);
+  ASSERT_NE(lane, nullptr);
   // In a range (0, 2.56994) the width description has negative values.
   auto bounds = lane->lane_bounds(1.5);
   EXPECT_EQ(0., bounds.min());
   EXPECT_EQ(0., bounds.max());
+  // Verifying that after the negative range we get the correct value.
+  bounds = lane->lane_bounds(8.0);
+  EXPECT_NEAR(-0.02839, bounds.min(), rg_config.linear_tolerance);
+  EXPECT_NEAR(0.02839, bounds.max(), rg_config.linear_tolerance);
 }
 
 }  // namespace

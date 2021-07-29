@@ -1,6 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/base/lane.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include <maliput/common/logger.h>
@@ -79,10 +80,9 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
 
 maliput::api::RBounds Lane::do_lane_bounds(double s) const {
   const double p = p_from_s_(s_range_validation_(s));
-  double width = lane_width_->f(p);
   // Lane width function is a cubic polynomial and as such negative values are possible,
   // however negative widths are clamped to zero given that it isn't consistent with real lane situations.
-  if (width < 0) width = 0.;
+  const double width = std::max(0., lane_width_->f(p));
   return {-width / 2., width / 2.};
 }
 

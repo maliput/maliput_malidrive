@@ -431,9 +431,10 @@ class GetRealRootsFromCubicPolTest : public ::testing::Test {
  protected:
   // Evaluates whether `expected_roots` are the same as `roots`.
   // Each pair contains the root value and the order of the root.
-  void CheckRoots(const std::vector<std::pair<double, int>>& expected_roots, const std::vector<std::pair<double, int>>& roots) {
+  void CheckRoots(const std::vector<std::pair<double, int>>& expected_roots,
+                  const std::vector<std::pair<double, int>>& roots) {
     ASSERT_EQ(expected_roots.size(), roots.size());
-    for (int i = 0; i < static_cast<int>(expected_roots.size())-1; ++i) {
+    for (int i = 0; i < static_cast<int>(expected_roots.size()) - 1; ++i) {
       // The the roots are sorted so we can use indexes to evaluate same values..
       EXPECT_DOUBLE_EQ(expected_roots[i].first, roots[i].first);
       EXPECT_EQ(expected_roots[i].second, roots[i].second);
@@ -443,37 +444,37 @@ class GetRealRootsFromCubicPolTest : public ::testing::Test {
 
 // Onle one simple root.
 TEST_F(GetRealRootsFromCubicPolTest, OneRealRoot) {
-  const std::vector<std::pair<double,int>> expected_roots{{-3.627365084711833,1}};
+  const std::vector<std::pair<double, int>> expected_roots{{-3.627365084711833, 1}};
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(1, 3, -2, 1));
 }
 
 // Three unequal roots.
 TEST_F(GetRealRootsFromCubicPolTest, ThreeUnequalRealRoots) {
-  const std::vector<std::pair<double,int>> expected_roots{{-3.414213562373094, 1}, {-0.585786437626905, 1}, {1., 1}};
+  const std::vector<std::pair<double, int>> expected_roots{{-3.414213562373094, 1}, {-0.585786437626905, 1}, {1., 1}};
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(1, 3, -2, -2));
 }
 
 // Two different real root, one is double.
 TEST_F(GetRealRootsFromCubicPolTest, ThreeRealRoots) {
-  const std::vector<std::pair<double,int>> expected_roots{{0.0, 2}, {1.0, 1}};
+  const std::vector<std::pair<double, int>> expected_roots{{0.0, 2}, {1.0, 1}};
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(1, -1, 0, 0));
 }
 
 // Triple real root
 TEST_F(GetRealRootsFromCubicPolTest, ThreeEqualRealRoots) {
-  const std::vector<std::pair<double,int>> expected_roots{{0.0, 3}};
+  const std::vector<std::pair<double, int>> expected_roots{{0.0, 3}};
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(1, 0, 0, 0));
 }
 
 // Cubic coefficient a = 0, real roots;
 TEST_F(GetRealRootsFromCubicPolTest, QuadraticRealRoots) {
-  const std::vector<std::pair<double,int>> expected_roots{{-1., 1}, {2., 1}};
+  const std::vector<std::pair<double, int>> expected_roots{{-1., 1}, {2., 1}};
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(0, -2, 2, 4));
 }
 
 // Cubic coefficient a = 0, no real roots;
 TEST_F(GetRealRootsFromCubicPolTest, QuadraticNoRealRoots) {
-  const std::vector<std::pair<double,int>> expected_roots{/* no real roots*/};
+  const std::vector<std::pair<double, int>> expected_roots{/* no real roots*/};
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(0, -2, 2, -5));
 }
 

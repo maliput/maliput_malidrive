@@ -98,23 +98,29 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                                                      double linear_tolerance, bool allow_negative_width) {
   const int num_polynomials = static_cast<int>(lane_widths.size());
   for (int i = 0; i < num_polynomials; i++) {
+    if (lane_widths[i].a >= 0 && lane_widths[i].b >= 0 && lane_widths[i].c >= 0 && lane_widths[i].d >= 0) {
+      // If all coefficients are non-negative, given that the function will be evaluated for non-negative p then
+      // we can assume that it is a valid function before moving forward to the root analysis.
+      continue;
+    }
     const bool end{i == num_polynomials - 1};
     // Start p value for the i-th lane width function in its range.
     const double p0{0.};
     // End p value for the i-th lane width function.
-    const double p1{end ? (xodr_lane_length - lane_widths[i].s_0) : lane_widths[i + 1].s_0 - lane_widths[i].s_0};
+    const double p1{end ? (xodr_lane_length - lane_widths[i].s_0) : (lane_widths[i + 1].s_0 - lane_widths[i].s_0)};
     if (p1 - p0 < 0) {
       // If there is no range or it isn't valid then this verification is pointless.
-      // This kind of cases will be taken into account down the river by the builder.
+      // This case will be taken into account down the river by the builder:
+      // See `malidrive::builder::RoadCurveFactory::MakeLaneWidth`
       continue;
     }
     // clang-format off
-    auto cubic = [& lane_width = lane_widths[i]](double p) {
+    auto eval_cubic_polynomial = [& lane_width = lane_widths[i]](double p) {
       return lane_width.d * p * p * p + lane_width.c * p * p + lane_width.b * p + lane_width.a;
     };
     // clang-format on
-    const double f_p0 = cubic(p0);
-    const double f_p1 = cubic(p1);
+    const double f_p0 = eval_cubic_polynomial(p0);
+    const double f_p1 = eval_cubic_polynomial(p1);
 
     if (f_p0 < -linear_tolerance) {
       const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
@@ -139,7 +145,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
       }
     }
 
-    std::vector<std::pair<double, int>> roots =
+    const std::vector<std::pair<double, int>> roots =
         GetRealRootsFromCubicPol(lane_widths[i].d, lane_widths[i].c, lane_widths[i].b, lane_widths[i].a);
     for (const auto& root : roots) {
       if (root.first > p0 + linear_tolerance && root.first < p1 - linear_tolerance) {

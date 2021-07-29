@@ -424,10 +424,10 @@ std::vector<std::pair<double, int>> GetRealRootsFromCubicPol(double a, double b,
   if (std::abs(a) < constants::kStrictLinearTolerance) {
     // Quadratic polynomial
     const double det = c * c - 4 * b * d;
-    if (det < - constants::kStrictLinearTolerance) {
+    if (det < -constants::kStrictLinearTolerance) {
       // Only complex roots.
       return {};
-    } else if(std::abs(det) <= constants::kStrictLinearTolerance) {
+    } else if (std::abs(det) <= constants::kStrictLinearTolerance) {
       // Double real root.
       roots.push_back({(-c + std::sqrt(det)) / (2 * b), 2});
     } else {
@@ -441,8 +441,7 @@ std::vector<std::pair<double, int>> GetRealRootsFromCubicPol(double a, double b,
     const double B = b * c - 9 * a * d;
     const double C = c * c - 3 * b * d;
     const double D = B * B - 4 * A * C;
-    if (std::abs(A) < constants::kStrictLinearTolerance &&
-        std::abs(B) < constants::kStrictLinearTolerance) {
+    if (std::abs(A) < constants::kStrictLinearTolerance && std::abs(B) < constants::kStrictLinearTolerance) {
       // It has a triple real root
       roots.push_back({-b / (3 * a), 3});
     } else if (D > constants::kStrictLinearTolerance) {
