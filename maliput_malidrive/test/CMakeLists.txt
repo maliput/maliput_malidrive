@@ -118,6 +118,7 @@ macro(malidrive_build_integration_based_tests)
     SingleRoadComplexDescription2.xodr
     SingleRoadHighCoefficients.xodr
     SingleRoadNanValues.xodr
+    SingleRoadNegativeWidth.xodr
     SingleRoadTinyGeometry.xodr
     SingleRoadTwoGeometries.xodr
     SShapeRoad.xodr

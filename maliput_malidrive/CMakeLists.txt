@@ -117,6 +117,7 @@ install (FILES resources/ArcLane.xodr
                resources/SingleRoadComplexDescription2.xodr
                resources/SingleRoadHighCoefficients.xodr
                resources/SingleRoadNanValues.xodr
+               resources/SingleRoadNegativeWidth.xodr
                resources/SingleRoadTinyGeometry.xodr
                resources/SingleRoadTwoGeometries.xodr
                resources/SpiralRoad.xodr

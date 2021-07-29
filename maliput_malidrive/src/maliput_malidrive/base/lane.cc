@@ -79,7 +79,10 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
 
 maliput::api::RBounds Lane::do_lane_bounds(double s) const {
   const double p = p_from_s_(s_range_validation_(s));
-  const double width = lane_width_->f(p);
+  double width = lane_width_->f(p);
+  // Lane width function is a cubic polynomial and as such negative values are possible,
+  // however negative widths are clamped to zero given that it isn't consistent with real lane situations.
+  if (width < 0) width = 0.;
   return {-width / 2., width / 2.};
 }
 
