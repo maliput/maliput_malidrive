@@ -93,9 +93,9 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
           : "Manual");
 }
 
-void RoadGeometryBuilder::VerifyLaneWidthPositiveness(const std::vector<xodr::LaneWidth>& lane_widths,
-                                                      const maliput::api::LaneId& lane_id, double xodr_lane_length,
-                                                      double linear_tolerance, bool allow_negative_width) {
+void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::LaneWidth>& lane_widths,
+                                                     const maliput::api::LaneId& lane_id, double xodr_lane_length,
+                                                     double linear_tolerance, bool allow_negative_width) {
   const int num_polynomials = static_cast<int>(lane_widths.size());
   for (int i = 0; i < num_polynomials; i++) {
     const bool end{i == num_polynomials - 1};
@@ -108,9 +108,11 @@ void RoadGeometryBuilder::VerifyLaneWidthPositiveness(const std::vector<xodr::La
       // This kind of cases will be taken into account down the river by the builder.
       continue;
     }
+    // clang-format off
     auto cubic = [& lane_width = lane_widths[i]](double p) {
       return lane_width.d * p * p * p + lane_width.c * p * p + lane_width.b * p + lane_width.a;
     };
+    // clang-format on
     const double f_p0 = cubic(p0);
     const double f_p1 = cubic(p1);
 
@@ -194,9 +196,9 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   const bool allow_negative_width{(rg_config.standard_strictness_policy &
                                    RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
                                   RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
-  VerifyLaneWidthPositiveness(lane->width_description, lane_id,
-                              road_header->GetLaneSectionLength(xodr_lane_section_index), factory->linear_tolerance(),
-                              allow_negative_width);
+  VerifyNonNegativeLaneWidth(lane->width_description, lane_id,
+                             road_header->GetLaneSectionLength(xodr_lane_section_index), factory->linear_tolerance(),
+                             allow_negative_width);
   std::unique_ptr<road_curve::Function> lane_width = std::make_unique<road_curve::ScaledDomainFunction>(
       factory->MakeLaneWidth(lane->width_description, xodr_p_0_lane, xodr_p_1_lane), road_curve_p_0_lane,
       road_curve_p_1_lane, factory->linear_tolerance());

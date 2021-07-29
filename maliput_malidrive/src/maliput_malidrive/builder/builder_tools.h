@@ -306,7 +306,7 @@ std::pair<std::string, std::optional<std::string>> VehicleUsageAndExclusiveRuleS
 
 /// Computes the real roots of the cubic polynomial
 ///
-/// @f$ y(x) = a x^3 + b x^2 + c x + d / x,a,b,c ∈ R @f$.
+/// @f$ y(x) = a x^3 + b x^2 + c x + d / x,a,b,c ∈ ℝ @f$.
 ///
 /// @details Some considerations:
 /// 1 - Only real roots are computed.

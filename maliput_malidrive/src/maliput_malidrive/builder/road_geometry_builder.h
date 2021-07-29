@@ -155,20 +155,22 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
                                                                   RoadGeometry* rg, Segment* segment);
 
   // Analyzes the width description of the Lane and looks for negative width values.
-  // In order to guarantee positiveness each piece of the piecewise-defined lane width function must comply with:
-  // 1 - Positive sign of the width at the beggining of the lane.
-  // 2 - Positive sign of the width at the end of the lane.
-  // 3 - No change of sign along the range of the lane width piece function.
-  //     The change of sign are determined by the roots of the cubic polynomial.
+  // In order to guarantee non-negative values, each piece of the piecewise-defined lane width function must comply
+  // with: 1 - Positive sign of the width at the beginning of the lane. 2 - Positive sign of the width at the end of the
+  // lane. 3 - No change of sign along the range of the lane width piece function.
+  //     Sign changes are determined by the roots of the cubic polynomial.
   //
   // `lane_widths` Width descriptions of a lane.
   // `lane_id` ID of the lane.
   // `xodr_lane_length` Length of the Lane, matches LaneSection length.
   // `linear_tolerance` Linear tolerance.
-  // `allow_negative_width` If true, negative width is allowed, it throws otherwise.
-  static void VerifyLaneWidthPositiveness(const std::vector<xodr::LaneWidth>& lane_widths,
-                                          const maliput::api::LaneId& lane_id, double xodr_lane_length,
-                                          double linear_tolerance, bool allow_negative_width);
+  // `allow_negative_width` If false it throws when negative width is found, otherwise it logs a detailed warning.
+  //
+  // @throws maliput::common::assertion_error When negatives width values are found and `allow_negative_width` is set
+  // false.
+  static void VerifyNonNegativeLaneWidth(const std::vector<xodr::LaneWidth>& lane_widths,
+                                         const maliput::api::LaneId& lane_id, double xodr_lane_length,
+                                         double linear_tolerance, bool allow_negative_width);
 
   // Builds a RoadCurve.
   //

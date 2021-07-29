@@ -404,7 +404,7 @@ std::vector<rules::XodrSpeedProperties> GetMaxSpeedLimitFor(const Lane* lane) {
   } else if (!speed_data_from_road.empty()) {
     speed_data = std::move(speed_data_from_road);
   }
-  // Check if there is a gap at the beggining and complete it with constants::kDefaultMaxSpeedLimit.
+  // Check if there is a gap at the beginning and complete it with constants::kDefaultMaxSpeedLimit.
   if (speed_data.empty() || speed_data[0].s_start != s_track_start) {
     speed_data.insert(speed_data.begin(), {constants::kDefaultMaxSpeedLimit, s_track_start,
                                            speed_data.empty() ? s_track_end : speed_data[0].s_start});
