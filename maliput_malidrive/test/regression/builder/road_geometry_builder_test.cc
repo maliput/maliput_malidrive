@@ -1160,6 +1160,7 @@ class RoadGeometryNegativeLaneWidthTest : public ::testing::Test {
 // Throws if negative width descriptions are found because of the strictness in the builder.
 TEST_F(RoadGeometryNegativeLaneWidthTest, Strict) {
   rg_config.standard_strictness_policy = builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict;
+  rg_config.linear_tolerance = constants::kStrictLinearTolerance;
 
   EXPECT_THROW(builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file),
                                                                        {rg_config.linear_tolerance}),

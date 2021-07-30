@@ -150,20 +150,20 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
     }
     if (non_negative_limits) {
       // Once is checked that we have non-negative width at the ends of the range we can analyze the
-      // roots to verify that there is no negative values in between.
-      const std::vector<std::pair<double, int>> roots =
-          GetRealRootsFromCubicPol(lane_widths[i].d, lane_widths[i].c, lane_widths[i].b, lane_widths[i].a);
-      for (const auto& root : roots) {
-        // We've already verified that the initial and final value of the range is non-negative.
-        // Therefore in order to guarantee that there is no sign change within the range we must verify that
-        // there are no roots located within the range, unless it is just one double root. (pairs roots represents a
-        // "bounce" in the abscissa axis.)
-        if (root.first > p0 + linear_tolerance && root.first < p1 - linear_tolerance && root.second != 2) {
-          // There is a change of sign in the range.
+      // cubic locals to verify that there is no negative values in between.
+      // Only when having a local min between p0 and p1 we can say that there may be a negative range, given that a
+      // local min will make the polynomial to decrease in image. If there is a local min located in the range, we
+      // have to verify then if that local min is located above or below of abscissa axis.
+      const std::optional<double> p_local_min{
+          FindLocalMinFromCubicPol(lane_widths[i].d, lane_widths[i].c, lane_widths[i].b, lane_widths[i].a)};
+      if (p_local_min.has_value() && p_local_min.value() >= p0 && p_local_min.value() <= p1) {
+        const double min_width = eval_cubic_polynomial(p_local_min.value());
+        if (min_width < -linear_tolerance / 2.) {
           const std::string msg{"Lane " + lane_id.string() + " 's LaneWidth[" + std::to_string(i) +
                                 "] function which range is [" + std::to_string(p0) + " , " + std::to_string(p1) +
-                                "] presents a change of sign at [lane_width_s = " + std::to_string(root.first) +
-                                " | lane_s = " + std::to_string(root.first + lane_widths[i].s_0) + "]"};
+                                "] presents negative values with a minimum value of [ " + std::to_string(min_width) +
+                                "] located at [lane_width_s = " + std::to_string(p_local_min.value()) +
+                                " | lane_s = " + std::to_string(p_local_min.value() + lane_widths[i].s_0) + "]"};
           maliput::log()->warn(msg);
           if (!allow_negative_width) {
             MALIPUT_THROW_MESSAGE(msg);

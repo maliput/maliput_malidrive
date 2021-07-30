@@ -157,10 +157,11 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // Analyzes the width description of the Lane and looks for negative width values.
   // In order to guarantee non-negative values, each piece of the piecewise-defined lane width function must comply
   // with:
-  //   1. Positive sign of the width at the beginning of the lane.
-  //   2. Positive sign of the width at the end of the lane.
-  //   3. No change of sign along the range of the lane width piece function.
-  //      Sign changes are determined by the roots of the cubic polynomial.
+  //   1. Positive sign of the width at the beginning of the lane width function.
+  //   2. Positive sign of the width at the end of the lane width function.
+  //   3. If a local minimum is found in the range of the lane width function, then the function evaluated at that local
+  //   minimum
+  //      should be non-negative.
   //
   // `lane_widths` Width descriptions of a lane.
   // `lane_id` ID of the lane.

@@ -478,6 +478,61 @@ TEST_F(GetRealRootsFromCubicPolTest, QuadraticNoRealRoots) {
   CheckRoots(expected_roots, GetRealRootsFromCubicPol(0, -2, 2, -5));
 }
 
+// To verify the local min values it can be used a numpy script.
+//  - The first derivative of the polynomial evaluated at the local min should be zero.
+//  - The first derivative of the polynomial evaluated at the local min should be positive.
+// @code{python}
+//    import numpy as np
+//    pol = np.poly1d([a ,b ,c ,d])
+//    first_deriv_pol = pol.deriv(1)
+//    print (first_deriv_pol(local_min))
+//    second_deriv_pol = pol.deriv(2)
+//    print (second_deriv_pol(local_min))
+// @endcode
+class FindLocalMinFromCubicPolTest : public ::testing::Test {};
+
+// Cubic polynomial, local min. (b^2 - 3ac > 0)
+TEST_F(FindLocalMinFromCubicPolTest, LocalMinForCubic) {
+  {
+    const double expected_local_min{0.72075922005612647};
+    const auto local_min = FindLocalMinFromCubicPol(1, 1, -3, 1);
+    ASSERT_NE(local_min, std::nullopt);
+    EXPECT_DOUBLE_EQ(expected_local_min, local_min.value());
+  }
+  {
+    const double expected_local_min{1.2784092100955864};
+    const auto local_min = FindLocalMinFromCubicPol(-1.1346e-05, 0.00147231, -0.0037088, 0.);
+    ASSERT_NE(local_min, std::nullopt);
+    EXPECT_DOUBLE_EQ(expected_local_min, local_min.value());
+  }
+}
+
+// Cubic polynomial, no local min. (b^2 - 3ac <= 0)
+TEST_F(FindLocalMinFromCubicPolTest, NoLocalMinForCubic) {
+  const auto local_min = FindLocalMinFromCubicPol(3, 4, 5, 6);
+  EXPECT_EQ(local_min, std::nullopt);
+}
+
+// Ascending quadratic polynomial (b > 0), local min.
+TEST_F(FindLocalMinFromCubicPolTest, LocalMinForQuadratic) {
+  const double expected_local_min{-1};
+  const auto local_min = FindLocalMinFromCubicPol(0, 1, 2, 3);
+  ASSERT_NE(local_min, std::nullopt);
+  EXPECT_DOUBLE_EQ(expected_local_min, local_min.value());
+}
+
+// Descending quadratic polynomial(b < 0), no local min.
+TEST_F(FindLocalMinFromCubicPolTest, NoLocalMinForQuadratic) {
+  const auto local_min = FindLocalMinFromCubicPol(0, -1, 2, 3);
+  EXPECT_EQ(local_min, std::nullopt);
+}
+
+// Linear polynomial, no local min.
+TEST_F(FindLocalMinFromCubicPolTest, NoLocalMinForLinear) {
+  const auto local_min = FindLocalMinFromCubicPol(0, 0, 2, 3);
+  EXPECT_EQ(local_min, std::nullopt);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
