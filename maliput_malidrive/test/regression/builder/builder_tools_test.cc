@@ -420,7 +420,7 @@ TEST_F(GetLaneSpeedPropertiesTest, CompleteRange) {
   EXPECT_EQ(xodr::ConvertToMs(60., xodr::Unit::kKph), speed_properties[2].max);
 }
 
-// To verify the local min values it can be used a numpy script.
+// To verify the local min values, the following numpy script can be used.
 //  - The first derivative of the polynomial evaluated at the local min should be zero.
 //  - The first derivative of the polynomial evaluated at the local min should be positive.
 // @code{python}

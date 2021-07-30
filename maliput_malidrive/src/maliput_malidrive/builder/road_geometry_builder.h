@@ -84,8 +84,10 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     // Constructs a LanesBuilder.
     // `junction_segments_attributes_in` Contains all the attributes needed to build all the Lanes of a given Junction.
     // `factory_in` Is a pointer to the RoadCurveFactoryBase.
-    // `rg_config` road geometry configuration.
+    // `rg_config_in` road geometry configuration.
     // `rg_in` Is a pointer to the RoadGeometry.
+    //
+    // Note: All input parameters are aliased and thus must remain valid for the duration of this class instance.
     //
     // @throws maliput::common::assertion_error When `rg` is nullptr.
     // @throws maliput::common::assertion_error When `factory` is nullptr.
@@ -110,9 +112,9 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
                     std::map<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>
         junction_segments_attributes;
 
-    const RoadCurveFactoryBase* factory;
+    const RoadCurveFactoryBase* factory{};
     const RoadGeometryConfiguration& rg_config;
-    RoadGeometry* rg;
+    RoadGeometry* rg{};
   };
 
   // Builds a Lane and returns within a LaneConstructionResult that holds extra attributes related to the lane.
@@ -157,11 +159,10 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // Analyzes the width description of the Lane and looks for negative width values.
   // In order to guarantee non-negative values, each piece of the piecewise-defined lane width function must comply
   // with:
-  //   1. Positive sign of the width at the beginning of the lane width function.
-  //   2. Positive sign of the width at the end of the lane width function.
-  //   3. If a local minimum is found in the range of the lane width function, then the function evaluated at that local
-  //   minimum
-  //      should be non-negative.
+  //   1. Non-negative sign of the width at the beginning of the lane width function.
+  //   2. Non-negative sign of the width at the end of the lane width function.
+  //   3. If a local minimum is found in the range of the lane width function, then the function
+  //      evaluated at that local minimum should be non-negative.
   //
   // `lane_widths` Width descriptions of a lane.
   // `lane_id` ID of the lane.

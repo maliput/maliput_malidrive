@@ -430,14 +430,14 @@ std::optional<double> FindLocalMinFromCubicPol(double a, double b, double c, dou
       return p_local_min;
     }
     if (b > 0) {
-      // Only when the parabola ascends we could have a "local "minimum value.
+      // Only when the parabola ascends could we have a "local minimum" value.
       p_local_min = -c / (2 * b);
     }
   } else {
     // Cubic polynomial
     const double det = b * b - 3 * a * c;
     if (det > constants::kStrictLinearTolerance) {
-      // if b^2 – 3ac is nonpositive, the cubic function is strictly monotonic, so local min couldn't be found.
+      // If b^2 – 3ac is nonpositive, the cubic function is strictly monotonic, so local min couldn't be found.
       const double x1 = (-b + std::sqrt(det)) / (3 * a);
       const double x2 = (-b - std::sqrt(det)) / (3 * a);
       for (const auto& p_local : {x1, x2}) {

@@ -223,7 +223,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
       {"SingleRoadNanValues", "SingleRoadNanValues.xodr"},
       /*
         SingleRoadNegativeWidth describes a single road with a particular lane width description in which the width
-        function results to be negative for a certain range of the lane.
+        function provides a negative value for a certain range of the lane.
       */
       {"SingleRoadNegativeWidth", "SingleRoadNegativeWidth.xodr"},
       /*

@@ -100,7 +100,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
   for (int i = 0; i < num_polynomials; i++) {
     if (lane_widths[i].a >= 0 && lane_widths[i].b >= 0 && lane_widths[i].c >= 0 && lane_widths[i].d >= 0) {
       // If all coefficients are non-negative, given that the function will be evaluated for non-negative p then
-      // we can assume that it is a valid function before moving forward to the root analysis.
+      // we can assume that it is a valid function before moving forward with the analysis.
       continue;
     }
     const bool end{i == num_polynomials - 1};
@@ -111,7 +111,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
     if (p1 - p0 < 0) {
       // If there is no range or it isn't valid then this verification is pointless.
       // This case will be taken into account down the river by the builder:
-      // See `malidrive::builder::RoadCurveFactory::MakeLaneWidth`
+      // See `malidrive::builder::RoadCurveFactory::MakeLaneWidth`.
       continue;
     }
     // clang-format off
@@ -149,7 +149,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
       }
     }
     if (non_negative_limits) {
-      // Once is checked that we have non-negative width at the ends of the range we can analyze the
+      // Once it is confirmed that we have non-negative width at the ends of the range we can analyze the
       // cubic locals to verify that there is no negative values in between.
       // Only when having a local min between p0 and p1 we can say that there may be a negative range, given that a
       // local min will make the polynomial to decrease in image. If there is a local min located in the range, we

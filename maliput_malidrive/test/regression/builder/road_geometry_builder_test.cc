@@ -1180,15 +1180,16 @@ TEST_F(RoadGeometryNegativeLaneWidthTest, AllowNegativeWidthDescriptions) {
           rg_config, std::move(factory_))());
   ASSERT_NE(dut_, nullptr);
 
-  // Let's make a lane bound query to a conflictive lane to verify.
+  // Let's make a `lane_bounds` query to a lane whose lane-width function has negative values.
   const maliput::api::LaneId lane_id("265_0_-5");
   const auto lane = dut_->ById().GetLane(lane_id);
   ASSERT_NE(lane, nullptr);
   // In a range (0, 2.56994) the width description has negative values.
+  // `lane_bounds` query should return [0, 0] when queried in that range.
   auto bounds = lane->lane_bounds(1.5);
   EXPECT_EQ(0., bounds.min());
   EXPECT_EQ(0., bounds.max());
-  // Verifying that after the negative range we get the correct value.
+  // Verify that after the negative range we get the correct value.
   bounds = lane->lane_bounds(8.0);
   EXPECT_NEAR(-0.02839, bounds.min(), rg_config.linear_tolerance);
   EXPECT_NEAR(0.02839, bounds.max(), rg_config.linear_tolerance);
