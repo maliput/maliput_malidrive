@@ -53,9 +53,9 @@ add_if_not_in_var() {
 }
 # Path to various resources used by shell/python scripts and demos
 #   e.g. configuration files, protos, road geometries
-add_if_not_in_var MALIPUT_MALIDRIVE_RESOURCE_ROOT $AMENT_CURRENT_PREFIX/share/maliput_malidrive
+add_if_not_in_var MALIPUT_MALIDRIVE_RESOURCE_ROOT $COLCON_PREFIX_PATH/maliput_malidrive/share/maliput_malidrive
 
 # Extra paths to executables
-add_if_not_in_var PATH $AMENT_CURRENT_PREFIX/bin/maliput_malidrive
-add_if_not_in_var PATH $AMENT_CURRENT_PREFIX/bin/maliput_malidrive/applications
-add_if_not_in_var PATH $AMENT_CURRENT_PREFIX/bin/maliput_malidrive/examples
+add_if_not_in_var PATH $COLCON_PREFIX_PATH/maliput_malidrive/bin/maliput_malidrive
+add_if_not_in_var PATH $COLCON_PREFIX_PATH/maliput_malidrive/bin/maliput_malidrive/applications
+add_if_not_in_var PATH $COLCON_PREFIX_PATH/maliput_malidrive/bin/maliput_malidrive/examples
