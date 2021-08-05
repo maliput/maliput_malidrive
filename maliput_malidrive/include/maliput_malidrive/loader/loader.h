@@ -62,6 +62,14 @@ namespace loader {
 ///     - 1. <em> "true", "True", "TRUE", "on", "On", "ON" </em>
 ///     - 2. <em> "false", "False",  "FALSE", "off", "Off", "OFF" </em>
 ///   - Default: @e "true"
+/// - @b road_rule_book : Path to the configuration file to load a RoadRulebook
+///   - Default: ""
+/// - @b traffic_light_book : Path to the configuration file to load a TrafficLightBook
+///   - Default: ""
+/// - @b phase_ring_book : Path to the configuration file to load a PhaseRingBook
+///   - Default: ""
+/// - @b intersection_book : Path to the configuration file to load a IntersectionBook
+///   - Default: ""
 ///
 /// When parameters are omitted the default value will be used.
 ///
