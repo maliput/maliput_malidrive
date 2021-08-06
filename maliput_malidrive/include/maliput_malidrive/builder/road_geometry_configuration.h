@@ -127,37 +127,9 @@ struct RoadGeometryConfiguration {
   /// @returns A string value.
   static std::string FromStandardStrictnessPolicyToStr(const StandardStrictnessPolicy& policy);
 
-  /// Default constructor.
-  RoadGeometryConfiguration() = default;
-
-  /// Creates a RoadGeometryConfiguration.
-  ///
-  /// @param road_geometry_id Id of the RoadGeometry
-  /// @param opendrive_file Path to the XODR file to be loaded.
-  /// @param linear_tolerance RoadGeometry's linear tolerance.
-  /// @param angular_tolerance RoadGeometry's angular tolerance.
-  /// @param scale_length RoadGeometry's scale length.
-  /// @param inertial_to_backend_frame_translation Translation from maliput to malidrive inertial frame.
-  /// @param build_policy Build policy.
-  /// @param simplification_policy Simplification policy.
-  /// @param tolerance_selection_policy Tolerance selection policy.
-  /// @param standard_strictness_policy Standard strictness policy.
-  /// @param omit_nondrivable_lanes True for omitting building non-drivable lanes.
-  ///
-  /// Note: The validation of parameters like linear_tolerance, angular_tolerance and scale_length are verified by the
-  /// builder. @see malidrive::builder::RoadGeometryBuilder.
-  RoadGeometryConfiguration(const maliput::api::RoadGeometryId& road_geometry_id, const std::string& opendrive_file,
-                            double linear_tolerance, double angular_tolerance, double scale_length,
-                            const maliput::math::Vector3& inertial_to_backend_frame_translation,
-                            const InertialToLaneMappingConfig& inertial_to_lane_mapping_config,
-                            const BuildPolicy& build_policy, const SimplificationPolicy& simplification_policy,
-                            const ToleranceSelectionPolicy& tolerance_selection_policy,
-                            const StandardStrictnessPolicy& standard_strictness_policy, bool omit_nondrivable_lanes);
-
-  /// Creates a RoadGeometryConfiguration out of a string dictionary which contains parameters to be passed to the
-  /// RoadGeometryBuilder.
+  /// Creates a RoadGeometryConfiguration out of a string dictionary.
   /// @param road_geometry_configuration A string-string map containing the configuration for the builder.
-  explicit RoadGeometryConfiguration(const std::map<std::string, std::string>& road_geometry_configuration);
+  static RoadGeometryConfiguration FromMap(const std::map<std::string, std::string>& road_geometry_configuration);
 
   /// @returns A string-string map containing the RoadGeometry configuration.
   std::map<std::string, std::string> ToStringMap() const;

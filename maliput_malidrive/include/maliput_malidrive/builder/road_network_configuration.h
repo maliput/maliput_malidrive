@@ -21,30 +21,9 @@ struct RoadNetworkConfiguration {
   static constexpr char const* kStrIntersectionBook = "intersection_book";
   /// @}
 
-  /// Default constructor.
-  RoadNetworkConfiguration() = default;
-
-  /// Creates a RoadGeometryConfiguration.
-  /// @param road_geometry_configuration RoadGeometryConfiguration
-  RoadNetworkConfiguration(const RoadGeometryConfiguration& road_geometry_configuration);
-
-  /// Creates a RoadNetworkConfiguration.
-  ///
-  /// @param road_geometry_configuration RoadGeometryConfiguration.
-  /// @param road_rule_book Path to the Road Rule book file.
-  /// @param traffic_light_book Path to the Traffic Light book file.
-  /// @param phase_ring_book Path to the Phase Ring book file.
-  /// @param intersection_book Path to the Intersection book file.
-  RoadNetworkConfiguration(const RoadGeometryConfiguration& road_geometry_configuration,
-                           const std::optional<std::string>& road_rule_book,
-                           const std::optional<std::string>& traffic_light_book,
-                           const std::optional<std::string>& phase_ring_book,
-                           const std::optional<std::string>& intersection_book);
-
-  /// Creates a RoadNetworkConfiguration out of a string dictionary which contains parameters to be passed to the
-  /// RoadNetworkBuilder.
-  /// @param road_network_configuration A string-string map containing the configuration for the builder.
-  explicit RoadNetworkConfiguration(const std::map<std::string, std::string>& road_network_configuration);
+  /// Creates a RoadNetworkConfiguration out of a string dictionary.
+  /// @param road_geometry_configuration A string-string map containing the configuration for the builder.
+  static RoadNetworkConfiguration FromMap(const std::map<std::string, std::string>& road_network_configuration);
 
   /// @returns A string-string map containing the RoadGeometry configuration.
   std::map<std::string, std::string> ToStringMap() const;

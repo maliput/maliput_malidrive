@@ -77,7 +77,7 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
                                             kOmitNondrivableLanes};
   RoadNetworkConfiguration dut1{rg_config, kRoadRuleBook, kTrafficLightBook, kPhaseRingBook, kIntersectionBook};
 
-  RoadNetworkConfiguration dut2{std::map<std::string, std::string>{
+  const std::map<std::string, std::string> rn_config_map{
       {RoadGeometryConfiguration::kStrRoadGeometryId, kRgId},
       {RoadGeometryConfiguration::kStrOpendriveFile, kOpendriveFile},
       {RoadGeometryConfiguration::kStrLinearTolerance, std::to_string(kLinearTolerance)},
@@ -96,7 +96,10 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       {RoadNetworkConfiguration::kStrTrafficLightBook, kTrafficLightBook.value()},
       {RoadNetworkConfiguration::kStrPhaseRingBook, kPhaseRingBook.value()},
       {RoadNetworkConfiguration::kStrIntersectionBook, kIntersectionBook.value()},
-  }};
+  };
+
+  const RoadNetworkConfiguration dut2{RoadNetworkConfiguration::FromMap(rn_config_map)};
+
   ExpectEqual(dut1, dut2);
 }
 
@@ -110,7 +113,7 @@ TEST_F(RoadNetworkConfigurationTest, ToStringMap) {
       kPhaseRingBook,
       kIntersectionBook};
 
-  const RoadNetworkConfiguration dut2{dut1.ToStringMap()};
+  const RoadNetworkConfiguration dut2{RoadNetworkConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);
 }
 

@@ -57,7 +57,7 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
                                        kStandardStrictnessPolicy,
                                        kOmitNondrivableLanes};
 
-  const RoadGeometryConfiguration dut2{std::map<std::string, std::string>{
+  const std::map<std::string, std::string> rg_config_map{
       {RoadGeometryConfiguration::kStrRoadGeometryId, kRgId},
       {RoadGeometryConfiguration::kStrOpendriveFile, kOpendriveFile},
       {RoadGeometryConfiguration::kStrLinearTolerance, std::to_string(kLinearTolerance)},
@@ -72,7 +72,9 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
       {RoadGeometryConfiguration::kStrStandardStrictnessPolicy,
        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(kStandardStrictnessPolicy)},
       {RoadGeometryConfiguration::kStrOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
-  }};
+  };
+
+  const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(rg_config_map)};
 
   ExpectEqual(dut1, dut2);
 }
@@ -91,7 +93,7 @@ TEST_F(RoadGeometryConfigurationTest, ToStringMap) {
                                        kStandardStrictnessPolicy,
                                        kOmitNondrivableLanes};
 
-  const RoadGeometryConfiguration dut2{dut1.ToStringMap()};
+  const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);
 }
 

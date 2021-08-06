@@ -41,7 +41,7 @@ namespace malidrive {
 namespace builder {
 
 std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() const {
-  const RoadNetworkConfiguration rn_config{road_network_configuration_};
+  const auto rn_config{RoadNetworkConfiguration::FromMap(road_network_configuration_)};
   const auto& rg_config = rn_config.road_geometry_configuration;
   MALIDRIVE_VALIDATE(!rg_config.opendrive_file.empty(), std::runtime_error, "opendrive_file cannot be empty");
   std::unique_ptr<builder::RoadCurveFactoryBase> road_curve_factory = std::make_unique<builder::RoadCurveFactory>(

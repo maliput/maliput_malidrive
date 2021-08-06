@@ -83,55 +83,37 @@ bool ParseBoolean(const std::string& bool_str) {
 
 }  // namespace
 
-RoadGeometryConfiguration::RoadGeometryConfiguration(
-    const maliput::api::RoadGeometryId& road_geometry_id, const std::string& opendrive_file, double linear_tolerance,
-    double angular_tolerance, double scale_length, const maliput::math::Vector3& inertial_to_backend_frame_translation,
-    const InertialToLaneMappingConfig& inertial_to_lane_mapping_config, const BuildPolicy& build_policy,
-    const SimplificationPolicy& simplification_policy, const ToleranceSelectionPolicy& tolerance_selection_policy,
-    const StandardStrictnessPolicy& standard_strictness_policy, bool omit_nondrivable_lanes)
-    : id(road_geometry_id),
-      opendrive_file(opendrive_file),
-      linear_tolerance(linear_tolerance),
-      angular_tolerance(angular_tolerance),
-      scale_length(scale_length),
-      inertial_to_backend_frame_translation(inertial_to_backend_frame_translation),
-      inertial_to_lane_mapping_config(inertial_to_lane_mapping_config),
-      build_policy(build_policy),
-      simplification_policy(simplification_policy),
-      tolerance_selection_policy(tolerance_selection_policy),
-      standard_strictness_policy(standard_strictness_policy),
-      omit_nondrivable_lanes(omit_nondrivable_lanes) {}
-
-RoadGeometryConfiguration::RoadGeometryConfiguration(
+RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
     const std::map<std::string, std::string>& road_geometry_configuration) {
+  RoadGeometryConfiguration rg_config{};
   auto it = road_geometry_configuration.find(kStrRoadGeometryId);
   if (it != road_geometry_configuration.end()) {
-    id = maliput::api::RoadGeometryId{it->second};
+    rg_config.id = maliput::api::RoadGeometryId{it->second};
   }
 
   it = road_geometry_configuration.find(kStrOpendriveFile);
   if (it != road_geometry_configuration.end()) {
-    opendrive_file = it->second;
+    rg_config.opendrive_file = it->second;
   }
 
   it = road_geometry_configuration.find(kStrLinearTolerance);
   if (it != road_geometry_configuration.end()) {
-    linear_tolerance = std::stod(it->second);
+    rg_config.linear_tolerance = std::stod(it->second);
   }
 
   it = road_geometry_configuration.find(kStrAngularTolerance);
   if (it != road_geometry_configuration.end()) {
-    angular_tolerance = std::stod(it->second);
+    rg_config.angular_tolerance = std::stod(it->second);
   }
 
   it = road_geometry_configuration.find(kStrScaleLength);
   if (it != road_geometry_configuration.end()) {
-    scale_length = std::stod(it->second);
+    rg_config.scale_length = std::stod(it->second);
   }
 
   it = road_geometry_configuration.find(kStrInertialToBackendFrameTranslation);
   if (it != road_geometry_configuration.end()) {
-    inertial_to_backend_frame_translation = maliput::math::Vector3::FromStr(it->second);
+    rg_config.inertial_to_backend_frame_translation = maliput::math::Vector3::FromStr(it->second);
   }
 
   it = road_geometry_configuration.find(kStrBuildPolicy);
@@ -140,28 +122,29 @@ RoadGeometryConfiguration::RoadGeometryConfiguration(
     it = road_geometry_configuration.find(kStrNumThreads);
     const std::optional<int> num_threads{
         it != road_geometry_configuration.end() ? std::make_optional(std::stoi(it->second)) : std::nullopt};
-    build_policy = BuildPolicy{build_policy_type, num_threads};
+    rg_config.build_policy = BuildPolicy{build_policy_type, num_threads};
   }
 
   it = road_geometry_configuration.find(kStrSimplificationPolicy);
   if (it != road_geometry_configuration.end()) {
-    simplification_policy = FromStrToSimplificationPolicy(it->second);
+    rg_config.simplification_policy = FromStrToSimplificationPolicy(it->second);
   }
 
   it = road_geometry_configuration.find(kStrToleranceSelectionPolicy);
   if (it != road_geometry_configuration.end()) {
-    tolerance_selection_policy = FromStrToToleranceSelectionPolicy(it->second);
+    rg_config.tolerance_selection_policy = FromStrToToleranceSelectionPolicy(it->second);
   }
 
   it = road_geometry_configuration.find(kStrStandardStrictnessPolicy);
   if (it != road_geometry_configuration.end()) {
-    standard_strictness_policy = FromStrToStandardStrictnessPolicy(it->second);
+    rg_config.standard_strictness_policy = FromStrToStandardStrictnessPolicy(it->second);
   }
 
   it = road_geometry_configuration.find(kStrOmitNonDrivableLanes);
   if (it != road_geometry_configuration.end()) {
-    omit_nondrivable_lanes = ParseBoolean(it->second);
+    rg_config.omit_nondrivable_lanes = ParseBoolean(it->second);
   }
+  return rg_config;
 }
 
 std::map<std::string, std::string> RoadGeometryConfiguration::ToStringMap() const {
