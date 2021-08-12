@@ -96,6 +96,7 @@ install (FILES resources/ArcLane.xodr
                resources/DriveableAndPedestrian.xodr
                resources/DisconnectedRoadInJunction.xodr
                resources/Figure8.xodr
+               resources/FlatTown01.xodr
                resources/Highway.xodr
                resources/kpit_map.xodr
                resources/LeftRightSidedRoads.xodr
@@ -124,6 +125,13 @@ install (FILES resources/ArcLane.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr
                resources/StraightForward.xodr
+               resources/Town01.xodr
+               resources/Town02.xodr
+               resources/Town03.xodr
+               resources/Town04.xodr
+               resources/Town05.xodr
+               resources/Town06.xodr
+               resources/Town07.xodr
                resources/TShapeRoad.xodr
                resources/TShapeRoad.yaml
          DESTINATION ${OPENDRIVE_SAMPLES_PATH})

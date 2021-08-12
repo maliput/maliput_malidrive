@@ -126,6 +126,13 @@ macro(malidrive_build_integration_based_tests)
     StraightForward.xodr
     TShapeRoad.xodr
     Figure8.xodr
+    Town01.xodr
+    Town02.xodr
+    Town03.xodr
+    Town04.xodr
+    Town05.xodr
+    Town06.xodr
+    Town07.xodr
   )
 
   # Build all the tests
