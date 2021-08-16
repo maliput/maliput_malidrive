@@ -11,7 +11,6 @@
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
-#include "maliput_malidrive/road_curve/piecewise_function.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
 
 namespace malidrive {
@@ -157,23 +156,27 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeElevation(
-    const xodr::ElevationProfile& elevation_profile, double p0, double p1) const {
+    const xodr::ElevationProfile& elevation_profile, double p0, double p1, bool assert_continuity) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
-  return MakeCubicFromXodr<xodr::ElevationProfile::Elevation>(elevation_profile.elevations, p0, p1,
-                                                              FillingGapPolicy::kEnsureContiguity);
+  return MakeCubicFromXodr<xodr::ElevationProfile::Elevation>(
+      elevation_profile.elevations, p0, p1, FillingGapPolicy::kEnsureContiguity,
+      assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kContinuity
+                        : road_curve::PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog);
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeSuperelevation(
-    const xodr::LateralProfile& lateral_profile, double p0, double p1) const {
+    const xodr::LateralProfile& lateral_profile, double p0, double p1, bool assert_continuity) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
-  return MakeCubicFromXodr<xodr::LateralProfile::Superelevation>(lateral_profile.superelevations, p0, p1,
-                                                                 FillingGapPolicy::kEnsureContiguity);
+  return MakeCubicFromXodr<xodr::LateralProfile::Superelevation>(
+      lateral_profile.superelevations, p0, p1, FillingGapPolicy::kEnsureContiguity,
+      assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kContinuity
+                        : road_curve::PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog);
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth(
-    const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1) const {
+    const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1, bool assert_continuity) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
   const int num_polynomials = static_cast<int>(lane_widths.size());
@@ -218,14 +221,18 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));
   }
-  return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance());
+  return std::make_unique<road_curve::PiecewiseFunction>(
+      std::move(polynomials), linear_tolerance(),
+      assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kContinuity
+                        : road_curve::PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog);
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeReferenceLineOffset(
     const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
-  return MakeCubicFromXodr<xodr::LaneOffset>(reference_offsets, p0, p1, FillingGapPolicy::kZero);
+  return MakeCubicFromXodr<xodr::LaneOffset>(reference_offsets, p0, p1, FillingGapPolicy::kZero,
+                                             road_curve::PiecewiseFunction::ContinuityCheck::kNone);
 }
 
 std::unique_ptr<road_curve::RoadCurve> RoadCurveFactory::MakeMalidriveRoadCurve(
@@ -236,9 +243,9 @@ std::unique_ptr<road_curve::RoadCurve> RoadCurveFactory::MakeMalidriveRoadCurve(
 }
 
 template <class T>
-std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFromXodr(const std::vector<T>& xodr_data,
-                                                                                     double p0, double p1,
-                                                                                     FillingGapPolicy policy) const {
+std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFromXodr(
+    const std::vector<T>& xodr_data, double p0, double p1, FillingGapPolicy policy,
+    road_curve::PiecewiseFunction::ContinuityCheck continuity_check) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
   const std::string xodr_data_type{TypeName<T>()};
@@ -304,11 +311,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
         MALIDRIVE_THROW_MESSAGE("Unknown FillingGapPolicy value.");
     }
   }
-  // If `policy` is kZero then no contiguity is required when creating the PiecewiseFunction.
-  return policy == FillingGapPolicy::kZero
-             ? std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(),
-                                                               true /* no_contiguity_check */)
-             : std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance());
+
+  return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(), continuity_check);
 }
 
 }  // namespace builder

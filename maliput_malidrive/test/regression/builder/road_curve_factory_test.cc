@@ -136,6 +136,8 @@ class RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest : publi
   const double kP1{62.4};
   const double kP0_33{(kP1 - kP0) / 3};
   const double kP0_66{(kP1 - kP0) * 2 / 3};
+  const bool kEnsureContiguity{true};
+  const bool kDontEnsureContiguity{false};
   void SetUp() override {
     road_curve_factory_ = std::make_unique<RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
@@ -151,25 +153,34 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Throw
   }}};
 
   // Negative p0.
-  EXPECT_THROW(road_curve_factory_->MakeElevation(kElevationProfile, -2, kP1), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeElevation(kElevationProfile, -2, kP1, kEnsureContiguity),
+               maliput::common::assertion_error);
   // p1 equal to p0.
-  EXPECT_THROW(road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP0), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP0, kEnsureContiguity),
+               maliput::common::assertion_error);
   // Zero number of polynomials.
-  EXPECT_THROW(road_curve_factory_->MakeElevation({}, kP0, kP0), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeElevation({}, kP0, kP0, kEnsureContiguity), maliput::common::assertion_error);
   // First width's offset different than zero.
-  EXPECT_THROW(road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1),
+  EXPECT_THROW(road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1, kEnsureContiguity),
                maliput::common::assertion_error);
   // Share same s_0 value.
-  EXPECT_THROW(
-      road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}, {1. /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1),
-      maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}, {1. /* s_0 */, 2., 3., 4, 5.}}}, kP0,
+                                                  kP1, kEnsureContiguity),
+               maliput::common::assertion_error);
+  // It doesn't meet C1 continuity between both functions.
+  EXPECT_THROW(road_curve_factory_->MakeElevation({{{2.4 /* s_0 */, 2., 3., 4, 5.}, {20. /* s_0 */, 6., 7., 8, 9.}}},
+                                                  kP0, kP1, kEnsureContiguity),
+               maliput::common::assertion_error);
+  // It doesn't meet C1 continuity between both functions however continuity isn't ensured.
+  EXPECT_NO_THROW(road_curve_factory_->MakeElevation({{{2.4 /* s_0 */, 2., 3., 4, 5.}, {20. /* s_0 */, 6., 7., 8, 9.}}},
+                                                     kP0, kP1, kDontEnsureContiguity));
 }
 
 // MakeElevation, MakeSuperElevation and MakeReferenceLineOffset methods share same implementation: MakeCubicFromXodr.
 TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, LastFunctionLengthZero) {
   // Last function length is zero so is discarded.
-  EXPECT_NO_THROW(
-      road_curve_factory_->MakeElevation({{{kP0 /* s_0 */, 2., 3., 4, 5.}, {kP1 /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1));
+  EXPECT_NO_THROW(road_curve_factory_->MakeElevation({{{kP0 /* s_0 */, 2., 3., 4, 5.}, {kP1 /* s_0 */, 2., 3., 4, 5.}}},
+                                                     kP0, kP1, kEnsureContiguity));
 }
 
 TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, ZeroFunctions) {
@@ -184,8 +195,8 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, ZeroF
   const double kZDotAtP0_66{0.};
   const double kZDotAtP1{0.};
   const std::array<std::unique_ptr<road_curve::Function>, 3> duts{
-      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1),
-      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1),
+      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
+      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity),
       road_curve_factory_->MakeReferenceLineOffset({}, kP0, kP1)};
 
   for (const auto& dut : duts) {
@@ -213,8 +224,8 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, OneFu
   const double kZDotAtP0_66{82.0128};
   const double kZDotAtP1{170.};
   const std::array<std::unique_ptr<road_curve::Function>, 3> duts{
-      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1),
-      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1),
+      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
+      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity),
       road_curve_factory_->MakeReferenceLineOffset({kLaneOffset}, kP0, kP1)};
 
   for (const auto& dut : duts) {
@@ -248,8 +259,8 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Multi
   const double kZDotAtP0_66{2.};
   const double kZDotAtP1{39.4528000000000};
   const std::array<std::unique_ptr<road_curve::Function>, 3> duts{
-      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1),
-      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1),
+      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
+      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity),
       road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1)};
 
   for (const auto& dut : duts) {
@@ -276,8 +287,8 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Eleva
   const double kZDotAtP0_66{2.};
   const double kZDotAtP1{39.4528000000000};
   const std::array<std::unique_ptr<road_curve::Function>, 2> duts{
-      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1),
-      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1)};
+      road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
+      road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity)};
 
   for (const auto& dut : duts) {
     EXPECT_NEAR(kZAtP0, dut->f(kP0), kLinearTolerance);
@@ -324,6 +335,8 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
   const double kP0_33{(kP1 + kP0) / 3};
   const double kP0_50{(kP1 + kP0) / 2};
   const double kP0_66{(kP1 + kP0) * 2 / 3};
+  const bool kEnsureContiguity{true};
+  const bool kDontEnsureContiguity{false};
   const std::vector<xodr::LaneWidth> kLaneWidths{{
       {0. /* offset */, 0. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
       {10. /* offset */, 2. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
@@ -337,21 +350,32 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
 
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, Throws) {
   // Negative p0.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, -2, kP1), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, -2, kP1, kEnsureContiguity),
+               maliput::common::assertion_error);
   // p1 equal to p0.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP0), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP0, kEnsureContiguity),
+               maliput::common::assertion_error);
   // Zero number of polynomials.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({}, kP0, kP0), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({}, kP0, kP0, kEnsureContiguity), maliput::common::assertion_error);
   // First width's offset different than zero.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}}, kP0, kP1),
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity),
                maliput::common::assertion_error);
   // Share same offset value.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}, {1. /* offset */, 2., 3., 4, 5.}},
-                                                  kP0, kP1),
+                                                  kP0, kP1, kEnsureContiguity),
                maliput::common::assertion_error);
   // Function length is zero.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{kP1 /* offset */, 2., 3., 4, 5.}}, kP0, kP1),
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{kP1 /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity),
                maliput::common::assertion_error);
+  // It doesn't meet C1 continuity between both functions.
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(
+                   {{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0, kP1, kEnsureContiguity),
+               maliput::common::assertion_error);
+  // It doesn't meet C1 continuity between both functions however continuity isn't ensured.
+  EXPECT_THROW(
+      road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
+                                         kP1, kDontEnsureContiguity),
+      maliput::common::assertion_error);
 }
 
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, MultipleLaneWidth) {
@@ -365,7 +389,8 @@ TEST_F(RoadCurveFactoryMakeLaneWidthTest, MultipleLaneWidth) {
   const double kWidthDotAtP0_50{0.3};
   const double kWidthDotAtP0_66{00.26666666666666};
   const double kWidthDotAtP1{0.};
-  const std::unique_ptr<road_curve::Function> dut = road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP1);
+  const std::unique_ptr<road_curve::Function> dut =
+      road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP1, kEnsureContiguity);
 
   EXPECT_NEAR(kWidthAtP0, dut->f(kP0), kLinearTolerance);
   EXPECT_NEAR(kWidthAtP0_33, dut->f(kP0_33), kLinearTolerance);

@@ -7,6 +7,7 @@
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/ground_curve.h"
+#include "maliput_malidrive/road_curve/piecewise_function.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
 #include "maliput_malidrive/xodr/geometry.h"
@@ -140,12 +141,14 @@ class RoadCurveFactoryBase {
   ///        negative and must be less than @p p1.
   /// @param p1 Upper bound extreme of the parameter range. It must be greater
   ///        than @p p0.
+  /// @param assert_continuity If true, C1 continuity is assert when function describing the elevation is built.
+  ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the elevation of the Road.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
   /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeElevation(
-      const xodr::ElevationProfile& elevation_profile, double p0, double p1) const = 0;
+      const xodr::ElevationProfile& elevation_profile, double p0, double p1, bool assert_continuity) const = 0;
 
   /// Makes a cubic polynomial that describes the superelevation of a Road.
   ///
@@ -163,12 +166,14 @@ class RoadCurveFactoryBase {
   ///        negative and must be less than @p p1.
   /// @param p1 Upper bound extreme of the parameter range. It must be greater
   ///        than @p p0.
+  /// @param assert_continuity If true, C1 continuity is assert when function describing the superelevation is built.
+  ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the superelevation of the Road.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
   /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeSuperelevation(
-      const xodr::LateralProfile& lateral_profile, double p0, double p1) const = 0;
+      const xodr::LateralProfile& lateral_profile, double p0, double p1, bool assert_continuity) const = 0;
 
   /// Makes a cubic polynomial that describes the width of a Lane.
   ///
@@ -179,6 +184,8 @@ class RoadCurveFactoryBase {
   ///        negative and must be less than @p p1.
   /// @param p1 Upper bound extreme of the parameter range. It must be greater
   ///        than @p p0.
+  /// @param assert_continuity If true, C1 continuity is assert when function describing the lane width is built.
+  ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the width of the Lane.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
@@ -190,7 +197,7 @@ class RoadCurveFactoryBase {
   /// @throws maliput::common::assertion_error When @p lane_widths 's functions aren't at least as long as
   /// road::curve::GroundCurve::kEpsilon.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeLaneWidth(
-      const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1) const = 0;
+      const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1, bool assert_continuity) const = 0;
 
   /// Makes a cubic polynomial that describes the lateral shift of the road reference line.
   ///
@@ -252,11 +259,14 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
       const std::vector<xodr::Geometry>& geometries) const override;
 
   std::unique_ptr<malidrive::road_curve::Function> MakeElevation(const xodr::ElevationProfile& elevation_profile,
-                                                                 double p0, double p1) const override;
+                                                                 double p0, double p1,
+                                                                 bool assert_continuity) const override;
   std::unique_ptr<malidrive::road_curve::Function> MakeSuperelevation(const xodr::LateralProfile& lateral_profile,
-                                                                      double p0, double p1) const override;
+                                                                      double p0, double p1,
+                                                                      bool assert_continuity) const override;
   std::unique_ptr<malidrive::road_curve::Function> MakeLaneWidth(const std::vector<xodr::LaneWidth>& lane_widths,
-                                                                 double p0, double p1) const override;
+                                                                 double p0, double p1,
+                                                                 bool assert_continuity) const override;
   std::unique_ptr<malidrive::road_curve::Function> MakeReferenceLineOffset(
       const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const override;
 
@@ -281,13 +291,16 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   // @param p1 Upper bound extreme of the parameter range. It must be greater
   //        than @p p0.
   // @param policy Determines the behavior of this method to fill geometry gaps.
+  // @param continuity_check Determines whether during a picewise-defined function creation C1 continuity should be
+  // enforced.
   // @returns A cubic polynomial function.
   //
   // @throws maliput::common::assertion_error When @p p0 is negative.
   // @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
   template <class T>
-  std::unique_ptr<malidrive::road_curve::Function> MakeCubicFromXodr(const std::vector<T>& xodr_data, double p0,
-                                                                     double p1, FillingGapPolicy policy) const;
+  std::unique_ptr<malidrive::road_curve::Function> MakeCubicFromXodr(
+      const std::vector<T>& xodr_data, double p0, double p1, FillingGapPolicy policy,
+      road_curve::PiecewiseFunction::ContinuityCheck continuity_check) const;
 };
 
 }  // namespace builder
