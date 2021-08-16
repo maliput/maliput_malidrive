@@ -88,8 +88,7 @@ class RoadCurve {
   ///         @p scale_length are negative.
   /// @throws maliput::common::assertion_error When @p ground_curve or
   ///         @p elevation or @p superelevation are nullptr.
-  /// @throws maliput::common::assertion_error When @p ground_curve or
-  ///         @p elevation or @p superelevation are not G¹.
+  /// @throws maliput::common::assertion_error When @p ground_curve is not G¹.
   /// @throws maliput::common::assertion_error When @p ground_curve,
   ///         @p elevation and @p superelevation do not share the same range
   ///         within @p linear_tolerance.
