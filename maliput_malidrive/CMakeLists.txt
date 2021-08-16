@@ -97,6 +97,9 @@ install (FILES resources/ArcLane.xodr
                resources/DisconnectedRoadInJunction.xodr
                resources/Figure8.xodr
                resources/FlatTown01.xodr
+               resources/GapInElevationNonDrivableRoad.xodr
+               resources/GapInLaneWidthNonDrivableLane.xodr
+               resources/GapInSuperelevationNonDrivableRoad.xodr
                resources/Highway.xodr
                resources/kpit_map.xodr
                resources/LeftRightSidedRoads.xodr

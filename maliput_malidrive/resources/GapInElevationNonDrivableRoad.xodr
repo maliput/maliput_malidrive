@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenDRIVE>
+    <header revMajor="1" revMinor="4" name="GapInElevation" version="1" date="2021-08-16T17:27:38">
+    </header>
+    <road name="Road 1" length="10." id="1" junction="-1">
+        <planView>
+            <geometry s="0.0000000000000000e+0" x="0.0" y="0.0" hdg="0.0" length="10.0000000000000000e+0">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0.0000000000000000e+0" a="3.0" b="0.0" c="0.0" d="0.0"/>
+            <elevation s="5.0" a="5.0" b="0.0" c="0.0" d="0.0"/>
+        </elevationProfile>
+        <lanes>
+            <laneSection s="0.0000000000000000e+0">
+                <center>
+                    <lane id="0" type="none" level="false">
+                    </lane>
+                </center>
+                <right>
+                    <lane id="-1" type="shoulder" level="false">
+                        <width sOffset="0.0000000000000000e+0" a="6.3499999999999979e-1" b="0.0000000000000000e+0" c="0.0000000000000000e+0" d="0.0000000000000000e+0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+</OpenDRIVE>
