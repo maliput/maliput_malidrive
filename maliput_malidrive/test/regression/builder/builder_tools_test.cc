@@ -475,6 +475,42 @@ TEST_F(FindLocalMinFromCubicPolTest, NoLocalMinForLinear) {
   EXPECT_EQ(local_min, std::nullopt);
 }
 
+class AreOnlyNonDrivableLanesTest : public ::testing::Test {};
+
+// xodr::RoadHeader with Roads containing drivable lanes.
+TEST_F(AreOnlyNonDrivableLanesTest, DrivableLanes) {
+  xodr::Lane drivable_lane;
+  drivable_lane.type = xodr::Lane::Type::kDriving;
+  xodr::LaneSection lane_section;
+  lane_section.left_lanes.push_back(drivable_lane);
+  lane_section.right_lanes.push_back(drivable_lane);
+  xodr::RoadHeader drivable_road;
+  drivable_road.lanes.lanes_section.push_back(lane_section);
+  // Road with one lane section.
+  EXPECT_FALSE(AreOnlyNonDrivableLanes(drivable_road));
+  drivable_road.lanes.lanes_section.push_back(lane_section);
+  drivable_road.lanes.lanes_section.push_back(lane_section);
+  // Road with multiple lane section.
+  EXPECT_FALSE(AreOnlyNonDrivableLanes(drivable_road));
+}
+
+// xodr::RoadHeader with Roads containing only non drivable lanes.
+TEST_F(AreOnlyNonDrivableLanesTest, OnlyNonDrivableLanes) {
+  xodr::Lane non_drivable_lane;
+  non_drivable_lane.type = xodr::Lane::Type::kShoulder;
+  xodr::LaneSection lane_section;
+  lane_section.left_lanes.push_back(non_drivable_lane);
+  lane_section.right_lanes.push_back(non_drivable_lane);
+  xodr::RoadHeader non_drivable_road;
+  non_drivable_road.lanes.lanes_section.push_back(lane_section);
+  // Road with one lane section.
+  EXPECT_TRUE(AreOnlyNonDrivableLanes(non_drivable_road));
+  non_drivable_road.lanes.lanes_section.push_back(lane_section);
+  non_drivable_road.lanes.lanes_section.push_back(lane_section);
+  // Road with multiple lane section.
+  EXPECT_TRUE(AreOnlyNonDrivableLanes(non_drivable_road));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder

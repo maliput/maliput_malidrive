@@ -291,6 +291,22 @@ bool is_driveable_lane(const xodr::Lane& xodr_lane) {
   return kXodrLaneTypesToMaliputProperties.at(xodr_lane.type).is_driveable_lane && xodr_lane.id != xodr::Lane::Id("0");
 }
 
+bool AreOnlyNonDrivableLanes(const xodr::RoadHeader& xodr_road) {
+  for (const auto& lane_section : xodr_road.lanes.lanes_section) {
+    for (const auto& lane : lane_section.left_lanes) {
+      if (is_driveable_lane(lane)) {
+        return false;
+      }
+    }
+    for (const auto& lane : lane_section.right_lanes) {
+      if (is_driveable_lane(lane)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 std::string VehicleUsageValueForXodrLane(const xodr::Lane& xodr_lane) {
   return kXodrLaneTypesToMaliputProperties.at(xodr_lane.type).vehicle_usage_value;
 }

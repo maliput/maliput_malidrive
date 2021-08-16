@@ -210,6 +210,13 @@ class LaneTravelDirection {
 ///         valid type.
 bool is_driveable_lane(const xodr::Lane& xodr_lane);
 
+/// Determines whether or not an `xodr_road` contains only non-drivable lanes.
+/// #is_driveable_lane method is used to determine the driveability of the lanes in the road.
+/// @param xodr_road An XODR Lane. It must not be nullptr.
+///
+/// @returns True when `xodr_road` only contains non-drivable lanes.
+bool AreOnlyNonDrivableLanes(const xodr::RoadHeader& xodr_road);
+
 /// Determines the vehicle usage rule state value for `xodr_lane` based on its
 /// XODR Lane type.
 ///
