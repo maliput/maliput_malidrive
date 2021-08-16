@@ -3,39 +3,84 @@
 
 #include <cmath>
 
+#include <maliput/common/logger.h>
+
 #include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
 namespace road_curve {
 namespace {
 
-struct ContiguityChecker {
-  ContiguityChecker() = delete;
+struct ContinuityChecker {
+  ContinuityChecker() = delete;
 
-  explicit ContiguityChecker(double tolerance_in) : tolerance(tolerance_in) { MALIDRIVE_THROW_UNLESS(tolerance > 0.); }
-
-  // Evaluates whether `lhs` is G1 contiguous with `rhs`.
-  // @throws maliput::common::assertion_error When `lhs` is not G1 contiguous with `rhs`.
-  void operator()(const Function* lhs, const Function* rhs) const {
-    const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
-    MALIDRIVE_VALIDATE(f_distance <= tolerance, maliput::common::assertion_error,
-                       std::string("Error when constructing piecewise function. Endpoint distance is <") +
-                           std::to_string(f_distance) +
-                           "> which is greater than tolerance: " + std::to_string(tolerance) + ">.");
-    const double f_dot_distance = std::abs(lhs->f_dot(lhs->p1()) - rhs->f_dot(rhs->p0()));
-    MALIDRIVE_VALIDATE(f_dot_distance <= tolerance, maliput::common::assertion_error,
-                       std::string("Error when constructing piecewise function. Endpoint derivative distance is <") +
-                           std::to_string(f_dot_distance) +
-                           "> which is greater than tolerance: " + std::to_string(tolerance) + ">.");
+  explicit ContinuityChecker(double tolerance_in, const PiecewiseFunction::ContinuityCheck& continuity_check_in)
+      : tolerance(tolerance_in), continuity_check(continuity_check_in) {
+    MALIDRIVE_THROW_UNLESS(tolerance > 0.);
   }
 
-  double tolerance{};
+  // Evaluates whether `lhs` is C1 continuous with `rhs` according to the contiguity strictness.
+  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kContinuity maliput::common::assertion_error is
+  //  thrown when contiguity is violated.
+  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog log message is printed when
+  //  contiguity is violated.
+  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kNone no message is printed whatsoever when
+  //  contiguity is violated.
+  //
+  // @returns True when C1 continuity is met between both functions.
+  // @throws maliput::common::assertion_error When `lhs` is not C1 continuous with `rhs` and continuity_check is
+  // PiecewiseFunction::ContinuityCheck::kContinuity.
+  bool operator()(const Function* lhs, const Function* rhs) const {
+    const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
+    const std::string f_msg{"Error when constructing piecewise function. Endpoint distance is <" +
+                            std::to_string(f_distance) +
+                            "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
+    if (f_distance > tolerance) {
+      switch (continuity_check) {
+        case PiecewiseFunction::ContinuityCheck::kNone:
+          break;
+        case PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog:
+          maliput::log()->warn(f_msg);
+          break;
+        case PiecewiseFunction::ContinuityCheck::kContinuity:
+          MALIDRIVE_THROW_MESSAGE(f_msg);
+          break;
+        default:
+          break;
+      }
+      return false;
+    }
+
+    const double f_dot_distance = std::abs(lhs->f_dot(lhs->p1()) - rhs->f_dot(rhs->p0()));
+    const std::string f_dot_msg{"Error when constructing piecewise function. Endpoint derivative distance is <" +
+                                std::to_string(f_dot_distance) +
+                                "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
+    if (f_dot_distance > tolerance) {
+      switch (continuity_check) {
+        case PiecewiseFunction::ContinuityCheck::kNone:
+          break;
+        case PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog:
+          maliput::log()->warn(f_dot_msg);
+          break;
+        case PiecewiseFunction::ContinuityCheck::kContinuity:
+          MALIDRIVE_THROW_MESSAGE(f_dot_msg);
+          break;
+        default:
+          break;
+      }
+      return false;
+    }
+    return true;
+  }
+
+  const double tolerance{};
+  const PiecewiseFunction::ContinuityCheck continuity_check{};
 };
 
 }  // namespace
 
 PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
-                                     bool no_contiguity_check)
+                                     const PiecewiseFunction::ContinuityCheck& continuity_check)
     : functions_(std::move(functions)), linear_tolerance_(tolerance) {
   MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0.);
   MALIDRIVE_THROW_UNLESS(!functions_.empty());
@@ -44,12 +89,14 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
   p0_ = functions_[0]->p0();
   double p = p0_;
   Function* previous_function{nullptr};
-  const ContiguityChecker checker(linear_tolerance_);
+  const ContinuityChecker checker(linear_tolerance_, continuity_check);
   for (const auto& function : functions_) {
     MALIDRIVE_THROW_UNLESS(function.get() != nullptr);
     MALIDRIVE_THROW_UNLESS(function->IsG1Contiguous());
-    if (previous_function != nullptr && !no_contiguity_check) {
-      checker(previous_function, function.get());
+    if (previous_function != nullptr) {
+      if (!checker(previous_function, function.get())) {
+        is_g1_contiguous = false;
+      }
     }
     const double delta_p = function->p1() - function->p0();
     interval_function_[FunctionInterval(p, p + delta_p)] = function.get();

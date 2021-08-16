@@ -19,21 +19,28 @@ class PiecewiseFunction : public Function {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(PiecewiseFunction)
 
-  /// Constructs PiecewiseFunction from a vector of Functions that are G0
-  /// contiguous up to `tolerance`.
-  /// Contiguity constraint can be disabled.
+  /// Continuity check behavior
+  enum class ContinuityCheck {
+    kNone = 0,           ///> No continuity check
+    kContinuityOnlyLog,  ///> Log when continuity is violated.
+    kContinuity,         ///> Throw when continuity is violated.
+  };
+
+  /// Constructs PiecewiseFunction from a vector of Functions that are C0
+  /// continuous up to `tolerance`.
+  /// Continuity constraint can be disabled.
   ///
   /// @param functions Hold the Functions.
-  /// @param tolerance Tolerance used to verify contiguity.
-  /// @param no_contiguity_check True to avoid the contiguity check. False by default.
+  /// @param tolerance Tolerance used to verify continuity.
+  /// @param continuity_check Select continuity check behavior. ContinuityCheck::kContinuity by default.
   ///
   /// @throws maliput::common::assertion_error When @p functions is empty.
   /// @throws maliput::common::assertion_error When @p functions has a nullptr
   ///         item.
   /// @throws maliput::common::assertion_error When two consecutive items in
-  ///         @p functions are not C¹ contiguous up to @p tolerance and @p no_contiguity_check is false.
+  ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kContinuity.
   PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
-                    bool no_contiguity_check = false);
+                    const ContinuityCheck& continuity_check = ContinuityCheck::kContinuity);
 
  private:
   // Holds the interval of p values in `this` Function domain that map to one of
@@ -67,13 +74,14 @@ class PiecewiseFunction : public Function {
   double do_f_dot_dot(double p) const override;
   double do_p0() const override { return p0_; }
   double do_p1() const override { return p1_; }
-  bool DoIsG1Contiguous() const override { return true; }
+  bool DoIsG1Contiguous() const override { return is_g1_contiguous; }
 
   std::vector<std::unique_ptr<Function>> functions_;
   double p0_{};
   double p1_{};
   std::map<FunctionInterval, Function*> interval_function_;
   double linear_tolerance_{};
+  bool is_g1_contiguous{true};
 };
 
 }  // namespace road_curve
