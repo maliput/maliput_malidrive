@@ -230,7 +230,7 @@ class RoadCurveFactoryBase {
   /// @return A road_curve::MalidriveGroundCurve.
   virtual std::unique_ptr<road_curve::RoadCurve> MakeMalidriveRoadCurve(
       std::unique_ptr<road_curve::GroundCurve> ground_curve, std::unique_ptr<road_curve::Function> elevation,
-      std::unique_ptr<road_curve::Function> superelevation) const = 0;
+      std::unique_ptr<road_curve::Function> superelevation, bool assert_contiguity) const = 0;
 
  private:
   const double linear_tolerance_{};
@@ -270,9 +270,10 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   std::unique_ptr<malidrive::road_curve::Function> MakeReferenceLineOffset(
       const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const override;
 
-  std::unique_ptr<road_curve::RoadCurve> MakeMalidriveRoadCurve(
-      std::unique_ptr<road_curve::GroundCurve> ground_curve, std::unique_ptr<road_curve::Function> elevation,
-      std::unique_ptr<road_curve::Function> superelevation) const override;
+  std::unique_ptr<road_curve::RoadCurve> MakeMalidriveRoadCurve(std::unique_ptr<road_curve::GroundCurve> ground_curve,
+                                                                std::unique_ptr<road_curve::Function> elevation,
+                                                                std::unique_ptr<road_curve::Function> superelevation,
+                                                                bool assert_contiguity) const override;
 
  private:
   // Whether MakeCubicFromXodr() should fulfill gaps with a zero polynomial or ensure C1 continuity.

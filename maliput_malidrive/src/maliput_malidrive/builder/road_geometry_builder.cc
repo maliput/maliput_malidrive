@@ -216,7 +216,7 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   VerifyNonNegativeLaneWidth(lane->width_description, lane_id,
                              road_header->GetLaneSectionLength(xodr_lane_section_index), factory->linear_tolerance(),
                              allow_semantic_errors /* allow_negative_width */);
-  // When semantic errors aren't allowed contiguity must be enforce for both drivable and non-drivable lanes.
+  // When semantic errors aren't allowed G1 contiguity must be enforced for all lanes.
   // Otherwise, only drivable lanes are enforced.
   const bool enforce_contiguity = !allow_semantic_errors || is_driveable_lane(*lane);
   std::unique_ptr<road_curve::Function> lane_width = std::make_unique<road_curve::ScaledDomainFunction>(
@@ -505,7 +505,7 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
   const bool allow_semantic_errors{(rg_config_.standard_strictness_policy &
                                     RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
                                    RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
-  // When semantic errors aren't allowed contiguity must be enforce for both drivable and non-drivable lanes.
+  // When semantic errors aren't allowed G1 contiguity must be enforced for all lanes.
   // Otherwise, only drivable lanes are enforced.
   const bool enforce_contiguity = !allow_semantic_errors || !AreOnlyNonDrivableLanes(road_header);
   auto elevation = std::make_unique<road_curve::ScaledDomainFunction>(
@@ -518,12 +518,8 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
                                    enforce_contiguity),
       ground_curve->p0(), ground_curve->p1(), rg_config_.linear_tolerance);
   maliput::log()->trace("Creating RoadCurve for road id {}", road_header.id.string());
-  if (!allow_semantic_errors) {
-    MALIDRIVE_THROW_UNLESS(elevation->IsG1Contiguous());
-    MALIDRIVE_THROW_UNLESS(superelevation->IsG1Contiguous());
-  }
-  auto road_curve =
-      factory_->MakeMalidriveRoadCurve(std::move(ground_curve), std::move(elevation), std::move(superelevation));
+  auto road_curve = factory_->MakeMalidriveRoadCurve(std::move(ground_curve), std::move(elevation),
+                                                     std::move(superelevation), enforce_contiguity);
   maliput::log()->trace("RoadCurve for road id {} created.", road_header.id.string());
   return road_curve;
 }

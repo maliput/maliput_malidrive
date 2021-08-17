@@ -94,9 +94,10 @@ TEST_F(RoadCurveFactoryTest, PiecewiseGroundCurveExpectsFailure) {
 }
 
 TEST_F(RoadCurveFactoryTest, RoadCurve) {
-  auto malidrive_road_curve = dut_.MakeMalidriveRoadCurve(dut_.MakeLineGroundCurve(kLineGeometry),
-                                                          dut_.MakeCubicPolynomial(kA, kB, kC, kD, kP0, kP1),
-                                                          dut_.MakeCubicPolynomial(kA, kB, kC, kD, kP0, kP1));
+  const bool kAssertContiguity{true};
+  auto malidrive_road_curve = dut_.MakeMalidriveRoadCurve(
+      dut_.MakeLineGroundCurve(kLineGeometry), dut_.MakeCubicPolynomial(kA, kB, kC, kD, kP0, kP1),
+      dut_.MakeCubicPolynomial(kA, kB, kC, kD, kP0, kP1), kAssertContiguity);
 
   EXPECT_NE(malidrive_road_curve.get(), nullptr);
   EXPECT_EQ(kLinearTolerance, malidrive_road_curve->linear_tolerance());

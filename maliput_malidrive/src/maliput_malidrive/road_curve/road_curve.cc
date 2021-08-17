@@ -13,7 +13,8 @@ namespace malidrive {
 namespace road_curve {
 
 RoadCurve::RoadCurve(double linear_tolerance, double scale_length, std::unique_ptr<GroundCurve> ground_curve,
-                     std::unique_ptr<Function> elevation, std::unique_ptr<Function> superelevation)
+                     std::unique_ptr<Function> elevation, std::unique_ptr<Function> superelevation,
+                     bool assert_contiguity)
     : linear_tolerance_(linear_tolerance),
       scale_length_(scale_length),
       ground_curve_(std::move(ground_curve)),
@@ -28,6 +29,10 @@ RoadCurve::RoadCurve(double linear_tolerance, double scale_length, std::unique_p
   MALIDRIVE_THROW_UNLESS(superelevation_ != nullptr);
   // Contiguity check.
   MALIDRIVE_THROW_UNLESS(ground_curve_->IsG1Contiguous());
+  if (assert_contiguity) {
+    MALIDRIVE_THROW_UNLESS(elevation_->IsG1Contiguous());
+    MALIDRIVE_THROW_UNLESS(superelevation_->IsG1Contiguous());
+  }
   // Range checks.
   MALIDRIVE_THROW_UNLESS(std::abs(ground_curve_->p0() - elevation_->p0()) <= linear_tolerance_);
   MALIDRIVE_THROW_UNLESS(std::abs(ground_curve_->p0() - superelevation_->p0()) <= linear_tolerance_);

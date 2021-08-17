@@ -36,6 +36,7 @@ class RoadCurveOffsetTest : public ::testing::Test {
   const double kR0{0.};
   const double kRLeft{4.};
   const double kRRight{-2.5};
+  const bool kAssertContiguity{true};
 
   const std::array<double, 5> kPs{kP0, kP0 + kDeltaP * 0.25, kP0 + kDeltaP * 0.5, kP0 + kDeltaP * 0.75, kP1};
   const std::unique_ptr<Function> lane_offset_0 = MakeConstantCubicPolynomial(kR0, kP0, kP1, kLinearTolerance);
@@ -59,7 +60,7 @@ class FlatLineRoadCurveTest : public RoadCurveOffsetTest {
     auto elevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kLinearTolerance);
     auto superelevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kLinearTolerance);
     road_curve_ = std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength, std::move(ground_curve),
-                                              std::move(elevation), std::move(superelevation));
+                                              std::move(elevation), std::move(superelevation), kAssertContiguity);
   }
 
   const Vector2 kDXy{3., 4.};
@@ -185,7 +186,7 @@ class FlatArcRoadCurveTest : public RoadCurveOffsetTest {
     auto elevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kLinearTolerance);
     auto superelevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kLinearTolerance);
     road_curve_ = std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength, std::move(ground_curve),
-                                              std::move(elevation), std::move(superelevation));
+                                              std::move(elevation), std::move(superelevation), kAssertContiguity);
   }
 
   const double kStartHeading{M_PI / 3.};

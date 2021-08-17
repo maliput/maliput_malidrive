@@ -94,19 +94,8 @@ TEST_F(PiecewiseFunctionTest, ConstructorUnmetContraints) {
     functions.push_back(std::make_unique<FunctionStub>(kFE, kFDotE, kFDotDotE, kP0E, kP1E, kIsG1Contiguous));
     EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance), maliput::common::assertion_error);
   }
-  {  // Functions are not C1 but continuity check is disabled.
-    const PiecewiseFunction::ContinuityCheck kNoContinuityCheck{PiecewiseFunction::ContinuityCheck::kNone};
-    std::vector<std::unique_ptr<Function>> functions;
-    functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    functions.push_back(std::make_unique<FunctionStub>(kFE, kFDotE, kFDotDotE, kP0E, kP1E, kIsG1Contiguous));
-    std::unique_ptr<Function> function{nullptr};
-    ASSERT_NO_THROW(function =
-                        std::make_unique<PiecewiseFunction>(std::move(functions), kTolerance, kNoContinuityCheck));
-    EXPECT_FALSE(function->IsG1Contiguous());
-  }
   {  // Functions are not C1 but continuity check only logs.
-    const PiecewiseFunction::ContinuityCheck kContinuityCheckOnlyLog{
-        PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog};
+    const PiecewiseFunction::ContinuityCheck kContinuityCheckOnlyLog{PiecewiseFunction::ContinuityCheck::kLog};
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(std::make_unique<FunctionStub>(kFE, kFDotE, kFDotDotE, kP0E, kP1E, kIsG1Contiguous));

@@ -42,11 +42,12 @@ class RoadGeometryTest : public ::testing::Test {
   const double kP1{100.};
   const maliput::math::Vector2 kXy0{10., 10.};
   const maliput::math::Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
-
+  const bool kAssertContiguity{true};
   std::unique_ptr<road_curve::RoadCurve> road_curve = std::make_unique<road_curve::RoadCurve>(
       kLinearTolerance, kScaleLength,
       std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-      MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+      MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+      kAssertContiguity);
   std::unique_ptr<road_curve::Function> reference_line_offset = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
   std::unique_ptr<xodr::DBManager> manager =
       xodr::LoadDataBaseFromFile(utility::FindResource("odr/SingleLane.xodr"), kParserConfiguration);
@@ -102,7 +103,8 @@ TEST_F(RoadGeometryTest, DuplicatedRoadId) {
   auto road_curve_b = std::make_unique<road_curve::RoadCurve>(
       kLinearTolerance, kScaleLength,
       std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-      MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+      MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+      kAssertContiguity);
   auto reference_line_offset_b = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
 
   rg->AddRoadCharacteristics(kRoadId, std::move(road_curve), std::move(reference_line_offset));

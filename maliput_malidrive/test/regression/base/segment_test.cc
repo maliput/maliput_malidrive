@@ -32,12 +32,13 @@ class SegmentTest : public ::testing::Test {
   const double kScaleLength{1.};
   const Vector2 kXy0{10., 10.};
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
-
+  const bool kAssertContiguity{true};
   void SetUp() override {
     road_curve_ = std::make_unique<road_curve::RoadCurve>(
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
   }
   std::unique_ptr<road_curve::RoadCurve> road_curve_;

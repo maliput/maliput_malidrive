@@ -21,26 +21,41 @@ class PiecewiseFunction : public Function {
 
   /// Continuity check behavior
   enum class ContinuityCheck {
-    kNone = 0,           ///> No continuity check
-    kContinuityOnlyLog,  ///> Log when continuity is violated.
-    kContinuity,         ///> Throw when continuity is violated.
+    kLog = 0,  ///> Log when continuity is violated.
+    kAssert,   ///> Throw when continuity is violated.
   };
 
-  /// Constructs PiecewiseFunction from a vector of Functions that are C0
-  /// continuous up to `tolerance`.
-  /// Continuity constraint can be disabled.
+  /// Constructs PiecewiseFunction from a collection of Functions.
+  ///
+  /// Functions are expected to be C1 continuous and G1 continuity is evaluated at
+  /// the extents. Constraints can be disabled with `continuity_check`.
   ///
   /// @param functions Hold the Functions.
   /// @param tolerance Tolerance used to verify continuity.
-  /// @param continuity_check Select continuity check behavior. ContinuityCheck::kContinuity by default.
+  /// @param continuity_check Select continuity check behavior. ContinuityCheck::kAssert by default.
   ///
   /// @throws maliput::common::assertion_error When @p functions is empty.
   /// @throws maliput::common::assertion_error When @p functions has a nullptr
   ///         item.
   /// @throws maliput::common::assertion_error When two consecutive items in
-  ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kContinuity.
+  ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kAssert.
   PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
-                    const ContinuityCheck& continuity_check = ContinuityCheck::kContinuity);
+                    const ContinuityCheck& continuity_check);
+
+  /// Constructs PiecewiseFunction from a collection of Functions.
+  ///
+  /// Functions are expected to be C1 continuous and G1 continuity is evaluated at
+  /// the extents.
+  ///
+  /// @param functions Hold the Functions.
+  /// @param tolerance Tolerance used to verify continuity.
+  ///
+  /// @throws maliput::common::assertion_error When @p functions is empty.
+  /// @throws maliput::common::assertion_error When @p functions has a nullptr
+  ///         item.
+  /// @throws maliput::common::assertion_error When two consecutive items in
+  ///         @p functions are not C¹ contiguous up to @p tolerance.
+  PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance);
 
  private:
   // Holds the interval of p values in `this` Function domain that map to one of

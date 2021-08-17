@@ -114,7 +114,8 @@ class LaneTest : public ::testing::Test {
     road_curve_ = std::make_unique<road_curve::RoadCurve>(
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
   }
 
   const maliput::api::LaneId kId{"dut"};
@@ -132,6 +133,7 @@ class LaneTest : public ::testing::Test {
   const double kLaneOffset{10.};
   const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
   const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
+  const bool kAssertContiguity{true};
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
   std::unique_ptr<road_curve::Function> reference_line_offset_;
 };
@@ -238,7 +240,8 @@ class MalidriveFlatLineLaneFullyInitializedTest : public LaneTest {
     road_curve_ = std::make_unique<road_curve::RoadCurve>(
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -456,7 +459,8 @@ class MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslation
     road_curve_ = std::make_unique<road_curve::RoadCurve>(
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -524,7 +528,8 @@ class MalidriveFlatArcLaneFullyInitializedTest : public LaneTest {
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::ArcGroundCurve>(kLinearTolerance, kXy0, kStartHeading, kCurvature, kArcLength, kP0,
                                                      kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -759,11 +764,12 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
     ground_curves.push_back(std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXY0B, kDxyB, kP0B, kP1B));
     ground_curves.push_back(std::make_unique<road_curve::ArcGroundCurve>(kLinearTolerance, kXY0C, kCStartHeading,
                                                                          kCCurvature, kCLength90DegRight, kP0C, kP1C));
-    road_curve_ = std::make_unique<road_curve::RoadCurve>(
-        kLinearTolerance, kScaleLength,
-        std::make_unique<road_curve::PiecewiseGroundCurve>(std::move(ground_curves), kLinearTolerance,
-                                                           kAngularTolerance),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+    road_curve_ =
+        std::make_unique<road_curve::RoadCurve>(kLinearTolerance, kScaleLength,
+                                                std::make_unique<road_curve::PiecewiseGroundCurve>(
+                                                    std::move(ground_curves), kLinearTolerance, kAngularTolerance),
+                                                MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+                                                MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -778,7 +784,7 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
   }
-
+  const bool kAssertContiguity{true};
   // Road geometry configuration.
   // TODO(#460): Error when increasing linear tolerance.
   const double kLinearTolerance{1e-6};
@@ -1093,7 +1099,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
         MakeCubicPolynomial(params_.a, params_.b, params_.c, params_.d, kP0, kP1, kLinearTolerance),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -1134,6 +1140,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
   const Lane* dut_{};
   const ElevationValues params_ = GetParam();
 
+  const bool kAssertContiguity{true};
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
   std::unique_ptr<road_curve::Function> reference_line_offset_;
   std::unique_ptr<RoadGeometry> road_geometry_;
@@ -1417,7 +1424,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
         std::make_unique<road_curve::ArcGroundCurve>(kLinearTolerance, kXy0, kStartHeading, kCurvature, kArcLength, kP0,
                                                      kP1),
         MakeCubicPolynomial(params_.a, params_.b, params_.c, params_.d, kP0, kP1, kLinearTolerance),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -1461,6 +1468,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
   const double kZeroH{0};
   const Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
 
+  const bool kAssertContiguity{true};
   const ArcElevationValues params_ = GetParam();
   // The following constant has been empirically derived.
   // For the proposed set of tests, it is the smallest exponent that allows a polyline integration to match
@@ -1689,8 +1697,8 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
         MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
         MakeCubicPolynomial(superelevation_coefficients[0], superelevation_coefficients[1],
-                            superelevation_coefficients[2], superelevation_coefficients[3], kP0, kP1,
-                            kLinearTolerance));
+                            superelevation_coefficients[2], superelevation_coefficients[3], kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
@@ -1749,6 +1757,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
   // within kLinearTolerance the results of drake's integrators.
   const int kKOrder{13};
 
+  const bool kAssertContiguity{true};
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
   std::unique_ptr<road_curve::Function> reference_line_offset_;
   std::unique_ptr<road_curve::RoadCurveOffset> road_curve_offset_;
@@ -2011,7 +2020,8 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
     road_curve_ = std::make_unique<road_curve::RoadCurve>(
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance));
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
 
     auto lane_width = MakeCubicPolynomial(kLaneWidthCoeff[0], kLaneWidthCoeff[1], kLaneWidthCoeff[2],
                                           kLaneWidthCoeff[3], kP0, kP1, kLinearTolerance);
@@ -2064,6 +2074,7 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
   const Lane* dut_{};
   const road_curve::Function* lane_width_{};
 
+  const bool kAssertContiguity{true};
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
   std::unique_ptr<road_curve::Function> reference_line_offset_;
   std::unique_ptr<RoadGeometry> road_geometry_;
@@ -2209,6 +2220,7 @@ class BelowLinearToleranceLaneTest : public ::testing::Test {
   const double kP1GroundCurve{kP0 + kArcLength};
   const double kP1Lane{kP0 + 5.};
   const double kLinearTolerance{10.};
+  const bool kAssertContiguity{true};
 
   void SetUp() override {
     auto lane_width =
@@ -2224,7 +2236,7 @@ class BelowLinearToleranceLaneTest : public ::testing::Test {
         /*curvature*/ 0.4, kArcLength, kP0, kP1GroundCurve);
     road_curve_ =
         std::make_unique<road_curve::RoadCurve>(kLinearTolerance, /*scale_length*/ 1., std::move(ground_curve),
-                                                std::move(elevation), std::move(superelevation));
+                                                std::move(elevation), std::move(superelevation), kAssertContiguity);
     dut_ = std::make_unique<Lane>(maliput::api::LaneId{"dut"}, /*xodr_track*/ 1, /*xodr_lane_id*/ 1,
                                   maliput::api::HBounds(0., 5.), road_curve_.get(), std::move(lane_width),
                                   std::move(lane_offset), kP0, kP1Lane);

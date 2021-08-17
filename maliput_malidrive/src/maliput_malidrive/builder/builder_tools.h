@@ -203,16 +203,16 @@ class LaneTravelDirection {
 /// - kRail
 /// - kMedian
 ///
-/// @returns True when `xodr_lane` is not the TRACK-lane and it is driveable.
+/// @returns True when `xodr_lane` is not the TRACK-lane and it is drivable.
 ///
-/// @param xodr_lane An XODR Lane. It must not be nullptr.
+/// @param xodr_lane An Xodr Lane that will be evaluated as drivable or non-drivable
 /// @throws maliput::common::assertion_error When `xodr_lane`'s type is not a
 ///         valid type.
 bool is_driveable_lane(const xodr::Lane& xodr_lane);
 
 /// Determines whether or not an `xodr_road` contains only non-drivable lanes.
 /// #is_driveable_lane method is used to determine the driveability of the lanes in the road.
-/// @param xodr_road An XODR Lane. It must not be nullptr.
+/// @param xodr_road An Xodr RoadHeader whose lanes will be evaluated as drivable or non-drivable.
 ///
 /// @returns True when `xodr_road` only contains non-drivable lanes.
 bool AreOnlyNonDrivableLanes(const xodr::RoadHeader& xodr_road);

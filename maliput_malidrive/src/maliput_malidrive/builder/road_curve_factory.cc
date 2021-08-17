@@ -56,6 +56,13 @@ constexpr const char* TypeName() {
   }
 }
 
+// When `assert_continuity` is true returns road_curve::PiecewiseFunction::ContinuityCheck::kAssert,
+// otherwise returns road_curve::PiecewiseFunction::ContinuityCheck::kLog
+road_curve::PiecewiseFunction::ContinuityCheck FromBoolToContiguityCheck(bool assert_continuity) {
+  return assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kAssert
+                           : road_curve::PiecewiseFunction::ContinuityCheck::kLog;
+}
+
 }  // namespace
 
 using maliput::math::Vector2;
@@ -159,20 +166,18 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeElevation
     const xodr::ElevationProfile& elevation_profile, double p0, double p1, bool assert_continuity) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
-  return MakeCubicFromXodr<xodr::ElevationProfile::Elevation>(
-      elevation_profile.elevations, p0, p1, FillingGapPolicy::kEnsureContiguity,
-      assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kContinuity
-                        : road_curve::PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog);
+  return MakeCubicFromXodr<xodr::ElevationProfile::Elevation>(elevation_profile.elevations, p0, p1,
+                                                              FillingGapPolicy::kEnsureContiguity,
+                                                              FromBoolToContiguityCheck(assert_continuity));
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeSuperelevation(
     const xodr::LateralProfile& lateral_profile, double p0, double p1, bool assert_continuity) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
-  return MakeCubicFromXodr<xodr::LateralProfile::Superelevation>(
-      lateral_profile.superelevations, p0, p1, FillingGapPolicy::kEnsureContiguity,
-      assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kContinuity
-                        : road_curve::PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog);
+  return MakeCubicFromXodr<xodr::LateralProfile::Superelevation>(lateral_profile.superelevations, p0, p1,
+                                                                 FillingGapPolicy::kEnsureContiguity,
+                                                                 FromBoolToContiguityCheck(assert_continuity));
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth(
@@ -221,10 +226,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));
   }
-  return std::make_unique<road_curve::PiecewiseFunction>(
-      std::move(polynomials), linear_tolerance(),
-      assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kContinuity
-                        : road_curve::PiecewiseFunction::ContinuityCheck::kContinuityOnlyLog);
+  return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(),
+                                                         FromBoolToContiguityCheck(assert_continuity));
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeReferenceLineOffset(
@@ -232,14 +235,14 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeReference
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
   return MakeCubicFromXodr<xodr::LaneOffset>(reference_offsets, p0, p1, FillingGapPolicy::kZero,
-                                             road_curve::PiecewiseFunction::ContinuityCheck::kNone);
+                                             road_curve::PiecewiseFunction::ContinuityCheck::kLog);
 }
 
 std::unique_ptr<road_curve::RoadCurve> RoadCurveFactory::MakeMalidriveRoadCurve(
     std::unique_ptr<road_curve::GroundCurve> ground_curve, std::unique_ptr<road_curve::Function> elevation,
-    std::unique_ptr<road_curve::Function> superelevation) const {
+    std::unique_ptr<road_curve::Function> superelevation, bool assert_contiguity) const {
   return std::make_unique<road_curve::RoadCurve>(linear_tolerance(), scale_length(), std::move(ground_curve),
-                                                 std::move(elevation), std::move(superelevation));
+                                                 std::move(elevation), std::move(superelevation), assert_contiguity);
 }
 
 template <class T>

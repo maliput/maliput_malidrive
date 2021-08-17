@@ -94,11 +94,12 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, CorrectlyConstructed) {
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
 
   // Correctly constructed RoadCurve.
   EXPECT_NO_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                             MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
-                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous)));
+                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity));
 }
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeLinearTolerance) {
@@ -107,12 +108,13 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeLinearTolerance) {
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
 
   // Throws because of negative linear tolerance.
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous)),
-      maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
 }
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeScaleLength) {
@@ -121,12 +123,13 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeScaleLength) {
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
 
   // Throws because of negative scale length.
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous)),
-      maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
 }
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, NotG1Functions) {
@@ -136,12 +139,32 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NotG1Functions) {
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
   const bool kIsNotG1Contiguous{true};
+  const bool kAssertContiguity{true};
+  const bool kDontAssertContiguity{false};
 
   // Throws because GroundCurve is not G1.
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsNotG1Contiguous),
-                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous)),
-      maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsNotG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
+  // Throws because Elevation is not G1.
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
+  // Throws because Superelevation is not G1.
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
+  // Elevation is not G1 but contiguity is not asserted.
+  EXPECT_NO_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
+                            MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous),
+                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kDontAssertContiguity));
+  // Superelevation is not G1 but contiguity is not asserted.
+  EXPECT_NO_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
+                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+                            MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous), kDontAssertContiguity));
 }
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, WrongRange) {
@@ -152,34 +175,35 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, WrongRange) {
   const double kPC{90.};
   const double kPD{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
 
   // GroundCurve has a different range.
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPC, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous)),
-      maliput::common::assertion_error);
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPB, kPD, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous)),
-      maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPC, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPB, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
   // Elevation has a different range.
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kPA, kPC, kIsG1Contiguous), MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous)),
-      maliput::common::assertion_error);
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kPB, kPD, kIsG1Contiguous), MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous)),
-      maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPC, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPB, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
   // Superelevation has a different range.
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), MakeZeroedFunctionStub(kPA, kPC, kIsG1Contiguous)),
-      maliput::common::assertion_error);
-  EXPECT_THROW(
-      RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
-                MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), MakeZeroedFunctionStub(kPB, kPD, kIsG1Contiguous)),
-      maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPC, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
+                         MakeZeroedFunctionStub(kPB, kPD, kIsG1Contiguous), kAssertContiguity),
+               maliput::common::assertion_error);
 }
 
 GTEST_TEST(MalidriveRoadCurveAccessorsTest, Accessors) {
@@ -189,11 +213,12 @@ GTEST_TEST(MalidriveRoadCurveAccessorsTest, Accessors) {
   const double kP1{100.};
   const double kLMax{kP1 - kP0};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
 
   // Correctly constructed RoadCurve.
   const RoadCurve dut(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                       MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
-                      MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+                      MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
 
   EXPECT_EQ(kP0, dut.p0());
   EXPECT_EQ(kP1, dut.p1());
@@ -206,10 +231,11 @@ GTEST_TEST(MalidriveRoadCurveWTest, ParameterIsNotInRange) {
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
 
   const RoadCurve dut(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                       MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
-                      MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+                      MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
 
   EXPECT_THROW(dut.W({2 * kP1, 0., 0.}), maliput::common::assertion_error);
 }
@@ -257,6 +283,7 @@ class MalidriveRoadCurveStubTest : public ::testing::Test {
   const double kR{3.};
   const double kH{1.};
   const double kZero{0.};
+  const bool kAssertContiguity{true};
 
   std::unique_ptr<RoadCurve> flat_dut_;
   std::unique_ptr<RoadCurve> elevated_dut_;
@@ -269,23 +296,23 @@ class MalidriveRoadCurveStubTest : public ::testing::Test {
                                             MakeGroundCurveStub(kG, kGDot, kHeading, kHeadingDot, kP, kP1 - kP0,
                                                                 kLinearTolerance, kP0, kP1, kIsG1Contiguous),
                                             MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
-                                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+                                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     elevated_dut_ = std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength,
                                                 MakeGroundCurveStub(kG, kGDot, kHeading, kHeadingDot, kP, kP1 - kP0,
                                                                     kLinearTolerance, kP0, kP1, kIsG1Contiguous),
                                                 MakeFunctionStub(kZ, kZero, kZero, kP0, kP1, kIsG1Contiguous),
-                                                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
-    superelevated_dut_ =
-        std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength,
-                                    MakeGroundCurveStub(kG, kGDot, kHeading, kHeadingDot, kP, kP1 - kP0,
-                                                        kLinearTolerance, kP0, kP1, kIsG1Contiguous),
-                                    MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
-                                    MakeFunctionStub(kTheta, kDTheta, kZero, kP0, kP1, kIsG1Contiguous));
+                                                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
+    superelevated_dut_ = std::make_unique<RoadCurve>(
+        kLinearTolerance, kScaleLength,
+        MakeGroundCurveStub(kG, kGDot, kHeading, kHeadingDot, kP, kP1 - kP0, kLinearTolerance, kP0, kP1,
+                            kIsG1Contiguous),
+        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+        MakeFunctionStub(kTheta, kDTheta, kZero, kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     pitched_dut_ = std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength,
                                                MakeGroundCurveStub(kG, kGDot, kHeading, kHeadingDot, kP, kP1 - kP0,
                                                                    kLinearTolerance, kP0, kP1, kIsG1Contiguous),
                                                MakeFunctionStub(kZ, kZDot, kZDotDot, kP0, kP1, kIsG1Contiguous),
-                                               MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+                                               MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
   }
 };
 
@@ -566,6 +593,7 @@ class MalidriveRoadCurveLineTest : public ::testing::Test {
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
   // GroundCurve constants.
   const Vector2 kG0{10., 20.};
   const Vector2 kDG{10., 10 * std::sqrt(3.)};
@@ -643,21 +671,22 @@ class MalidriveRoadCurveLineTest : public ::testing::Test {
  protected:
   void SetUp() override {
     lane_offset_ = MakeCubicPolynomialFunction(kZero, kZero, kLinearOffset, kZero, kP0, kP1, kLinearTolerance);
-    flat_dut_ = std::make_unique<RoadCurve>(
-        kLinearTolerance, kScaleLength, MakeLineGroundCurve(kLinearTolerance, kG0, kDG, kP0, kP1),
-        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+    flat_dut_ = std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength,
+                                            MakeLineGroundCurve(kLinearTolerance, kG0, kDG, kP0, kP1),
+                                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+                                            MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     elevated_dut_ = std::make_unique<RoadCurve>(kLinearTolerance, kScaleLength,
                                                 MakeLineGroundCurve(kLinearTolerance, kG0, kDG, kP0, kP1),
                                                 MakeFunctionStub(kZ0, kZero, kZero, kP0, kP1, kIsG1Contiguous),
-                                                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+                                                MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     pitched_dut_ = std::make_unique<RoadCurve>(
         kLinearTolerance, kScaleLength, MakeLineGroundCurve(kLinearTolerance, kG0, kDG, kP0, kP1),
         MakeCubicPolynomialFunction(0., 0., kZDot0, kZ0, kP0, kP1, kLinearTolerance),
-        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     crest_dut_ = std::make_unique<RoadCurve>(
         kLinearTolerance, kScaleLength, MakeLineGroundCurve(kLinearTolerance, kG0, kDG, kP0, kP1),
         MakeCubicPolynomialFunction(0., 0.5 * kZDotDot, kZDot0, kZ0, kP0, kP1, kLinearTolerance),
-        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
   }
 };
 
@@ -868,6 +897,7 @@ class MalidriveRoadCurveArcTest : public ::testing::Test {
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
+  const bool kAssertContiguity{true};
   // GroundCurve constants corresponding to 180 degree U-turn.
   const Vector2 kG0{10., 20.};
   const double kHeading0{M_PI / 3.};
@@ -924,22 +954,23 @@ class MalidriveRoadCurveArcTest : public ::testing::Test {
     flat_dut_ = std::make_unique<RoadCurve>(
         kLinearTolerance, kScaleLength,
         MakeArcGroundCurve(kLinearTolerance, kG0, kHeading0, kCurvature, kArcLength, kP0, kP1),
-        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
+        kAssertContiguity);
     elevated_dut_ = std::make_unique<RoadCurve>(
         kLinearTolerance, kScaleLength,
         MakeArcGroundCurve(kLinearTolerance, kG0, kHeading0, kCurvature, kArcLength, kP0, kP1),
         MakeFunctionStub(kZ0, kZero, kZero, kP0, kP1, kIsG1Contiguous),
-        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     pitched_dut_ = std::make_unique<RoadCurve>(
         kLinearTolerance, kScaleLength,
         MakeArcGroundCurve(kLinearTolerance, kG0, kHeading0, kCurvature, kArcLength, kP0, kP1),
         MakeCubicPolynomialFunction(0., 0., kZDot0, kZ0, kP0, kP1, kLinearTolerance),
-        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous));
+        MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity);
     superelevated_dut_ = std::make_unique<RoadCurve>(
         kLinearTolerance, kScaleLength,
         MakeArcGroundCurve(kLinearTolerance, kG0, kHeading0, kCurvature, kArcLength, kP0, kP1),
         MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
-        MakeFunctionStub(kTheta, kZero, kZero, kP0, kP1, kIsG1Contiguous));
+        MakeFunctionStub(kTheta, kZero, kZero, kP0, kP1, kIsG1Contiguous), kAssertContiguity);
   }
 };
 

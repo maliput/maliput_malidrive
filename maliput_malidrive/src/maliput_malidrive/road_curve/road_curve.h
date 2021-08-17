@@ -80,20 +80,23 @@ class RoadCurve {
   /// @param ground_curve The reference GroundCurve of this RoadCurve. It must
   ///        not be nullptr and must be G¹.
   /// @param elevation The elevation Function of this RoadCurve. It must not be
-  ///        nullptr and must be G¹.
+  ///        nullptr.
   /// @param superelevation The superelevation Function of this RoadCurve. It
-  ///        must not be nullptr and must be G¹.
+  ///        must not be nullptr.
+  /// @param assert_contiguity True for assert contiguity for `elevation` and `superelevation` functions.
   ///
   /// @throws maliput::common::assertion_error When @p linear_tolerance or
   ///         @p scale_length are negative.
   /// @throws maliput::common::assertion_error When @p ground_curve or
   ///         @p elevation or @p superelevation are nullptr.
+  /// @throws maliput::common::assertion_error When @p ground_curve or
+  ///         @p elevation or @p superelevation are not G¹.
   /// @throws maliput::common::assertion_error When @p ground_curve is not G¹.
   /// @throws maliput::common::assertion_error When @p ground_curve,
   ///         @p elevation and @p superelevation do not share the same range
   ///         within @p linear_tolerance.
   RoadCurve(double linear_tolerance, double scale_length, std::unique_ptr<GroundCurve> ground_curve,
-            std::unique_ptr<Function> elevation, std::unique_ptr<Function> superelevation);
+            std::unique_ptr<Function> elevation, std::unique_ptr<Function> superelevation, bool assert_contiguity);
 
   ~RoadCurve() = default;
 
