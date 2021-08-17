@@ -44,17 +44,10 @@ class PiecewiseFunction : public Function {
 
   /// Constructs PiecewiseFunction from a collection of Functions.
   ///
-  /// Functions are expected to be C1 continuous and G1 continuity is evaluated at
-  /// the extents.
+  /// Uses PiecewiseFunction() constructor using ContinuityCheck::kThrow.
   ///
   /// @param functions Hold the Functions.
   /// @param tolerance Tolerance used to verify continuity.
-  ///
-  /// @throws maliput::common::assertion_error When @p functions is empty.
-  /// @throws maliput::common::assertion_error When @p functions has a nullptr
-  ///         item.
-  /// @throws maliput::common::assertion_error When two consecutive items in
-  ///         @p functions are not C¹ contiguous up to @p tolerance.
   PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance);
 
  private:
