@@ -56,10 +56,10 @@ constexpr const char* TypeName() {
   }
 }
 
-// When `assert_continuity` is true returns road_curve::PiecewiseFunction::ContinuityCheck::kAssert,
+// When `assert_continuity` is true returns road_curve::PiecewiseFunction::ContinuityCheck::kThrow,
 // otherwise returns road_curve::PiecewiseFunction::ContinuityCheck::kLog
 road_curve::PiecewiseFunction::ContinuityCheck FromBoolToContiguityCheck(bool assert_continuity) {
-  return assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kAssert
+  return assert_continuity ? road_curve::PiecewiseFunction::ContinuityCheck::kThrow
                            : road_curve::PiecewiseFunction::ContinuityCheck::kLog;
 }
 

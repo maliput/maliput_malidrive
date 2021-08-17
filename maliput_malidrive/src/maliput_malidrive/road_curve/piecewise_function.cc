@@ -20,14 +20,14 @@ struct ContinuityChecker {
   }
 
   // Evaluates whether `lhs` is C1 continuous with `rhs` according to the contiguity strictness.
-  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kAssert maliput::common::assertion_error is
+  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kThrow maliput::common::assertion_error is
   //  thrown when contiguity is violated.
   //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kLog log message is printed when
   //  contiguity is violated.
   //
   // @returns True when C1 continuity is met between both functions.
   // @throws maliput::common::assertion_error When `lhs` is not C1 continuous with `rhs` and continuity_check is
-  // PiecewiseFunction::ContinuityCheck::kAssert.
+  // PiecewiseFunction::ContinuityCheck::kThrow.
   bool operator()(const Function* lhs, const Function* rhs) const {
     const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
     if (f_distance > tolerance) {
@@ -35,9 +35,8 @@ struct ContinuityChecker {
                               std::to_string(f_distance) +
                               "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
       maliput::log()->warn(f_msg);
-      if (continuity_check == PiecewiseFunction::ContinuityCheck::kAssert) {
-        MALIDRIVE_THROW_MESSAGE(f_msg);
-      }
+      MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
+                         maliput::common::assertion_error, f_msg);
       return false;
     }
 
@@ -47,9 +46,8 @@ struct ContinuityChecker {
                                   std::to_string(f_dot_distance) +
                                   "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
       maliput::log()->warn(f_dot_msg);
-      if (continuity_check == PiecewiseFunction::ContinuityCheck::kAssert) {
-        MALIDRIVE_THROW_MESSAGE(f_dot_msg);
-      }
+      MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
+                         maliput::common::assertion_error, f_dot_msg);
       return false;
     }
     return true;
@@ -89,7 +87,7 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
 }
 
 PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance)
-    : PiecewiseFunction(std::move(functions), tolerance, PiecewiseFunction::ContinuityCheck::kAssert) {}
+    : PiecewiseFunction(std::move(functions), tolerance, PiecewiseFunction::ContinuityCheck::kThrow) {}
 
 std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p) const {
   p = OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);

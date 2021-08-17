@@ -22,23 +22,23 @@ class PiecewiseFunction : public Function {
   /// Continuity check behavior
   enum class ContinuityCheck {
     kLog = 0,  ///> Log when continuity is violated.
-    kAssert,   ///> Throw when continuity is violated.
+    kThrow,    ///> Throw when continuity is violated.
   };
 
   /// Constructs PiecewiseFunction from a collection of Functions.
   ///
-  /// Functions are expected to be C1 continuous and G1 continuity is evaluated at
+  /// Functions are expected to be C1 continuous and C1 continuity is evaluated at
   /// the extents. Constraints can be disabled with `continuity_check`.
   ///
   /// @param functions Hold the Functions.
   /// @param tolerance Tolerance used to verify continuity.
-  /// @param continuity_check Select continuity check behavior. ContinuityCheck::kAssert by default.
+  /// @param continuity_check Select continuity check behavior. ContinuityCheck::kThrow by default.
   ///
   /// @throws maliput::common::assertion_error When @p functions is empty.
   /// @throws maliput::common::assertion_error When @p functions has a nullptr
   ///         item.
   /// @throws maliput::common::assertion_error When two consecutive items in
-  ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kAssert.
+  ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kThrow.
   PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
                     const ContinuityCheck& continuity_check);
 
