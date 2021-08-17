@@ -7,20 +7,22 @@ namespace malidrive {
 namespace road_curve {
 
 /// Describes a G¹ scalar function.
+///
 /// This interface will be the interface for other specializations which are
-/// use by RoadCurve to compose the path of maliput::api::Lane.
+/// used by RoadCurve to compose the path of maliput::api::Lane.
 ///
 /// In mathematical terms, let:
 ///
 /// @f$ F(p) @f$ be a function of a real and non-negative parameter.
 ///
-/// And @f$ F(p) @f$ has the following requirements:
+/// Implementations of @f$ F(p) @f$ *should* enforce:
 ///
 /// - @f$ F(p) @f$ is G¹ in the interval @f$ [p_0; p_1] @f$.
-/// - There exists @f$ F''(p) @f$ in the interval @f$ [p_0; p_1] @f$.
 ///
-/// Provided that @f$ F(p) @f$ can be piecewise defined, implementations must
-/// include proper G¹ checks in IsG1Contiguous().
+/// Implementations of @f$ F(p) @f$ *must* assure:
+///
+/// - There exists @f$ F'(p) @f$ and @f$ F''(p) @f$ in the interval @f$ [p_0; p_1] @f$.
+/// - Proper G¹ checks via IsG1Contiguous(), specially when it is piecewise-defined.
 class Function {
  public:
   /// Implementations may opt to allow a tolerance or be up to `kEpsilon` away
