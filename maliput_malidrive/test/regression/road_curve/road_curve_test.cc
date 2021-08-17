@@ -134,11 +134,11 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeScaleLength) {
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, NotG1Functions) {
   const double kLinearTolerance{1e-15};
-  const double kScaleLength{-1};
+  const double kScaleLength{1};
   const double kP0{0.};
   const double kP1{100.};
   const bool kIsG1Contiguous{true};
-  const bool kIsNotG1Contiguous{true};
+  const bool kIsNotG1Contiguous{false};
   const bool kAssertContiguity{true};
   const bool kDontAssertContiguity{false};
 
