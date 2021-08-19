@@ -125,7 +125,7 @@ class LaneTest : public ::testing::Test {
   const maliput::api::HBounds kElevationBounds{0., 5.};
   const double kP0{0.};
   const double kP1{100.};
-  const double kLinearTolerance{1e-12};
+  const double kLinearTolerance{1e-11};
   const double kScaleLength{1.};
   const Vector2 kXy0{10., 12.};
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};

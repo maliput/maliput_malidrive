@@ -169,8 +169,9 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   // the same period and amplitude equal to the specified tolerance. The
   // difference in path length is bounded by 4e and the relative error is thus
   // bounded by 4e/L.
-  relative_tolerance_ = road_curve_->linear_tolerance() / road_curve_->LMax();
-
+  // Relative tolerance is clamped to kMinRelativeTolerance to avoid setting
+  // accuracy of the integrator that goes beyond the limit of the integrator.
+  relative_tolerance_ = std::max(road_curve_->linear_tolerance() / road_curve_->LMax(), kMinRelativeTolerance);
   // Sets `s_from_p`'s integration accuracy and step sizes. Said steps
   // should not be too large, because that could make accuracy control
   // fail, nor too small to avoid wasting cycles. The nature of the
@@ -186,7 +187,8 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   // road geometry invariants (i.e., CheckInvariants()) in Builder::Build().
   // Consider modifying this accuracy if other tolerances are modified
   // elsewhere.
-  s_from_p_integrator.set_target_accuracy(relative_tolerance_ * 1e-2);
+  const double integrator_accuracy{relative_tolerance_ * kAccuracyMultiplier};
+  s_from_p_integrator.set_target_accuracy(integrator_accuracy);
 
   // Sets `p_from_s`'s integration accuracy and step sizes. Said steps
   // should not be too large, because that could make accuracy control
@@ -198,7 +200,7 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   drake::systems::IntegratorBase<double>& p_from_s_integrator = p_from_s_ivp_->get_mutable_integrator();
   p_from_s_integrator.request_initial_step_size_target(road_curve_->scale_length() * 0.1);
   p_from_s_integrator.set_maximum_step_size(road_curve_->scale_length());
-  p_from_s_integrator.set_target_accuracy(relative_tolerance_ * 1e-2);
+  p_from_s_integrator.set_target_accuracy(integrator_accuracy);
 }
 
 double RoadCurveOffset::CalcSFromP(double p) const {

@@ -84,9 +84,21 @@ TEST_F(FlatLineRoadCurveTest, RoadCurve) {
 }
 
 TEST_F(FlatLineRoadCurveTest, RelativeTolerance) {
+  const double kTolerance{1e-3};
+  auto ground_curve = std::make_unique<LineGroundCurve>(kTolerance, kXy0, kDXy, kP0, kP1);
+  auto elevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kTolerance);
+  auto superelevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kTolerance);
+  road_curve_ = std::make_unique<RoadCurve>(kTolerance, kScaleLength, std::move(ground_curve), std::move(elevation),
+                                            std::move(superelevation), kAssertContiguity);
   const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
 
-  EXPECT_DOUBLE_EQ(/*kLinearTolerance / kDXy.norm()*/ 2.0000000000000000607e-13, dut.relative_tolerance());
+  EXPECT_DOUBLE_EQ(kTolerance / kDXy.norm(), dut.relative_tolerance());
+}
+
+TEST_F(FlatLineRoadCurveTest, RelativeToleranceClamped) {
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+
+  EXPECT_DOUBLE_EQ(/* Minimum allowed value */ 1e-8, dut.relative_tolerance());
 }
 
 TEST_F(FlatLineRoadCurveTest, CalcSFromP) {
@@ -220,9 +232,22 @@ TEST_F(FlatArcRoadCurveTest, RoadCurve) {
 }
 
 TEST_F(FlatArcRoadCurveTest, RelativeTolerance) {
+  const double kTolerance{1e-3};
+  auto ground_curve =
+      std::make_unique<ArcGroundCurve>(kTolerance, kXy0, kStartHeading, kCurvature, kArcLength, kP0, kP1);
+  auto elevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kTolerance);
+  auto superelevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kTolerance);
+  road_curve_ = std::make_unique<RoadCurve>(kTolerance, kScaleLength, std::move(ground_curve), std::move(elevation),
+                                            std::move(superelevation), kAssertContiguity);
   const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
 
-  EXPECT_DOUBLE_EQ(/*kLinearTolerance / kArcLength*/ 1.0000000000000000607e-14, dut.relative_tolerance());
+  EXPECT_DOUBLE_EQ(kTolerance / kArcLength, dut.relative_tolerance());
+}
+
+TEST_F(FlatArcRoadCurveTest, RelativeToleranceClamped) {
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+
+  EXPECT_DOUBLE_EQ(/* Minimum allowed value */ 1e-8, dut.relative_tolerance());
 }
 
 TEST_F(FlatArcRoadCurveTest, CalcSFromP) {

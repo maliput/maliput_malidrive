@@ -78,6 +78,17 @@ class RoadCurveOffset {
   double p1() const { return p1_; }
 
  private:
+  // Minimum value that #relative_tolerance_ could take.
+  // Given that the accuracy of the integrator is the product
+  // of #relative_tolerance_ and #kAccuracyMultiplier this minimum value
+  // guarantees that the accuracy isn't set beyond the integrator limits.
+  static constexpr double kMinRelativeTolerance{1e-8};
+
+  // The result of multiplying it with #relative_tolerance_ is the accuracy of the integrator.
+  // The value of this multiplier was empirically obtained out of all the maps
+  // this package provides.
+  static constexpr double kAccuracyMultiplier{1e-4};
+
   // Holds the RoadCurve.
   const RoadCurve* road_curve_{};
 
