@@ -1,6 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 // Queries a XODR map.
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <optional>
 #include <stdexcept>
@@ -86,6 +87,11 @@ const std::map<const std::string, const Command> CommandsUsage() {
         "<xodr_file> GetGeometriesToSimplify tolerance",
         {"Retrieves a list of geometries that can be simplified into simpler geometry descriptions and the type of "
          "geometry that would do it."},
+        3}},
+      {"GetGeometries",
+       {"GetGeometries",
+        "<xodr_file> GetGeometries RoadId",
+        {"Retrieves a list of the geometries of the correspondant road."},
         3}},
   };
 }
@@ -247,6 +253,25 @@ class DBManagerQuery {
     }
   }
 
+  /// Logs the all geometries in <plainView>
+  /// @param road_id The malidrive::xodr::RoadHeader::Id of the road to look
+  /// for the geometries.
+  void GetGeometries(const malidrive::xodr::RoadHeader::Id& road_id) const {
+    const auto road_headers = db_manager_->GetRoadHeaders();
+    const auto road = road_headers.find(road_id);
+    if (road == road_headers.cend()) {
+      maliput::log()->error("RoadId: {} hasn't been found.", road_id);
+      return;
+    }
+    (*out_).precision(std::numeric_limits<double>::digits10);
+    (*out_) << "planView description for RoadId " << road_id.string() << ":\n";
+    int i{1};
+    for (const auto& geometry : road->second.reference_geometry.plan_view.geometries) {
+      (*out_) << "\t" << std::to_string(i) << " - " << geometry;
+      i++;
+    }
+  }
+
  private:
   mutable std::ostream* out_{};
   const malidrive::xodr::DBManager* db_manager_{};
@@ -325,6 +350,8 @@ int Main(int argc, char** argv) {
     query.FindSuperelevationGap(kLargest);
   } else if (command.name.compare("GetGeometriesToSimplify") == 0) {
     query.GetGeometriesToSimplify(ToleranceFromCli(&(argv[3])));
+  } else if (command.name.compare("GetGeometries") == 0) {
+    query.GetGeometries(RoadHeaderIdFromCli(&(argv[3])));
   }
 
   return 1;

@@ -1,6 +1,8 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/xodr/geometry.h"
 
+#include <sstream>
+
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
 
@@ -53,6 +55,24 @@ GTEST_TEST(Geometry, EqualityOperator) {
   EXPECT_NE(geometry, geometry_arc);
   geometry.description = Geometry::Arc{0.5};
   EXPECT_EQ(geometry, geometry_arc);
+}
+
+GTEST_TEST(Geometry, Serialization) {
+  const Geometry kGeometryLine{
+      1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},   0.77 /* orientation */,
+      100. /* length */, Geometry::Type::kLine /* Type */, {Geometry::Line{}} /* description */};
+  const std::string kExpectedStrGeometryLine("Geometry type: line | s: 1.23 | {x, y} : {523.2, 83.27} | hdg: 0.77\n");
+  const Geometry kGeometryARc{
+      1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},  0.77 /* orientation */,
+      100. /* length */, Geometry::Type::kArc /* Type */, {Geometry::Arc{1.95}} /* description */};
+  const std::string kExpectedStrGeometryArc(
+      "Geometry type: arc - curvature: 1.95 | s: 1.23 | {x, y} : {523.2, 83.27} | hdg: 0.77\n");
+  std::stringstream ss;
+  ss << kGeometryLine;
+  EXPECT_EQ(kExpectedStrGeometryLine, ss.str());
+  ss.str("");
+  ss << kGeometryARc;
+  EXPECT_EQ(kExpectedStrGeometryArc, ss.str());
 }
 
 }  // namespace

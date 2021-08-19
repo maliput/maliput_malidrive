@@ -31,5 +31,15 @@ bool Geometry::operator==(const Geometry& other) const {
 
 bool Geometry::operator!=(const Geometry& other) const { return !(*this == other); }
 
+std::ostream& operator<<(std::ostream& os, const Geometry& geometry) {
+  os << "Geometry type: " << Geometry::type_to_str(geometry.type);
+  if (geometry.type == Geometry::Type::kArc) {
+    os << " - curvature: " << std::get<xodr::Geometry::Arc>(geometry.description).curvature;
+  }
+  os << " | s: " << geometry.s_0 << " | {x, y} : " << geometry.start_point << " | hdg: " << geometry.orientation;
+  os << "\n";
+  return os;
+}
+
 }  // namespace xodr
 }  // namespace malidrive

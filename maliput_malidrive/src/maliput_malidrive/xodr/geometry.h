@@ -3,6 +3,7 @@
 
 #include <map>
 #include <optional>
+#include <ostream>
 #include <string>
 #include <variant>
 
@@ -92,6 +93,11 @@ struct Geometry {
   /// Description of the geometric type.
   std::variant<Line, Arc> description;
 };
+
+/// Streams a string representation of @p geometry into @p os.
+/// Returns @p os.
+/// @relates Geometry
+std::ostream& operator<<(std::ostream& os, const Geometry& geometry);
 
 }  // namespace xodr
 }  // namespace malidrive
