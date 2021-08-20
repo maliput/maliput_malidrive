@@ -40,6 +40,7 @@ std::ostream& operator<<(std::ostream& os, const Geometry& geometry) {
     case Geometry::Type::kLine:
       break;
     default:
+      MALIPUT_THROW_MESSAGE("Unknown Geometry::Type");
       break;
   }
   os << " | s: " << geometry.s_0 << " | {x, y} : " << geometry.start_point << " | hdg: " << geometry.orientation;
