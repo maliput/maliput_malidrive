@@ -333,11 +333,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   angular_tolerances[0] = rg_config_.angular_tolerance;
   scale_lengths[0] = rg_config_.scale_length;
 
-  const double kIncreasingToleranceStep{1.1};
   // Populates the vector with higher tolerance values but always use the same scale length.
   for (size_t i = 1; i < linear_tolerances.size(); ++i) {
-    linear_tolerances[i] = linear_tolerances[i - 1] * kIncreasingToleranceStep;
-    angular_tolerances[i] = angular_tolerances[i - 1] * kIncreasingToleranceStep;
+    linear_tolerances[i] = linear_tolerances[i - 1] * constants::kIncreasingToleranceStep;
+    angular_tolerances[i] = angular_tolerances[i - 1] * constants::kIncreasingToleranceStep;
     scale_lengths[i] = constants::kScaleLength;
   }
   Reset(linear_tolerances[0], angular_tolerances[0], scale_lengths[0]);
@@ -382,11 +381,11 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   const std::string linear_tolerance_description =
       "Used linear tolerances are in the range [" + std::to_string(linear_tolerances[0]) + ", " +
       std::to_string(linear_tolerances.back()) + "] with an increasing step of " +
-      std::to_string(static_cast<int>((kIncreasingToleranceStep - 1) * 100)) + "% per iteration";
+      std::to_string(static_cast<int>((constants::kIncreasingToleranceStep - 1) * 100)) + "% per iteration.";
   const std::string angular_tolerance_description =
       "Used angular tolerances are in the range [" + std::to_string(angular_tolerances[0]) + ", " +
       std::to_string(angular_tolerances.back()) + "] with an increasing step of " +
-      std::to_string(static_cast<int>((kIncreasingToleranceStep - 1) * 100)) + "% per iteration";
+      std::to_string(static_cast<int>((constants::kIncreasingToleranceStep - 1) * 100)) + "% per iteration.";
   MALIDRIVE_THROW_MESSAGE("None of the tolerances(" + std::to_string(constants::kMaxToleranceSelectionRounds + 1) +
                           ") worked to build a RoadGeometry " + file_description + ".\n\t" +
                           linear_tolerance_description + "\n\t" + angular_tolerance_description);
