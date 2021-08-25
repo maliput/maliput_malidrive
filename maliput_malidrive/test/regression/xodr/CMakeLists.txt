@@ -31,6 +31,7 @@ set(UNIT_TEST_XODR_SOURCES
   road_type_test.cc
   tools_test.cc
   unit_test.cc
+  xodr_extract_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_TEST_XODR_SOURCES})

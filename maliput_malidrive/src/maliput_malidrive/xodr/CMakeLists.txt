@@ -47,3 +47,35 @@ install(TARGETS xodr
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
+
+##############################################################################
+# xodr_extract
+##############################################################################
+add_library(extract
+  xodr_extract.cc
+)
+add_library(maliput_malidrive::xodr_extract ALIAS extract)
+set_target_properties(extract
+  PROPERTIES
+    OUTPUT_NAME maliput_malidrive_xodr_extract
+)
+
+target_include_directories(
+  extract
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+)
+
+target_link_libraries(
+  extract
+    maliput_malidrive::common
+    tinyxml2
+)
+
+install(TARGETS extract
+  EXPORT ${PROJECT_NAME}-targets
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)

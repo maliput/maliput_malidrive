@@ -54,6 +54,7 @@ target_link_libraries(
     gflags
     maliput::common
     maliput_malidrive::common
+    maliput_malidrive::xodr_extract
     tinyxml2
   INTERFACE
     log_level_flag
