@@ -12,6 +12,7 @@ set(TEST_TYPE UNIT)
 set(UNIT_BUILDER_TEST_SOURCES
   builder_tools_test.cc
   determine_tolerance_test.cc
+  dictionary_test.cc
   id_providers_test.cc
   road_curve_factory_test.cc
   road_geometry_builder_base_test.cc
