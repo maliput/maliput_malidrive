@@ -17,7 +17,9 @@
 
 #include "log_level_flag.h"
 #include "maliput_malidrive/common/macros.h"
+// clang-format off
 #include "maliput_malidrive/xodr/xodr_extract.h"
+// clang-format on
 
 namespace malidrive {
 namespace applications {
