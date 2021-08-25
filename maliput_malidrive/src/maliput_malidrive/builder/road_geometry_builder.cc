@@ -2,6 +2,7 @@
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 
 #include <array>
+#include <functional>
 #include <future>
 #include <iterator>
 #include <thread>
@@ -50,6 +51,30 @@ std::size_t GetEffectiveNumberOfThreads(const malidrive::builder::BuildPolicy& b
   return build_policy.num_threads.has_value() ? static_cast<std::size_t>(build_policy.num_threads.value())
                                               : std::thread::hardware_concurrency() - 1;
   ;
+}
+
+// Computes the total number of Junctions that will be constructed out of @p road_headers.
+// @param road_headers The dictionary of xodr::RoadHeaders.
+// @return The number of Junctions to be created.
+std::size_t ComputeJunctionNumber(const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers) {
+  std::set<std::string> junction_ids;
+  // Makes use of the iterator to reduce the average complexity of inserting IDs.
+  auto iterator_hint = junction_ids.begin();
+
+  for (const auto& road_header : road_headers) {
+    int lane_section_index = 0;
+    for (const auto& lane_section : road_header.second.lanes.lanes_section) {
+      maliput::common::unused(lane_section);
+      if (road_header.second.junction != "-1") {
+        iterator_hint = junction_ids.insert(iterator_hint, road_header.second.junction);
+      } else {
+        iterator_hint =
+            junction_ids.insert(iterator_hint, road_header.first.string() + "_" + std::to_string(lane_section_index));
+      }
+      lane_section_index++;
+    }
+  }
+  return junction_ids.size();
 }
 
 }  // namespace
@@ -251,9 +276,11 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
 
   // Queue all the tasks in the thread pool. Each task will build all the lanes of a junction.
   std::vector<std::future<std::vector<RoadGeometryBuilder::LaneConstructionResult>>> lanes_construction_results;
-  for (const auto& junction_segments_attributes : junctions_segments_attributes_) {
-    lanes_construction_results.push_back(
-        task_executor.Queue(LanesBuilder(junction_segments_attributes, factory_.get(), rg_config_, rg)));
+  for (maliput::geometry_base::Junction* junction : junctions_segments_attributes_.Keys()) {
+    Dictionary<Segment*, SegmentConstructionAttributes> segment_construction_attr =
+        junctions_segments_attributes_.at(junction);
+    lanes_construction_results.push_back(task_executor.Queue(
+        LanesBuilder(std::make_pair(junction, segment_construction_attr), factory_.get(), rg_config_, rg)));
   }
   // The threads are on hold until start method is called.
   task_executor.Start();
@@ -272,12 +299,15 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::LanesBuilderSequentialPolicy(
     RoadGeometry* rg) {
   std::vector<LaneConstructionResult> built_lanes_result;
-  for (const auto& junction_segments_attributes : junctions_segments_attributes_) {
-    for (const auto& segment_attributes : junction_segments_attributes.second) {
+  for (maliput::geometry_base::Junction* junction : junctions_segments_attributes_.Keys()) {
+    Dictionary<Segment*, SegmentConstructionAttributes>& segment_construction_attr =
+        junctions_segments_attributes_.at(junction);
+    for (Segment* segment : segment_construction_attr.Keys()) {
+      const SegmentConstructionAttributes& construction_att = segment_construction_attr.at(segment);
       // Process lanes of the lane section.
-      auto lanes_result = BuildLanesForSegment(
-          segment_attributes.second.road_header, segment_attributes.second.lane_section,
-          segment_attributes.second.lane_section_index, factory_.get(), rg_config_, rg, segment_attributes.first);
+      auto lanes_result = BuildLanesForSegment(construction_att.road_header, construction_att.lane_section,
+                                               construction_att.lane_section_index, factory_.get(), rg_config_, rg,
+                                               const_cast<Segment*>(segment));
       built_lanes_result.insert(built_lanes_result.end(), std::make_move_iterator(lanes_result.begin()),
                                 std::make_move_iterator(lanes_result.end()));
     }
@@ -287,11 +317,13 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
 
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::LanesBuilder::operator()() {
   std::vector<LaneConstructionResult> built_lanes_result;
-  for (const auto& segment_attributes : junction_segments_attributes.second) {
+  junction_segments_attributes.second.SortKeys();
+  for (Segment* segment : junction_segments_attributes.second.Keys()) {
+    const RoadGeometryBuilder::SegmentConstructionAttributes& segment_attributes =
+        junction_segments_attributes.second.at(segment);
     // Process lanes of the lane section.
-    auto lanes_result = BuildLanesForSegment(
-        segment_attributes.second.road_header, segment_attributes.second.lane_section,
-        segment_attributes.second.lane_section_index, factory, rg_config, rg, segment_attributes.first);
+    auto lanes_result = BuildLanesForSegment(segment_attributes.road_header, segment_attributes.lane_section,
+                                             segment_attributes.lane_section_index, factory, rg_config, rg, segment);
     built_lanes_result.insert(built_lanes_result.end(), std::make_move_iterator(lanes_result.begin()),
                               std::make_move_iterator(lanes_result.end()));
   }
@@ -304,10 +336,12 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
       rg_config_.build_policy.type == malidrive::builder::BuildPolicy::Type::kParallel
           ? LanesBuilderParallelPolicy(GetEffectiveNumberOfThreads(rg_config_.build_policy), rg)
           : LanesBuilderSequentialPolicy(rg);
+
+  lane_xodr_lane_properties_.Reserve(built_lanes_result.size());
   for (auto& built_lane : built_lanes_result) {
-    const auto result = lane_xodr_lane_properties_.insert(
-        {built_lane.lane->id(), {built_lane.lane.get(), built_lane.xodr_lane_properties}});
-    MALIDRIVE_THROW_UNLESS(result.second == true);
+    MALIDRIVE_THROW_UNLESS(
+        lane_xodr_lane_properties_.Emplace(
+            built_lane.lane->id(), MatchingLanes{built_lane.lane.get(), built_lane.xodr_lane_properties}) == true);
 
     const bool hide_lane =
         rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*built_lane.xodr_lane_properties.lane);
@@ -315,6 +349,7 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
                           hide_lane ? "(hidden)" : "", built_lane.segment->id().string());
     built_lane.segment->AddLane(std::move(built_lane.lane), hide_lane);
   }
+  lane_xodr_lane_properties_.SortKeys(std::less<maliput::api::LaneId>());
 }
 
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator()() {
@@ -387,8 +422,8 @@ void RoadGeometryBuilder::Reset(double linear_tolerance, double angular_toleranc
   rg_config_.linear_tolerance = linear_tolerance;
   rg_config_.angular_tolerance = angular_tolerance;
   rg_config_.scale_length = scale_length;
-  lane_xodr_lane_properties_.clear();
-  junctions_segments_attributes_.clear();
+  lane_xodr_lane_properties_.Clear();
+  junctions_segments_attributes_.Clear();
   // TODO(#12): It goes against dependency injection. Should use a provider instead.
   factory_ = std::make_unique<builder::RoadCurveFactory>(linear_tolerance, scale_length, angular_tolerance);
   // @}
@@ -425,6 +460,9 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
                                            rg_config_.inertial_to_backend_frame_translation);
 
   maliput::log()->trace("Visiting XODR Roads...");
+
+  junctions_segments_attributes_.Reserve(ComputeJunctionNumber(road_headers));
+
   for (const auto& road_header : road_headers) {
     maliput::log()->trace("Visiting XODR Road ID: {}.", road_header.first);
     auto road_curve = BuildRoadCurve(
@@ -469,11 +507,16 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
                             road_header.first);
 
       // Save all the attributes for building the lanes later on.
-      junctions_segments_attributes_[junction][segment] = {&road_header.second, &lane_section, lane_section_index};
-
+      if (junctions_segments_attributes_.Values().find(junction) == junctions_segments_attributes_.Values().end()) {
+        junctions_segments_attributes_.Emplace(junction, Dictionary<Segment*, SegmentConstructionAttributes>());
+      }
+      junctions_segments_attributes_.at(junction).Emplace(
+          segment, SegmentConstructionAttributes{&road_header.second, &lane_section, lane_section_index});
       lane_section_index++;
     }
   }
+  junctions_segments_attributes_.SortKeys();
+
   FillSegmentsWithLanes(rg.get());
 
   BuildBranchPointsForLanes(rg.get());
@@ -605,12 +648,12 @@ void RoadGeometryBuilder::BuildBranchPointsForLanes(RoadGeometry* rg) {
   MALIDRIVE_THROW_UNLESS(rg != nullptr);
   maliput::log()->trace("Building BranchPoints for Lanes...");
 
-  for (auto& lane_xodr_lane_properties : lane_xodr_lane_properties_) {
-    if (rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*lane_xodr_lane_properties.second.xodr_lane.lane)) {
+  for (const auto& key : lane_xodr_lane_properties_.Keys()) {
+    MatchingLanes& xodr_lane_property = lane_xodr_lane_properties_.at(key);
+    if (rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*xodr_lane_property.xodr_lane.lane)) {
       continue;
     }
-    FindOrCreateBranchPointFor(lane_xodr_lane_properties.second.xodr_lane,
-                               lane_xodr_lane_properties.second.malidrive_lane, rg);
+    FindOrCreateBranchPointFor(xodr_lane_property.xodr_lane, xodr_lane_property.malidrive_lane, rg);
   }
 }
 

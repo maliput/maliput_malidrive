@@ -11,6 +11,7 @@
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/base/segment.h"
 #include "maliput_malidrive/builder/builder_tools.h"
+#include "maliput_malidrive/builder/dictionary.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/builder/road_curve_factory.h"
 #include "maliput_malidrive/builder/road_geometry_builder_base.h"
@@ -103,13 +104,13 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     // @throws maliput::common::assertion_error When `rg` is nullptr.
     // @throws maliput::common::assertion_error When `factory` is nullptr.
     LanesBuilder(const std::pair<maliput::geometry_base::Junction*,
-                                 std::map<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>&
+                                 Dictionary<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>&
                      junction_segments_attributes_in,
                  const RoadCurveFactoryBase* factory_in, const RoadGeometryConfiguration& rg_config_in,
                  RoadGeometry* rg_in)
-        : junction_segments_attributes(junction_segments_attributes_in),
-          factory(factory_in),
+        : factory(factory_in),
           rg_config(rg_config_in),
+          junction_segments_attributes(junction_segments_attributes_in),
           rg(rg_in) {
       MALIDRIVE_THROW_UNLESS(rg != nullptr);
       MALIDRIVE_THROW_UNLESS(factory != nullptr);
@@ -118,13 +119,13 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     // Returns A vector containing all the created Lanes and its properties.
     std::vector<RoadGeometryBuilder::LaneConstructionResult> operator()();
 
-    // Contains all the attributes needed to build all the lanes of a given junction.
-    const std::pair<maliput::geometry_base::Junction*,
-                    std::map<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>
-        junction_segments_attributes;
-
     const RoadCurveFactoryBase* factory{};
     const RoadGeometryConfiguration& rg_config;
+
+    // Contains all the attributes needed to build all the lanes of a given junction.
+    std::pair<maliput::geometry_base::Junction*,
+              Dictionary<Segment*, RoadGeometryBuilder::SegmentConstructionAttributes>>
+        junction_segments_attributes;
     RoadGeometry* rg{};
   };
 
@@ -320,10 +321,10 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
 
   // Key on LaneId to ensure iteration over this map is deterministic. This
   // ensures default branch point selection is deterministic.
-  std::map<maliput::api::LaneId, MatchingLanes> lane_xodr_lane_properties_;
+  Dictionary<maliput::api::LaneId, MatchingLanes> lane_xodr_lane_properties_;
 
   // Map holding all the construction attributes used to build the segments and lanes of each junction.
-  std::map<maliput::geometry_base::Junction*, std::map<Segment*, SegmentConstructionAttributes>>
+  Dictionary<maliput::geometry_base::Junction*, Dictionary<Segment*, SegmentConstructionAttributes>>
       junctions_segments_attributes_;
 };
 
