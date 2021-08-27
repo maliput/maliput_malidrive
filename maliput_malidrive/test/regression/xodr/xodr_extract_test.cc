@@ -51,10 +51,6 @@ constexpr const char* kRoadLinkNode = R"R(
 
 class XodrExtractTestBase : public ::testing::Test {
  public:
-  tinyxml2::XMLDocument* LoadXML(const std::string& xml_str) {
-    MALIDRIVE_THROW_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS);
-    return &xml_doc_;
-  }
   std::string GetRoadNode(const std::string& road_id, const std::string& junction_id,
                           const std::string& road_link_node) {
     return fmt::format(kRoadNodeTemplate, road_id, junction_id, road_link_node);
@@ -66,9 +62,6 @@ class XodrExtractTestBase : public ::testing::Test {
     }
     return fmt::format(kXODRTemplate, all_roads);
   }
-
- protected:
-  tinyxml2::XMLDocument xml_doc_;
 };
 
 TEST_F(XodrExtractTestBase, Throws) {
@@ -94,6 +87,9 @@ class XodrExtractTest : public XodrExtractTestBase {
     xml_doc_.Parse(xml_description_.c_str());
   }
   std::string xml_description_{};
+
+ protected:
+  tinyxml2::XMLDocument xml_doc_;
 };
 
 TEST_F(XodrExtractTest, AllRoadsAreFound) {
