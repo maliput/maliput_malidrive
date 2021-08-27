@@ -75,10 +75,18 @@ int Main(int argc, char** argv) {
       argv[1], FLAGS_output_file_path, FLAGS_update_linkage ? "True" : "False", road_ids.size(),
       FromVectorStrToString(road_ids));
 
+  // Loads XODR file.
   tinyxml2::XMLDocument xodr_doc;
   MALIDRIVE_VALIDATE(xodr_doc.LoadFile(argv[1]) == tinyxml2::XML_SUCCESS, maliput::common::assertion_error,
                      std::string("XODR file named: ") + argv[1] + std::string(" couldn't be loaded."));
-  malidrive::xodr::XodrExtract(&xodr_doc, road_ids, FLAGS_output_file_path, FLAGS_update_linkage);
+
+  // Generates a new XODR description.
+  const std::string new_xodr_description = malidrive::xodr::XodrExtract(&xodr_doc, road_ids, FLAGS_update_linkage);
+  // Dumps new XODR to disk.
+  tinyxml2::XMLDocument output_xodr_doc;
+  MALIDRIVE_VALIDATE(output_xodr_doc.Parse(new_xodr_description.c_str()) == tinyxml2::XML_SUCCESS,
+                     maliput::common::assertion_error, std::string("New created XODR file named can't be parsed."));
+  output_xodr_doc.SaveFile(FLAGS_output_file_path.c_str());
   maliput::log()->info("XODR file created: {}", FLAGS_output_file_path);
 
   return 1;

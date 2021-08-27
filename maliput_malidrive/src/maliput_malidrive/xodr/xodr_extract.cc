@@ -10,8 +10,8 @@
 namespace malidrive {
 namespace xodr {
 
-void XodrExtract(tinyxml2::XMLDocument* xodr_doc, const std::vector<std::string>& road_ids,
-                 const std::string& output_file, bool update_linkage) {
+std::string XodrExtract(tinyxml2::XMLDocument* xodr_doc, const std::vector<std::string>& road_ids,
+                        bool update_linkage) {
   MALIDRIVE_THROW_UNLESS(xodr_doc != nullptr);
   MALIDRIVE_THROW_UNLESS(!road_ids.empty());
 
@@ -54,7 +54,7 @@ void XodrExtract(tinyxml2::XMLDocument* xodr_doc, const std::vector<std::string>
     maliput::log()->error("RoadId {} wasn't found. Skipping road.", road_id);
   }
 
-  // Generate new xodr file.
+  // Generate new xodr description.
   std::string output_str{R"R(<OpenDRIVE><header revMajor="1" revMinor="4" name="" vendor="xodr_extract App"/>)R"};
   for (const auto& road_node : output_road_header_nodes) {
     tinyxml2::XMLPrinter printer;
@@ -63,8 +63,12 @@ void XodrExtract(tinyxml2::XMLDocument* xodr_doc, const std::vector<std::string>
   }
   output_str += std::string{R"R(</OpenDRIVE>)R"};
   tinyxml2::XMLDocument output_doc;
+  // Parses XML description to validate the format.
   output_doc.Parse(output_str.c_str());
-  output_doc.SaveFile(output_file.c_str());
+  // Serializes new XODR description.
+  tinyxml2::XMLPrinter printer;
+  output_doc.Print(&printer);
+  return printer.CStr();
 }
 
 }  // namespace xodr

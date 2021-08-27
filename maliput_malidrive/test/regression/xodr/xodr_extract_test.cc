@@ -1,14 +1,12 @@
 // Copyright 2021 Toyota Research Institute
 #include "maliput_malidrive/xodr/xodr_extract.h"
 
-#include <fstream>
 #include <string>
 #include <vector>
 
 #include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
-#include <maliput/common/filesystem.h>
 
 #include "maliput_malidrive/common/macros.h"
 
@@ -21,7 +19,8 @@ namespace {
 constexpr const char* kXODRTemplate =
     R"R(<OpenDRIVE>
     <header revMajor="1" revMinor="4" name="" vendor="xodr_extract App"/>{}
-</OpenDRIVE>)R";
+</OpenDRIVE>
+)R";
 
 constexpr const char* kRoadNodeTemplate = R"R(
     <road name="Road {0}" length="2." id="{0}" junction="{1}">{2}
@@ -77,13 +76,13 @@ TEST_F(XodrExtractTestBase, Throws) {
   xodr_doc.Parse(GetXodrDescription({GetRoadNode("1", "-1", "")}).c_str());
 
   // No Throws
-  EXPECT_NO_THROW(XodrExtract(&xodr_doc, {"1"}, "/tmp/test.xodr", false));
+  EXPECT_NO_THROW(XodrExtract(&xodr_doc, {"1"}, false));
 
   // Throws because `xodr_doc` argument is nullptr.
-  EXPECT_THROW(XodrExtract(nullptr, {"1", "2"}, "/tmp/test.xodr", false), maliput::common::assertion_error);
+  EXPECT_THROW(XodrExtract(nullptr, {"1", "2"}, false), maliput::common::assertion_error);
 
   // Throws because `road_ids` is empty.
-  EXPECT_THROW(XodrExtract(&xodr_doc, {}, "/tmp/test.xodr", false), maliput::common::assertion_error);
+  EXPECT_THROW(XodrExtract(&xodr_doc, {}, false), maliput::common::assertion_error);
 }
 
 class XodrExtractTest : public XodrExtractTestBase {
@@ -98,36 +97,21 @@ class XodrExtractTest : public XodrExtractTestBase {
 };
 
 TEST_F(XodrExtractTest, AllRoadsAreFound) {
-  XodrExtract(&xml_doc_, {"1", "2", "3"}, "/tmp/test.xodr", false);
-
-  std::string output_xodr;
-  maliput::common::Filesystem::read_as_string(maliput::common::Path("/tmp/test.xodr"), output_xodr);
-  // read_as_string implementation adds a `\n` character at the end.
-  output_xodr.pop_back();
+  const std::string output_xodr = XodrExtract(&xml_doc_, {"1", "2", "3"}, false);
   EXPECT_EQ(xml_description_, output_xodr);
 }
 
 TEST_F(XodrExtractTest, ARoadIsMissing) {
-  XodrExtract(&xml_doc_, {"1", "2", "3", "4"}, "/tmp/test.xodr", false);
-
-  std::string output_xodr;
-  maliput::common::Filesystem::read_as_string(maliput::common::Path("/tmp/test.xodr"), output_xodr);
-  // read_as_string implementation adds a `\n` character at the end.
-  output_xodr.pop_back();
+  const std::string output_xodr = XodrExtract(&xml_doc_, {"1", "2", "3", "4"}, false);
   EXPECT_EQ(xml_description_, output_xodr);
 }
 
 // Linkage and junction information are updated.
 TEST_F(XodrExtractTest, AllRoadsAreFoundUpdateLinkage) {
-  XodrExtract(&xml_doc_, {"1", "2", "3"}, "/tmp/test.xodr", true);
+  const std::string output_xodr = XodrExtract(&xml_doc_, {"1", "2", "3"}, true);
   // Expected xml description: Junction id equal to -1 and road linkage is removed.
   const std::string expected_xml_description_ =
       GetXodrDescription({GetRoadNode("1", "-1", ""), GetRoadNode("2", "-1", ""), GetRoadNode("3", "-1", "")});
-
-  std::string output_xodr;
-  maliput::common::Filesystem::read_as_string(maliput::common::Path("/tmp/test.xodr"), output_xodr);
-  // read_as_string implementation adds a `\n` character at the end.
-  output_xodr.pop_back();
   EXPECT_EQ(expected_xml_description_, output_xodr);
 }
 
