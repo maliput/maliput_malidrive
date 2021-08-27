@@ -236,7 +236,6 @@ GTEST_TEST(DictionaryTest, ComplexType) {
   }
 }
 
-
 }  // namespace
 }  // namespace test
 }  // namespace builder
