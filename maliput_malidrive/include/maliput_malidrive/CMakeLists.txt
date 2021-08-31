@@ -26,6 +26,5 @@ add_subdirectory(base)
 add_subdirectory(builder)
 add_subdirectory(common)
 add_subdirectory(loader)
-add_subdirectory(road_curve)
 
 ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR})
