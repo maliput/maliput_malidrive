@@ -7,12 +7,13 @@
 
 #include <maliput/api/road_network.h>
 
-#include "maliput_malidrive/builder/road_network_builder_base.h"
+#include "maliput_malidrive/builder/road_network_configuration.h"
+#include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
 namespace builder {
 
-class RoadNetworkBuilder : public RoadNetworkBuilderBase {
+class RoadNetworkBuilder {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadNetworkBuilder);
 
@@ -21,7 +22,7 @@ class RoadNetworkBuilder : public RoadNetworkBuilderBase {
   /// @param road_network_configuration Holds the information of all the
   ///        RoadNetwork entities.
   explicit RoadNetworkBuilder(const std::map<std::string, std::string>& road_network_configuration)
-      : RoadNetworkBuilderBase(road_network_configuration) {}
+      : road_network_configuration_(road_network_configuration) {}
 
   /// TODO(#135): Deprecates this Constructor.
   ///
@@ -32,8 +33,11 @@ class RoadNetworkBuilder : public RoadNetworkBuilderBase {
   RoadNetworkBuilder(const RoadNetworkConfiguration& road_network_configuration)
       : RoadNetworkBuilder(road_network_configuration.ToStringMap()) {}
 
-  /// @return A malidrive RoadNetwork without OpenDrive SDK.
-  std::unique_ptr<maliput::api::RoadNetwork> operator()() const override;
+  /// @return A maliput_malidrive RoadNetwork.
+  std::unique_ptr<maliput::api::RoadNetwork> operator()() const;
+
+ private:
+  const std::map<std::string, std::string> road_network_configuration_;
 };
 
 }  // namespace builder
