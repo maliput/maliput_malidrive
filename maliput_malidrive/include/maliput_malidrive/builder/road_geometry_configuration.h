@@ -7,7 +7,6 @@
 #include <maliput/api/road_network.h>
 #include <maliput/math/vector.h>
 
-#include "maliput_malidrive/base/inertial_to_lane_mapping_config.h"
 #include "maliput_malidrive/constants.h"
 
 namespace malidrive {
@@ -143,7 +142,6 @@ struct RoadGeometryConfiguration {
   double angular_tolerance{constants::kAngularTolerance};
   double scale_length{constants::kScaleLength};
   maliput::math::Vector3 inertial_to_backend_frame_translation{0., 0., 0.};
-  InertialToLaneMappingConfig inertial_to_lane_mapping_config{constants::kExplorationRadius, constants::kNumIterations};
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
   ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kAutomaticSelection};

@@ -2,6 +2,9 @@
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 
 #include <map>
+#include <sstream>
+
+#include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
 namespace builder {

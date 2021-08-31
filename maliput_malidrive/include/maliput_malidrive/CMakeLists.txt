@@ -22,7 +22,6 @@ install(
 # Directories
 ##############################################################################
 
-add_subdirectory(base)
 add_subdirectory(builder)
 add_subdirectory(common)
 add_subdirectory(loader)

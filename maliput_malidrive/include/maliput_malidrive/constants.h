@@ -25,9 +25,6 @@ static constexpr double kDefaultMaxSpeedLimit{40. / 3.6};  // [m/s] --> 40km/h
 static constexpr int kMaxToleranceSelectionRounds{24};
 /// Step used to increase the tolerance by the Builder. See #kMaxToleranceSelectionRounds.
 static constexpr double kIncreasingToleranceStep{1.1};
-/// TODO(#701): Remove the following two constants once #701 is merged.
-static constexpr double kExplorationRadius{1.};  // [m]
-static constexpr int kNumIterations{200};        // [u]
 
 }  // namespace constants
 }  // namespace malidrive

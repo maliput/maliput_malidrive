@@ -11,8 +11,6 @@ namespace {
 class RoadGeometryConfigurationTest : public ::testing::Test {
  protected:
   const maliput::math::Vector3 kRandomVector{1., 2., 3.};
-  const InertialToLaneMappingConfig kInertialToLaneMappingConfig{constants::kExplorationRadius,
-                                                                 constants::kNumIterations};
   const BuildPolicy kBuildPolicy{BuildPolicy::Type::kParallel};
   const RoadGeometryConfiguration::SimplificationPolicy kSimplificationPolicy{
       RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel};
@@ -50,7 +48,6 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
                                        kAngularTolerance,
                                        kScaleLength,
                                        kRandomVector,
-                                       kInertialToLaneMappingConfig,
                                        kBuildPolicy,
                                        kSimplificationPolicy,
                                        kToleranceSelectionPolicy,
@@ -86,7 +83,6 @@ TEST_F(RoadGeometryConfigurationTest, ToStringMap) {
                                        kAngularTolerance,
                                        kScaleLength,
                                        kRandomVector,
-                                       kInertialToLaneMappingConfig,
                                        kBuildPolicy,
                                        kSimplificationPolicy,
                                        kToleranceSelectionPolicy,
