@@ -4,6 +4,9 @@
 #include <algorithm>
 
 #include <maliput/geometry_base/brute_force_find_road_positions_strategy.h>
+#include <maliput/geometry_base/filter_positions.h>
+
+#include "maliput_malidrive/constants.h"
 
 namespace {
 
@@ -11,7 +14,7 @@ namespace {
 //
 // _Closer_ means:
 // - When `new_road_position_result.distance` is smaller than
-//   `road_position_result.distance` by more than `linear_tolerance`.
+//   `road_position_result.distance` by more than malidrive::constants::kStrictLinearTolerance.
 // - When distances are equal, if both positions fall within their
 //   respective lane's lane bounds or none do, the new r-coordinate
 //   is smaller than `road_position_result.road_position.pos.r()`.
@@ -19,13 +22,12 @@ namespace {
 //   `road_position_result.road_position.pos` doesn't.
 //
 bool IsNewRoadPositionResultCloser(const maliput::api::RoadPositionResult& new_road_position_result,
-                                   const maliput::api::RoadPositionResult& road_position_result,
-                                   double linear_tolerance) {
+                                   const maliput::api::RoadPositionResult& road_position_result) {
   const double delta = new_road_position_result.distance - road_position_result.distance;
-  if (delta > linear_tolerance) {
+  if (delta > malidrive::constants::kStrictLinearTolerance) {
     return false;
   }
-  if (delta < -linear_tolerance) {
+  if (delta < -malidrive::constants::kStrictLinearTolerance) {
     return true;
   }
 
@@ -99,9 +101,20 @@ maliput::api::RoadPositionResult RoadGeometry::DoToRoadPosition(
     const std::vector<maliput::api::RoadPositionResult> road_position_results =
         DoFindRoadPositions(inertial_pos, std::numeric_limits<double>::infinity());
     MALIDRIVE_THROW_UNLESS(road_position_results.size());
-    result = road_position_results[0];
-    for (const auto& road_position_result : road_position_results) {
-      if (IsNewRoadPositionResultCloser(road_position_result, result, linear_tolerance())) {
+
+    // Filter the candidates within a linear tolerance of distance.
+    const std::vector<maliput::api::RoadPositionResult> near_road_positions_results =
+        maliput::geometry_base::FilterRoadPositionResults(
+            road_position_results, [tol = linear_tolerance()](const maliput::api::RoadPositionResult& result) {
+              return result.distance <= tol;
+            });
+
+    // If it is empty then I should use all the road position results.
+    const std::vector<maliput::api::RoadPositionResult>& filtered_road_position_results =
+        near_road_positions_results.empty() ? road_position_results : near_road_positions_results;
+    result = filtered_road_position_results[0];
+    for (const auto& road_position_result : filtered_road_position_results) {
+      if (IsNewRoadPositionResultCloser(road_position_result, result)) {
         result = road_position_result;
       }
     }
