@@ -1,9 +1,5 @@
 add_library(log_level_flag INTERFACE)
-target_sources(log_level_flag
-  INTERFACE
-    log_level_flag.h
-)
-
+target_sources(log_level_flag INTERFACE)
 install(
   FILES
     log_level_flag.h

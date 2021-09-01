@@ -15,7 +15,7 @@
 #include <maliput/common/logger.h>
 #include <tinyxml2.h>
 
-#include "log_level_flag.h"
+#include "applications/log_level_flag.h"
 #include "maliput_malidrive/common/macros.h"
 // clang-format off
 #include "maliput_malidrive/xodr/xodr_extract.h"
