@@ -10,7 +10,6 @@ add_library(builder
   range_value_rule_state_provider_builder.cc
   road_curve_factory.cc
   road_geometry_builder.cc
-  road_geometry_builder_base.cc
   road_geometry_configuration.cc
   road_network_builder.cc
   road_network_configuration.cc

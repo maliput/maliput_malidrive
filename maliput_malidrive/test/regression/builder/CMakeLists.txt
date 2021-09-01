@@ -14,7 +14,6 @@ set(UNIT_BUILDER_TEST_SOURCES
   determine_tolerance_test.cc
   id_providers_test.cc
   road_curve_factory_test.cc
-  road_geometry_builder_base_test.cc
   road_geometry_builder_test.cc
   road_network_builder_test.cc
   rule_tools_test.cc

@@ -3,9 +3,11 @@
 
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <maliput/geometry_base/junction.h>
+#include <maliput/math/vector.h>
 
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/base/road_geometry.h"
@@ -13,7 +15,6 @@
 #include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/builder/road_curve_factory.h"
-#include "maliput_malidrive/builder/road_geometry_builder_base.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/db_manager.h"
@@ -24,13 +25,80 @@ namespace builder {
 /// Builder class on top of the `xodr::DBManager` which should
 /// already have loaded the map. It will construct a RoadGeometry that maps to
 /// the XODR description.
-class RoadGeometryBuilder : public RoadGeometryBuilderBase {
+///
+/// OpenDRIVE's format hierarchy is simple and built on top of a XML format.
+/// Details can be found in
+/// https://www.asam.net/standards/detail/opendrive/
+/// As a shortcut, the map follows this structure:
+///
+/// OpenDrive
+///   - road
+///     - lane_section
+///       - lane
+///       - ...
+///       - lane
+///     - ...
+///     - lane_section
+///       - lane
+///       - ...
+///       - lane
+///   - ...
+///   - road
+///     - lane_section
+///       - lane
+///       - ...
+///       - lane
+///     - ...
+///     - lane_section
+///       - lane
+///       - ...
+///       - lane
+///   - junction
+///     - connection
+///       - lane link
+///       - ...
+///       - lane link
+///     - ...
+///     - connection
+///       - lane link
+///       - ...
+///       - lane link
+//   - ...
+///   - junction
+///     - connection
+///       - lane link
+///       - ...
+///       - lane link
+///     - ...
+///     - connection
+///       - lane link
+///       - ...
+///       - lane link
+///
+/// Thus, for Junction -> Segment -> Lane creation, the build process consists
+/// of visiting all the nodes and creating the equivalent entities.
+///
+/// To properly connect Lanes through BranchPoints, it is important to
+/// understand the logic behind road linkage first in OpenDRIVE. `Road`s can be
+/// joint using `Junction`s (when there is more than one option `Lane` to
+/// follow) or `Successor` and `Predecessor` tags (when linkage is trivially
+/// solved). A `Road` could be marked as part of a `Junction` or not, depending
+/// if the connecting _end_ ends in a `Junction`. At the same time,
+/// outer `LaneSection`s hold `Lane`s that could connect to either a `Junction`
+/// or another `Road`. However, inner `LaneSection`s hold `Lane`s that can only
+/// connect to other `Lane`s that belong to a consecutive `LaneSection`, or end
+/// in the middle of the road. Given that, `BranchPoint`s need to be solved in
+/// different stages:
+///
+///   - Inner `LaneSection`s
+///   - Outer `LaneSection`s with `Junction`s / `Road`s
+class RoadGeometryBuilder {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadGeometryBuilder)
 
   RoadGeometryBuilder() = delete;
 
-  /// Builds a RoadGeometry using malidrive2 backend whose ID is
+  /// Builds a RoadGeometry using malidrive backend whose ID is
   /// `road_geometry_configuration.id`.
   ///
   /// `manager` must not be nullptr. Ownership will be transferred to the
@@ -50,7 +118,6 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   /// `road_geometry_configuration.angular_tolerance` or
   /// `road_geometry_configuration.scale_length` are negative.
   /// `manager` or `factory` are nullptr.
-  /// @see RoadGeometryBuilderBase::RoadGeometryBuilderBase() for further details.
   RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manager,
                       const RoadGeometryConfiguration& road_geometry_configuration,
                       std::unique_ptr<RoadCurveFactoryBase> factory);
@@ -66,7 +133,7 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   ///
   /// Consider using small or default values of linear_tolerance and
   /// angular_tolerance to granularly try with different configurations.
-  std::unique_ptr<const maliput::api::RoadGeometry> operator()() override;
+  std::unique_ptr<const maliput::api::RoadGeometry> operator()();
 
  private:
   // Associates a malidrive::Lane to a XODR Lane.
@@ -127,6 +194,27 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
     const RoadGeometryConfiguration& rg_config;
     RoadGeometry* rg{};
   };
+
+  // Convenient enumeration to identify on which side of a BranchPoint a LaneEnd
+  // is.
+  enum class BranchPointSide { kASide = 0, kBSide };
+
+  // @return true When `lane_end` belongs to the `bp_side` of `bp`.
+  //
+  // `bp` must not be nullptr.
+  //
+  // @throws maliput::common::assertion_error When `bp` is nullptr..
+  static bool IsLaneEndOnABSide(const maliput::api::BranchPoint* bp, const maliput::api::LaneEnd& lane_end,
+                                BranchPointSide bp_side);
+
+  // Finds a BranchPoint and its side in `bps` where `lane_end` lives.
+  //
+  // @return A pair with the pointer to the BranchPoint and an optional with the
+  // side of the BranchPoint where `lane_end` lives. If no BranchPoint can be
+  // found, then return value will be <nullptr, nullopt>.
+  static std::pair<maliput::geometry_base::BranchPoint*, std::optional<BranchPointSide>> FindBranchpointByLaneEnd(
+      const maliput::api::LaneEnd& lane_end,
+      const std::vector<std::unique_ptr<maliput::geometry_base::BranchPoint>>& bps);
 
   // Builds a Lane and returns within a LaneConstructionResult that holds extra attributes related to the lane.
   // `lane` must not be nullptr.
@@ -308,6 +396,45 @@ class RoadGeometryBuilder : public RoadGeometryBuilderBase {
   // @throws maliput::common::assertion_error When any of `linear_tolerance`,
   //         `angular_tolerance` or `scale_length` are negative.
   void Reset(double linear_tolerance, double angular_tolerance, double scale_length);
+
+  // Given `lane_end`, it looks for a BranchPoint that has it on either A or B
+  // side. If there is none, it will look for a BranchPoint that has any of the
+  // connecting LaneEnds from `lane_ends`. If there is not any BranchPoint, a
+  // new one is created.
+  //
+  // `lane_end` will be attached to the BranchPoint following these rules:
+  //
+  // - If the BranchPoint is new, it will go to the A side.
+  // - If the BranchPoint already has it, it will not be added.
+  // - If the BranchPoint does not have it but it has another LaneEnd, it will
+  //   go to the opposite side (A --> B, B --> A).
+  //
+  // After that assignment, `lane_ends` are attached to the BranchPoint
+  // following previous rules but considering that they should be on the
+  // opposite side of `lane_end`.
+  void AttachLaneEndToBranchPoint(const maliput::api::LaneEnd& lane_end,
+                                  const std::vector<maliput::api::LaneEnd>& lane_ends);
+
+  // Sets the first LaneEnd on the opposite side of a BranchPoint as
+  // default.
+  //
+  // @throws maliput::common::assertion_error When a BranchPoint does not have
+  //         any LaneEnd on ASide. Note this function will be only called after
+  //         all BranchPoints have been created.
+  void SetDefaultsToBranchPoints();
+
+  // Returns a BranchPointId whose base string is an increasing and unique
+  // integer.
+  maliput::api::BranchPointId GetNewBranchPointId();
+
+  // Provides unique IDs for the BranchPoints.
+  UniqueIntegerProvider branch_point_indexer_{0 /* base ID */};
+
+  // Holds the built BranchPoints.
+  std::vector<std::unique_ptr<maliput::geometry_base::BranchPoint>> bps_{};
+
+  // Holds the built Junctions.
+  std::map<maliput::api::JunctionId, maliput::geometry_base::Junction*> junctions_{};
 
   // Holds the configuration of this builder.
   RoadGeometryConfiguration rg_config_;
