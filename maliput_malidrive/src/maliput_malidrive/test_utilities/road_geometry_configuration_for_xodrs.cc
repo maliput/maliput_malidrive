@@ -228,7 +228,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                           kOmitNondrivableLanes}},
       {"RRFigure8.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"RRFigure8"},
                                                             {"odr/RRFigure8.xodr"},
-                                                            3e-1,
+                                                            5e-1,
                                                             3e-1,
                                                             constants::kScaleLength,
                                                             kZeroVector,
