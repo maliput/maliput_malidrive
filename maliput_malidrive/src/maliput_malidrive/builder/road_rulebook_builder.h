@@ -25,6 +25,7 @@ class RoadRuleBookBuilder {
   /// Constructs a RoadRuleBook.
   ///
   /// @param rg is the pointer to the RoadGeometry. It must not be nullptr.
+  /// @param rule_registry is the pointer to the RuleRegistry. It must not be nullptr.
   /// @param road_rulebook_file_path to the yaml file to load the RoadRulebook.
   /// @param direction_usage_rules is a vector of DirectionUsageRules.
   /// @param speed_limit_rules is a vector of SpeedLimitRules.

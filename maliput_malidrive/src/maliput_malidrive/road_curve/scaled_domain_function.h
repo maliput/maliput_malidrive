@@ -27,6 +27,7 @@ class ScaledDomainFunction : public Function {
   /// @param function The Function to modify its domain.
   /// @param p0 The new p0 value to use as domain's lower boundary.
   /// @param p1 The new p1 value to use as domain's upper boundary.
+  /// @param linear_tolerance Is the range extension to be accepted.
   ///
   /// @throws maliput::common::assertion_error When @p function is nullptr.
   /// @throws maliput::common::assertion_error When @p p0 is negative.

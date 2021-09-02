@@ -22,7 +22,7 @@ struct RoadNetworkConfiguration {
   /// @}
 
   /// Creates a RoadNetworkConfiguration out of a string dictionary.
-  /// @param road_geometry_configuration A string-string map containing the configuration for the builder.
+  /// @param road_network_configuration A string-string map containing the configuration for the builder.
   static RoadNetworkConfiguration FromMap(const std::map<std::string, std::string>& road_network_configuration);
 
   /// @returns A string-string map containing the RoadGeometry configuration.
