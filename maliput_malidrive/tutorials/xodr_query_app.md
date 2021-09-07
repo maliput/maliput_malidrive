@@ -68,6 +68,6 @@ Supported commands:
 
 `--allow_semantic_errors`: *If true, the XODR parser will attempt to work around XODR semantic violations. By default set to `false`.*
 
-`--log_level`: *Sets the log output threshold; possible values are `unchanged`,`trace`, `debug`, `info`, `warn`, `err`, `critical`, `off`. By default set to `unchanged`.*
+`--log_level`: *Sets the log output threshold; possible values: maliput::common::logger::level. By default set to `unchanged`.*
 
 `--tolerance`: *Tolerance used to validate continuity in piecewise defined geometries. By default set to `0.001`.*

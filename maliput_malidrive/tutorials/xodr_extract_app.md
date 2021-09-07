@@ -34,4 +34,4 @@ $ xodr_query TShapeRoad.xodr 0 1 2 --output_file_path=CroppedTShapeRoad.xodr
 
 `--output_file_path` : *Output XODR file path By default set to "./xodr_extract_output.xodr".*
 
-`--log_level`: *Sets the log output threshold; possible values are `unchanged`,`trace`, `debug`, `info`, `warn`, `err`, `critical`, `off`. By default set to `unchanged`.*
+`--log_level`: *Sets the log output threshold; possible values: maliput::common::logger::level. By default set to `unchanged`.*

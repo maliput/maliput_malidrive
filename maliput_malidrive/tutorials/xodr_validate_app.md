@@ -13,18 +13,18 @@ If the XODR file doesn't meet OpenDRIVE specification the application will notif
 
 For example:
 ```bash
-  $ maliput_ws$ xodr_validate --xodr_file=TShapeRoad.xodr
+$ xodr_validate --xodr_file=TShapeRoad.xodr
 
-  [INFO] Parser: Allow schema errors: disabled
-  [INFO] Parser: Allow semantic errors: disabled
-  Successfully loaded the map.
+[INFO] Parser: Allow schema errors: disabled
+[INFO] Parser: Allow semantic errors: disabled
+Successfully loaded the map.
 
 ```
 
 Let's try another example where the outcome isn't ideal, and let's use `trace` as log level to get more information about how the parser progress in the xodr file.
 
 ```
-xodr_validate --xodr_file=NonContiguousRoad.xodr --log_level=trace
+$ xodr_validate --xodr_file=NonContiguousRoad.xodr --log_level=trace
 [INFO] Parser: Allow schema errors: disabled
 [INFO] Parser: Allow semantic errors: disabled
 [TRACE] XODR Parser configuration:
@@ -44,7 +44,7 @@ The map could not be loaded.
 
 ```
 
-In this case the XODR validation failed because in the plainView node there is no guarantee of contiguity between both geometries, for example.
+In this case the XODR validation failed because in the `plainView` node there is no guarantee of contiguity between both geometries, for example.
 
 ```xml
 <planView>
@@ -66,6 +66,6 @@ In this case the XODR validation failed because in the plainView node there is n
 
 `--allow_semantic_errors`: *If true, the XODR parser will attempt to work around XODR semantic violations. By default set to `false`.*
 
-`--log_level`: *Sets the log output threshold; possible values are `unchanged`, `trace`, `debug`, `info`, `warn`, `err`, `critical`, `off`. By default set to `unchanged`.*
+`--log_level`: *Sets the log output threshold; possible values: maliput::common::logger::level. By default set to `unchanged`.*
 
 `--tolerance`: *Tolerance used to validate continuity in piecewise defined geometries. By default set to `0.001`.*
