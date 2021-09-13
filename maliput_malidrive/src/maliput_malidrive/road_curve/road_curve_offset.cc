@@ -199,7 +199,7 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   // length work well as a heuristic approximation to appropriate step sizes.
   drake::systems::IntegratorBase<double>& p_from_s_integrator = p_from_s_ivp_->get_mutable_integrator();
   p_from_s_integrator.request_initial_step_size_target(road_curve_->scale_length() * 0.1);
-  p_from_s_integrator.set_maximum_step_size(road_curve_->scale_length());
+  p_from_s_integrator.set_maximum_step_size(road_curve_->scale_length() / 2.);
   p_from_s_integrator.set_target_accuracy(integrator_accuracy);
 }
 
