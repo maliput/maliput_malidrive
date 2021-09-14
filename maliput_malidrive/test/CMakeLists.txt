@@ -74,7 +74,6 @@ macro(maliput_malidrive_build_tests)
 
     # Kind of an ugly catch-all bucket
     target_link_libraries(${BINARY_NAME}
-        drake::drake
         maliput::api
         maliput::base
         maliput::common
@@ -161,13 +160,10 @@ macro(malidrive_build_integration_based_tests)
 
       # Kind of an ugly catch-all bucket
       target_link_libraries(${BINARY_NAME}
-          drake::drake
           maliput::api
-          maliput::base
           maliput::common
-          maliput::geometry_base
           maliput::test_utilities
-          maliput_malidrive::base
+          maliput::utilities
           maliput_malidrive::builder
           maliput_malidrive::loader
           maliput_malidrive::test_utilities

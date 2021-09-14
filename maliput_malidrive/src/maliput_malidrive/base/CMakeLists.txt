@@ -20,12 +20,15 @@ target_include_directories(
 
 target_link_libraries(
   base
-    drake::drake
     maliput::api
     maliput::base
     maliput::geometry_base
     maliput::math
-    maliput::utilities
+    maliput_drake::analysis
+    maliput_drake::common
+    maliput_drake::framework
+    maliput_drake::math
+    maliput_drake::trajectories
     maliput_malidrive::common
     maliput_malidrive::road_curve
     maliput_malidrive::xodr

@@ -23,7 +23,6 @@ target_link_libraries(
     maliput::base
     maliput::geometry_base
     maliput::math
-    maliput::utilities
     maliput_malidrive::builder
     maliput_malidrive::common
 )

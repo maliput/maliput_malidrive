@@ -19,7 +19,6 @@ target_link_libraries(test_utilities
   PUBLIC
     maliput::api
     maliput::math
-    maliput::utilities
     maliput_malidrive::builder
     maliput_malidrive::common
 )

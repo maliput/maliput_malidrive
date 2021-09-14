@@ -22,12 +22,12 @@ include(GNUInstallDirs)
 message(STATUS "\n\n====== Finding 3rd Party Packages ======\n")
 
 find_package(ament_cmake REQUIRED)
-find_package(drake_vendor REQUIRED)
 find_package(fmt 4.0.0 EXACT QUIET)
 if(NOT ${fmt_FOUND})
   find_package(fmt 6.1.2 REQUIRED)
 endif()
 find_package(maliput REQUIRED)
+find_package(maliput_drake REQUIRED)
 
 ##############################################################################
 # Project Configuration
@@ -173,7 +173,7 @@ ament_export_include_directories(include)
 
 ament_environment_hooks(setup.sh.in)
 ament_export_dependencies(ament_cmake)
-ament_export_dependencies(drake_vendor)
+ament_export_dependencies(maliput_drake)
 ament_export_interfaces(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 
 ament_package()
