@@ -1,5 +1,9 @@
 add_library(log_level_flag INTERFACE)
-target_sources(log_level_flag INTERFACE)
+target_sources(
+  log_level_flag
+  INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/log_level_flag.h
+)
 install(
   FILES
     log_level_flag.h
