@@ -28,7 +28,7 @@ bool IsNewRoadPositionResultCloser(const maliput::api::RoadPositionResult& new_r
                                  new_road_position_result.road_position.lane->segment()->id();
 
   // When lanes belong to the same segment is expected that the distance value is almost equal so we can't use the
-  // distance as main condition. When lanes doesn't belong to the same segment we can use the distance as main
+  // distance as main condition. When lanes don't belong to the same segment we can use the distance as main
   // condition.
   if (different_segment) {
     if (delta < -malidrive::constants::kStrictLinearTolerance) {
