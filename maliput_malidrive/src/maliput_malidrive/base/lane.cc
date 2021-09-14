@@ -164,8 +164,8 @@ void Lane::DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, ma
   const maliput::math::Vector3 unconstrained_prh{BackendFrameToLaneFrame(backend_pos)};
   MALIDRIVE_IS_IN_RANGE(unconstrained_prh[0], p0_, p1_);
   const double s = s_from_p_(unconstrained_prh[0]);
-  const maliput::api::RBounds segment_boundaries = segment_bounds(s);
-  const double r = maliput::math::saturate(unconstrained_prh[1], segment_boundaries.min(), segment_boundaries.max());
+  const maliput::api::RBounds lane_boundaries = lane_bounds(s);
+  const double r = maliput::math::saturate(unconstrained_prh[1], lane_boundaries.min(), lane_boundaries.max());
   const maliput::api::HBounds elevation_boundaries = elevation_bounds(s, r);
   const double h =
       maliput::math::saturate(unconstrained_prh[2], elevation_boundaries.min(), elevation_boundaries.max());
