@@ -1,5 +1,4 @@
 // Copyright 2021 Toyota Research Institute
-/// @file xodr_extract.cc
 ///
 /// Generate a new XODR file which is filled with Roads that are extracted from an another XODR file.
 /// @code{sh}

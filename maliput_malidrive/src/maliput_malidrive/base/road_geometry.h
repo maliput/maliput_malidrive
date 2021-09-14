@@ -29,6 +29,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// maliput::api::RoadGeometry::angular_tolerance() for reference.
   /// @param scale_length see @ref
   /// maliput::api::RoadGeometry::scale_length() for reference.
+  /// @param inertial_to_backend_frame_translation maliput's Inertial Frame to Backend Frame translation vector.
   /// @throw maliput::common::assertion_error When @p manager_ is nullptr.
   RoadGeometry(const maliput::api::RoadGeometryId& id, std::unique_ptr<xodr::DBManager> manager,
                double linear_tolerance, double angular_tolerance, double scale_length,

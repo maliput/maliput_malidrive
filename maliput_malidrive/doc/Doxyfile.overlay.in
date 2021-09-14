@@ -1,1 +1,12 @@
 EXCLUDE_PATTERNS = @INPUT_DIRECTORY@/test/**
+FILE_PATTERNS          = *.c \
+                         *.cc \
+                         *.cxx \
+                         *.cpp \
+                         *.c++ \
+                         *.h \
+                         *.hh \
+                         *.hxx \
+                         *.hpp \
+                         *.h++ \
+                         */tutorials/*.md

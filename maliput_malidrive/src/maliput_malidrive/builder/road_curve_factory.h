@@ -146,7 +146,7 @@ class RoadCurveFactoryBase {
   /// @returns A function that describes the elevation of the Road.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
+  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeElevation(
       const xodr::ElevationProfile& elevation_profile, double p0, double p1, bool assert_continuity) const = 0;
 
@@ -171,7 +171,7 @@ class RoadCurveFactoryBase {
   /// @returns A function that describes the superelevation of the Road.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
+  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeSuperelevation(
       const xodr::LateralProfile& lateral_profile, double p0, double p1, bool assert_continuity) const = 0;
 
@@ -189,7 +189,7 @@ class RoadCurveFactoryBase {
   /// @returns A function that describes the width of the Lane.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
+  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
   /// @throws maliput::common::assertion_error When @p lane_widths 's size is zero.
   /// @throws maliput::common::assertion_error When the first offset value of @p lane_widths is different than zero.
   /// @throws maliput::common::assertion_error When @p lane_widths 's start points are distanced less than linear
@@ -216,7 +216,7 @@ class RoadCurveFactoryBase {
   /// @returns A function that describes the lateral shift of the road reference line.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
+  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeReferenceLineOffset(
       const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const = 0;
 
@@ -297,7 +297,7 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   // @returns A cubic polynomial function.
   //
   // @throws maliput::common::assertion_error When @p p0 is negative.
-  // @throws maliput::common::assertion_error When @p p1 is not greater enough than @p0.
+  // @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
   template <class T>
   std::unique_ptr<malidrive::road_curve::Function> MakeCubicFromXodr(
       const std::vector<T>& xodr_data, double p0, double p1, FillingGapPolicy policy,
