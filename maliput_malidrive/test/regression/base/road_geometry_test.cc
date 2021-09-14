@@ -112,41 +112,63 @@ TEST_F(RoadGeometryTest, DuplicatedRoadId) {
                maliput::common::assertion_error);
 }
 
-GTEST_TEST(RoadGeometryFigure8Trafficlights, RoundTripPosition) {
-  builder::RoadGeometryConfiguration road_geometry_configuration{};
-  road_geometry_configuration.id = maliput::api::RoadGeometryId("figure8_trafficlights");
-  road_geometry_configuration.opendrive_file =
-      utility::FindResource("odr/figure8_trafficlights/figure8_trafficlights.xodr");
+class RoadGeometryFigure8Trafficlights : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("figure8_trafficlights");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResource("odr/figure8_trafficlights/figure8_trafficlights.xodr");
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
 
-  auto road_network =
-      ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration.ToStringMap());
-
+TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheStart) {
   const maliput::api::LanePosition position(0., 0., 0.);
   const maliput::api::LaneId lane_id("1_0_-1");
-  auto lane = road_network->road_geometry()->ById().GetLane(lane_id);
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
   auto inertial_position = lane->ToInertialPosition(position);
 
-  auto result = road_network->road_geometry()->ToRoadPosition(inertial_position);
+  auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
   EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
 }
 
-GTEST_TEST(RoadGeometryFigure8Trafficlights, RoundTripPositionWithInertialToBackendFrameTranslation) {
-  builder::RoadGeometryConfiguration road_geometry_configuration{};
-  road_geometry_configuration.id = maliput::api::RoadGeometryId("figure8_trafficlights");
-  road_geometry_configuration.opendrive_file =
-      utility::FindResource("odr/figure8_trafficlights/figure8_trafficlights.xodr");
-  road_geometry_configuration.inertial_to_backend_frame_translation = maliput::math::Vector3{1., 2., 3.};
-
-  auto road_network =
-      ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration.ToStringMap());
+TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionWithInertialToBackendFrameTranslation) {
+  road_geometry_configuration_.inertial_to_backend_frame_translation = maliput::math::Vector3{1., 2., 3.};
+  road_network_ =
+      ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
 
   const maliput::api::LanePosition position(0., 0., 0.);
   const maliput::api::LaneId lane_id("1_0_-1");
-  auto lane = road_network->road_geometry()->ById().GetLane(lane_id);
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
   auto inertial_position = lane->ToInertialPosition(position);
 
-  auto result = road_network->road_geometry()->ToRoadPosition(inertial_position);
+  auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
+  EXPECT_EQ(lane_id, result.road_position.lane->id());
+  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
+}
+
+TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionInBetween) {
+  const maliput::api::LanePosition position(80., 0., 0.);
+  const maliput::api::LaneId lane_id("1_0_-1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  auto inertial_position = lane->ToInertialPosition(position);
+
+  auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
+  EXPECT_EQ(lane_id, result.road_position.lane->id());
+  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
+}
+
+TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheEnd) {
+  const maliput::api::LaneId lane_id("1_0_-1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length(), 0., 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+
+  auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
   EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
 }
