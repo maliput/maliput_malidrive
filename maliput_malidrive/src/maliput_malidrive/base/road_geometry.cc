@@ -24,11 +24,19 @@ namespace {
 bool IsNewRoadPositionResultCloser(const maliput::api::RoadPositionResult& new_road_position_result,
                                    const maliput::api::RoadPositionResult& road_position_result) {
   const double delta = new_road_position_result.distance - road_position_result.distance;
-  if (delta > malidrive::constants::kStrictLinearTolerance) {
-    return false;
-  }
-  if (delta < -malidrive::constants::kStrictLinearTolerance) {
-    return true;
+  const bool different_segment = road_position_result.road_position.lane->segment()->id() !=
+                                 new_road_position_result.road_position.lane->segment()->id();
+
+  // When lanes belong to the same segment is expected that the distance value is almost equal so we can't use the
+  // distance as main condition. When lanes doesn't belong to the same segment we can use the distance as main
+  // condition.
+  if (different_segment) {
+    if (delta < -malidrive::constants::kStrictLinearTolerance) {
+      return true;
+    }
+    if (delta >= malidrive::constants::kStrictLinearTolerance) {
+      return false;
+    }
   }
 
   auto is_within_lane_bounds = [](double r, const maliput::api::RBounds& lane_bounds) {
