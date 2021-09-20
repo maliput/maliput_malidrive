@@ -7,7 +7,6 @@
 
 #include <maliput/api/road_network.h>
 
-#include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
@@ -23,15 +22,6 @@ class RoadNetworkBuilder {
   ///        RoadNetwork entities.
   explicit RoadNetworkBuilder(const std::map<std::string, std::string>& road_network_configuration)
       : road_network_configuration_(road_network_configuration) {}
-
-  /// TODO(#135): Deprecates this Constructor.
-  ///
-  /// Constructs a RoadNetworkBuilder.
-  ///
-  /// @param road_network_configuration Holds the information of all the
-  ///        RoadNetwork entities.
-  RoadNetworkBuilder(const RoadNetworkConfiguration& road_network_configuration)
-      : RoadNetworkBuilder(road_network_configuration.ToStringMap()) {}
 
   /// @return A maliput_malidrive RoadNetwork.
   std::unique_ptr<maliput::api::RoadNetwork> operator()() const;

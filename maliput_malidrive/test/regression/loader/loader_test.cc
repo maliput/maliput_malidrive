@@ -41,20 +41,6 @@ TEST_F(LoaderTestSingleLane, LoadARoadNetwork) {
   EXPECT_NE(lane_id_lane.at(kLaneId2), nullptr);
 }
 
-// TODO(#135): Removes test once this Load method is deprecated.
-TEST_F(LoaderTestSingleLane, LoadARoadNetworkUsingRoadNetworkConfigurationStruct) {
-  const builder::RoadNetworkConfiguration road_network_config{
-      builder::RoadGeometryConfiguration::FromMap(road_geometry_configuration_), std::nullopt, std::nullopt,
-      std::nullopt, std::nullopt};
-  const std::unique_ptr<maliput::api::RoadNetwork> dut = loader::Load<builder::RoadNetworkBuilder>(road_network_config);
-  const auto rg = dut->road_geometry();
-  EXPECT_EQ(road_geometry_configuration_.at("road_geometry_id"), rg->id().string());
-  const auto lane_id_lane = rg->ById().GetLanes();
-  EXPECT_EQ(kNumLanes, lane_id_lane.size());
-  EXPECT_NE(lane_id_lane.at(kLaneId1), nullptr);
-  EXPECT_NE(lane_id_lane.at(kLaneId2), nullptr);
-}
-
 }  // namespace
 }  // namespace test
 }  // namespace loader

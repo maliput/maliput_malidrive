@@ -15,9 +15,5 @@ namespace loader {
 template std::unique_ptr<maliput::api::RoadNetwork> Load<builder::RoadNetworkBuilder>(
     const std::map<std::string, std::string>& road_network_configuration);
 
-/// TODO(#135): Deprecates this Load method.
-template std::unique_ptr<maliput::api::RoadNetwork> Load<builder::RoadNetworkBuilder>(
-    const builder::RoadNetworkConfiguration& road_network_configuration);
-
 }  // namespace loader
 }  // namespace malidrive
