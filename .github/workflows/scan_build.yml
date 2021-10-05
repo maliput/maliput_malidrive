@@ -37,9 +37,9 @@ jobs:
         token: ${{ secrets.MALIPUT_TOKEN }}
     - uses: actions/checkout@v2
       with:
-        repository: ToyotaResearchInstitute/drake-vendor
+        repository: ToyotaResearchInstitute/maliput_drake
         fetch-depth: 0
-        path: ${{ env.ROS_WS }}/src/drake_vendor
+        path: ${{ env.ROS_WS }}/src/maliput_drake
         token: ${{ secrets.MALIPUT_TOKEN }}
     - name: check if dependencies have a matching branch
       shell: bash
@@ -62,10 +62,6 @@ jobs:
       run: |
         rosdep update --include-eol-distros;
         rosdep install  -i -y --rosdistro ${ROS_DISTRO} --from-paths src
-    - name: install drake
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}/src/drake_vendor
-      run: ./drake_installer
     - name: colcon build up-to
       shell: bash
       working-directory: ${{ env.ROS_WS }}
