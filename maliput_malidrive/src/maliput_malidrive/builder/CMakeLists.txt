@@ -35,20 +35,22 @@ target_include_directories(
 
 target_link_libraries(
   builder
-    maliput::api
-    maliput::base
-    maliput::geometry_base
-    maliput::math
-    maliput::utilities
-    maliput_drake::analysis
-    maliput_drake::common
-    maliput_drake::framework
-    maliput_drake::math
-    maliput_drake::trajectories
-    maliput_malidrive::base
-    maliput_malidrive::common
-    maliput_malidrive::road_curve
-    maliput_malidrive::xodr
+    PUBLIC
+      maliput::api
+      maliput::base
+      maliput::geometry_base
+      maliput::math
+      maliput::utilities
+      maliput_malidrive::common
+    PRIVATE
+      maliput_drake::analysis
+      maliput_drake::common
+      maliput_drake::framework
+      maliput_drake::math
+      maliput_drake::trajectories
+      maliput_malidrive::base
+      maliput_malidrive::road_curve
+      maliput_malidrive::xodr
 )
 
 install(TARGETS builder

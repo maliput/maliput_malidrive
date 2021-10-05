@@ -19,12 +19,13 @@ target_include_directories(
 
 target_link_libraries(
   loader
-    maliput::api
-    maliput::base
-    maliput::geometry_base
-    maliput::math
-    maliput_malidrive::builder
-    maliput_malidrive::common
+    PUBLIC
+      maliput::api
+      maliput::base
+      maliput::geometry_base
+      maliput::math
+      maliput_malidrive::builder
+      maliput_malidrive::common
 )
 
 install(TARGETS loader
