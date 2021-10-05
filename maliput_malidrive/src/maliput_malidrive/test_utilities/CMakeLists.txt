@@ -23,16 +23,6 @@ target_link_libraries(test_utilities
     maliput_malidrive::common
 )
 
-install(
-  FILES
-    function_stub.h
-    ground_curve_stub.h
-    road_geometry_configuration_for_xodrs.h
-    xodr_testing_map_descriptions.h
-  DESTINATION
-    ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/test_utilities
-)
-
 # Install the exported target
 install(
   TARGETS test_utilities
