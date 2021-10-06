@@ -108,11 +108,11 @@ class RoadCurveOffset {
 
   // The inverse arc length IVP, or the parameter track_s as a function of the
   // arc length lane_s.
-  std::unique_ptr<drake::systems::ScalarInitialValueProblem<double>> p_from_s_ivp_{};
+  std::unique_ptr<maliput::drake::systems::ScalarInitialValueProblem<double>> p_from_s_ivp_{};
 
   // The arc length function, or the arc length lane_s as a function of the
   // parameter track_s.
-  std::unique_ptr<drake::systems::AntiderivativeFunction<double>> s_from_p_func_{};
+  std::unique_ptr<maliput::drake::systems::AntiderivativeFunction<double>> s_from_p_func_{};
 };
 
 }  // namespace road_curve
