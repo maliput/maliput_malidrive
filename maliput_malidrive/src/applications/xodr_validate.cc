@@ -17,6 +17,14 @@ namespace applications {
 namespace xodr {
 namespace {
 
+// @return A string with the usage message.
+std::string GetUsageMessage() {
+  std::stringstream ss;
+  ss << "CLI for XODR validation:" << std::endl << std::endl;
+  ss << "  xodr_validate --xodr_file=<xodr_file_path>" << std::endl;
+  return ss.str();
+}
+
 // @{ CLI Arguments
 DEFINE_string(xodr_file, "", "XODR input file defining a Malidrive road geometry");
 DEFINE_double(tolerance, 1e-3, "Tolerance to validate continuity in piecewise defined geometries.");
@@ -28,6 +36,7 @@ MALIPUT_MALIDRIVE_APPLICATION_DEFINE_LOG_LEVEL_FLAG();
 
 int Main(int argc, char** argv) {
   // Handles CLI arguments.
+  gflags::SetUsageMessage(GetUsageMessage());
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   maliput::common::set_log_level(FLAGS_log_level);
   if (FLAGS_xodr_file.empty()) {

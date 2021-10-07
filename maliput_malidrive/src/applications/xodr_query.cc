@@ -291,8 +291,8 @@ double ToleranceFromCli(char** argv) { return std::stod(*argv); }
 
 int Main(int argc, char** argv) {
   // Handles CLI arguments.
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
   gflags::SetUsageMessage(GetUsageMessage());
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   if (argc < 3 || CommandsUsage().find(argv[2]) == CommandsUsage().end()) {
     gflags::ShowUsageWithFlags(argv[0]);
     return 1;

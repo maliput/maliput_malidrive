@@ -35,7 +35,8 @@ MALIPUT_MALIDRIVE_APPLICATION_DEFINE_LOG_LEVEL_FLAG();
 std::string GetUsageMessage() {
   std::stringstream ss;
   ss << "CLI for XODR creation out of selected Roads of another XODR file" << std::endl << std::endl;
-  ss << "  xodr_extract <xodr_file> <road_1> <road_2> ... <road_n>" << std::endl;
+  ss << "  xodr_extract <xodr_file> <road_1> <road_2> ... <road_n> --output_file_path=<output_xodr_file_path>"
+     << std::endl;
   return ss.str();
 }
 
@@ -59,8 +60,8 @@ std::string FromVectorStrToString(const std::vector<std::string>& vector_str) {
 
 int Main(int argc, char** argv) {
   // Handles CLI arguments.
-  gflags::ParseCommandLineFlags(&argc, &argv, true);
   gflags::SetUsageMessage(GetUsageMessage());
+  gflags::ParseCommandLineFlags(&argc, &argv, true);
   if (argc < 3) {
     std::cout << "\nWrong number of arguments. See application documentation: \n" << std::endl;
     gflags::ShowUsageWithFlags(argv[0]);
