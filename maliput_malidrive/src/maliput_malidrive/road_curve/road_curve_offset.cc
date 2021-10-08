@@ -2,9 +2,9 @@
 #include "maliput_malidrive/road_curve/road_curve_offset.h"
 
 #include <Eigen/Dense>
-#include <maliput/drake/common/eigen_types.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_unused.h>
+#include <maliput/drake/common/eigen_types.h>
 #include <maliput/math/saturate.h>
 
 namespace malidrive {
