@@ -26,8 +26,11 @@ target_include_directories(road_network
 # Export
 ##############################################################################
 
+# Using a different location as this target is a dynamic library
+# which will be loaded in runtime as a maliput plugin.
 set(PLUGIN_INSTALL_DIR
-    "${CMAKE_INSTALL_PREFIX}/../maliput/lib/maliput/plugins")
+    lib/plugins
+)
 
 install(
   TARGETS road_network

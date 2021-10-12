@@ -59,3 +59,6 @@ add_if_not_in_var MALIPUT_MALIDRIVE_RESOURCE_ROOT $COLCON_PREFIX_PATH/maliput_ma
 add_if_not_in_var PATH $COLCON_PREFIX_PATH/maliput_malidrive/bin/maliput_malidrive
 add_if_not_in_var PATH $COLCON_PREFIX_PATH/maliput_malidrive/bin/maliput_malidrive/applications
 add_if_not_in_var PATH $COLCON_PREFIX_PATH/maliput_malidrive/bin/maliput_malidrive/examples
+
+# Extends path for the maliput plugin architecture
+add_if_not_in_var MALIPUT_PLUGIN_PATH $COLCON_PREFIX_PATH/maliput_malidrive/lib/plugins:$MALIPUT_PLUGIN_PATH
