@@ -46,13 +46,13 @@ struct RoadGeometryConfiguration {
   static constexpr char const* kStrRoadGeometryId = "road_geometry_id";
   static constexpr char const* kStrOpendriveFile = "opendrive_file";
   static constexpr char const* kStrLinearTolerance = "linear_tolerance";
+  static constexpr char const* kStrMaxLinearTolerance = "max_linear_tolerance";
   static constexpr char const* kStrAngularTolerance = "angular_tolerance";
   static constexpr char const* kStrScaleLength = "scale_length";
   static constexpr char const* kStrInertialToBackendFrameTranslation = "inertial_to_backend_frame_translation";
   static constexpr char const* kStrBuildPolicy = "build_policy";
   static constexpr char const* kStrNumThreads = "num_threads";
   static constexpr char const* kStrSimplificationPolicy = "simplification_policy";
-  static constexpr char const* kStrToleranceSelectionPolicy = "tolerance_selection_policy";
   static constexpr char const* kStrStandardStrictnessPolicy = "standard_strictness_policy";
   static constexpr char const* kStrOmitNonDrivableLanes = "omit_nondrivable_lanes";
   /// @}
@@ -75,12 +75,6 @@ struct RoadGeometryConfiguration {
     kSimplifyWithinToleranceAndKeepGeometryModel,  ///< Merge geometry pieces and keep the original geometry model.
   };
 
-  /// How the tolerance and scale length should be computed.
-  enum class ToleranceSelectionPolicy {
-    kManualSelection,     ///< Manual adjustment.
-    kAutomaticSelection,  ///< Automatic selection.
-  };
-
   /// Converts a string to a SimplificationPolicy.
   ///
   /// @param policy String to be translated to a SimplificationPolicy. Valid strings match the enumerator's name except
@@ -95,21 +89,6 @@ struct RoadGeometryConfiguration {
   /// without the leading 'k' and is all lower case.
   /// @returns A string.
   static std::string FromSimplificationPolicyToStr(const SimplificationPolicy& policy);
-
-  /// Converts a string to a ToleranceSelectionPolicy.
-  ///
-  /// @param policy String to be translated to a ToleranceSelectionPolicy. Valid strings match the enumerator's name
-  /// except without the leading 'k' and is all lower case.
-  /// @returns A ToleranceSelectionPolicy value.
-  /// @throws maliput::common::assertion_error When `policy` isn't a valid ToleranceSelectionPolicy.
-  static ToleranceSelectionPolicy FromStrToToleranceSelectionPolicy(const std::string& policy);
-
-  /// Converts a ToleranceSelectionPolicy to a string.
-  ///
-  /// @param policy ToleranceSelectionPolicy to be translated to a string. Enumerator's name matches the string except
-  /// without the leading 'k' and is all lower case.
-  /// @returns A string.
-  static std::string FromToleranceSelectionPolicyToStr(const ToleranceSelectionPolicy& policy);
 
   /// Converts a string to a StandardStrictnessPolicy.
   ///
@@ -130,6 +109,31 @@ struct RoadGeometryConfiguration {
   /// @param road_geometry_configuration A string-string map containing the configuration for the builder.
   static RoadGeometryConfiguration FromMap(const std::map<std::string, std::string>& road_geometry_configuration);
 
+  /// Holds linear and angular tolerance to be used by the builder.
+  /// A range could be selected for linear tolerance, allowing the builder to try
+  /// different values of linear tolerance within that range when the builder process fails.
+  struct BuildTolerance {
+    /// Set linear and angular tolerance.
+    /// @param linear_tolerance_in linear tolerance.
+    /// @param angular_tolerance_in angular tolerance.
+    explicit BuildTolerance(double linear_tolerance_in, double angular_tolerance_in);
+
+    /// Set linear tolerance range and angular tolerance.
+    /// @param min_linear_tolerance_in minimum linear tolerance to be used.
+    /// @param max_linear_tolerance_in maximum linear tolerance to be used.
+    /// @param angular_tolerance_in angular tolerance.
+    explicit BuildTolerance(double min_linear_tolerance_in, double max_linear_tolerance_in,
+                            double angular_tolerance_in);
+
+    /// Nominal linear_tolerance to be used in the RoadGeometry. Corresponds to the minimumm range of linear tolerances
+    /// when `max_linear_tolerance.has_value` is true.
+    double linear_tolerance{constants::kLinearTolerance};
+    /// Maximum range of linear tolerances.
+    std::optional<double> max_linear_tolerance{std::nullopt};
+    /// Angular tolerance to be used in the RoadGeometry.
+    double angular_tolerance{constants::kAngularTolerance};
+  };
+
   /// @returns A string-string map containing the RoadGeometry configuration.
   std::map<std::string, std::string> ToStringMap() const;
 
@@ -138,13 +142,11 @@ struct RoadGeometryConfiguration {
   /// @{
   maliput::api::RoadGeometryId id{"maliput"};
   std::string opendrive_file{""};
-  double linear_tolerance{constants::kLinearTolerance};
-  double angular_tolerance{constants::kAngularTolerance};
+  BuildTolerance tolerances{constants::kLinearTolerance, constants::kAngularTolerance};
   double scale_length{constants::kScaleLength};
   maliput::math::Vector3 inertial_to_backend_frame_translation{0., 0., 0.};
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};
   SimplificationPolicy simplification_policy{SimplificationPolicy::kNone};
-  ToleranceSelectionPolicy tolerance_selection_policy{ToleranceSelectionPolicy::kAutomaticSelection};
   StandardStrictnessPolicy standard_strictness_policy{StandardStrictnessPolicy::kPermissive};
   // Note: this flag will change its default to false. It might lead to badly
   // constructed RoadGeometries. Consider the following case:

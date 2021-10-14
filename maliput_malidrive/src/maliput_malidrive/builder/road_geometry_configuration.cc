@@ -28,16 +28,6 @@ const std::map<RoadGeometryConfiguration::SimplificationPolicy, std::string> sim
     {RoadGeometryConfiguration::SimplificationPolicy::kNone, "none"},
     {RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel, "simplify"}};
 
-// Holds the conversion from string(keys) to ToleranceSelectionPolicy(values);
-const std::map<std::string, RoadGeometryConfiguration::ToleranceSelectionPolicy> str_to_tolerance_selection_policy{
-    {"manual", RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection},
-    {"automatic", RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection}};
-
-// Holds the conversion from ToleranceSelectionPolicy(keys) to string(values);
-const std::map<RoadGeometryConfiguration::ToleranceSelectionPolicy, std::string> tolerance_selection_policy_to_str{
-    {RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection, "manual"},
-    {RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection, "automatic"}};
-
 // Holds the conversion from string(keys) to StandardStrictnessPolicy(values);
 const std::map<std::string, RoadGeometryConfiguration::StandardStrictnessPolicy> str_to_standard_strictness_policy{
     {"strict", RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict},
@@ -101,12 +91,17 @@ RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
 
   it = road_geometry_configuration.find(kStrLinearTolerance);
   if (it != road_geometry_configuration.end()) {
-    rg_config.linear_tolerance = std::stod(it->second);
+    rg_config.tolerances.linear_tolerance = std::stod(it->second);
+  }
+
+  it = road_geometry_configuration.find(kStrMaxLinearTolerance);
+  if (it != road_geometry_configuration.end()) {
+    rg_config.tolerances.max_linear_tolerance = std::stod(it->second);
   }
 
   it = road_geometry_configuration.find(kStrAngularTolerance);
   if (it != road_geometry_configuration.end()) {
-    rg_config.angular_tolerance = std::stod(it->second);
+    rg_config.tolerances.angular_tolerance = std::stod(it->second);
   }
 
   it = road_geometry_configuration.find(kStrScaleLength);
@@ -133,11 +128,6 @@ RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
     rg_config.simplification_policy = FromStrToSimplificationPolicy(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrToleranceSelectionPolicy);
-  if (it != road_geometry_configuration.end()) {
-    rg_config.tolerance_selection_policy = FromStrToToleranceSelectionPolicy(it->second);
-  }
-
   it = road_geometry_configuration.find(kStrStandardStrictnessPolicy);
   if (it != road_geometry_configuration.end()) {
     rg_config.standard_strictness_policy = FromStrToStandardStrictnessPolicy(it->second);
@@ -151,19 +141,20 @@ RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
 }
 
 std::map<std::string, std::string> RoadGeometryConfiguration::ToStringMap() const {
-  std::map<std::string, std::string> config_map{
-      {{kStrRoadGeometryId}, id.string()},
-      {{kStrOpendriveFile}, opendrive_file},
-      {{kStrLinearTolerance}, std::to_string(linear_tolerance)},
-      {{kStrAngularTolerance}, std::to_string(angular_tolerance)},
-      {{kStrScaleLength}, std::to_string(scale_length)},
-      {{kStrInertialToBackendFrameTranslation}, inertial_to_backend_frame_translation.to_str()},
-      {{kStrSimplificationPolicy}, FromSimplificationPolicyToStr(simplification_policy)},
-      {{kStrToleranceSelectionPolicy}, FromToleranceSelectionPolicyToStr(tolerance_selection_policy)},
-      {{kStrStandardStrictnessPolicy}, FromStandardStrictnessPolicyToStr(standard_strictness_policy)},
-      {{kStrOmitNonDrivableLanes}, omit_nondrivable_lanes ? "true" : "false"},
-      {{kStrBuildPolicy}, BuildPolicy::FromTypeToStr(build_policy.type)},
-  };
+  std::map<std::string, std::string> config_map{};
+  config_map.emplace(kStrRoadGeometryId, id.string());
+  config_map.emplace(kStrOpendriveFile, opendrive_file);
+  config_map.emplace(kStrLinearTolerance, std::to_string(tolerances.linear_tolerance));
+  if (tolerances.max_linear_tolerance.has_value()) {
+    config_map.emplace(kStrMaxLinearTolerance, std::to_string(tolerances.max_linear_tolerance.value()));
+  }
+  config_map.emplace(kStrAngularTolerance, std::to_string(tolerances.angular_tolerance));
+  config_map.emplace(kStrScaleLength, std::to_string(scale_length));
+  config_map.emplace(kStrInertialToBackendFrameTranslation, inertial_to_backend_frame_translation.to_str());
+  config_map.emplace(kStrSimplificationPolicy, FromSimplificationPolicyToStr(simplification_policy));
+  config_map.emplace(kStrStandardStrictnessPolicy, FromStandardStrictnessPolicyToStr(standard_strictness_policy));
+  config_map.emplace(kStrOmitNonDrivableLanes, omit_nondrivable_lanes ? "true" : "false");
+  config_map.emplace(kStrBuildPolicy, BuildPolicy::FromTypeToStr(build_policy.type));
   if (build_policy.num_threads.has_value()) {
     config_map.emplace(kStrNumThreads, std::to_string(build_policy.num_threads.value()));
   }
@@ -192,20 +183,6 @@ RoadGeometryConfiguration::SimplificationPolicy RoadGeometryConfiguration::FromS
 std::string RoadGeometryConfiguration::FromSimplificationPolicyToStr(
     const RoadGeometryConfiguration::SimplificationPolicy& policy) {
   return simplification_policy_to_str.at(policy);
-}
-
-RoadGeometryConfiguration::ToleranceSelectionPolicy RoadGeometryConfiguration::FromStrToToleranceSelectionPolicy(
-    const std::string& policy) {
-  const auto it = str_to_tolerance_selection_policy.find(policy);
-  if (it == str_to_tolerance_selection_policy.end()) {
-    MALIDRIVE_THROW_MESSAGE("Unknown tolerance selection policy: " + policy);
-  }
-  return str_to_tolerance_selection_policy.at(policy);
-}
-
-std::string RoadGeometryConfiguration::FromToleranceSelectionPolicyToStr(
-    const RoadGeometryConfiguration::ToleranceSelectionPolicy& policy) {
-  return tolerance_selection_policy_to_str.at(policy);
 }
 
 RoadGeometryConfiguration::StandardStrictnessPolicy RoadGeometryConfiguration::FromStrToStandardStrictnessPolicy(
@@ -245,6 +222,18 @@ std::string RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
       MALIPUT_THROW_MESSAGE("Unknown standard strictness policy.");
       break;
   }
+}
+
+RoadGeometryConfiguration::BuildTolerance::BuildTolerance(double linear_tolerance_in, double angular_tolerance_in)
+    : linear_tolerance(linear_tolerance_in), angular_tolerance(angular_tolerance_in) {
+  // Verification of values is made downstream at the RoadGeometryBuilder entity.
+}
+
+RoadGeometryConfiguration::BuildTolerance::BuildTolerance(double min_linear_tolerance_in,
+                                                          double max_linear_tolerance_in, double angular_tolerance_in)
+    : BuildTolerance(min_linear_tolerance_in, angular_tolerance_in) {
+  max_linear_tolerance = max_linear_tolerance_in;
+  // Verification of values is made downstream at the RoadGeometryBuilder entity.
 }
 
 RoadGeometryConfiguration::StandardStrictnessPolicy operator|(

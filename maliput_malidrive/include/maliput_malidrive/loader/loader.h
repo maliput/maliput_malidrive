@@ -25,6 +25,12 @@ namespace loader {
 ///   - Default: ""
 /// - @b linear_tolerance : RoadGeometry's linear tolerance.
 ///   - Default: @e "5e-2" (#malidrive::constants::kLinearTolerance)
+/// - @b max_linear_tolerance : A maximum allowed linear tolerance.
+///                            When this parameters is passed, the linear tolerance the builder will use
+///                            is defined within the range [linear_tolerance, max_linear_tolerance].
+///                            The builder is expected to iteratively try higher linear tolerances as building process
+///                            fails.
+///   - Default: By default it isn't set. The builder will try only `linear_tolerance`.
 /// - @b angular_tolerance : RoadGeometry's angular tolerance.
 ///   - Default: @e "1e-3" (#malidrive::constants::kAngularTolerance)
 /// - @b scale_length : RoadGeometry's scale length.
@@ -47,12 +53,6 @@ namespace loader {
 ///     - 1. @e "none"
 ///     - 2. @e "simplify"
 ///   - Default: @e "none"
-/// - @b tolerance_selection_policy : Tolerance selection method used by the builder.
-///   - Options:
-///    - 1. "manual" : @e linear_tolerance will be used.
-///    - 2. "automatic" : @e linear_tolerance is used as base and bigger tolerances are used when the base tolerance
-///    make the builder to fail.
-///   - Default: @e "automatic"
 /// - @b standard_strictness_policy : Indicates how permissive builder should be with the XODR description.
 ///   - Options:
 ///    - 1. @e "strict" : Do not permit any errors.
