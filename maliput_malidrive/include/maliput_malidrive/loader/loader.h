@@ -28,8 +28,9 @@ namespace loader {
 /// - @b max_linear_tolerance : A maximum allowed linear tolerance.
 ///                            When this parameters is passed, the linear tolerance the builder will use
 ///                            is defined within the range [linear_tolerance, max_linear_tolerance].
-///                            The builder is expected to iteratively try higher linear tolerances as building process
-///                            fails.
+///                            The builder is expected to iteratively try higher linear tolerances until it either finds
+///                            a value that works, or reaches this maximum value, at which point it will abort with a
+///                            failure.
 ///   - Default: By default it isn't set. The builder will try only `linear_tolerance`.
 /// - @b angular_tolerance : RoadGeometry's angular tolerance.
 ///   - Default: @e "1e-3" (#malidrive::constants::kAngularTolerance)

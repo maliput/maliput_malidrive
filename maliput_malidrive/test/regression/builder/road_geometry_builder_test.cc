@@ -523,7 +523,7 @@ class RoadGeometryBuilderLinearToleranceRangeTest : public RoadGeometryBuilderBa
     RoadGeometryBuilderBaseTest::SetUp();
     // By default the RoadGeometryBuilderBaseTest::SetUp() is using GetRoadGeometryConfigurationFor() to get the
     // RoadGeometryConfigurations which already define a max_linear_tolerance.
-    // However a new max linear tolerance is defined just to the purpose of the test.
+    // However a new max linear tolerance is defined just for the purpose of the test.
     road_geometry_configuration_.tolerances.max_linear_tolerance =
         road_geometry_configuration_.tolerances.linear_tolerance * 1.2;
   }

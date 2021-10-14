@@ -10,8 +10,8 @@ namespace constants {
 static constexpr double kLinearTolerance{5e-2};   // [m]
 static constexpr double kAngularTolerance{1e-2};  // [rad]
 static constexpr double kScaleLength{1.};         // [m]
-/// Step used to increase the tolerance by the Builder.
-static constexpr double kIncreasingToleranceStep{1.1};
+/// Multiplier used to increase the tolerance by the Builder.
+static constexpr double kToleranceStepMultiplier{1.1};
 
 /// Stricter tolerances.
 static constexpr double kStrictLinearTolerance{1e-12};   // [m]

@@ -77,8 +77,8 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
     MALIDRIVE_VALIDATE(
         rg_config_.tolerances.max_linear_tolerance.value() >= rg_config_.tolerances.linear_tolerance,
         maliput::common::assertion_error,
-        std::string("max_linear_tolerance should be greater or equal than linear_tolerance.\n linear_tolerance: ") +
-            std::to_string(rg_config_.tolerances.linear_tolerance) + std::string("\nmax_linear_tolerance: ") +
+        std::string("max_linear_tolerance should be greater than or equal to linear_tolerance.\n linear_tolerance: ") +
+            std::to_string(rg_config_.tolerances.linear_tolerance) + std::string("\n max_linear_tolerance: ") +
             std::to_string(rg_config_.tolerances.max_linear_tolerance.value()));
   }
 
@@ -345,21 +345,21 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
     return DoBuild();
   }
 
-  // As a max linear tolerance is provided, the tolerance range logic is enabled.
+  // Because a max linear tolerance is provided, the tolerance range logic is enabled.
   // A linear tolerance range is defined by `rg_config_tolerances.linear_tolerance` and
   // `rg_config_tolerances.max_linear_tolerance`.
   // The build process will iteratively increase the linear tolerance being used every time it fails building the
   // RoadGeometry. In each iteration, the linear tolerance is increased a percentage value defined by
-  // constants::kIncreasingToleranceStep.
+  // constants::kToleranceStepMultiplier.
   std::vector<double> linear_tolerances{};
   // Tries with default values first.
   linear_tolerances.push_back(rg_config_.tolerances.linear_tolerance);
 
   // Populates the vector with higher linear tolerance values.
-  double new_linear_tolerance = linear_tolerances.back() * constants::kIncreasingToleranceStep;
+  double new_linear_tolerance = linear_tolerances.back() * constants::kToleranceStepMultiplier;
   while (new_linear_tolerance < rg_config_.tolerances.max_linear_tolerance.value()) {
     linear_tolerances.push_back(new_linear_tolerance);
-    new_linear_tolerance = linear_tolerances.back() * constants::kIncreasingToleranceStep;
+    new_linear_tolerance = linear_tolerances.back() * constants::kToleranceStepMultiplier;
   }
   // Adds maximum linear tolerance at the end.
   linear_tolerances.push_back(rg_config_.tolerances.max_linear_tolerance.value());
@@ -411,7 +411,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   const std::string linear_tolerance_description =
       "Used linear tolerances are in the range [" + std::to_string(linear_tolerances[0]) + ", " +
       std::to_string(linear_tolerances.back()) + "] with an increasing step of " +
-      std::to_string(static_cast<int>((constants::kIncreasingToleranceStep - 1) * 100)) + "% per iteration.";
+      std::to_string(static_cast<int>((constants::kToleranceStepMultiplier - 1) * 100)) + "% per iteration.";
   MALIDRIVE_THROW_MESSAGE("None of the tolerances(" + std::to_string(linear_tolerances.size()) +
                           ") worked to build a RoadGeometry " + file_description + ".\n\t" +
                           linear_tolerance_description);

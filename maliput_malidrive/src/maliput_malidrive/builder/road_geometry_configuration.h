@@ -111,14 +111,14 @@ struct RoadGeometryConfiguration {
 
   /// Holds linear and angular tolerance to be used by the builder.
   /// A range could be selected for linear tolerance, allowing the builder to try
-  /// different values of linear tolerance within that range when the builder process fails.
+  /// different values of linear tolerances within that range searching for a value that works.
   struct BuildTolerance {
-    /// Set linear and angular tolerance.
+    /// Sets linear and angular tolerance.
     /// @param linear_tolerance_in linear tolerance.
     /// @param angular_tolerance_in angular tolerance.
     explicit BuildTolerance(double linear_tolerance_in, double angular_tolerance_in);
 
-    /// Set linear tolerance range and angular tolerance.
+    /// Sets linear tolerance range and angular tolerance.
     /// @param min_linear_tolerance_in minimum linear tolerance to be used.
     /// @param max_linear_tolerance_in maximum linear tolerance to be used.
     /// @param angular_tolerance_in angular tolerance.
