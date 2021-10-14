@@ -65,9 +65,23 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
     : rg_config_(road_geometry_configuration), manager_(std::move(manager)), factory_(std::move(factory)) {
   MALIDRIVE_THROW_UNLESS(manager_.get());
   MALIDRIVE_THROW_UNLESS(factory_.get());
-  MALIDRIVE_THROW_UNLESS(rg_config_.linear_tolerance >= 0.);
-  MALIDRIVE_THROW_UNLESS(rg_config_.angular_tolerance >= 0.);
   MALIDRIVE_THROW_UNLESS(rg_config_.scale_length >= 0.);
+  MALIDRIVE_VALIDATE(rg_config_.tolerances.linear_tolerance >= 0, maliput::common::assertion_error,
+                     std::string("linear tolerance should be non-negative: ") +
+                         std::to_string(rg_config_.tolerances.linear_tolerance));
+  MALIDRIVE_VALIDATE(rg_config_.tolerances.angular_tolerance >= 0, maliput::common::assertion_error,
+                     std::string("angular tolerance should be non-negative: ") +
+                         std::to_string(rg_config_.tolerances.angular_tolerance));
+
+  if (rg_config_.tolerances.max_linear_tolerance.has_value()) {
+    MALIDRIVE_VALIDATE(
+        rg_config_.tolerances.max_linear_tolerance.value() >= rg_config_.tolerances.linear_tolerance,
+        maliput::common::assertion_error,
+        std::string("max_linear_tolerance should be greater or equal than linear_tolerance.\n linear_tolerance: ") +
+            std::to_string(rg_config_.tolerances.linear_tolerance) + std::string("\nmax_linear_tolerance: ") +
+            std::to_string(rg_config_.tolerances.max_linear_tolerance.value()));
+  }
+
   maliput::log()->trace(
       "Build policy for the RoadGeometry building process: {}",
       rg_config_.build_policy.type == BuildPolicy::Type::kSequential
@@ -91,11 +105,13 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
           ? "SimplifyWithinToleranceAndKeepGeometryModel"
           : "None");
 
-  maliput::log()->trace(
-      "Tolerance selection policy: {}",
-      rg_config_.tolerance_selection_policy == RoadGeometryConfiguration::ToleranceSelectionPolicy::kAutomaticSelection
-          ? "Automatic"
-          : "Manual");
+  maliput::log()->trace("Tolerances:");
+  maliput::log()->trace("|__ linear_tolerance: {}",
+                        rg_config_.tolerances.max_linear_tolerance.has_value()
+                            ? ("[" + std::to_string(rg_config_.tolerances.linear_tolerance) + ", " +
+                               std::to_string(rg_config_.tolerances.max_linear_tolerance.value()) + "]")
+                            : std::to_string(rg_config_.tolerances.linear_tolerance));
+  maliput::log()->trace("|__ angular_tolerance: {}", rg_config_.tolerances.angular_tolerance);
 }
 
 void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::LaneWidth>& lane_widths,
@@ -325,25 +341,33 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator()() {
   maliput::log()->trace("Starting to build malidrive::RoadGeometry.");
 
-  if (rg_config_.tolerance_selection_policy == RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection) {
+  if (!rg_config_.tolerances.max_linear_tolerance.has_value()) {
     return DoBuild();
   }
 
-  std::array<double, constants::kMaxToleranceSelectionRounds + 1> linear_tolerances{};
-  std::array<double, constants::kMaxToleranceSelectionRounds + 1> angular_tolerances{};
-  std::array<double, constants::kMaxToleranceSelectionRounds + 1> scale_lengths{};
-
+  // As a max linear tolerance is provided, the tolerance range logic is enabled.
+  // A linear tolerance range is defined by `rg_config_tolerances.linear_tolerance` and
+  // `rg_config_tolerances.max_linear_tolerance`.
+  // The build process will iteratively increase the linear tolerance being used every time it fails building the
+  // RoadGeometry. In each iteration, the linear tolerance is increased a percentage value defined by
+  // constants::kIncreasingToleranceStep.
+  std::vector<double> linear_tolerances{};
   // Tries with default values first.
-  linear_tolerances[0] = rg_config_.linear_tolerance;
-  angular_tolerances[0] = rg_config_.angular_tolerance;
-  scale_lengths[0] = rg_config_.scale_length;
+  linear_tolerances.push_back(rg_config_.tolerances.linear_tolerance);
 
-  // Populates the vector with higher tolerance values but always use the same scale length.
-  for (size_t i = 1; i < linear_tolerances.size(); ++i) {
-    linear_tolerances[i] = linear_tolerances[i - 1] * constants::kIncreasingToleranceStep;
-    angular_tolerances[i] = angular_tolerances[i - 1] * constants::kIncreasingToleranceStep;
-    scale_lengths[i] = constants::kScaleLength;
+  // Populates the vector with higher linear tolerance values.
+  double new_linear_tolerance = linear_tolerances.back() * constants::kIncreasingToleranceStep;
+  while (new_linear_tolerance < rg_config_.tolerances.max_linear_tolerance.value()) {
+    linear_tolerances.push_back(new_linear_tolerance);
+    new_linear_tolerance = linear_tolerances.back() * constants::kIncreasingToleranceStep;
   }
+  // Adds maximum linear tolerance at the end.
+  linear_tolerances.push_back(rg_config_.tolerances.max_linear_tolerance.value());
+
+  // Use always same angular tolerance and scale length.
+  const std::vector<double> angular_tolerances(linear_tolerances.size(), rg_config_.tolerances.angular_tolerance);
+  const std::vector<double> scale_lengths(linear_tolerances.size(), rg_config_.scale_length);
+
   Reset(linear_tolerances[0], angular_tolerances[0], scale_lengths[0]);
 
   // @{ Code in doc-bloc goes against https://drake.mit.edu/styleguide/cppguide.html#Exceptions
@@ -367,13 +391,14 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
       maliput::log()->info(
           "RoadGeometry loaded successfully after iteration [{}] using:\n\t|__ linear_tolerance = {}\n\t|__ "
           "angular_tolerance = {}\n\t|__ scale_length = {}",
-          i, rg_config_.linear_tolerance, rg_config_.angular_tolerance, rg_config_.scale_length);
+          i, rg_config_.tolerances.linear_tolerance, rg_config_.tolerances.angular_tolerance, rg_config_.scale_length);
       return rg;
     } catch (maliput::common::assertion_error& e) {
       maliput::log()->warn(
           "Iteration [{}] failed with : (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}). "
           "Error: {}",
-          i, rg_config_.linear_tolerance, rg_config_.angular_tolerance, rg_config_.scale_length, e.what());
+          i, rg_config_.tolerances.linear_tolerance, rg_config_.tolerances.angular_tolerance, rg_config_.scale_length,
+          e.what());
     }
     Reset(linear_tolerances[i + 1], angular_tolerances[i + 1], scale_lengths[i + 1]);
     // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
@@ -387,44 +412,32 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
       "Used linear tolerances are in the range [" + std::to_string(linear_tolerances[0]) + ", " +
       std::to_string(linear_tolerances.back()) + "] with an increasing step of " +
       std::to_string(static_cast<int>((constants::kIncreasingToleranceStep - 1) * 100)) + "% per iteration.";
-  const std::string angular_tolerance_description =
-      "Used angular tolerances are in the range [" + std::to_string(angular_tolerances[0]) + ", " +
-      std::to_string(angular_tolerances.back()) + "] with an increasing step of " +
-      std::to_string(static_cast<int>((constants::kIncreasingToleranceStep - 1) * 100)) + "% per iteration.";
-  MALIDRIVE_THROW_MESSAGE("None of the tolerances(" + std::to_string(constants::kMaxToleranceSelectionRounds + 1) +
+  MALIDRIVE_THROW_MESSAGE("None of the tolerances(" + std::to_string(linear_tolerances.size()) +
                           ") worked to build a RoadGeometry " + file_description + ".\n\t" +
-                          linear_tolerance_description + "\n\t" + angular_tolerance_description);
+                          linear_tolerance_description);
   // @}
 }
 
 void RoadGeometryBuilder::Reset(double linear_tolerance, double angular_tolerance, double scale_length) {
-  // @{ Reset this' members
-  rg_config_.linear_tolerance = linear_tolerance;
-  rg_config_.angular_tolerance = angular_tolerance;
+  rg_config_.tolerances.linear_tolerance = linear_tolerance;
+  rg_config_.tolerances.angular_tolerance = angular_tolerance;
   rg_config_.scale_length = scale_length;
-  lane_xodr_lane_properties_.clear();
-  junctions_segments_attributes_.clear();
+  MALIDRIVE_THROW_UNLESS(rg_config_.tolerances.linear_tolerance >= 0.);
+  MALIDRIVE_THROW_UNLESS(rg_config_.tolerances.angular_tolerance >= 0.);
+  MALIDRIVE_THROW_UNLESS(rg_config_.scale_length >= 0.);
   // TODO(#12): It goes against dependency injection. Should use a provider instead.
   factory_ = std::make_unique<builder::RoadCurveFactory>(linear_tolerance, scale_length, angular_tolerance);
-  // @}
 
-  // @{ Reset parent members
-  rg_config_.linear_tolerance = linear_tolerance;
-  rg_config_.angular_tolerance = angular_tolerance;
-  rg_config_.scale_length = scale_length;
-  MALIDRIVE_THROW_UNLESS(rg_config_.linear_tolerance >= 0.);
-  MALIDRIVE_THROW_UNLESS(rg_config_.angular_tolerance >= 0.);
-  MALIDRIVE_THROW_UNLESS(rg_config_.scale_length >= 0.);
-
+  lane_xodr_lane_properties_.clear();
+  junctions_segments_attributes_.clear();
   branch_point_indexer_ = UniqueIntegerProvider(0 /* base ID */);
   bps_.clear();
   junctions_.clear();
-  // @}
 }
 
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild() {
-  maliput::log()->trace("Using: linear_tolerance: {}", rg_config_.linear_tolerance);
-  maliput::log()->trace("Using: angular_tolerance: {}", rg_config_.angular_tolerance);
+  maliput::log()->trace("Using: linear_tolerance: {}", rg_config_.tolerances.linear_tolerance);
+  maliput::log()->trace("Using: angular_tolerance: {}", rg_config_.tolerances.angular_tolerance);
   maliput::log()->trace("Using: scale_length: {}", rg_config_.scale_length);
 
   const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers = manager_->GetRoadHeaders();
@@ -432,11 +445,11 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
       rg_config_.simplification_policy ==
               RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel
-          ? manager_->GetGeometriesToSimplify(rg_config_.linear_tolerance)
+          ? manager_->GetGeometriesToSimplify(rg_config_.tolerances.linear_tolerance)
           : std::vector<xodr::DBManager::XodrGeometriesToSimplify>();
 
-  auto rg = std::make_unique<RoadGeometry>(rg_config_.id, std::move(manager_), rg_config_.linear_tolerance,
-                                           rg_config_.angular_tolerance, rg_config_.scale_length,
+  auto rg = std::make_unique<RoadGeometry>(rg_config_.id, std::move(manager_), rg_config_.tolerances.linear_tolerance,
+                                           rg_config_.tolerances.angular_tolerance, rg_config_.scale_length,
                                            rg_config_.inertial_to_backend_frame_translation);
 
   maliput::log()->trace("Visiting XODR Roads...");
@@ -448,7 +461,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     auto reference_line_offset = std::make_unique<road_curve::ScaledDomainFunction>(
         factory_->MakeReferenceLineOffset(road_header.second.lanes.lanes_offset, road_header.second.s0(),
                                           road_header.second.s1()),
-        road_curve->p0(), road_curve->p1(), rg_config_.linear_tolerance);
+        road_curve->p0(), road_curve->p1(), rg_config_.tolerances.linear_tolerance);
     // Add RoadCurve and the reference-line-offset function to the RoadGeometry.
     rg->AddRoadCharacteristics(road_header.first, std::move(road_curve), std::move(reference_line_offset));
     int lane_section_index = 0;
@@ -506,7 +519,7 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
     const std::vector<xodr::DBManager::XodrGeometriesToSimplify>& geometries_to_simplify) {
   const auto& start_geometry = road_header.reference_geometry.plan_view.geometries.begin();
   const auto start_lane_section = road_header.lanes.lanes_section.begin();
-  if (std::abs(start_geometry->s_0 - start_lane_section->s_0) >= rg_config_.linear_tolerance) {
+  if (std::abs(start_geometry->s_0 - start_lane_section->s_0) >= rg_config_.tolerances.linear_tolerance) {
     MALIDRIVE_THROW_MESSAGE(
         std::string("Start geometry differs more than linear_tolerance from the start lane section s coordinate.") +
         std::string("RoadId: ") + road_header.id.string() + std::string(", geometry.s0: ") +
@@ -526,12 +539,12 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
   auto elevation = std::make_unique<road_curve::ScaledDomainFunction>(
       factory_->MakeElevation(road_header.reference_geometry.elevation_profile, road_header.s0(), road_header.s1(),
                               enforce_contiguity),
-      ground_curve->p0(), ground_curve->p1(), rg_config_.linear_tolerance);
+      ground_curve->p0(), ground_curve->p1(), rg_config_.tolerances.linear_tolerance);
   maliput::log()->trace("Creating superelevation function for road id {}", road_header.id.string());
   auto superelevation = std::make_unique<road_curve::ScaledDomainFunction>(
       factory_->MakeSuperelevation(road_header.reference_geometry.lateral_profile, road_header.s0(), road_header.s1(),
                                    enforce_contiguity),
-      ground_curve->p0(), ground_curve->p1(), rg_config_.linear_tolerance);
+      ground_curve->p0(), ground_curve->p1(), rg_config_.tolerances.linear_tolerance);
   maliput::log()->trace("Creating RoadCurve for road id {}", road_header.id.string());
   auto road_curve = factory_->MakeMalidriveRoadCurve(std::move(ground_curve), std::move(elevation),
                                                      std::move(superelevation), enforce_contiguity);

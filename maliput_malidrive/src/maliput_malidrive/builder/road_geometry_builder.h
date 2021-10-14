@@ -106,18 +106,19 @@ class RoadGeometryBuilder {
   ///
   /// `factory` must not be nullptr. Used to create the road curve for the lanes.
   ///
-  /// Resulting maliput::api::RoadGeometry will have `linear_tolerance`,
-  /// `angular_tolerance` and `scale_length` properties set by the
+  /// Resulting maliput::api::RoadGeometry will have properties set by the
   /// `road_geometry_configuration`.
   ///
   /// Note: the `opendrive_file` parameter of `road_geometry_configuration` is
   /// ignored because a manager is expected to emerge.
   ///
   /// @throws maliput::common::assertion_error When
-  /// `road_geometry_configuration.linear_tolerance`,
-  /// `road_geometry_configuration.angular_tolerance` or
+  /// `road_geometry_configuration.tolerances.linear_tolerance`,
+  /// `road_geometry_configuration.tolerances.angular_tolerance` or
   /// `road_geometry_configuration.scale_length` are negative.
-  /// `manager` or `factory` are nullptr.
+  /// @throws maliput::common::assertion_error When `road_geometry_configuration.tolerances.max_linear_tolerance` is
+  /// less than `road_geometry_configuration.tolerances.linear_tolerance`,
+  /// @throws maliput::common::assertion_error When `manager` or `factory` are nullptr.
   RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manager,
                       const RoadGeometryConfiguration& road_geometry_configuration,
                       std::unique_ptr<RoadCurveFactoryBase> factory);

@@ -10,6 +10,9 @@ namespace constants {
 static constexpr double kLinearTolerance{5e-2};   // [m]
 static constexpr double kAngularTolerance{1e-2};  // [rad]
 static constexpr double kScaleLength{1.};         // [m]
+/// Step used to increase the tolerance by the Builder.
+static constexpr double kIncreasingToleranceStep{1.1};
+
 /// Stricter tolerances.
 static constexpr double kStrictLinearTolerance{1e-12};   // [m]
 static constexpr double kStrictAngularTolerance{1e-12};  // [rad]
@@ -18,13 +21,6 @@ static constexpr double kStrictAngularTolerance{1e-12};  // [rad]
 static constexpr double kSpeedTolerance{1e-4};             // [m/s]
 static constexpr double kDefaultMinSpeedLimit{0.};         // [m/s]
 static constexpr double kDefaultMaxSpeedLimit{40. / 3.6};  // [m/s] --> 40km/h
-/// Number of trials the Builder will run with different tolerances.
-/// Using default linear tolerance value it is expected that the builder tries with
-/// tolerances in a range between 0.05 and 0.49. (#kLinearTolerance and #kLinearTolerance * #kIncreasingToleranceStep ^
-/// #kMaxToleranceSelectionRounds )
-static constexpr int kMaxToleranceSelectionRounds{24};
-/// Step used to increase the tolerance by the Builder. See #kMaxToleranceSelectionRounds.
-static constexpr double kIncreasingToleranceStep{1.1};
 
 }  // namespace constants
 }  // namespace malidrive
