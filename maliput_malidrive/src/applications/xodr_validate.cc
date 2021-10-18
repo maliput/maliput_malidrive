@@ -27,7 +27,6 @@ std::string GetUsageMessage() {
 
 // @{ CLI Arguments
 DEFINE_string(xodr_file, "", "XODR input file defining a Malidrive road geometry");
-DEFINE_double(tolerance, 1e-3, "Tolerance to validate continuity in piecewise defined geometries.");
 DEFINE_bool(allow_schema_errors, false, "If true, the XODR parser will attempt to work around XODR schema violations.");
 DEFINE_bool(allow_semantic_errors, false,
             "If true, the XODR parser will attempt to work around XODR semantic violations.");
@@ -48,8 +47,8 @@ int Main(int argc, char** argv) {
 
   // Tries to load the XODR map and logs the result.
   try {
-    auto db_manager = malidrive::xodr::LoadDataBaseFromFile(
-        FLAGS_xodr_file, {FLAGS_tolerance, FLAGS_allow_schema_errors, FLAGS_allow_semantic_errors});
+    auto db_manager = malidrive::xodr::LoadDataBaseFromFile(FLAGS_xodr_file,
+                                                            {FLAGS_allow_schema_errors, FLAGS_allow_semantic_errors});
     std::cout << "Successfully loaded the map." << std::endl;
   } catch (const std::exception& e) {
     std::cerr << e.what() << std::endl;

@@ -28,7 +28,6 @@ $ xodr_validate --xodr_file=NonContiguousRoad.xodr --log_level=trace
 [INFO] Parser: Allow schema errors: disabled
 [INFO] Parser: Allow semantic errors: disabled
 [TRACE] XODR Parser configuration:
-[TRACE] |__ tolerance: 0.001000
 [TRACE] |__ allow_schema_errors: Disabled
 [TRACE] |__ allow_semantic_errors: Disabled
 [TRACE] ["maliput_ws/src/maliput_malidrive/maliput_malidrive/src/maliput_malidrive/xodr/db_manager.cc":47:ParseDoc] XODR parsing process has started.
@@ -67,5 +66,3 @@ In this case the XODR validation failed because in the `plainView` node there is
 `--allow_semantic_errors`: *If true, the XODR parser will attempt to work around XODR semantic violations. By default set to `false`.*
 
 `--log_level`: *Sets the log output threshold; possible values: maliput::common::logger::level. By default set to `unchanged`.*
-
-`--tolerance`: *Tolerance used to validate continuity in piecewise defined geometries. By default set to `0.001`.*

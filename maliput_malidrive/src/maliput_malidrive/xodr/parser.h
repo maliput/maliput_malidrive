@@ -22,13 +22,9 @@ class ParserBase {
   /// @param element Is the XML Node that contains attributes to be parsed.
   /// @param parser_configuration Holds the configuration for the parser.
   /// @throw maliput::common::assertion_error When `element` is nullptr.
-  /// @throw maliput::common::assertion_error When `parser_configuration.tolerance` is negative.
   ParserBase(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
       : element_(element), parser_configuration_(parser_configuration) {
     MALIDRIVE_THROW_UNLESS(element_ != nullptr);
-    if (parser_configuration_.tolerance.has_value()) {
-      MALIDRIVE_THROW_UNLESS(*parser_configuration_.tolerance >= 0);
-    }
   }
 
   /// Count the number of attributes the tinyxml2::XMLElement has.

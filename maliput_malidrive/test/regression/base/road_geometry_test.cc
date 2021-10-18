@@ -35,8 +35,7 @@ class RoadGeometryTest : public ::testing::Test {
   const double kScaleLength{constants::kScaleLength};                  // [m]
   const double kAngularTolerance{constants::kStrictAngularTolerance};  // [rad]
   const maliput::math::Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
-  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
+  const xodr::ParserConfiguration kParserConfiguration{};
   const xodr::RoadHeader::Id kRoadId{"0"};
   const double kP0{0.};
   const double kP1{100.};

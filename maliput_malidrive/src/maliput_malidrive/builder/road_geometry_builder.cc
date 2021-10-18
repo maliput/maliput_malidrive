@@ -57,6 +57,19 @@ std::size_t GetEffectiveNumberOfThreads(const malidrive::builder::BuildPolicy& b
   ;
 }
 
+// Determines whether `geometries` are continuous in terms of the XODR S parameter.
+void CheckXodrSContinuityForGeometries(const std::vector<xodr::Geometry>& geometries, double tolerance) {
+  MALIDRIVE_THROW_UNLESS(tolerance >= 0);
+  for (int i = 0; i < static_cast<int>(geometries.size()) - 1; ++i) {
+    if (i == static_cast<int>(geometries.size()) - 1) {
+      return;
+    }
+    MALIDRIVE_VALIDATE(std::abs(geometries[i].s_0 + geometries[i].length - geometries[i + 1].s_0) <= tolerance,
+                       maliput::common::assertion_error,
+                       "Geometries aren't continuous in term of the xodr s parameter.");
+  }
+}
+
 }  // namespace
 
 RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manager,
@@ -376,11 +389,6 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
           i, rg_config_.linear_tolerance, rg_config_.angular_tolerance, rg_config_.scale_length, e.what());
     }
     Reset(linear_tolerances[i + 1], angular_tolerances[i + 1], scale_lengths[i + 1]);
-    // @{ TODO(#12): It goes against dependency injection. Should use a provider instead.
-    maliput::log()->trace("Rebuilding the DBManager");
-    manager_ = xodr::LoadDataBaseFromFile(rg_config_.opendrive_file,
-                                          XodrParserConfigurationFromRoadGeometryConfiguration(rg_config_));
-    // @}
   }
   const std::string file_description = "from " + rg_config_.opendrive_file;
   const std::string linear_tolerance_description =
@@ -514,6 +522,7 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
         std::to_string(start_lane_section->s_0));
   }
   const auto& geometries{road_header.reference_geometry.plan_view.geometries};
+  CheckXodrSContinuityForGeometries(geometries, rg_config_.linear_tolerance);
   maliput::log()->trace("Creating GroundCurve for road id {}", road_header.id.string());
   auto ground_curve = MakeGroundCurve(geometries, geometries_to_simplify);
   maliput::log()->trace("Creating elevation function for road id {}", road_header.id.string());

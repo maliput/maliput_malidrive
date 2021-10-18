@@ -6,8 +6,7 @@ namespace builder {
 
 xodr::ParserConfiguration XodrParserConfigurationFromRoadGeometryConfiguration(
     const RoadGeometryConfiguration& rg_config) {
-  return {rg_config.linear_tolerance,
-          (rg_config.standard_strictness_policy &
+  return {(rg_config.standard_strictness_policy &
            RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors) ==
               RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSchemaErrors,
           (rg_config.standard_strictness_policy &

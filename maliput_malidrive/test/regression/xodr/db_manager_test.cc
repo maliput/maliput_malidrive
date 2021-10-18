@@ -46,8 +46,6 @@ constexpr const char* kXODRHeaderTemplate = R"R(
 </OpenDRIVE>
 )R";
 
-// Holds the tolerance used to check contiguity when parsing.
-constexpr std::optional<double> kStrictParserSTolerance{malidrive::constants::kStrictLinearTolerance};
 // Flag to not allow schema errors.
 constexpr bool kDontAllowSchemaErrors{false};
 // Flag to not allow semantic errors.
@@ -56,7 +54,7 @@ constexpr bool kDontAllowSemanticErrors{false};
 // Tests the loading of a XODR description from a file.
 GTEST_TEST(DBManager, LoadFromFile) {
   const std::string kXodrFile = "odr/SingleLane.xodr";
-  EXPECT_NO_THROW(LoadDataBaseFromFile(utility::FindResource(kXodrFile), {kStrictParserSTolerance}));
+  EXPECT_NO_THROW(LoadDataBaseFromFile(utility::FindResource(kXodrFile), {}));
 }
 
 // Tests the loading of a XODR description from a string.
@@ -65,8 +63,7 @@ GTEST_TEST(DBManagerTest, LoadFromString) {
       fmt::format(kXODRHeaderTemplate, 1. /* revMajor */, 1. /* revMinor */, "TestHeader" /* name */,
                   1.21 /* version */, "Wed Sep 19 12:00:00 2018" /* date */, 0. /* north */, 0. /* south */,
                   0. /* east */, 0. /* west */, "TestVendor" /* vendor */);
-  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description,
-                                      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
+  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
 
 // Tests `DBManager::GetXodrHeader` method.
@@ -86,8 +83,8 @@ GTEST_TEST(DBManagerTest, GetXodrHeader) {
                   kExpectedHeader.name.value(), kExpectedHeader.version.value(), kExpectedHeader.date.value(),
                   kExpectedHeader.north.value(), kExpectedHeader.south.value(), kExpectedHeader.east.value(),
                   kExpectedHeader.west.value(), kExpectedHeader.vendor.value());
-  const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
-      xodr_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const std::unique_ptr<DBManager> dut =
+      LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   Header header = dut->GetXodrHeader();
   EXPECT_EQ(kExpectedHeader, header);
 }
@@ -224,16 +221,14 @@ TEST_F(DBManagerLinksTests, ConsistentsLinks) {
       fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
                   lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id, road_link_string_b,
                   lane_link_string_b_left, lane_link_string_b_right, "");
-  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description,
-                                      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
+  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
 
 TEST_F(DBManagerLinksTests, EmptyLinks) {
   // No connections.
   const std::string xodr_description = fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, "", "",
                                                    "", road_non_junction_id, "", "", "", "");
-  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description,
-                                      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
+  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
 
 TEST_F(DBManagerLinksTests, UnknownPredecessorRoadLink) {
@@ -246,8 +241,7 @@ TEST_F(DBManagerLinksTests, UnknownPredecessorRoadLink) {
 
   const std::string xodr_description = fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, "", "",
                                                    "", road_non_junction_id, road_link_string_b, "", "", "");
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -261,8 +255,7 @@ TEST_F(DBManagerLinksTests, UnknownSuccessorRoadLink) {
 
   const std::string xodr_description = fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id,
                                                    road_link_string_a, "", "", road_non_junction_id, "", "", "", "");
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -297,8 +290,7 @@ TEST_F(DBManagerLinksTests, UnknownPredecessorLaneLink) {
       fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
                   lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id, road_link_string_b,
                   lane_link_string_b_left, lane_link_string_b_right, "");
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -333,8 +325,7 @@ TEST_F(DBManagerLinksTests, UnknownSuccessorLaneLink) {
       fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
                   lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id, road_link_string_b,
                   lane_link_string_b_left, lane_link_string_b_right, "");
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -405,8 +396,7 @@ TEST_F(DBManagerJunctionLinksTests, JunctionConsistentsLinks) {
                            {{kConnectionA.id, kConnectionA}} /* connections */};
 
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  EXPECT_NO_THROW(LoadDataBaseFromStr(xml_description,
-                                      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
+  EXPECT_NO_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
 
 TEST_F(DBManagerJunctionLinksTests, JunctionUnknownIncomingRoad) {
@@ -423,9 +413,8 @@ TEST_F(DBManagerJunctionLinksTests, JunctionUnknownIncomingRoad) {
                            std::nullopt /* type */,
                            {{kConnectionA.id, kConnectionA}} /* connections */};
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerJunctionLinksTests, JunctionUnknownConnectingRoad) {
@@ -442,9 +431,8 @@ TEST_F(DBManagerJunctionLinksTests, JunctionUnknownConnectingRoad) {
                            std::nullopt /* type */,
                            {{kConnectionA.id, kConnectionA}} /* connections */};
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerJunctionLinksTests, JunctionWrongLaneLinkA) {
@@ -462,9 +450,8 @@ TEST_F(DBManagerJunctionLinksTests, JunctionWrongLaneLinkA) {
                            {{kConnectionA.id, kConnectionA}} /* connections */};
 
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerJunctionLinksTests, JunctionWrongLaneLinkB) {
@@ -482,9 +469,8 @@ TEST_F(DBManagerJunctionLinksTests, JunctionWrongLaneLinkB) {
                            {{kConnectionA.id, kConnectionA}} /* connections */};
 
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerJunctionLinksTests, WrongJunctionId) {
@@ -502,9 +488,8 @@ TEST_F(DBManagerJunctionLinksTests, WrongJunctionId) {
                            {{kConnectionA.id, kConnectionA}} /* connections */};
 
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 // Tests auto-completing LaneLinks when incoming lanes and connecting lanes have identical ids.
@@ -525,8 +510,7 @@ TEST_F(DBManagerJunctionLinksTests, ConnectionWithoutLaneLinks) {
       {Connection::LaneLink::Id("1"), Connection::LaneLink::Id("1")}};
 
   const std::string xml_description{BuildXMLDescriptionFromJunction(kJunction)};
-  const auto dut =
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const auto dut = LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   const auto lane_links = dut->GetJunctions().at(kJunction.id).connections.at(kConnectionA.id).lane_links;
   EXPECT_EQ(kExpectedLaneLinks, lane_links);
 }
@@ -605,9 +589,8 @@ TEST_F(DBManagerJunctionLinksTestsB, UnknownPredecessor) {
 
   const std::string xml_description{
       BuildXMLDescriptionFromRoadLinks(kRoadPredecessor, kRoadSuccessor, kLaneLinkLeft, kLaneLinkRight)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerJunctionLinksTestsB, UnknownSuccessor) {
@@ -622,9 +605,8 @@ TEST_F(DBManagerJunctionLinksTestsB, UnknownSuccessor) {
 
   const std::string xml_description{
       BuildXMLDescriptionFromRoadLinks(kRoadPredecessor, kRoadSuccessor, kLaneLinkLeft, kLaneLinkRight)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerJunctionLinksTestsB, UnknownLaneLink) {
@@ -639,9 +621,8 @@ TEST_F(DBManagerJunctionLinksTestsB, UnknownLaneLink) {
 
   const std::string xml_description{
       BuildXMLDescriptionFromRoadLinks(kRoadPredecessor, kRoadSuccessor, kLaneLinkLeft, kLaneLinkRight)};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(xml_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(xml_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+               maliput::common::assertion_error);
 }
 
 // Template of a XODR description describing a multiple LaneSections Road in which lane links can be changed.
@@ -817,8 +798,8 @@ TEST_F(DBManagerLaneLinksWithinARoad, CorrectLaneLinks) {
                                          {kLane2RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane2RightSuccessor, LaneLink::kSuccessorTag}}});
 
-  const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
-      xodr_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const std::unique_ptr<DBManager> dut =
+      LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   const auto lane_sections = dut->GetRoadHeaders().at(RoadHeader::Id("0")).lanes.lanes_section;
   EXPECT_EQ(kExpectedLaneSection0, lane_sections[0]);
   EXPECT_EQ(kExpectedLaneSection1, lane_sections[1]);
@@ -854,8 +835,7 @@ TEST_F(DBManagerLaneLinksWithinARoad, ErrorInLaneLinkLaneSection0) {
                                          {kLane2LeftSuccessor, LaneLink::kSuccessorTag},
                                          {kLane2RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane2RightSuccessor, LaneLink::kSuccessorTag}}});
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -888,8 +868,7 @@ TEST_F(DBManagerLaneLinksWithinARoad, ErrorInPredecessorLaneLinkLaneSection1) {
                                          {kLane2LeftSuccessor, LaneLink::kSuccessorTag},
                                          {kLane2RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane2RightSuccessor, LaneLink::kSuccessorTag}}});
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -922,8 +901,7 @@ TEST_F(DBManagerLaneLinksWithinARoad, ErrorInSuccessorLaneLinkLaneSection1) {
                                          {kLane2LeftSuccessor, LaneLink::kSuccessorTag},
                                          {kLane2RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane2RightSuccessor, LaneLink::kSuccessorTag}}});
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -956,8 +934,7 @@ TEST_F(DBManagerLaneLinksWithinARoad, ErrorInLaneLinkLaneSection2) {
                                          {kLane2LeftSuccessor, LaneLink::kSuccessorTag},
                                          {kWrongLane2RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane2RightSuccessor, LaneLink::kSuccessorTag}}});
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
 }
 
@@ -984,12 +961,10 @@ TEST_F(DBManagerLaneLinksWithinARoad, RelaxErrorsInLaneLinkVerification) {
                                          {kLane1RightPredecessor, LaneLink::kPredecessorTag},
                                          {kLane1RightSuccessor, LaneLink::kSuccessorTag}}});
   // Semantic errors aren't allowed.
-  EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
-                                   {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
+  EXPECT_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
   // Semantic errors are allowed.
-  EXPECT_NO_THROW(
-      LoadDataBaseFromStr(xodr_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kAllowSemanticErrors}));
+  EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description, {kDontAllowSchemaErrors, kAllowSemanticErrors}));
 }
 
 // Template of a XODR description that contains several road headers.
@@ -1175,8 +1150,8 @@ GTEST_TEST(DBManagerTest, GetRoadHeaders) {
         {kArbitraryPlanView2, kElevationProfile2, kLateralProfile2} /* reference_geometry */,
         kLanes /* lanes */}}};
 
-  const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
-      kXODRRoadHeaderTemplate, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const std::unique_ptr<DBManager> dut =
+      LoadDataBaseFromStr(kXODRRoadHeaderTemplate, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
 
   EXPECT_EQ(kExpectedRoadHeaders, road_headers);
@@ -1245,7 +1220,7 @@ GTEST_TEST(DBManagerTest, GetJunctions) {
   // If I decrease even more the tolerance, the TShapeRoad.xodr's geometries aren't contiguous in terms of the arc
   // length parameter.
   // TODO(#482): Decrease tolerance once the xodr file is fixed.
-  const std::unique_ptr<DBManager> dut = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {1e-6});
+  const std::unique_ptr<DBManager> dut = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {});
 
   const std::unordered_map<Junction::Id, Junction> junctions = dut->GetJunctions();
 
@@ -1551,8 +1526,7 @@ GTEST_TEST(DBManagerTest, Highway) {
                                       {kConnection17_5.id, kConnection17_5}}};
   // @}
 
-  const std::unique_ptr<DBManager> dut =
-      LoadDataBaseFromFile(utility::FindResource(kXodrFile), {kStrictParserSTolerance});
+  const std::unique_ptr<DBManager> dut = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {});
 
   const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
   EXPECT_EQ(NumOfRoads, static_cast<int>(road_headers.size()));
@@ -1694,14 +1668,14 @@ GTEST_TEST(DBManagerTest, LoadMapWith2Connections) {
     </junction>
 </OpenDRIVE>
 )R";
-  EXPECT_NO_THROW(LoadDataBaseFromStr(kXODRMapWithMultipleConnections,
-                                      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
+  EXPECT_NO_THROW(
+      LoadDataBaseFromStr(kXODRMapWithMultipleConnections, {kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
 
 // Loads TShapeRoad.xodr and verifies the shortest and largest Geometry in the XODR.
 GTEST_TEST(DBManager, GetGeometriesLengthInformation) {
   const std::string kXodrFile = "odr/TShapeRoad.xodr";
-  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
+  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {});
   const DBManager::XodrGeometryLengthData kExpectedShortest{RoadHeader::Id("6"), 3, 6.8474312421988870e-2};
   const DBManager::XodrGeometryLengthData kExpectedLargest{RoadHeader::Id("0"), 0, 46.};
   const auto shortest_geometry{db_manager->GetShortestGeometry()};
@@ -1718,7 +1692,7 @@ GTEST_TEST(DBManager, GetGeometriesLengthInformation) {
 GTEST_TEST(DBManager, GetLaneSectionLengthInformation) {
   const double kTolerance{1e-14};
   const std::string kXodrFile = "odr/Highway.xodr";
-  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
+  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {});
   const DBManager::XodrLaneSectionLengthData kExpectedShortest{RoadHeader::Id("4"), 0, 1.1649945427797022};
   const DBManager::XodrLaneSectionLengthData kExpectedLargest{RoadHeader::Id("11"), 0, 2.9161454554383585e+2};
   const auto shortest_lane_section{db_manager->GetShortestLaneSection()};
@@ -1735,7 +1709,7 @@ GTEST_TEST(DBManager, GetLaneSectionLengthInformation) {
 GTEST_TEST(DBManager, GetGeometriesGapInformation) {
   const double kTolerance{1e-14};
   const std::string kXodrFile = "odr/TShapeRoad.xodr";
-  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
+  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {});
   const DBManager::XodrGapBetweenGeometries kExpectedShortest{RoadHeader::Id("6"), {2, 3}, 0.};
   const DBManager::XodrGapBetweenGeometries kExpectedLargest{RoadHeader::Id("6"), {1, 2}, 1.77636e-15};
   const auto shortest_geometry{db_manager->GetShortestGap()};
@@ -1751,26 +1725,25 @@ GTEST_TEST(DBManager, GetGeometriesGapInformation) {
 // @{ Sample maps that have roads of different kinds to evaluate the road geometry simplification.
 class DBManagerGetGeometrySimplificationTests : public ::testing::Test {
  protected:
-  const std::optional<double> kLoaderNoToleranceCheck{};
   const double kTolerance{1.e-6};
 };
 
 TEST_F(DBManagerGetGeometrySimplificationTests, ThrowsWhenNegativeTolerance) {
-  const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry,
-                                       {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const auto dut =
+      LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_THROW(dut->GetGeometriesToSimplify(-1.), maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerGetGeometrySimplificationTests, NoSimplificationPossible) {
   {  // Single geometry in road.
-    const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry,
-                                         {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+    const auto dut =
+        LoadDataBaseFromStr(malidrive::test::kXodrSingleGeometry, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
     const std::vector<DBManager::XodrGeometriesToSimplify> result = dut->GetGeometriesToSimplify(kTolerance);
     ASSERT_TRUE(result.empty());
   }
   {  // Two geometries of different kinds.
     const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrLineAndArcGeometry,
-                                         {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+                                         {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
     const std::vector<DBManager::XodrGeometriesToSimplify> result = dut->GetGeometriesToSimplify(kTolerance);
     ASSERT_TRUE(result.empty());
   }
@@ -1778,7 +1751,7 @@ TEST_F(DBManagerGetGeometrySimplificationTests, NoSimplificationPossible) {
 
 TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesLines) {
   const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrWithLinesToBeSimplified,
-                                       {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+                                       {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   const std::vector<DBManager::XodrGeometriesToSimplify> result = dut->GetGeometriesToSimplify(kTolerance);
   ASSERT_EQ(1, result.size());
   ASSERT_EQ(RoadHeader::Id("1"), result[0].road_header_id);
@@ -1791,7 +1764,7 @@ TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesLines) {
 
 TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesArcs) {
   const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrWithArcsToBeSimplified,
-                                       {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+                                       {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const std::vector<DBManager::XodrGeometriesToSimplify> result = dut->GetGeometriesToSimplify(kTolerance);
   ASSERT_EQ(1, result.size());
@@ -1805,7 +1778,7 @@ TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesArcs) {
 
 TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesLinesBetweenArcs) {
   const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrCombinedLinesWithArcs,
-                                       {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+                                       {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const std::vector<DBManager::XodrGeometriesToSimplify> result = dut->GetGeometriesToSimplify(kTolerance);
   ASSERT_EQ(1, result.size());
@@ -1818,7 +1791,7 @@ TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesLinesBetweenArcs) {
 
 TEST_F(DBManagerGetGeometrySimplificationTests, SimplifiesArcsBetweenLines) {
   const auto dut = LoadDataBaseFromStr(malidrive::test::kXodrCombinedArcsWithLines,
-                                       {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+                                       {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const std::vector<DBManager::XodrGeometriesToSimplify> result = dut->GetGeometriesToSimplify(kTolerance);
   ASSERT_EQ(1, result.size());
@@ -1949,8 +1922,7 @@ class DBManagerGetElevationGaps : public ::testing::Test {
 };
 
 TEST_F(DBManagerGetElevationGaps, EmptyResult) {
-  const auto dut =
-      LoadDataBaseFromStr(kFlatRoads, {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const auto dut = LoadDataBaseFromStr(kFlatRoads, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const DBManager::XodrGapBetweenFunctions& shortest_elevation_gap = dut->GetShortestElevationGap();
   EXPECT_EQ(RoadHeader::Id("none"), shortest_elevation_gap.road_header_id);
@@ -1960,8 +1932,7 @@ TEST_F(DBManagerGetElevationGaps, EmptyResult) {
 }
 
 TEST_F(DBManagerGetElevationGaps, EvaluateLargestAndShortestGapInElevation) {
-  const auto dut =
-      LoadDataBaseFromStr(kElevatedRoads, {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const auto dut = LoadDataBaseFromStr(kElevatedRoads, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const DBManager::XodrGapBetweenFunctions& shortest_elevation_gap = dut->GetShortestElevationGap();
   EXPECT_EQ(RoadHeader::Id("2"), shortest_elevation_gap.road_header_id);
@@ -2045,8 +2016,7 @@ class DBManagerGetSuperelevationGaps : public ::testing::Test {
 };
 
 TEST_F(DBManagerGetSuperelevationGaps, EmptyResult) {
-  const auto dut =
-      LoadDataBaseFromStr(kFlatRoads, {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const auto dut = LoadDataBaseFromStr(kFlatRoads, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const DBManager::XodrGapBetweenFunctions& shortest_superelevation_gap = dut->GetShortestSuperelevationGap();
   EXPECT_EQ(RoadHeader::Id("none"), shortest_superelevation_gap.road_header_id);
@@ -2056,8 +2026,7 @@ TEST_F(DBManagerGetSuperelevationGaps, EmptyResult) {
 }
 
 TEST_F(DBManagerGetSuperelevationGaps, EvaluateLargestAndShortestGapInSuperelevation) {
-  const auto dut = LoadDataBaseFromStr(kSuperelevatedRoads,
-                                       {kLoaderNoToleranceCheck, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const auto dut = LoadDataBaseFromStr(kSuperelevatedRoads, {kDontAllowSchemaErrors, kDontAllowSemanticErrors});
 
   const DBManager::XodrGapBetweenFunctions& shortest_superelevation_gap = dut->GetShortestSuperelevationGap();
   EXPECT_EQ(RoadHeader::Id("2"), shortest_superelevation_gap.road_header_id);
@@ -2139,17 +2108,15 @@ class DBManagerNoReciprocalRoadLinkage : public ::testing::Test {
 TEST_F(DBManagerNoReciprocalRoadLinkage, NotAllowingSemanticErrors) {
   const bool allow_schema_errors{false};
   const bool allow_semantic_errors{false};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(kNoReciprocalLinkage, {kLoaderNoToleranceCheck, allow_schema_errors, allow_semantic_errors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(kNoReciprocalLinkage, {allow_schema_errors, allow_semantic_errors}),
+               maliput::common::assertion_error);
 }
 
 TEST_F(DBManagerNoReciprocalRoadLinkage, AllowingSemanticErrors) {
   const bool allow_schema_errors{false};
   const bool allow_semantic_errors{true};
-  EXPECT_THROW(
-      LoadDataBaseFromStr(kNoReciprocalLinkage, {kLoaderNoToleranceCheck, allow_schema_errors, allow_semantic_errors}),
-      maliput::common::assertion_error);
+  EXPECT_THROW(LoadDataBaseFromStr(kNoReciprocalLinkage, {allow_schema_errors, allow_semantic_errors}),
+               maliput::common::assertion_error);
 }
 // @}
 

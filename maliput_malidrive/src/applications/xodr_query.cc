@@ -18,7 +18,6 @@ namespace applications {
 namespace xodr {
 namespace {
 // @{ CLI Arguments
-DEFINE_double(tolerance, 1e-3, "Tolerance to validate continuity in piecewise defined geometries.");
 DEFINE_bool(allow_schema_errors, false, "If true, the XODR parser will attempt to work around XODR schema violations.");
 DEFINE_bool(allow_semantic_errors, false,
             "If true, the XODR parser will attempt to work around XODR semantic violations.");
@@ -310,8 +309,8 @@ int Main(int argc, char** argv) {
   maliput::log()->trace("About to load: {}", xodr_path);
   maliput::log()->info("Parser: Allow schema errors: {}", (FLAGS_allow_schema_errors ? "enabled" : "disabled"));
   maliput::log()->info("Parser: Allow semantic errors: {}", (FLAGS_allow_semantic_errors ? "enabled" : "disabled"));
-  auto db_manager = malidrive::xodr::LoadDataBaseFromFile(
-      xodr_path, {FLAGS_tolerance, FLAGS_allow_schema_errors, FLAGS_allow_semantic_errors});
+  auto db_manager =
+      malidrive::xodr::LoadDataBaseFromFile(xodr_path, {FLAGS_allow_schema_errors, FLAGS_allow_semantic_errors});
   if (db_manager == nullptr) {
     maliput::log()->error("Error loading the XODR file.");
     return 0;

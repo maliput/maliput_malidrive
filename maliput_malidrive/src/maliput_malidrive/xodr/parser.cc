@@ -48,12 +48,6 @@ double ValidateDouble(const std::optional<double>& value, bool allow_nan) {
   return value.value();
 }
 
-// Determines whether `geometry_a` and `geometry_b` geometries are continguos in terms of the arc length parameter.
-bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double tolerance) {
-  MALIDRIVE_THROW_UNLESS(tolerance >= 0);
-  return std::abs(geometry_a.s_0 + geometry_a.length - geometry_b.s_0) <= tolerance;
-}
-
 // Adds `new_function` description into `functions` collection.
 // The functions descriptions defines several aspect of a Road in the xodr like elevation, superelevation, lane
 // offset and lane width of the lanes.
@@ -771,11 +765,6 @@ PlanView NodeParser::As() const {
   while (geometry_element) {
     const NodeParser geometry_node(geometry_element, parser_configuration_);
     auto geometry = geometry_node.As<Geometry>();
-    if (parser_configuration_.tolerance.has_value() && geometries.size() > 0) {
-      if (!IsContiguous(geometries.back(), geometry, *parser_configuration_.tolerance)) {
-        MALIDRIVE_THROW_MESSAGE("Geometries doesn't meet contiguity constraint.");
-      };
-    }
     geometries.push_back(std::move(geometry));
     geometry_element = geometry_element->NextSiblingElement(Geometry::kGeometryTag);
   }

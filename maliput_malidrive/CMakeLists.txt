@@ -125,6 +125,7 @@ install (FILES resources/ArcLane.xodr
                resources/SingleRoadNegativeWidth.xodr
                resources/SingleRoadTinyGeometry.xodr
                resources/SingleRoadTwoGeometries.xodr
+               resources/SingleRoadWithNonContinuousXodrSInGeometries.xodr
                resources/SpiralRoad.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr

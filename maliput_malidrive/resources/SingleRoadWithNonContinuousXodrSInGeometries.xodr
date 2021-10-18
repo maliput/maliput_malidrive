@@ -1,0 +1,27 @@
+<OpenDRIVE>
+    <header revMajor="1" revMinor="1" name=""/>
+    <road name="Road 0" length="20.0" id="0" junction="-1">
+        <planView>
+            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="10.">
+                <line/>
+            </geometry>
+            <!-- Error: Second geometry starts 5 s-units after first geometry's end -->
+            <geometry s="15.0" x="0.0" y="0.0" hdg="0.0" length="10.">
+                <line/>
+            </geometry>
+        </planView>
+        <lanes>
+            <laneSection s="0.0">
+                <center>
+                    <lane id="0" type="none" level="false">
+                    </lane>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0" a="2.0" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+</OpenDRIVE>

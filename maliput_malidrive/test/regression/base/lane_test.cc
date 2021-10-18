@@ -131,8 +131,7 @@ class LaneTest : public ::testing::Test {
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
-  const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
-  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
+  const xodr::ParserConfiguration kParserConfiguration{};
   const bool kAssertContiguity{true};
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
   std::unique_ptr<road_curve::Function> reference_line_offset_;
@@ -797,8 +796,7 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
   const int kXordTrackInvalid{-1};
   const int kXodrLaneId{5};
   const maliput::api::HBounds kElevationBounds{0., 5.};
-  const std::optional<double> kParserSTolerance{kLinearTolerance};
-  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
+  const xodr::ParserConfiguration kParserConfiguration{};
 
   const double kRCenterline{0.};
   const double kRLeft{1.};
@@ -1127,8 +1125,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
-  const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
-  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
+  const xodr::ParserConfiguration kParserConfiguration{};
 
   const double kLinearTolerance{1e-6};
   const double kAngularTolerance{1e-6};
@@ -1457,8 +1454,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
   const Vector2 kXy0{10., 12.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
-  const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
-  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
+  const xodr::ParserConfiguration kParserConfiguration{};
 
   const double kLinearTolerance{1e-6};
   const double kAngularTolerance{1e-6};
@@ -1734,8 +1730,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
-  const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
-  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
+  const xodr::ParserConfiguration kParserConfiguration{};
 
   const double kLinearTolerance{1e-6};
   const double kAngularTolerance{1e-6};
@@ -2052,8 +2047,7 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
   const double kAngularTolerance{1e-6};
   const double kScaleLength{1.};
   const double kLinearTolerance{1e-9};
-  const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
-  const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
+  const xodr::ParserConfiguration kParserConfiguration{};
 
   const maliput::api::LaneId kId{"dut"};
   const int kXordTrack{1};

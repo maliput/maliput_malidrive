@@ -460,6 +460,19 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            builder::RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection,
            kStandardStrictnessPolicy,
            kOmitNondrivableLanes}},
+      {"SingleRoadWithNonContinuousXodrSInGeometries.xodr",
+       builder::RoadGeometryConfiguration{
+           maliput::api::RoadGeometryId{"SingleRoadWithNonContinuousXodrSInGeometries"},
+           {"odr/SingleRoadWithNonContinuousXodrSInGeometries.xodr"},
+           5e-2,
+           1e-3,
+           constants::kScaleLength,
+           kZeroVector,
+           kBuildPolicy,
+           kSimplificationPolicy,
+           builder::RoadGeometryConfiguration::ToleranceSelectionPolicy::kManualSelection,
+           kStandardStrictnessPolicy,
+           kOmitNondrivableLanes}},
   };
   return kXodrConfigurations.find(xodr_file_name) != kXodrConfigurations.end()
              ? std::make_optional<builder::RoadGeometryConfiguration>(kXodrConfigurations.at(xodr_file_name))
