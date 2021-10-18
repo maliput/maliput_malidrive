@@ -115,8 +115,8 @@ class RoadGeometryBuilder {
   /// `road_geometry_configuration.tolerances.angular_tolerance` or
   /// `road_geometry_configuration.scale_length` are negative.
   /// @throws maliput::common::assertion_error When `road_geometry_configuration.tolerances.max_linear_tolerance` is
-  /// less than `road_geometry_configuration.tolerances.linear_tolerance`,
-  /// @throws maliput::common::assertion_error When `manager` are nullptr.
+  /// less than `road_geometry_configuration.tolerances.linear_tolerance`.
+  /// @throws maliput::common::assertion_error When `manager` is nullptr.
   RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manager,
                       const RoadGeometryConfiguration& road_geometry_configuration);
 

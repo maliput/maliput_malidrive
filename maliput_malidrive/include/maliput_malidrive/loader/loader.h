@@ -27,7 +27,7 @@ namespace loader {
 ///   - Default: By default it isn't set. When `max_linear_tolerance` isn't also set then @e "5e-2"
 ///   (#malidrive::constants::kLinearTolerance) is used.
 /// - @b max_linear_tolerance : A maximum allowed linear tolerance.
-///                            When this parameters is passed, the linear tolerance the builder will use
+///                            When this parameter is passed, the linear tolerance the builder will use
 ///                            is defined within the range [`linear_tolerance`, `max_linear_tolerance`].
 ///                            The builder is expected to iteratively try higher linear tolerances until it either finds
 ///                            a value that works, or reaches this maximum value, at which point it will abort with a
