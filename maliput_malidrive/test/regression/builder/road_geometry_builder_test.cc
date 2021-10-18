@@ -1216,6 +1216,70 @@ INSTANTIATE_TEST_CASE_P(CheckG1ContiguityEnforcementGroup, RoadGeometryNonContig
                                           "GapInSuperelevationNonDrivableRoad.xodr",
                                           "GapInLaneWidthNonDrivableLane.xodr"));
 
+// Verifies RoadGeometryBuilder behavior for different combinations of
+// linear_tolerance and max_linear_tolerance parameters.
+// `GapInElevationNonDrivableRoad.xodr` XODR map is used as it has a 2.0m gap in an elevation description, condition
+// that will impose on the builder to have at least a linear tolerance of 2.0m to correctly build a RoadGeometry.
+class ToleranceSelectionPolicyTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    rg_config.opendrive_file = utility::FindResource(kXodrFile);
+    rg_config.omit_nondrivable_lanes = false;
+    rg_config.standard_strictness_policy = RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict;
+    rg_config.tolerances.linear_tolerance = std::nullopt;
+    rg_config.tolerances.max_linear_tolerance = std::nullopt;
+  }
+
+  const std::string kXodrFile{"odr/GapInElevationNonDrivableRoad.xodr"};
+  builder::RoadGeometryConfiguration rg_config{};
+};
+
+// No linear_tolerance/max_linear_tolerance are set. Default linear_tolerance will be used:
+// malidrive::constants::kLinearTolerance. It throws because the gap in elevation is larger than linear tolerance.
+TEST_F(ToleranceSelectionPolicyTest, DefaultLinearTolerance) {
+  ASSERT_THROW(
+      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file, {std::nullopt}), rg_config)(),
+      maliput::common::assertion_error);
+}
+
+// linear_tolerance is set to 2.0m.
+// It doesn't throw.
+TEST_F(ToleranceSelectionPolicyTest, OnlyValidLinearTolerance) {
+  rg_config.tolerances.linear_tolerance = 2.0;
+  ASSERT_NO_THROW(
+      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file, {std::nullopt}), rg_config)());
+}
+
+// max_linear_tolerance is set to 2.0m.
+// A linear tolerance range defined by [constants::kBaseLinearTolerance, max_linear_tolerance] is set.
+// The builder will search for a tolerance that works which will be the last one. (2.0m).
+TEST_F(ToleranceSelectionPolicyTest, OnlyValidMaxLinearTolerance) {
+  rg_config.tolerances.max_linear_tolerance = 2.0;
+  ASSERT_NO_THROW(
+      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file, {std::nullopt}), rg_config)());
+}
+
+// linear_tolerance is set to 1.0m and max_linear_tolerance is set to 2.0m.
+// A linear tolerance range defined by [linear_tolerance, max_linear_tolerance] is set.
+// The builder will search for a tolerance that works which will be the last one. (2.0m).
+TEST_F(ToleranceSelectionPolicyTest, ValidLinearToleranceRange) {
+  rg_config.tolerances.linear_tolerance = 1.0;
+  rg_config.tolerances.max_linear_tolerance = 2.0;
+  ASSERT_NO_THROW(
+      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file, {std::nullopt}), rg_config)());
+}
+
+// linear_tolerance is set to 1.0m and max_linear_tolerance is set to 1.9m.
+// A linear tolerance range defined by [linear_tolerance, max_linear_tolerance] is set.
+// It throws as the builder can't find a tolerance that works defined in that range.
+TEST_F(ToleranceSelectionPolicyTest, InvalidLinearToleranceRange) {
+  rg_config.tolerances.linear_tolerance = 1.0;
+  rg_config.tolerances.max_linear_tolerance = 1.9;
+  ASSERT_THROW(
+      builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(rg_config.opendrive_file, {std::nullopt}), rg_config)(),
+      maliput::common::assertion_error);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
