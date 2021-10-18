@@ -113,6 +113,10 @@ struct RoadGeometryConfiguration {
   /// A range could be selected for linear tolerance, allowing the builder to try
   /// different values of linear tolerances within that range searching for a value that works.
   struct BuildTolerance {
+    /// Sets angular tolerance.
+    /// @param angular_tolerance_in angular tolerance.
+    explicit BuildTolerance(double angular_tolerance_in);
+
     /// Sets linear and angular tolerance.
     /// @param linear_tolerance_in linear tolerance.
     /// @param angular_tolerance_in angular tolerance.
@@ -124,10 +128,9 @@ struct RoadGeometryConfiguration {
     /// @param angular_tolerance_in angular tolerance.
     explicit BuildTolerance(double min_linear_tolerance_in, double max_linear_tolerance_in,
                             double angular_tolerance_in);
-
     /// Nominal linear_tolerance to be used in the RoadGeometry. Corresponds to the minimumm range of linear tolerances
     /// when `max_linear_tolerance.has_value` is true.
-    double linear_tolerance{constants::kLinearTolerance};
+    std::optional<double> linear_tolerance{std::nullopt};
     /// Maximum range of linear tolerances.
     std::optional<double> max_linear_tolerance{std::nullopt};
     /// Angular tolerance to be used in the RoadGeometry.
@@ -142,7 +145,7 @@ struct RoadGeometryConfiguration {
   /// @{
   maliput::api::RoadGeometryId id{"maliput"};
   std::string opendrive_file{""};
-  BuildTolerance tolerances{constants::kLinearTolerance, constants::kAngularTolerance};
+  BuildTolerance tolerances{constants::kAngularTolerance};
   double scale_length{constants::kScaleLength};
   maliput::math::Vector3 inertial_to_backend_frame_translation{0., 0., 0.};
   BuildPolicy build_policy{BuildPolicy::Type::kSequential};

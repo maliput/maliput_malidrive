@@ -25,7 +25,6 @@
 #include "maliput_malidrive/builder/direction_usage_builder.h"
 #include "maliput_malidrive/builder/discrete_value_rule_state_provider_builder.h"
 #include "maliput_malidrive/builder/range_value_rule_state_provider_builder.h"
-#include "maliput_malidrive/builder/road_curve_factory.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/builder/road_rulebook_builder.h"
@@ -44,15 +43,13 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   const auto rn_config{RoadNetworkConfiguration::FromMap(road_network_configuration_)};
   const auto& rg_config = rn_config.road_geometry_configuration;
   MALIDRIVE_VALIDATE(!rg_config.opendrive_file.empty(), std::runtime_error, "opendrive_file cannot be empty");
-  std::unique_ptr<builder::RoadCurveFactoryBase> road_curve_factory = std::make_unique<builder::RoadCurveFactory>(
-      rg_config.tolerances.linear_tolerance, rg_config.scale_length, rg_config.tolerances.angular_tolerance);
 
   const xodr::ParserConfiguration parser_config = XodrParserConfigurationFromRoadGeometryConfiguration(rg_config);
   maliput::log()->trace("Loading database from file: {} ...", rg_config.opendrive_file);
   auto db_manager = xodr::LoadDataBaseFromFile(rg_config.opendrive_file, parser_config);
   maliput::log()->trace("Building RoadGeometry...");
   std::unique_ptr<const maliput::api::RoadGeometry> rg =
-      builder::RoadGeometryBuilder(std::move(db_manager), rg_config, std::move(road_curve_factory))();
+      builder::RoadGeometryBuilder(std::move(db_manager), rg_config)();
 
   auto direction_usages = DirectionUsageBuilder(rg.get())();
   maliput::common::unused(direction_usages);

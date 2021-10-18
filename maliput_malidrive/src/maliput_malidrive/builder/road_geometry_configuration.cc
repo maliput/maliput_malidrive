@@ -144,7 +144,9 @@ std::map<std::string, std::string> RoadGeometryConfiguration::ToStringMap() cons
   std::map<std::string, std::string> config_map{};
   config_map.emplace(kStrRoadGeometryId, id.string());
   config_map.emplace(kStrOpendriveFile, opendrive_file);
-  config_map.emplace(kStrLinearTolerance, std::to_string(tolerances.linear_tolerance));
+  if (tolerances.linear_tolerance.has_value()) {
+    config_map.emplace(kStrLinearTolerance, std::to_string(tolerances.linear_tolerance.value()));
+  }
   if (tolerances.max_linear_tolerance.has_value()) {
     config_map.emplace(kStrMaxLinearTolerance, std::to_string(tolerances.max_linear_tolerance.value()));
   }
@@ -222,6 +224,11 @@ std::string RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(
       MALIPUT_THROW_MESSAGE("Unknown standard strictness policy.");
       break;
   }
+}
+
+RoadGeometryConfiguration::BuildTolerance::BuildTolerance(double angular_tolerance_in)
+    : angular_tolerance(angular_tolerance_in) {
+  // Verification of values is made downstream at the RoadGeometryBuilder entity.
 }
 
 RoadGeometryConfiguration::BuildTolerance::BuildTolerance(double linear_tolerance_in, double angular_tolerance_in)

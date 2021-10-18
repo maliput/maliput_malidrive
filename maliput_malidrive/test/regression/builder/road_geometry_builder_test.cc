@@ -51,17 +51,15 @@ class BuilderTestSingleLane : public ::testing::Test {
     road_geometry_configuration_.tolerances.angular_tolerance = kAngularTolerance;
     manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                           {kLinearTolerance});
-    factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
 
   RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor("SingleLane.xodr").value()};
   std::unique_ptr<xodr::DBManager> manager_;
-  std::unique_ptr<builder::RoadCurveFactoryBase> factory_;
 };
 
 TEST_F(BuilderTestSingleLane, RoadGeometryBuilderConstructor) {
   std::unique_ptr<const maliput::api::RoadGeometry> dut =
-      builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_, std::move(factory_))();
+      builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_)();
   ASSERT_NE(dut.get(), nullptr);
 
   ASSERT_NE(dynamic_cast<const malidrive::RoadGeometry*>(dut.get()), nullptr);
@@ -76,24 +74,20 @@ TEST_F(BuilderTestSingleLane, RoadGeometryBuilderConstructorBadUsed) {
   {
     RoadGeometryConfiguration bad_config = road_geometry_configuration_;
     bad_config.tolerances.linear_tolerance = -5.;
-    EXPECT_THROW(builder::RoadGeometryBuilder(std::move(manager_), bad_config, std::move(factory_)),
-                 maliput::common::assertion_error);
+    EXPECT_THROW(builder::RoadGeometryBuilder(std::move(manager_), bad_config), maliput::common::assertion_error);
   }
   {
     RoadGeometryConfiguration bad_config = road_geometry_configuration_;
     bad_config.tolerances.angular_tolerance = -5.;
-    EXPECT_THROW(builder::RoadGeometryBuilder(std::move(manager_), bad_config, std::move(factory_)),
-                 maliput::common::assertion_error);
+    EXPECT_THROW(builder::RoadGeometryBuilder(std::move(manager_), bad_config), maliput::common::assertion_error);
   }
   {
     RoadGeometryConfiguration bad_config = road_geometry_configuration_;
     bad_config.scale_length = -5.;
-    EXPECT_THROW(builder::RoadGeometryBuilder(std::move(manager_), bad_config, std::move(factory_)),
-                 maliput::common::assertion_error);
+    EXPECT_THROW(builder::RoadGeometryBuilder(std::move(manager_), bad_config), maliput::common::assertion_error);
   }
   {
-    EXPECT_THROW(builder::RoadGeometryBuilder(nullptr, road_geometry_configuration_, std::move(factory_)),
-                 maliput::common::assertion_error);
+    EXPECT_THROW(builder::RoadGeometryBuilder(nullptr, road_geometry_configuration_), maliput::common::assertion_error);
   }
 }
 
@@ -352,13 +346,12 @@ class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometry
     road_geometry_configuration_.tolerances.angular_tolerance = kAngularTolerance;
     manager_ = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                           {kLinearTolerance});
-    factory_ = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
 
   // Tests Junction, Segments and Lanes properties.
   void RunTest() {
     std::unique_ptr<const maliput::api::RoadGeometry> dut =
-        builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_, std::move(factory_))();
+        builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_)();
     ASSERT_NE(dut.get(), nullptr);
 
     // Junctions.
@@ -447,7 +440,6 @@ class RoadGeometryBuilderBaseTest : public ::testing::TestWithParam<RoadGeometry
   RoadGeometryConfiguration road_geometry_configuration_{
       GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file).value()};
   std::unique_ptr<xodr::DBManager> manager_;
-  std::unique_ptr<builder::RoadCurveFactoryBase> factory_;
 };
 
 // @{ Runs the Builder with a sequential lane building process.
@@ -525,7 +517,7 @@ class RoadGeometryBuilderLinearToleranceRangeTest : public RoadGeometryBuilderBa
     // RoadGeometryConfigurations which already define a max_linear_tolerance.
     // However a new max linear tolerance is defined just for the purpose of the test.
     road_geometry_configuration_.tolerances.max_linear_tolerance =
-        road_geometry_configuration_.tolerances.linear_tolerance * 1.2;
+        road_geometry_configuration_.tolerances.linear_tolerance.value() * 1.2;
   }
 };
 
@@ -865,8 +857,7 @@ class BuilderBranchPointTest : public ::testing::TestWithParam<BuilderBranchPoin
     road_geometry_configuration_.tolerances.angular_tolerance = kAngularTolerance;
     auto manager = xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                               {kLinearTolerance});
-    auto factory = std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
-    rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_, std::move(factory))();
+    rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_)();
     expected_connections = GetParam().expected_connections;
   }
 
@@ -979,8 +970,7 @@ class RoadGeometryBuilderSurfaceBoundariesTest : public ::testing::TestWithParam
     dut_ = builder::RoadGeometryBuilder(
         xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
                                    {kLinearTolerance}),
-        road_geometry_configuration_,
-        std::make_unique<builder::RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance))();
+        road_geometry_configuration_)();
   }
 
   RoadGeometryConfiguration road_geometry_configuration_{
@@ -1091,11 +1081,8 @@ class RoadGeometryOmittingNonDrivableLanesTest
     // Load RoadGeometry.
     dut_ = builder::RoadGeometryBuilder(
         xodr::LoadDataBaseFromFile(utility::FindResource(road_geometry_configuration_.opendrive_file),
-                                   {road_geometry_configuration_.tolerances.linear_tolerance}),
-        road_geometry_configuration_,
-        std::make_unique<builder::RoadCurveFactory>(road_geometry_configuration_.tolerances.linear_tolerance,
-                                                    road_geometry_configuration_.scale_length,
-                                                    road_geometry_configuration_.tolerances.angular_tolerance))();
+                                   {road_geometry_configuration_.tolerances.linear_tolerance.value()}),
+        road_geometry_configuration_)();
 
     // Fill useful pointers;
     lane_ = dut_->ById().GetLane(GetParam().lane_id);
@@ -1150,15 +1137,11 @@ INSTANTIATE_TEST_CASE_P(RoadGeometryOmittingNonDrivableLanesTestGroup, RoadGeome
 
 class RoadGeometryNegativeLaneWidthTest : public ::testing::Test {
  protected:
-  void SetUp() override {
-    factory_ = std::make_unique<builder::RoadCurveFactory>(
-        rg_config.tolerances.linear_tolerance, rg_config.scale_length, rg_config.tolerances.angular_tolerance);
-  }
+  void SetUp() override {}
 
   const std::string kXodrFile{"SingleRoadNegativeWidth.xodr"};
   builder::RoadGeometryConfiguration rg_config{malidrive::test::GetRoadGeometryConfigurationFor(kXodrFile).value()};
   std::unique_ptr<const maliput::api::RoadGeometry> dut_;
-  std::unique_ptr<builder::RoadCurveFactory> factory_;
 };
 
 // Throws if negative width descriptions are found because of the strictness in the builder.
@@ -1167,12 +1150,10 @@ TEST_F(RoadGeometryNegativeLaneWidthTest, Strict) {
   rg_config.tolerances.linear_tolerance = constants::kStrictLinearTolerance;
   // Disables the tolerance range.
   rg_config.tolerances.max_linear_tolerance = std::nullopt;
-  factory_ = std::make_unique<builder::RoadCurveFactory>(rg_config.tolerances.linear_tolerance, rg_config.scale_length,
-                                                         rg_config.tolerances.angular_tolerance);
 
   EXPECT_THROW(builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file),
-                                                                       {rg_config.tolerances.linear_tolerance}),
-                                            rg_config, std::move(factory_))(),
+                                                                       {rg_config.tolerances.linear_tolerance.value()}),
+                                            rg_config)(),
                maliput::common::assertion_error);
 }
 
@@ -1184,8 +1165,8 @@ TEST_F(RoadGeometryNegativeLaneWidthTest, AllowNegativeWidthDescriptions) {
 
   ASSERT_NO_THROW(
       dut_ = builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file),
-                                                                     {rg_config.tolerances.linear_tolerance}),
-                                          rg_config, std::move(factory_))());
+                                                                     {rg_config.tolerances.linear_tolerance.value()}),
+                                          rg_config)());
   ASSERT_NE(dut_, nullptr);
 
   // Let's make a `lane_bounds` query to a lane whose lane-width function has negative values.
@@ -1199,21 +1180,15 @@ TEST_F(RoadGeometryNegativeLaneWidthTest, AllowNegativeWidthDescriptions) {
   EXPECT_EQ(0., bounds.max());
   // Verify that after the negative range we get the correct value.
   bounds = lane->lane_bounds(8.0);
-  EXPECT_NEAR(-0.02839, bounds.min(), rg_config.tolerances.linear_tolerance);
-  EXPECT_NEAR(0.02839, bounds.max(), rg_config.tolerances.linear_tolerance);
+  EXPECT_NEAR(-0.02839, bounds.min(), rg_config.tolerances.linear_tolerance.value());
+  EXPECT_NEAR(0.02839, bounds.max(), rg_config.tolerances.linear_tolerance.value());
 }
 
 // Verifies G1 contiguity constraint being relaxed when semantic errors are allowed.
 // - Roads with only non-drivable lanes that presents a jump in the elevation description function.
 // - Roads with only non-drivable lanes that presents a jump in the superelevation description function.
 // - Non-drivable lanes that presents a jump in the lane width description function.
-class RoadGeometryNonContiguousInNonDrivableLanesTest : public testing::TestWithParam<const char*> {
- protected:
-  std::unique_ptr<RoadCurveFactory> GetFactory(const builder::RoadGeometryConfiguration& rg_config) {
-    return std::make_unique<builder::RoadCurveFactory>(rg_config.tolerances.linear_tolerance, rg_config.scale_length,
-                                                       rg_config.tolerances.angular_tolerance);
-  }
-};
+class RoadGeometryNonContiguousInNonDrivableLanesTest : public testing::TestWithParam<const char*> {};
 
 TEST_P(RoadGeometryNonContiguousInNonDrivableLanesTest, CheckG1ContiguityEnforcement) {
   builder::RoadGeometryConfiguration rg_config{malidrive::test::GetRoadGeometryConfigurationFor(GetParam()).value()};
@@ -1222,8 +1197,8 @@ TEST_P(RoadGeometryNonContiguousInNonDrivableLanesTest, CheckG1ContiguityEnforce
   rg_config.standard_strictness_policy = builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict;
 
   EXPECT_THROW(builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file),
-                                                                       {rg_config.tolerances.linear_tolerance}),
-                                            rg_config, GetFactory(rg_config))(),
+                                                                       {rg_config.tolerances.linear_tolerance.value()}),
+                                            rg_config)(),
                maliput::common::assertion_error);
 
   // Gap in non drivable road/lane + allow semantic errors.
@@ -1232,8 +1207,8 @@ TEST_P(RoadGeometryNonContiguousInNonDrivableLanesTest, CheckG1ContiguityEnforce
 
   EXPECT_NO_THROW(
       builder::RoadGeometryBuilder(xodr::LoadDataBaseFromFile(utility::FindResource(rg_config.opendrive_file),
-                                                              {rg_config.tolerances.linear_tolerance}),
-                                   rg_config, GetFactory(rg_config))());
+                                                              {rg_config.tolerances.linear_tolerance.value()}),
+                                   rg_config)());
 }
 
 INSTANTIATE_TEST_CASE_P(CheckG1ContiguityEnforcementGroup, RoadGeometryNonContiguousInNonDrivableLanesTest,

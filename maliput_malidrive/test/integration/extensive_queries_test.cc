@@ -222,7 +222,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     std::cerr << utility::GetFileNameFromPath(xodr_file_path_) << std::endl;
     ASSERT_TRUE(rg_config.has_value());
     // Gets linear tolerance and scale length for the map.
-    linear_tolerance_ = rg_config->tolerances.linear_tolerance;
+    linear_tolerance_ = rg_config->tolerances.linear_tolerance.value();
     scale_length_ = rg_config->scale_length;
     // Sets the full xodr map file path.
     rg_config->opendrive_file = xodr_file_path_;
@@ -262,7 +262,7 @@ TEST_F(MalidriveExtensiveQueriesTest, QueriesTest) {
   auto rg_config = GetRoadGeometryConfigurationFor(utility::GetFileNameFromPath(xodr_file_path_));
   ASSERT_TRUE(rg_config.has_value());
   // Gets linear tolerance and scale length for the map.
-  linear_tolerance_ = rg_config->tolerances.linear_tolerance;
+  linear_tolerance_ = rg_config->tolerances.linear_tolerance.value();
   scale_length_ = rg_config->scale_length;
   // Sets the full xodr map file path.
   rg_config->opendrive_file = xodr_file_path_;
