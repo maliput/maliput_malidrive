@@ -14,7 +14,7 @@ namespace {
 // Implementation of a maliput::plugin::RoadNetworkLoader using maliput_malidrive backend.
 class RoadNetworkLoader : public maliput::plugin::RoadNetworkLoader {
  public:
-  std::unique_ptr<const maliput::api::RoadNetwork> operator()(
+  std::unique_ptr<maliput::api::RoadNetwork> operator()(
       const std::map<std::string, std::string>& properties) const override {
     return malidrive::builder::RoadNetworkBuilder(properties)();
   }
