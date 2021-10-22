@@ -12,19 +12,12 @@ namespace builder {
 
 /// Structure to hold file paths for multiple RoadNetwork structures.
 struct RoadNetworkConfiguration {
-  /// @name Road Network configuration's keys used in string map.
-  ///
-  /// @{
-  static constexpr char const* kStrRoadRuleBook = "road_rule_book";
-  static constexpr char const* kStrTrafficLightBook = "traffic_light_book";
-  static constexpr char const* kStrPhaseRingBook = "phase_ring_book";
-  static constexpr char const* kStrIntersectionBook = "intersection_book";
-  /// @}
-
   /// Creates a RoadNetworkConfiguration out of a string dictionary.
+  /// @details The keys of the map are listed at @ref road_network_configuration_builder_keys.
   /// @param road_network_configuration A string-string map containing the configuration for the builder.
   static RoadNetworkConfiguration FromMap(const std::map<std::string, std::string>& road_network_configuration);
 
+  /// @details The keys of the map are listed at @ref road_network_configuration_builder_keys.
   /// @returns A string-string map containing the RoadGeometry configuration.
   std::map<std::string, std::string> ToStringMap() const;
 

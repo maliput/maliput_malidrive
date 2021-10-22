@@ -4,6 +4,7 @@
 #include <map>
 #include <sstream>
 
+#include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
@@ -79,61 +80,61 @@ bool ParseBoolean(const std::string& bool_str) {
 RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
     const std::map<std::string, std::string>& road_geometry_configuration) {
   RoadGeometryConfiguration rg_config{};
-  auto it = road_geometry_configuration.find(kStrRoadGeometryId);
+  auto it = road_geometry_configuration.find(params::kRoadGeometryId);
   if (it != road_geometry_configuration.end()) {
     rg_config.id = maliput::api::RoadGeometryId{it->second};
   }
 
-  it = road_geometry_configuration.find(kStrOpendriveFile);
+  it = road_geometry_configuration.find(params::kOpendriveFile);
   if (it != road_geometry_configuration.end()) {
     rg_config.opendrive_file = it->second;
   }
 
-  it = road_geometry_configuration.find(kStrLinearTolerance);
+  it = road_geometry_configuration.find(params::kLinearTolerance);
   if (it != road_geometry_configuration.end()) {
     rg_config.tolerances.linear_tolerance = std::stod(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrMaxLinearTolerance);
+  it = road_geometry_configuration.find(params::kMaxLinearTolerance);
   if (it != road_geometry_configuration.end()) {
     rg_config.tolerances.max_linear_tolerance = std::stod(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrAngularTolerance);
+  it = road_geometry_configuration.find(params::kAngularTolerance);
   if (it != road_geometry_configuration.end()) {
     rg_config.tolerances.angular_tolerance = std::stod(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrScaleLength);
+  it = road_geometry_configuration.find(params::kScaleLength);
   if (it != road_geometry_configuration.end()) {
     rg_config.scale_length = std::stod(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrInertialToBackendFrameTranslation);
+  it = road_geometry_configuration.find(params::kInertialToBackendFrameTranslation);
   if (it != road_geometry_configuration.end()) {
     rg_config.inertial_to_backend_frame_translation = maliput::math::Vector3::FromStr(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrBuildPolicy);
+  it = road_geometry_configuration.find(params::kBuildPolicy);
   if (it != road_geometry_configuration.end()) {
     const BuildPolicy::Type build_policy_type = BuildPolicy::FromStrToType(it->second);
-    it = road_geometry_configuration.find(kStrNumThreads);
+    it = road_geometry_configuration.find(params::kNumThreads);
     const std::optional<int> num_threads{
         it != road_geometry_configuration.end() ? std::make_optional(std::stoi(it->second)) : std::nullopt};
     rg_config.build_policy = BuildPolicy{build_policy_type, num_threads};
   }
 
-  it = road_geometry_configuration.find(kStrSimplificationPolicy);
+  it = road_geometry_configuration.find(params::kSimplificationPolicy);
   if (it != road_geometry_configuration.end()) {
     rg_config.simplification_policy = FromStrToSimplificationPolicy(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrStandardStrictnessPolicy);
+  it = road_geometry_configuration.find(params::kStandardStrictnessPolicy);
   if (it != road_geometry_configuration.end()) {
     rg_config.standard_strictness_policy = FromStrToStandardStrictnessPolicy(it->second);
   }
 
-  it = road_geometry_configuration.find(kStrOmitNonDrivableLanes);
+  it = road_geometry_configuration.find(params::kOmitNonDrivableLanes);
   if (it != road_geometry_configuration.end()) {
     rg_config.omit_nondrivable_lanes = ParseBoolean(it->second);
   }
@@ -142,23 +143,23 @@ RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
 
 std::map<std::string, std::string> RoadGeometryConfiguration::ToStringMap() const {
   std::map<std::string, std::string> config_map{};
-  config_map.emplace(kStrRoadGeometryId, id.string());
-  config_map.emplace(kStrOpendriveFile, opendrive_file);
+  config_map.emplace(params::kRoadGeometryId, id.string());
+  config_map.emplace(params::kOpendriveFile, opendrive_file);
   if (tolerances.linear_tolerance.has_value()) {
-    config_map.emplace(kStrLinearTolerance, std::to_string(tolerances.linear_tolerance.value()));
+    config_map.emplace(params::kLinearTolerance, std::to_string(tolerances.linear_tolerance.value()));
   }
   if (tolerances.max_linear_tolerance.has_value()) {
-    config_map.emplace(kStrMaxLinearTolerance, std::to_string(tolerances.max_linear_tolerance.value()));
+    config_map.emplace(params::kMaxLinearTolerance, std::to_string(tolerances.max_linear_tolerance.value()));
   }
-  config_map.emplace(kStrAngularTolerance, std::to_string(tolerances.angular_tolerance));
-  config_map.emplace(kStrScaleLength, std::to_string(scale_length));
-  config_map.emplace(kStrInertialToBackendFrameTranslation, inertial_to_backend_frame_translation.to_str());
-  config_map.emplace(kStrSimplificationPolicy, FromSimplificationPolicyToStr(simplification_policy));
-  config_map.emplace(kStrStandardStrictnessPolicy, FromStandardStrictnessPolicyToStr(standard_strictness_policy));
-  config_map.emplace(kStrOmitNonDrivableLanes, omit_nondrivable_lanes ? "true" : "false");
-  config_map.emplace(kStrBuildPolicy, BuildPolicy::FromTypeToStr(build_policy.type));
+  config_map.emplace(params::kAngularTolerance, std::to_string(tolerances.angular_tolerance));
+  config_map.emplace(params::kScaleLength, std::to_string(scale_length));
+  config_map.emplace(params::kInertialToBackendFrameTranslation, inertial_to_backend_frame_translation.to_str());
+  config_map.emplace(params::kSimplificationPolicy, FromSimplificationPolicyToStr(simplification_policy));
+  config_map.emplace(params::kStandardStrictnessPolicy, FromStandardStrictnessPolicyToStr(standard_strictness_policy));
+  config_map.emplace(params::kOmitNonDrivableLanes, omit_nondrivable_lanes ? "true" : "false");
+  config_map.emplace(params::kBuildPolicy, BuildPolicy::FromTypeToStr(build_policy.type));
   if (build_policy.num_threads.has_value()) {
-    config_map.emplace(kStrNumThreads, std::to_string(build_policy.num_threads.value()));
+    config_map.emplace(params::kNumThreads, std::to_string(build_policy.num_threads.value()));
   }
   return config_map;
 }

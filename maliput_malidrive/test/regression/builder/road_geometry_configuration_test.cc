@@ -3,6 +3,8 @@
 
 #include <gtest/gtest.h>
 
+#include "maliput_malidrive/builder/params.h"
+
 namespace malidrive {
 namespace builder {
 namespace test {
@@ -53,20 +55,19 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
       kOmitNondrivableLanes};
 
   const std::map<std::string, std::string> rg_config_map{
-      {RoadGeometryConfiguration::kStrRoadGeometryId, kRgId},
-      {RoadGeometryConfiguration::kStrOpendriveFile, kOpendriveFile},
-      {RoadGeometryConfiguration::kStrLinearTolerance, std::to_string(kLinearTolerance)},
-      {RoadGeometryConfiguration::kStrMaxLinearTolerance, std::to_string(kMaxLinearTolerance)},
-      {RoadGeometryConfiguration::kStrAngularTolerance, std::to_string(kAngularTolerance)},
-      {RoadGeometryConfiguration::kStrScaleLength, std::to_string(kScaleLength)},
-      {RoadGeometryConfiguration::kStrInertialToBackendFrameTranslation, kRandomVector.to_str()},
-      {RoadGeometryConfiguration::kStrBuildPolicy, BuildPolicy::FromTypeToStr(kBuildPolicy.type)},
-      {RoadGeometryConfiguration::kStrNumThreads, std::to_string(kBuildPolicy.num_threads.value())},
-      {RoadGeometryConfiguration::kStrSimplificationPolicy,
-       RoadGeometryConfiguration::FromSimplificationPolicyToStr(kSimplificationPolicy)},
-      {RoadGeometryConfiguration::kStrStandardStrictnessPolicy,
+      {params::kRoadGeometryId, kRgId},
+      {params::kOpendriveFile, kOpendriveFile},
+      {params::kLinearTolerance, std::to_string(kLinearTolerance)},
+      {params::kMaxLinearTolerance, std::to_string(kMaxLinearTolerance)},
+      {params::kAngularTolerance, std::to_string(kAngularTolerance)},
+      {params::kScaleLength, std::to_string(kScaleLength)},
+      {params::kInertialToBackendFrameTranslation, kRandomVector.to_str()},
+      {params::kBuildPolicy, BuildPolicy::FromTypeToStr(kBuildPolicy.type)},
+      {params::kNumThreads, std::to_string(kBuildPolicy.num_threads.value())},
+      {params::kSimplificationPolicy, RoadGeometryConfiguration::FromSimplificationPolicyToStr(kSimplificationPolicy)},
+      {params::kStandardStrictnessPolicy,
        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(kStandardStrictnessPolicy)},
-      {RoadGeometryConfiguration::kStrOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
+      {params::kOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
   };
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(rg_config_map)};

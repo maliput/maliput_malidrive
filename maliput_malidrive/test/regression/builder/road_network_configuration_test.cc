@@ -6,6 +6,8 @@
 
 #include <gtest/gtest.h>
 
+#include "maliput_malidrive/builder/params.h"
+
 namespace malidrive {
 namespace builder {
 namespace test {
@@ -75,23 +77,22 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
   RoadNetworkConfiguration dut1{rg_config, kRoadRuleBook, kTrafficLightBook, kPhaseRingBook, kIntersectionBook};
 
   const std::map<std::string, std::string> rn_config_map{
-      {RoadGeometryConfiguration::kStrRoadGeometryId, kRgId},
-      {RoadGeometryConfiguration::kStrOpendriveFile, kOpendriveFile},
-      {RoadGeometryConfiguration::kStrLinearTolerance, std::to_string(kLinearTolerance)},
-      {RoadGeometryConfiguration::kStrMaxLinearTolerance, std::to_string(kMaxLinearTolerance)},
-      {RoadGeometryConfiguration::kStrAngularTolerance, std::to_string(kAngularTolerance)},
-      {RoadGeometryConfiguration::kStrScaleLength, std::to_string(kScaleLength)},
-      {RoadGeometryConfiguration::kStrInertialToBackendFrameTranslation, kRandomVector.to_str()},
-      {RoadGeometryConfiguration::kStrBuildPolicy, BuildPolicy::FromTypeToStr(kBuildPolicy.type)},
-      {RoadGeometryConfiguration::kStrSimplificationPolicy,
-       RoadGeometryConfiguration::FromSimplificationPolicyToStr(kSimplificationPolicy)},
-      {RoadGeometryConfiguration::kStrStandardStrictnessPolicy,
+      {params::kRoadGeometryId, kRgId},
+      {params::kOpendriveFile, kOpendriveFile},
+      {params::kLinearTolerance, std::to_string(kLinearTolerance)},
+      {params::kMaxLinearTolerance, std::to_string(kMaxLinearTolerance)},
+      {params::kAngularTolerance, std::to_string(kAngularTolerance)},
+      {params::kScaleLength, std::to_string(kScaleLength)},
+      {params::kInertialToBackendFrameTranslation, kRandomVector.to_str()},
+      {params::kBuildPolicy, BuildPolicy::FromTypeToStr(kBuildPolicy.type)},
+      {params::kSimplificationPolicy, RoadGeometryConfiguration::FromSimplificationPolicyToStr(kSimplificationPolicy)},
+      {params::kStandardStrictnessPolicy,
        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(kStandardStrictnessPolicy)},
-      {RoadGeometryConfiguration::kStrOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
-      {RoadNetworkConfiguration::kStrRoadRuleBook, kRoadRuleBook.value()},
-      {RoadNetworkConfiguration::kStrTrafficLightBook, kTrafficLightBook.value()},
-      {RoadNetworkConfiguration::kStrPhaseRingBook, kPhaseRingBook.value()},
-      {RoadNetworkConfiguration::kStrIntersectionBook, kIntersectionBook.value()},
+      {params::kOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
+      {params::kRoadRuleBook, kRoadRuleBook.value()},
+      {params::kTrafficLightBook, kTrafficLightBook.value()},
+      {params::kPhaseRingBook, kPhaseRingBook.value()},
+      {params::kIntersectionBook, kIntersectionBook.value()},
   };
 
   const RoadNetworkConfiguration dut2{RoadNetworkConfiguration::FromMap(rn_config_map)};

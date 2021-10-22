@@ -40,23 +40,6 @@ struct BuildPolicy {
 
 /// RoadGeometry construction parameters.
 struct RoadGeometryConfiguration {
-  /// @name Road Geometry configuration's keys used in string map.
-  ///
-  /// @{
-  static constexpr char const* kStrRoadGeometryId = "road_geometry_id";
-  static constexpr char const* kStrOpendriveFile = "opendrive_file";
-  static constexpr char const* kStrLinearTolerance = "linear_tolerance";
-  static constexpr char const* kStrMaxLinearTolerance = "max_linear_tolerance";
-  static constexpr char const* kStrAngularTolerance = "angular_tolerance";
-  static constexpr char const* kStrScaleLength = "scale_length";
-  static constexpr char const* kStrInertialToBackendFrameTranslation = "inertial_to_backend_frame_translation";
-  static constexpr char const* kStrBuildPolicy = "build_policy";
-  static constexpr char const* kStrNumThreads = "num_threads";
-  static constexpr char const* kStrSimplificationPolicy = "simplification_policy";
-  static constexpr char const* kStrStandardStrictnessPolicy = "standard_strictness_policy";
-  static constexpr char const* kStrOmitNonDrivableLanes = "omit_nondrivable_lanes";
-  /// @}
-
   /// Level of flexibility in terms of adhering to the OpenDrive standard
   /// when constructing a RoadGeometry. This is useful when working with
   /// .xodr files that violate the OpenDrive standard. The policy is
@@ -106,6 +89,7 @@ struct RoadGeometryConfiguration {
   static std::string FromStandardStrictnessPolicyToStr(const StandardStrictnessPolicy& policy);
 
   /// Creates a RoadGeometryConfiguration out of a string dictionary.
+  /// @details The keys of the map are listed at @ref road_geometry_configuration_builder_keys.
   /// @param road_geometry_configuration A string-string map containing the configuration for the builder.
   static RoadGeometryConfiguration FromMap(const std::map<std::string, std::string>& road_geometry_configuration);
 
@@ -137,6 +121,7 @@ struct RoadGeometryConfiguration {
     double angular_tolerance{constants::kAngularTolerance};
   };
 
+  /// @details The keys of the map are listed at @ref road_geometry_configuration_builder_keys.
   /// @returns A string-string map containing the RoadGeometry configuration.
   std::map<std::string, std::string> ToStringMap() const;
 

@@ -6,6 +6,7 @@
 
 #include <gtest/gtest.h>
 
+#include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
@@ -20,9 +21,12 @@ namespace {
 class LoaderTestSingleLane : public ::testing::Test {
  protected:
   const std::map<std::string, std::string> road_geometry_configuration_{
-      {"road_geometry_id", "test_id"}, {"opendrive_file", utility::FindResource("odr/SingleLane.xodr")},
-      {"linear_tolerance", "1e-3"},    {"angular_tolerance", "1e-3"},
-      {"scale_length", "1"},           {"omit_nondrivable_lanes", "false"},
+      {builder::params::kRoadGeometryId, "test_id"},
+      {builder::params::kOpendriveFile, utility::FindResource("odr/SingleLane.xodr")},
+      {builder::params::kLinearTolerance, "1e-3"},
+      {builder::params::kAngularTolerance, "1e-3"},
+      {builder::params::kScaleLength, "1"},
+      {builder::params::kOmitNonDrivableLanes, "false"},
   };
 
   const int kNumLanes{2};
@@ -34,7 +38,7 @@ TEST_F(LoaderTestSingleLane, LoadARoadNetwork) {
   const std::unique_ptr<maliput::api::RoadNetwork> dut =
       loader::Load<builder::RoadNetworkBuilder>(road_geometry_configuration_);
   const auto rg = dut->road_geometry();
-  EXPECT_EQ(road_geometry_configuration_.at("road_geometry_id"), rg->id().string());
+  EXPECT_EQ(road_geometry_configuration_.at(builder::params::kRoadGeometryId), rg->id().string());
   const auto lane_id_lane = rg->ById().GetLanes();
   EXPECT_EQ(kNumLanes, lane_id_lane.size());
   EXPECT_NE(lane_id_lane.at(kLaneId1), nullptr);
