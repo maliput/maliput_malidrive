@@ -118,8 +118,19 @@ static constexpr char const* kSimplificationPolicy{"simplification_policy"};
 /// Indicates how permissive builder should be with the XODR description.
 ///   - Options:
 ///    - 1. @e "strict" : Do not permit any errors.
-///    - 2. @e "allow_schema_errors" : Allow schema syntax errors.
+///    - 2. @e "allow_schema_errors" : Allow schema syntax errors at a XODR level:
+///      - 1. Allows having two functions starting at same 's' adding up to a picewise-defined polynomial for a given
+///      XODR characteristic(laneWidth, laneOffset, etc): First description will be discarded.
+///      - 2. Allows having functions starting at the end of the road: This function will be discarded as its length is
+///      zero.
+///      - 3. Allows having functions with NaN values. It is only accepted when there is a function that starts at
+///      the same 's' so the function with NaN values can be discarded.
+///      - 4. Allows having junction nodes without any connection.
 ///    - 3. @e "allow_semantic_errors" : Allow semantic errors.
+///      - 1. At a XODR level it allows having non reciprocal Road-linkage and Lane-linkage within a Road.
+///      - 2. Allows having lane width descriptions that are negative in certain range.
+///      - 3. Disables G1 contiguity checks for non-drivable lanes. (G1 contiguity check on drivable lanes can't be
+///      disabled.)
 ///    - 4. @e "permissive": Allow all previous violations.
 ///   - Default: @e "permissive"
 static constexpr char const* kStandardStrictnessPolicy{"standard_strictness_policy"};
