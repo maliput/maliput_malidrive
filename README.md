@@ -1,4 +1,4 @@
-![gcc](https://github.com/ToyotaResearchInstitute/maliput_malidrive/actions/workflows/build.yml/badge.svg)]
+![gcc](https://github.com/ToyotaResearchInstitute/maliput_malidrive/actions/workflows/build.yml/badge.svg)
 
 # maliput_malidrive
 
