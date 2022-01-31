@@ -21,32 +21,50 @@ RoadRuleBookBuilder::RoadRuleBookBuilder(
     const maliput::api::RoadGeometry* rg, const maliput::api::rules::RuleRegistry* rule_registry,
     const std::optional<std::string>& road_rulebook_file_path,
     const std::vector<maliput::api::rules::DirectionUsageRule>& direction_usage_rules,
-    const std::vector<maliput::api::rules::SpeedLimitRule>& speed_limit_rules)
+    const std::vector<maliput::api::rules::SpeedLimitRule>& speed_limit_rules, bool use_loader_with_rule_registry)
     : rg_(rg),
       rule_registry_(rule_registry),
       road_rulebook_file_path_(road_rulebook_file_path),
       direction_usage_rules_(direction_usage_rules),
-      speed_limit_rules_(speed_limit_rules) {
+      speed_limit_rules_(speed_limit_rules),
+      use_loader_with_rule_registry_(use_loader_with_rule_registry) {
   MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
   MALIDRIVE_THROW_UNLESS(rule_registry_ != nullptr);
 }
 
 std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::operator()() {
+  // TODO(francocipollone): Removes the load method that doesn't use the rule registry.
+  maliput::log()->trace("{}{}",
+                        road_rulebook_file_path_.has_value()
+                            ? "RoadRulebook file provided: " + road_rulebook_file_path_.value()
+                            : "No RoadRulebook file provided",
+                        road_rulebook_file_path_.has_value()
+                            ? (use_loader_with_rule_registry_ ? "\n\tUsing RoadRulebook loader with RuleRegistry"
+                                                              : "\n\tUsing RoadRulebook loader without RuleRegistry")
+                            : "");
+
   auto rulebook = !road_rulebook_file_path_.has_value()
                       ? std::make_unique<maliput::ManualRulebook>()
-                      : maliput::LoadRoadRulebookFromFile(rg_, road_rulebook_file_path_.value());
+                      : use_loader_with_rule_registry_
+                            ? maliput::LoadRoadRulebookFromFile(rg_, road_rulebook_file_path_.value(), *rule_registry_)
+                            : maliput::LoadRoadRulebookFromFile(rg_, road_rulebook_file_path_.value());
 
   maliput::ManualRulebook* rulebook_ptr = dynamic_cast<maliput::ManualRulebook*>(rulebook.get());
   MALIDRIVE_THROW_UNLESS(rulebook_ptr != nullptr);
 
+  // Discrete Value Rules
+  // @{
   // Creates vehicle usage and vehicle exclusive rules for the entire RoadGeometry.
   CreateVehicleRelatedRules(rulebook_ptr);
-
-  // Creates speed limit rules for the entire RoadGeometry.
-  CreateSpeedLimitRules(rulebook_ptr);
-
   // Creates direction usage rules for the entire RoadGeometry.
   CreateDirectionUsageRules(rulebook_ptr);
+  // @}
+
+  // Range Value Rules
+  // @{
+  // Creates speed limit rules for the entire RoadGeometry.
+  CreateSpeedLimitRules(rulebook_ptr);
+  // @}
 
   // TODO(agalbachicar)   Remove when maliput::api::rules::SpeedLimitRules
   //                      are deprecated.

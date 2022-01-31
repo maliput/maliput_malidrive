@@ -33,6 +33,10 @@ namespace params {
 ///   - Default: ""
 static constexpr char const* kRoadRuleBook{"road_rule_book"};
 
+/// Path to the configuration file to load a RoadRulebook
+///   - Default: ""
+static constexpr char const* kRuleRegistry{"rule_registry"};
+
 /// Path to the configuration file to load a TrafficLightBook
 ///   - Default: ""
 static constexpr char const* kTrafficLightBook{"traffic_light_book"};

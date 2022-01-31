@@ -57,12 +57,12 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::common::unused(speed_limits);
 
   maliput::log()->trace("Building RuleRegistry...");
-  auto rule_registry = RuleRegistryBuilder(rg.get())();
+  auto rule_registry = RuleRegistryBuilder(rg.get(), rn_config.rule_registry)();
   maliput::log()->trace("Built RuleRegistry...");
 
   maliput::log()->trace("Building RuleRoadBook...");
-  auto rule_book =
-      RoadRuleBookBuilder(rg.get(), rule_registry.get(), rn_config.road_rule_book, direction_usages, speed_limits)();
+  auto rule_book = RoadRuleBookBuilder(rg.get(), rule_registry.get(), rn_config.road_rule_book, direction_usages,
+                                       speed_limits, rn_config.rule_registry.has_value())();
   maliput::log()->trace("Built RuleRoadBook.");
 
   maliput::log()->trace("Building TrafficLightBook...");

@@ -11,7 +11,11 @@ RoadNetworkConfiguration RoadNetworkConfiguration::FromMap(
     const std::map<std::string, std::string>& road_network_configuration) {
   RoadNetworkConfiguration rn_config{RoadGeometryConfiguration::FromMap(road_network_configuration)};
 
-  auto it = road_network_configuration.find(params::kRoadRuleBook);
+  auto it = road_network_configuration.find(params::kRuleRegistry);
+  if (it != road_network_configuration.end()) {
+    rn_config.rule_registry = std::make_optional(it->second);
+  }
+  it = road_network_configuration.find(params::kRoadRuleBook);
   if (it != road_network_configuration.end()) {
     rn_config.road_rule_book = std::make_optional(it->second);
   }
@@ -32,6 +36,9 @@ RoadNetworkConfiguration RoadNetworkConfiguration::FromMap(
 
 std::map<std::string, std::string> RoadNetworkConfiguration::ToStringMap() const {
   auto rg_config = road_geometry_configuration.ToStringMap();
+  if (rule_registry.has_value()) {
+    rg_config.emplace(params::kRuleRegistry, rule_registry.value());
+  }
   if (road_rule_book.has_value()) {
     rg_config.emplace(params::kRoadRuleBook, road_rule_book.value());
   }

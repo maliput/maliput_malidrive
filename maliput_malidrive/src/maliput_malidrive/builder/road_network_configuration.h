@@ -23,6 +23,8 @@ struct RoadNetworkConfiguration {
 
   /// Road geometry configuration parameters.
   const RoadGeometryConfiguration road_geometry_configuration;
+  /// Path to the configuration file to load a RuleRegistry
+  std::optional<std::string> rule_registry{std::nullopt};
   /// Path to the configuration file to load a RoadRulebook
   std::optional<std::string> road_rule_book{std::nullopt};
   /// Path to the configuration file to load a TrafficLightBook.

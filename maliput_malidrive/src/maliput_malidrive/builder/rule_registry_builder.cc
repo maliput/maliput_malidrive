@@ -1,6 +1,8 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 
+#include <maliput/base/rule_registry_loader.h>
+
 #include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/constants.h"
 
@@ -11,8 +13,19 @@ using maliput::api::rules::DiscreteValueRule;
 using maliput::api::rules::RangeValueRule;
 using maliput::api::rules::Rule;
 
+RuleRegistryBuilder::RuleRegistryBuilder(const maliput::api::RoadGeometry* rg,
+                                         const std::optional<std::string>& rule_registry_file_path)
+    : rg_{rg}, rule_registry_file_path_{rule_registry_file_path} {
+  MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
+}
+
 std::unique_ptr<maliput::api::rules::RuleRegistry> RuleRegistryBuilder::operator()() {
-  auto rule_registry = std::make_unique<maliput::api::rules::RuleRegistry>();
+  maliput::log()->trace("{}", rule_registry_file_path_.has_value()
+                                  ? "RuleRegistry file provided: " + rule_registry_file_path_.value()
+                                  : "No RuleRegistry file provided");
+  auto rule_registry = !rule_registry_file_path_.has_value()
+                           ? std::make_unique<maliput::api::rules::RuleRegistry>()
+                           : maliput::LoadRuleRegistryFromFile(rule_registry_file_path_.value());
   AddDiscreteValueRuleTypes(rule_registry.get());
   AddSpeedLimitRuleType(rule_registry.get());
 
