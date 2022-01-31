@@ -147,6 +147,7 @@ install (FILES resources/cloverleaf/cloverleaf.xodr
 
 install (FILES resources/figure8_trafficlights/figure8_trafficlights.xodr
                resources/figure8_trafficlights/figure8_trafficlights.yaml
+               resources/figure8_trafficlights/figure8_trafficlights_new_rules.yaml
                resources/figure8_trafficlights/lane-s-route_east-left-turn.yaml
                resources/figure8_trafficlights/lane-s-route_east-right-turn.yaml
                resources/figure8_trafficlights/lane-s-route_east-straight.yaml

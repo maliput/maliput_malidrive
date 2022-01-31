@@ -28,8 +28,7 @@ class RuleRegistryBuilder {
   /// Builds a RuleRegistry.
   ///
   /// The RuleRegistry is built in two steps:
-  /// 1- If #rule_registry_file_path_ contains a valid path then the RuleRegistry is filled with the rule types located
-  /// in the YAML file.
+  /// 1- Loads RuleRegistry with rule types obtained from the YAML file if it is provided.
   ///
   /// 2- Programatically loads the following list of rule types:
   ///    - maliput::api::rules::DiscreteValueRule types:
