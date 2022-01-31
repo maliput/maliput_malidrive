@@ -6,7 +6,6 @@
 #include <variant>
 
 #include <gtest/gtest.h>
-
 #include <maliput/api/rules/rule_registry.h>
 #include <maliput/base/rule_registry.h>
 
