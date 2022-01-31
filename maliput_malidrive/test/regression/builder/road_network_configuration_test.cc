@@ -24,6 +24,7 @@ class RoadNetworkConfigurationTest : public ::testing::Test {
   const bool kOmitNondrivableLanes{false};
   const std::string kRgId{"test_id"};
   const std::string kOpendriveFile{"opendrive_file_test.xodr"};
+  const std::optional<std::string> kRuleRegistry{"rule_registry_test.xodr"};
   const std::optional<std::string> kRoadRuleBook{"road_rule_book_test.xodr"};
   const std::optional<std::string> kTrafficLightBook{"traffic_light_book_test.xodr"};
   const std::optional<std::string> kPhaseRingBook{"phase_ring_book_test.xodr"};
@@ -35,6 +36,7 @@ class RoadNetworkConfigurationTest : public ::testing::Test {
 
   void ExpectEqual(const RoadNetworkConfiguration& lhs, const RoadNetworkConfiguration& rhs) {
     // RoadNetworkConfiguration parameters.
+    EXPECT_EQ(lhs.rule_registry, rhs.rule_registry);
     EXPECT_EQ(lhs.road_rule_book, rhs.road_rule_book);
     EXPECT_EQ(lhs.traffic_light_book, rhs.traffic_light_book);
     EXPECT_EQ(lhs.phase_ring_book, rhs.phase_ring_book);
@@ -74,7 +76,8 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       kSimplificationPolicy,
       kStandardStrictnessPolicy,
       kOmitNondrivableLanes};
-  RoadNetworkConfiguration dut1{rg_config, kRoadRuleBook, kTrafficLightBook, kPhaseRingBook, kIntersectionBook};
+  RoadNetworkConfiguration dut1{rg_config,         kRuleRegistry,  kRoadRuleBook,
+                                kTrafficLightBook, kPhaseRingBook, kIntersectionBook};
 
   const std::map<std::string, std::string> rn_config_map{
       {params::kRoadGeometryId, kRgId},
@@ -89,6 +92,7 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       {params::kStandardStrictnessPolicy,
        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(kStandardStrictnessPolicy)},
       {params::kOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
+      {params::kRuleRegistry, kRuleRegistry.value()},
       {params::kRoadRuleBook, kRoadRuleBook.value()},
       {params::kTrafficLightBook, kTrafficLightBook.value()},
       {params::kPhaseRingBook, kPhaseRingBook.value()},
@@ -106,6 +110,7 @@ TEST_F(RoadNetworkConfigurationTest, ToStringMap) {
        builder::RoadGeometryConfiguration::BuildTolerance{kLinearTolerance, kMaxLinearTolerance, kAngularTolerance},
        kScaleLength, kRandomVector, kBuildPolicy, kSimplificationPolicy, kStandardStrictnessPolicy,
        kOmitNondrivableLanes},
+      kRuleRegistry,
       kRoadRuleBook,
       kTrafficLightBook,
       kPhaseRingBook,

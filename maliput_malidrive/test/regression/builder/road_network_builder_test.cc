@@ -281,8 +281,9 @@ class RuleRegistryBuildTest : public BuilderTest {
     const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
     RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
     road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
-    RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, kTShapeRoadYAMLPath,
-                                                        kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, std::nullopt};
+    RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, std::nullopt,
+                                                        kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath,
+                                                        kTShapeRoadYAMLPath,         std::nullopt};
     rn_ = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration.ToStringMap());
     ASSERT_NE(rn_.get(), nullptr);
   }
@@ -370,8 +371,9 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
   const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
   RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
   road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
-  const RoadNetworkConfiguration road_network_configuration{
-      road_geometry_configuration, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, kTShapeRoadYAMLPath};
+  const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, std::nullopt,
+                                                            kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath,
+                                                            kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath};
 
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration.ToStringMap());
   ASSERT_NE(rn.get(), nullptr);
@@ -420,8 +422,9 @@ TEST_F(BuilderTest, StubProperties) {
   const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
   RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
   road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
-  const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, kTShapeRoadYAMLPath,
-                                                            kTShapeRoadYAMLPath, kTShapeRoadYAMLPath, std::nullopt};
+  const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, std::nullopt,
+                                                            kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath,
+                                                            kTShapeRoadYAMLPath,         std::nullopt};
 
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration.ToStringMap());
   ASSERT_NE(rn.get(), nullptr);
