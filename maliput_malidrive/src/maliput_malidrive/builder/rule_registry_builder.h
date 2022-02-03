@@ -22,13 +22,13 @@ class RuleRegistryBuilder {
   ///
   /// @param rg A malidrive::RoadGeometry. It is used to extract speed limit
   /// rule ranges. It must not be nullptr.
-  /// @param rule_registry_file_path YAML file path for loading the RuleRegistry.
+  /// @param rule_registry_file_path YAML file path for loading the maliput::api::rules::RuleRegistry.
   RuleRegistryBuilder(const maliput::api::RoadGeometry* rg, const std::optional<std::string>& rule_registry_file_path);
 
-  /// Builds a RuleRegistry.
+  /// Builds a maliput::api::rules::RuleRegistry.
   ///
-  /// The RuleRegistry is built in two steps:
-  /// 1- Loads RuleRegistry with rule types obtained from the YAML file if it is provided.
+  /// The maliput::api::rules::RuleRegistry is built in two steps:
+  /// 1- Loads maliput::api::rules::RuleRegistry with rule types obtained from the YAML file if it is provided.
   ///
   /// 2- Programatically loads the following list of rule types:
   ///    - maliput::api::rules::DiscreteValueRule types:
