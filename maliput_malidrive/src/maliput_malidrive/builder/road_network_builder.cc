@@ -27,7 +27,7 @@
 #include "maliput_malidrive/builder/range_value_rule_state_provider_builder.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
-#include "maliput_malidrive/builder/road_rulebook_builder.h"
+#include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 #include "maliput_malidrive/builder/speed_limit_builder.h"
 #include "maliput_malidrive/builder/xodr_parser_configuration.h"
@@ -61,7 +61,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::log()->trace("Built RuleRegistry...");
 
   maliput::log()->trace("Building RuleRoadBook...");
-  auto rule_book = RoadRuleBookBuilder(rg.get(), rule_registry.get(), rn_config.road_rule_book, direction_usages,
+  auto rule_book = RoadRuleBookBuilderOldRules(rg.get(), rule_registry.get(), rn_config.road_rule_book, direction_usages,
                                        speed_limits, rn_config.rule_registry.has_value())();
   maliput::log()->trace("Built RuleRoadBook.");
 

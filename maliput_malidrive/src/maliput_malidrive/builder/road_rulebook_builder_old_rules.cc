@@ -1,5 +1,5 @@
 // Copyright 2020 Toyota Research Institute
-#include "maliput_malidrive/builder/road_rulebook_builder.h"
+#include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 
 #include <maliput/api/regions.h>
 #include <maliput/base/road_rulebook_loader.h>
@@ -17,7 +17,7 @@ using maliput::api::rules::DiscreteValueRule;
 using maliput::api::rules::RangeValueRule;
 using maliput::api::rules::Rule;
 
-RoadRuleBookBuilder::RoadRuleBookBuilder(
+RoadRuleBookBuilderOldRules::RoadRuleBookBuilderOldRules(
     const maliput::api::RoadGeometry* rg, const maliput::api::rules::RuleRegistry* rule_registry,
     const std::optional<std::string>& road_rulebook_file_path,
     const std::vector<maliput::api::rules::DirectionUsageRule>& direction_usage_rules,
@@ -32,7 +32,7 @@ RoadRuleBookBuilder::RoadRuleBookBuilder(
   MALIDRIVE_THROW_UNLESS(rule_registry_ != nullptr);
 }
 
-std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::operator()() {
+std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilderOldRules::operator()() {
   // TODO(francocipollone): Removes the load method that doesn't use the rule registry.
   maliput::log()->trace("{}{}",
                         road_rulebook_file_path_.has_value()
@@ -81,12 +81,12 @@ std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::op
   return rulebook;
 }
 
-LaneSRoute RoadRuleBookBuilder::CreateLaneSRouteFor(const Lane* lane) const {
+LaneSRoute RoadRuleBookBuilderOldRules::CreateLaneSRouteFor(const Lane* lane) const {
   MALIDRIVE_THROW_UNLESS(lane != nullptr);
   return LaneSRoute({LaneSRange(lane->id(), SRange(0., lane->length()))});
 }
 
-void RoadRuleBookBuilder::CreateVehicleRelatedRules(maliput::ManualRulebook* rulebook) const {
+void RoadRuleBookBuilderOldRules::CreateVehicleRelatedRules(maliput::ManualRulebook* rulebook) const {
   MALIDRIVE_DEMAND(rulebook != nullptr);
   const int severity{Rule::State::kStrict};
 
@@ -119,7 +119,7 @@ void RoadRuleBookBuilder::CreateVehicleRelatedRules(maliput::ManualRulebook* rul
   }
 }
 
-void RoadRuleBookBuilder::CreateSpeedLimitRules(maliput::ManualRulebook* rulebook) const {
+void RoadRuleBookBuilderOldRules::CreateSpeedLimitRules(maliput::ManualRulebook* rulebook) const {
   const std::optional<maliput::api::rules::RuleRegistry::QueryResult> speed_limit_query_result =
       rule_registry_->GetPossibleStatesOfRuleType(maliput::SpeedLimitRuleTypeId());
   MALIDRIVE_THROW_UNLESS(speed_limit_query_result.has_value());
@@ -158,7 +158,7 @@ void RoadRuleBookBuilder::CreateSpeedLimitRules(maliput::ManualRulebook* ruleboo
   }
 }
 
-void RoadRuleBookBuilder::CreateDirectionUsageRules(maliput::ManualRulebook* rulebook) const {
+void RoadRuleBookBuilderOldRules::CreateDirectionUsageRules(maliput::ManualRulebook* rulebook) const {
   MALIDRIVE_THROW_UNLESS(rulebook != nullptr);
   const int severity{Rule::State::kStrict};
   for (const auto& lane_id_lane : rg_->ById().GetLanes()) {

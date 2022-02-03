@@ -51,11 +51,11 @@ namespace builder {
 ///  - Vehicle exclusive: maliput::api::rules::DiscretValueRule whose type is "Vehicle-Exclusive-Rule" are created.
 ///  - Vehicle usage: maliput::api::rules::DiscretValueRule whose type is "Vehicle-Usage-Rule" are created.
 ///
-/// TODO(#XXX): remove deprecated rules API.
-class RoadRuleBookBuilder {
+/// TODO(ToyotaResearchInstitute/maliput#108): remove deprecated rules API.
+class RoadRuleBookBuilderOldRules {
  public:
-  MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadRuleBookBuilder)
-  RoadRuleBookBuilder() = delete;
+  MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadRuleBookBuilderOldRules)
+  RoadRuleBookBuilderOldRules() = delete;
 
   /// Constructs a RoadRuleBook.
   ///
@@ -66,7 +66,7 @@ class RoadRuleBookBuilder {
   /// @param speed_limit_rules is a vector of SpeedLimitRules.
   /// @param use_loader_with_rule_registry is a boolean to determine which maliput RoadRulebook loader to use.
   /// @throw maliput::assertion_error When `rg` or `rule_registry` are nullptr.
-  RoadRuleBookBuilder(const maliput::api::RoadGeometry* rg, const maliput::api::rules::RuleRegistry* rule_registry,
+  RoadRuleBookBuilderOldRules(const maliput::api::RoadGeometry* rg, const maliput::api::rules::RuleRegistry* rule_registry,
                       const std::optional<std::string>& road_rulebook_file_path,
                       const std::vector<maliput::api::rules::DirectionUsageRule>& direction_usage_rules,
                       const std::vector<maliput::api::rules::SpeedLimitRule>& speed_limit_rules,
