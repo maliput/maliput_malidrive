@@ -18,50 +18,40 @@ namespace builder {
 
 /// Functor to build a RoadRulebook.
 ///
-/// At the moment there are two api for the rules in maliput.
-/// - The old rules structure composed by the rules:
-///   - `SpeedLimitRule`
-///   - `RightOfWayRule`
-///   - `DirectionUsageRule`
-/// - The new rules structure composed by:
-///   - Rules depending on the type of value they hold:
-///     - `DiscreteValueRule`
-///     - `RangeValueRule`
-///   - `RuleRegistry:` Used to register all the rule type that are allowed.
-///   The latter allows you to customize and add as many rule types as necessary.
+/// At the moment there are two APIs for the rules in maliput.
+/// - The deprecated rules API, which is composed of:
+///   - maliput::api::rules::SpeedLimitRule
+///   - maliput::api::rules::RightOfWayRule
+///   - maliput::api::rules::DirectionUsageRule
+/// - And the new rules API which is composed of:
+///   - maliput::api::rules::Rules depending on the type of value they hold:
+///     - maliput::api::rules::DiscreteValueRule
+///     - maliput::api::rules::RangeValueRule
+///   - maliput::api::rules::RuleRegistry: it is used to register all the rule type that are allowed.
 ///
-/// This builder could take different approaches when building the `RoadRulebook` in order to provide support for both
-/// generation of rules.
+/// The building procedure changes depending on the various combinations of input parameters. See the detailed
+/// explanation below.
 ///
-/// The presence or not of a provided `RoadRulebook` file path will imply different actions when buildign the
-/// `RoadRulebook`.
-///  - When no `RoadRulebook` file is provided: Only rules obtained from the XODR are populated.
-///  - When `RoadRulebook` is provided but `RuleRegistry` is not: In this case the builder considers that the old rule
-///  format is being used. However, in order to populate new rules too, the RightOfWayRules are used to
-///                                                      also create DiscreteValueRules of type Right-Of-Way-Rule and
-///                                                      Vehicle-In-Stop-Behavior-Rule. See [RoadRulebook loader without
-///                                                      rule
-///                                                      registry](https://github.com/ToyotaResearchInstitute/maliput/blob/ab4bff490702c31abd2d0d9ff87383f6f00c45c8/maliput/src/base/road_rulebook_loader.cc#L351)
-///                                                      provided by maliput.
-///  - When both `RoadRulebook` and `RuleRegistry` files are provided: When `RuleRegistry` is provided, the builder
-///  expects that the new rules structure is intended to be used.
-///                                                                    At this point new rules are populated however the
-///                                                                    old RightOfWayRule rules won't be filled as there
-///                                                                    is no way to know what's the rule type that is
-///                                                                    defined in the RuleRegistry for the right of way
-///                                                                    type of rule. See [RoadRulebook loader with rule
-///                                                                    registry](https://github.com/ToyotaResearchInstitute/maliput/blob/ab4bff490702c31abd2d0d9ff87383f6f00c45c8/maliput/src/base/road_rulebook_loader_using_rule_registry.cc#L206)
-///                                                                    provided by maliput.
+///  - When no `road_rulebook_file_path` is provided: rules are created out of XODR decription.
+///  - When `road_rulebook_file_path` is provided and `rule_registry` is nullptr: rules with the old API are built out of the
+///    YAML file and created maliput::api::rules::RightOfWayRules are used to create their analogous version
+///    as maliput::api::rules::DiscreteValueRules of type "Right-Of-Way-Rule" and "Vehicle-In-Stop-Behavior-Rule".
+///    @see [RoadRulebook loader without rule registry](https://github.com/ToyotaResearchInstitute/maliput/blob/ab4bff490702c31abd2d0d9ff87383f6f00c45c8/maliput/src/base/road_rulebook_loader.cc#L351)
+///    provided by maliput.
+///  - When `road_rulebook_file_path` is provided and `rule_registry` is not nullptr: rules with the new API are created.
+///    Old maliput::api::rules::RightOfWayRule rules won't be filled because there is no matching type in the
+///    `rule_regitsry` for them. See [RoadRulebook loader with rule registry](https://github.com/ToyotaResearchInstitute/maliput/blob/ab4bff490702c31abd2d0d9ff87383f6f00c45c8/maliput/src/base/road_rulebook_loader_using_rule_registry.cc#L206)
+///    provided by maliput.
 ///
-/// There are rules that are extracted from the XODR file, and they are used to populate the RoadRulbook no matter the
-/// combination of `RoadRulebook` and `RuleRegistry` that is choosen. Those are:
-///  - Speed limit: Used to fill both `SpeedLimitRule` and `RangeValueRule` of type Speed-Limit-Rule information.
-///  - Direction usage: Used to fill both `DirectionUsageRule` and `DiscretValueRule` of type Speed-Limit-Rule
-///  information.
-///  - Vehicle exclusive: Used to fill `DiscretValueRule` of type Vehicle-Exclusive-Rule information.
-///  - Vehicle usage: Used to fill `DiscretValueRule` of type Vehicle-Usage-Rule information.
+/// The following rules are created regardless the values of `road_rulebook_file_path` and `rule_registry`:
+///  - Speed limits: maliput::api::rules::SpeedLimitRule and maliput::api::rules::RangeValueRule whose type 
+///    is "Speed-Limit-Rule" are created.
+///  - Direction usage: maliput::api::rules::DirectionUsageRule and maliput::api::rules::DiscretValueRule whose type
+///    is "Speed-Limit-Rule" are created.
+///  - Vehicle exclusive: maliput::api::rules::DiscretValueRule whose type is "Vehicle-Exclusive-Rule" are created.
+///  - Vehicle usage: maliput::api::rules::DiscretValueRule whose type is "Vehicle-Usage-Rule" are created.
 ///
-/// TODO(francocipollone): Simplify builder once the old rules are deprecated from maliput.
+/// TODO(#XXX): remove deprecated rules API.
 class RoadRuleBookBuilder {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadRuleBookBuilder)
