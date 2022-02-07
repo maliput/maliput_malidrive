@@ -162,26 +162,26 @@ class RuleRegistryBuilderTest : public ::testing::Test {
     TestRuleTypeDiscreteValue(right_of_way_states, maliput::api::rules::DiscreteValueRule::DiscreteValue{
                                                        maliput::api::rules::Rule::State::kStrict,
                                                        {{maliput::RelatedRulesKeys::kYieldGroup, {}},
-                                                        {"Vehicle-Stop-In-Zone-Behavior Rule Type", {}}},
+                                                        {maliput::VehicleStopInZoneBehaviorRuleTypeId().string(), {}}},
                                                        {{maliput::RelatedUniqueIdsKeys::kBulbGroup, {}}},
                                                        "Go"});
     TestRuleTypeDiscreteValue(right_of_way_states, maliput::api::rules::DiscreteValueRule::DiscreteValue{
                                                        maliput::api::rules::Rule::State::kStrict,
                                                        {{maliput::RelatedRulesKeys::kYieldGroup, {}},
-                                                        {"Vehicle-Stop-In-Zone-Behavior Rule Type", {}}},
+                                                        {maliput::VehicleStopInZoneBehaviorRuleTypeId().string(), {}}},
                                                        {{maliput::RelatedUniqueIdsKeys::kBulbGroup, {}}},
                                                        "Stop"});
     TestRuleTypeDiscreteValue(right_of_way_states, maliput::api::rules::DiscreteValueRule::DiscreteValue{
                                                        maliput::api::rules::Rule::State::kStrict,
                                                        {{maliput::RelatedRulesKeys::kYieldGroup, {}},
-                                                        {"Vehicle-Stop-In-Zone-Behavior Rule Type", {}}},
+                                                        {maliput::VehicleStopInZoneBehaviorRuleTypeId().string(), {}}},
                                                        {{maliput::RelatedUniqueIdsKeys::kBulbGroup, {}}},
                                                        "StopThenGo"});
   }
 
   // Verifies possible states of Vehicle-Stop-In-Zone-Behavior Rule Type which is registered via YAML loader.
   void TestViaYamlAddedVehicleStopInZoneBehaviorRuleType() {
-    const maliput::api::rules::Rule::TypeId rule_type("Vehicle-Stop-In-Zone-Behavior Rule Type");
+    const maliput::api::rules::Rule::TypeId rule_type(maliput::VehicleStopInZoneBehaviorRuleTypeId());
     const std::optional<maliput::api::rules::RuleRegistry::QueryResult> vehicle_in_stop_behavior_states_opt =
         rule_registry_->GetPossibleStatesOfRuleType(rule_type);
     ASSERT_NE(vehicle_in_stop_behavior_states_opt, std::nullopt);

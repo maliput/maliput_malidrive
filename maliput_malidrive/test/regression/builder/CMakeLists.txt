@@ -16,6 +16,7 @@ set(UNIT_BUILDER_TEST_SOURCES
   road_curve_factory_test.cc
   road_geometry_builder_test.cc
   road_network_builder_test.cc
+  road_rulebook_builder_test.cc
   rule_registry_builder_test.cc
   rule_tools_test.cc
   road_geometry_configuration_test.cc
