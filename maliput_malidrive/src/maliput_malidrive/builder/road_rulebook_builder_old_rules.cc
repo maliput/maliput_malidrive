@@ -1,4 +1,4 @@
-// Copyright 2020 Toyota Research Institute
+// Copyright 2022 Toyota Research Institute
 #include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 
 #include <maliput/api/regions.h>

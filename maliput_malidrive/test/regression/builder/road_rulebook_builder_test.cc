@@ -35,7 +35,8 @@ using maliput::api::rules::Rule;
 // Verifies if `rule_a` and `rule_b` are equal based on a `tolerance`. The `tolerance` value applyies when the region
 // of the rule is being evaluated.
 //  `T` param: DiscreteValueRules or RangeValueRules.
-// TODO(): Use "maliput/test_utilities/rules_compare.h" instead when zone(ranges) comparison includes tolerance.
+// TODO(https://github.com/ToyotaResearchInstitute/maliput/issues/463): Use "maliput/test_utilities/rules_compare.h"
+// instead when zone(ranges) comparison includes tolerance.
 template <typename T>
 inline ::testing::AssertionResult IsEqual(const T& rule_a, const T& rule_b, double tolerance) {
   if (rule_a.id() != rule_b.id()) {
