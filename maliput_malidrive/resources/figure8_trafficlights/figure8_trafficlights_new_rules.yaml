@@ -13,7 +13,7 @@
 ---
 
 RuleRegistry:
-  Vehicle Stop In Zone Behavior Rule Type:
+  Vehicle-Stop-In-Zone-Behavior Rule Type:
     - value: "DoNotStop"
       severity: 0
       related_rules: [Yield Group]
@@ -25,15 +25,15 @@ RuleRegistry:
   Right-Of-Way Rule Type:
     - value: "Go"
       severity: 0
-      related_rules: [Yield Group, Vehicle Stop In Zone Behavior Rule Type]
+      related_rules: [Yield Group, Vehicle-Stop-In-Zone-Behavior Rule Type]
       related_unique_ids: [Bulb Group]
     - value: "Stop"
       severity: 0
-      related_rules: [Yield Group, Vehicle Stop In Zone Behavior Rule Type]
+      related_rules: [Yield Group, Vehicle-Stop-In-Zone-Behavior Rule Type]
       related_unique_ids: [Bulb Group]
     - value: "StopThenGo"
       severity: 0
-      related_rules: [Yield Group, Vehicle Stop In Zone Behavior Rule Type]
+      related_rules: [Yield Group, Vehicle-Stop-In-Zone-Behavior Rule Type]
       related_unique_ids: [Bulb Group]
   Maximum-Weight Rule Type:
     - range: [0., 15000.]
@@ -47,8 +47,8 @@ RoadRulebook:
 # Straight-through rules have both Go and Stop states and yield to no other
 # rules.
   # NorthStraight
-  - id: "Vehicle Stop In Zone Behavior Rule Type/NorthStraight"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/NorthStraight"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 19_0_-1
         # s_range: [0, 100] # It is commented out as I would like to cover the entire lane.
@@ -80,20 +80,20 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/NorthStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthStraight"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/NorthStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthStraight"]
         related_unique_ids:
         - Bulb Group: []
 
   # SouthStraight
-  - id: "Vehicle Stop In Zone Behavior Rule Type/SouthStraight"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/SouthStraight"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 18_6_1
       - lane_id: 18_5_1
@@ -124,19 +124,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/SouthStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthStraight"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/SouthStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthStraight"]
         related_unique_ids:
         - Bulb Group: []
   # EastStraight
-  - id: "Vehicle Stop In Zone Behavior Rule Type/EastStraight"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastStraight"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 95_6_1
       - lane_id: 95_5_1
@@ -167,19 +167,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/EastStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastStraight"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/EastStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastStraight"]
         related_unique_ids:
         - Bulb Group: []
   # WestStraight
-  - id: "Vehicle Stop In Zone Behavior Rule Type/WestStraight"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestStraight"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 96_0_-1
       - lane_id: 96_1_-1
@@ -210,14 +210,14 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/WestStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestStraight"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/WestStraight"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestStraight"]
         related_unique_ids:
         - Bulb Group: []
 
@@ -229,8 +229,8 @@ RoadRulebook:
 # right-of-way.
 
   # NorthRightTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/NorthRightTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/NorthRightTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 39_0_-1
       - lane_id: 39_1_-1
@@ -257,20 +257,20 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/SouthLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/NorthRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthRightTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/EastStraight, Right-Of-Way Rule Type/SouthLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/NorthRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthRightTurn"]
         related_unique_ids:
         - Bulb Group: []
 
   # SouthRightTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/SouthRightTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/SouthRightTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 82_0_-1
       - lane_id: 82_1_-1
@@ -297,19 +297,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/NorthLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/SouthRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthRightTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/WestStraight, Right-Of-Way Rule Type/NorthLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/SouthRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthRightTurn"]
         related_unique_ids:
         - Bulb Group: []
   # EastRightTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/EastRightTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastRightTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 45_6_1
       - lane_id: 45_5_1
@@ -340,19 +340,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/WestLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/EastRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastRightTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/SouthStraight, Right-Of-Way Rule Type/WestLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/EastRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastRightTurn"]
         related_unique_ids:
         - Bulb Group: []
   # WestRightTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/WestRightTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestRightTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 65_6_1
       - lane_id: 65_5_1
@@ -383,21 +383,21 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/EastLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/WestRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestRightTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/NorthStraight, Right-Of-Way Rule Type/EastLeftTurn]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/WestRightTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestRightTurn"]
         related_unique_ids:
         - Bulb Group: []
 # Left-turn rules have both Go and Stop states. They yield to antiparallel
 # straight-through rules.
   # NorthLeftTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/NorthLeftTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/NorthLeftTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 52_0_-1
       - lane_id: 52_1_-1
@@ -424,19 +424,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/SouthStraight]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/NorthLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/NorthLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
   # SouthLeftTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/SouthLeftTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/SouthLeftTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 60_0_-1
       - lane_id: 60_1_-1
@@ -463,19 +463,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/NorthStraight]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/SouthLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/SouthLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
   # EastLeftTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/EastLeftTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastLeftTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 75_6_1
       - lane_id: 75_5_1
@@ -506,19 +506,19 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/WestStraight]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/EastLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/EastLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
   # WestLeftTurn
-  - id: "Vehicle Stop In Zone Behavior Rule Type/WestLeftTurn"
-    type: "Vehicle Stop In Zone Behavior Rule Type"
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestLeftTurn"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
       - lane_id: 32_6_1
       - lane_id: 32_5_1
@@ -549,14 +549,14 @@ RoadRulebook:
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/EastStraight]
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/WestLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
-          Vehicle Stop In Zone Behavior Rule Type: ["Vehicle Stop In Zone Behavior Rule Type/WestLeftTurn"]
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestLeftTurn"]
         related_unique_ids:
         - Bulb Group: []
   - id: "Maximum-Weight Rule Type/EntireRoadNetwork"
