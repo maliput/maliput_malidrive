@@ -57,6 +57,12 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   auto speed_limits = SpeedLimitBuilder(rg.get())();
   maliput::common::unused(speed_limits);
 
+  maliput::log()->trace("Building TrafficLightBook...");
+  auto traffic_light_book = !rn_config.traffic_light_book.has_value()
+                                ? std::make_unique<maliput::TrafficLightBook>()
+                                : maliput::LoadTrafficLightBookFromFile(rn_config.traffic_light_book.value());
+  maliput::log()->trace("Built TrafficLightBook.");
+
   maliput::log()->trace("Building RuleRegistry...");
   auto rule_registry = RuleRegistryBuilder(rg.get(), rn_config.rule_registry)();
   maliput::log()->trace("Built RuleRegistry...");
@@ -70,17 +76,16 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
                                                      direction_usages, speed_limits)();
   maliput::log()->trace("Built RuleRoadBook.");
 
-  maliput::log()->trace("Building TrafficLightBook...");
-  auto traffic_light_book = !rn_config.traffic_light_book.has_value()
-                                ? std::make_unique<maliput::TrafficLightBook>()
-                                : maliput::LoadTrafficLightBookFromFile(rn_config.traffic_light_book.value());
-  maliput::log()->trace("Built TrafficLightBook.");
-
   maliput::log()->trace("Building PhaseRingBook...");
+  maliput::log()->trace("Building PhaseRingBook...\n\t|_ {}",
+                        rn_config.rule_registry.has_value() ? "Based on new rule API" : "Based on old rule API");
   auto phase_ring_book = !rn_config.phase_ring_book.has_value()
                              ? std::make_unique<maliput::ManualPhaseRingBook>()
-                             : maliput::LoadPhaseRingBookFromFile(rule_book.get(), traffic_light_book.get(),
-                                                                  rn_config.phase_ring_book.value());
+                             : rn_config.rule_registry.has_value()
+                                   ? maliput::LoadPhaseRingBookFromFile(rule_book.get(), traffic_light_book.get(),
+                                                                        rn_config.phase_ring_book.value())
+                                   : maliput::LoadPhaseRingBookFromFileOldRules(
+                                         rule_book.get(), traffic_light_book.get(), rn_config.phase_ring_book.value());
   maliput::log()->trace("Built PhaseRingBook.");
 
   maliput::log()->trace("Building PhaseProvider...");

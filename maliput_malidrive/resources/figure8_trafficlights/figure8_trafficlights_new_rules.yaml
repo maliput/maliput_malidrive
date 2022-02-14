@@ -82,14 +82,14 @@ RoadRulebook:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["SouthFacing-SouthFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["SouthFacing-SouthFacingBulbs"]
 
   # SouthStraight
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/SouthStraight"
@@ -126,14 +126,14 @@ RoadRulebook:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["NorthFacing-NorthFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["NorthFacing-NorthFacingBulbs"]
   # EastStraight
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastStraight"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -169,14 +169,14 @@ RoadRulebook:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["WestFacing-WestFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["WestFacing-WestFacingBulbs"]
   # WestStraight
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestStraight"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -212,14 +212,14 @@ RoadRulebook:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["EastFacing-EastFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestStraight"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["EastFacing-EastFacingBulbs"]
 
 # Right-turn rules only have Go and StopThenGo states to model an
 # intersection that allows turn-on-red. When in state Go, they yield to
@@ -259,14 +259,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/SouthLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["SouthFacing-SouthFacingBulbs"]
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/EastStraight, Right-Of-Way Rule Type/SouthLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["SouthFacing-SouthFacingBulbs"]
 
   # SouthRightTurn
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/SouthRightTurn"
@@ -299,14 +299,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/NorthLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["NorthFacing-NorthFacingBulbs"]
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/WestStraight, Right-Of-Way Rule Type/NorthLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["NorthFacing-NorthFacingBulbs"]
   # EastRightTurn
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastRightTurn"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -342,14 +342,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/WestLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["WestFacing-WestFacingBulbs"]
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/SouthStraight, Right-Of-Way Rule Type/WestLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["WestFacing-WestFacingBulbs"]
   # WestRightTurn
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestRightTurn"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -385,14 +385,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/EastLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["EastFacing-EastFacingBulbs"]
       - value: "StopThenGo"
         severity: 0
         related_rules:
         - Yield Group: [Right-Of-Way Rule Type/NorthStraight, Right-Of-Way Rule Type/EastLeftTurn]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestRightTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["EastFacing-EastFacingBulbs"]
 # Left-turn rules have both Go and Stop states. They yield to antiparallel
 # straight-through rules.
   # NorthLeftTurn
@@ -426,14 +426,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/SouthStraight]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["SouthFacing-SouthFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/NorthLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["SouthFacing-SouthFacingBulbs"]
   # SouthLeftTurn
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/SouthLeftTurn"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -465,14 +465,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/NorthStraight]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["NorthFacing-NorthFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/SouthLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["NorthFacing-NorthFacingBulbs"]
   # EastLeftTurn
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastLeftTurn"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -508,14 +508,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/WestStraight]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["WestFacing-WestFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["WestFacing-WestFacingBulbs"]
   # WestLeftTurn
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestLeftTurn"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
@@ -551,14 +551,14 @@ RoadRulebook:
         - Yield Group: [Right-Of-Way Rule Type/EastStraight]
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["EastFacing-EastFacingBulbs"]
       - value: "Stop"
         severity: 0
         related_rules:
         - Yield Group: []
           Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestLeftTurn"]
         related_unique_ids:
-        - Bulb Group: []
+        - Bulb Group: ["EastFacing-EastFacingBulbs"]
   - id: "Maximum-Weight Rule Type/EntireRoadNetwork"
     type: "Maximum-Weight Rule Type"
     zone:
@@ -712,15 +712,15 @@ TrafficLights:
 
 PhaseRings:
 - ID: Figure8Intersection
-  Rules: [NorthStraight, SouthStraight, EastStraight, WestStraight,
-          NorthRightTurn, SouthRightTurn, EastRightTurn, WestRightTurn,
-          NorthLeftTurn, SouthLeftTurn, EastLeftTurn, WestLeftTurn]
+  Rules: [Right-Of-Way Rule Type/NorthStraight, Right-Of-Way Rule Type/SouthStraight, Right-Of-Way Rule Type/EastStraight, Right-Of-Way Rule Type/WestStraight,
+          Right-Of-Way Rule Type/NorthRightTurn, Right-Of-Way Rule Type/SouthRightTurn, Right-Of-Way Rule Type/EastRightTurn, Right-Of-Way Rule Type/WestRightTurn,
+          Right-Of-Way Rule Type/NorthLeftTurn, Right-Of-Way Rule Type/SouthLeftTurn, Right-Of-Way Rule Type/EastLeftTurn, Right-Of-Way Rule Type/WestLeftTurn]
   Phases:
   - ID: NorthSouthPhase
-    RightOfWayRuleStates: {NorthStraight: Go, SouthStraight: Go,
-                           NorthLeftTurn: Go, SouthLeftTurn: Go,
-                           NorthRightTurn: Go, SouthRightTurn: Go,
-                           EastRightTurn: StopThenGo, WestRightTurn: StopThenGo}
+    RightOfWayRuleStates: {Right-Of-Way Rule Type/NorthStraight: Go, Right-Of-Way Rule Type/SouthStraight: Go,
+                           Right-Of-Way Rule Type/NorthLeftTurn: Go, Right-Of-Way Rule Type/SouthLeftTurn: Go,
+                           Right-Of-Way Rule Type/NorthRightTurn: Go, Right-Of-Way Rule Type/SouthRightTurn: Go,
+                           Right-Of-Way Rule Type/EastRightTurn: StopThenGo, Right-Of-Way Rule Type/WestRightTurn: StopThenGo}
     TrafficLightStates:
       SouthFacing:
         SouthFacingBulbs: {GreenBulb: On}
@@ -731,10 +731,10 @@ PhaseRings:
       WestFacing:
         WestFacingBulbs: {RedBulb: On}
   - ID: EastWestPhase
-    RightOfWayRuleStates: {EastStraight: Go, WestStraight: Go,
-                           EastLeftTurn: Go, WestLeftTurn: Go,
-                           EastRightTurn: Go, WestRightTurn: Go,
-                           NorthRightTurn: StopThenGo, SouthRightTurn: StopThenGo}
+    RightOfWayRuleStates: {Right-Of-Way Rule Type/EastStraight: Go, Right-Of-Way Rule Type/WestStraight: Go,
+                           Right-Of-Way Rule Type/EastLeftTurn: Go, Right-Of-Way Rule Type/WestLeftTurn: Go,
+                           Right-Of-Way Rule Type/EastRightTurn: Go, Right-Of-Way Rule Type/WestRightTurn: Go,
+                           Right-Of-Way Rule Type/NorthRightTurn: StopThenGo, Right-Of-Way Rule Type/SouthRightTurn: StopThenGo}
     TrafficLightStates:
       SouthFacing:
         SouthFacingBulbs: {RedBulb: On}

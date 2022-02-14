@@ -25,6 +25,7 @@
 #include <maliput/base/rule_registry.h>
 #include <maliput/base/traffic_light_book.h>
 
+#include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/builder/rule_tools.h"
@@ -1180,6 +1181,138 @@ TEST_P(RangeValueRuleStateProviderTest, RangeValueRuleStateProviderTest) {
 
 INSTANTIATE_TEST_CASE_P(RangeValueRuleStateProviderTestGroup, RangeValueRuleStateProviderTest,
                         ::testing::ValuesIn(RangeValueRuleStateProviderTestParameters()));
+
+// RoadNetworkBuilder constructs a RoadNetwork that holds:
+// - RoadGeometry
+// - RuleRegistry
+// - RoadRulebook
+// - TrafficLightBook
+// - PhaseRingBook
+// - IntersectionBook
+// Execpt the RoadGeometry, the rest of the entities can be loaded via a YAML description provided in runtime.
+// This suite of tests guarantess that the RoadNetworkBuilder supports loading all the entities via YAML description.
+class RoadNetworkBuilderPopulationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {}
+
+  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
+  const std::string rule_registry_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string road_rulebook_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string traffic_light_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string phase_ring_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string intersection_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const RoadNetworkConfiguration road_network_configuration_{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path},
+      {params::kRuleRegistry, rule_registry_path},
+      {params::kRoadRuleBook, road_rulebook_path},
+      {params::kTrafficLightBook, traffic_light_book_path},
+      {params::kPhaseRingBook, phase_ring_book_path},
+      {params::kIntersectionBook, intersection_book_path},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+};
+
+TEST_F(RoadNetworkBuilderPopulationTest, Builder) {
+  std::unique_ptr<maliput::api::RoadNetwork> dut;
+  ASSERT_NO_THROW(dut = builder::RoadNetworkBuilder(road_network_configuration_.ToStringMap())());
+
+  EXPECT_NE(nullptr, dut->road_geometry());
+
+  // RuleRegistry population is deeply tested at rule_registry_builder_test.cc.
+  EXPECT_GT(static_cast<int>(dut->rule_registry()->DiscreteValueRuleTypes().size()), 0.);
+  EXPECT_GT(static_cast<int>(dut->rule_registry()->RangeValueRuleTypes().size()), 0.);
+
+  // RoadRulebook population is deeply tested at road_rulebook_test.cc.
+  const auto rules = dut->rulebook()->Rules();
+  EXPECT_GT(static_cast<int>(rules.discrete_value_rules.size()), 0.);
+  EXPECT_GT(static_cast<int>(rules.range_value_rules.size()), 0.);
+  // New Rule API is being used therefore old rules aren't populated
+  EXPECT_EQ(0., static_cast<int>(rules.direction_usage.size()));
+  EXPECT_EQ(0., static_cast<int>(rules.speed_limit.size()));
+  EXPECT_EQ(0., static_cast<int>(rules.right_of_way.size()));
+
+  // Traffic Light
+  const auto traffic_lights = dut->traffic_light_book()->TrafficLights();
+  EXPECT_EQ(4., static_cast<int>(traffic_lights.size()));
+
+  // Phase Ring book
+  const auto phase_rings = dut->phase_ring_book()->GetPhaseRings();
+  EXPECT_EQ(1., static_cast<int>(phase_rings.size()));
+  const auto phase_ring = dut->phase_ring_book()->GetPhaseRing(phase_rings[0]);
+  ASSERT_NE(std::nullopt, phase_ring);
+  const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
+  // DiscreteValueRulesStates of any phases should be greater than zero while
+  // RuleStates should be zero.
+  EXPECT_EQ(0., static_cast<int>(phases.begin()->second.rule_states().size()));
+  EXPECT_GT(static_cast<int>(phases.begin()->second.discrete_value_rule_states().size()), 0.);
+  ASSERT_NE(std::nullopt, phases.begin()->second.bulb_states());
+  EXPECT_GT(static_cast<int>(phases.begin()->second.bulb_states()->size()), 0.);
+
+  // Intersection book
+  EXPECT_EQ(1., static_cast<int>(dut->intersection_book()->GetIntersections().size()));
+}
+
+// Similar to RoadNetworkBuilderPopulationTest but for the old rule API.
+// TODO(https://github.com/ToyotaResearchInstitute/maliput/issues/108): Remove test once old rule api is removed.
+class RoadNetworkBuilderPopulationOldRuleTest : public ::testing::Test {
+ protected:
+  void SetUp() override {}
+
+  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
+  const std::string road_rulebook_path{utility::FindResource(map_id + ".yaml")};
+  const std::string traffic_light_book_path{utility::FindResource(map_id + ".yaml")};
+  const std::string phase_ring_book_path{utility::FindResource(map_id + ".yaml")};
+  const std::string intersection_book_path{utility::FindResource(map_id + ".yaml")};
+  const RoadNetworkConfiguration road_network_configuration_{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path},
+      {params::kRoadRuleBook, road_rulebook_path},
+      {params::kTrafficLightBook, traffic_light_book_path},
+      {params::kPhaseRingBook, phase_ring_book_path},
+      {params::kIntersectionBook, intersection_book_path},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+};
+
+TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
+  std::unique_ptr<maliput::api::RoadNetwork> dut;
+  ASSERT_NO_THROW(dut = builder::RoadNetworkBuilder(road_network_configuration_.ToStringMap())());
+
+  EXPECT_NE(nullptr, dut->road_geometry());
+
+  // RuleRegistry population is deeply tested at rule_registry_builder_test.cc.
+  EXPECT_GT(static_cast<int>(dut->rule_registry()->DiscreteValueRuleTypes().size()), 0.);
+  EXPECT_GT(static_cast<int>(dut->rule_registry()->RangeValueRuleTypes().size()), 0.);
+
+  // RoadRulebook population is deeply tested at road_rulebook_test.cc.
+  const auto rules = dut->rulebook()->Rules();
+  EXPECT_GT(static_cast<int>(rules.discrete_value_rules.size()), 0.);
+  EXPECT_GT(static_cast<int>(rules.range_value_rules.size()), 0.);
+  // Old Rule API is populated.
+  EXPECT_GT(static_cast<int>(rules.direction_usage.size()), 0.);
+  EXPECT_GT(static_cast<int>(rules.speed_limit.size()), 0.);
+  EXPECT_GT(static_cast<int>(rules.right_of_way.size()), 0.);
+
+  // Traffic Light
+  const auto traffic_lights = dut->traffic_light_book()->TrafficLights();
+  EXPECT_EQ(4., static_cast<int>(traffic_lights.size()));
+
+  // Phase Ring book
+  const auto phase_rings = dut->phase_ring_book()->GetPhaseRings();
+  EXPECT_EQ(1., static_cast<int>(phase_rings.size()));
+  const auto phase_ring = dut->phase_ring_book()->GetPhaseRing(phase_rings[0]);
+  ASSERT_NE(std::nullopt, phase_ring);
+  const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
+  // RuleStates and DiscreteValueRuleStates of any phases should be greater than zero.
+  EXPECT_GT(static_cast<int>(phases.begin()->second.rule_states().size()), 0.);
+  EXPECT_GT(static_cast<int>(phases.begin()->second.discrete_value_rule_states().size()), 0.);
+  ASSERT_NE(std::nullopt, phases.begin()->second.bulb_states());
+  EXPECT_GT(static_cast<int>(phases.begin()->second.bulb_states()->size()), 0.);
+
+  // Intersection book
+  EXPECT_EQ(1., static_cast<int>(dut->intersection_book()->GetIntersections().size()));
+}
 
 }  // namespace
 }  // namespace test
