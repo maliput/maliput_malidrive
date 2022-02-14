@@ -11,6 +11,7 @@
 #include <maliput/api/rules/range_value_rule.h>
 #include <maliput/api/rules/road_rulebook.h>
 #include <maliput/api/rules/rule_registry.h>
+#include <maliput/api/unique_id.h>
 #include <maliput/base/rule_registry.h>
 
 #include "maliput_malidrive/builder/params.h"
@@ -214,7 +215,7 @@ class RoadRulebookBuilderRulesFromYamlFileTest : public RoadRulebookBuilderTest 
               {Rule::Id(maliput::RightOfWayRuleTypeId().string() + "/NorthLeftTurn")}},
              {maliput::VehicleStopInZoneBehaviorRuleTypeId().string(),
               {Rule::Id(maliput::VehicleStopInZoneBehaviorRuleTypeId().string() + "/SouthRightTurn")}}},
-            {},
+            {{maliput::RelatedUniqueIdsKeys::kBulbGroup, {maliput::api::UniqueId("NorthFacing-NorthFacingBulbs")}}},
             "Go"},
            {Rule::State::kStrict,
             {{maliput::RelatedRulesKeys::kYieldGroup,
@@ -222,7 +223,7 @@ class RoadRulebookBuilderRulesFromYamlFileTest : public RoadRulebookBuilderTest 
                Rule::Id(maliput::RightOfWayRuleTypeId().string() + "/WestStraight")}},
              {maliput::VehicleStopInZoneBehaviorRuleTypeId().string(),
               {Rule::Id(maliput::VehicleStopInZoneBehaviorRuleTypeId().string() + "/SouthRightTurn")}}},
-            {},
+            {{maliput::RelatedUniqueIdsKeys::kBulbGroup, {maliput::api::UniqueId("NorthFacing-NorthFacingBulbs")}}},
             "StopThenGo"},
        }},
   };
