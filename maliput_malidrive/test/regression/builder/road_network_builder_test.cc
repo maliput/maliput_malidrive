@@ -1220,17 +1220,17 @@ TEST_F(RoadNetworkBuilderPopulationTest, Builder) {
   EXPECT_NE(nullptr, dut->road_geometry());
 
   // RuleRegistry population is deeply tested at rule_registry_builder_test.cc.
-  EXPECT_GT(static_cast<int>(dut->rule_registry()->DiscreteValueRuleTypes().size()), 0.);
-  EXPECT_GT(static_cast<int>(dut->rule_registry()->RangeValueRuleTypes().size()), 0.);
+  EXPECT_FALSE(dut->rule_registry()->DiscreteValueRuleTypes().empty());
+  EXPECT_FALSE(dut->rule_registry()->RangeValueRuleTypes().empty());
 
   // RoadRulebook population is deeply tested at road_rulebook_test.cc.
   const auto rules = dut->rulebook()->Rules();
-  EXPECT_GT(static_cast<int>(rules.discrete_value_rules.size()), 0.);
-  EXPECT_GT(static_cast<int>(rules.range_value_rules.size()), 0.);
+  EXPECT_FALSE(rules.discrete_value_rules.empty());
+  EXPECT_FALSE(rules.range_value_rules.empty());
   // New Rule API is being used therefore old rules aren't populated
-  EXPECT_EQ(0., static_cast<int>(rules.direction_usage.size()));
-  EXPECT_EQ(0., static_cast<int>(rules.speed_limit.size()));
-  EXPECT_EQ(0., static_cast<int>(rules.right_of_way.size()));
+  EXPECT_TRUE(rules.direction_usage.empty());
+  EXPECT_TRUE(rules.speed_limit.empty());
+  EXPECT_TRUE(rules.right_of_way.empty());
 
   // Traffic Light
   const auto traffic_lights = dut->traffic_light_book()->TrafficLights();
@@ -1244,10 +1244,10 @@ TEST_F(RoadNetworkBuilderPopulationTest, Builder) {
   const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
   // DiscreteValueRulesStates of any phases should be greater than zero while
   // RuleStates should be zero.
-  EXPECT_EQ(0., static_cast<int>(phases.begin()->second.rule_states().size()));
-  EXPECT_GT(static_cast<int>(phases.begin()->second.discrete_value_rule_states().size()), 0.);
+  EXPECT_TRUE(phases.begin()->second.rule_states().empty());
+  EXPECT_FALSE(phases.begin()->second.discrete_value_rule_states().empty());
   ASSERT_NE(std::nullopt, phases.begin()->second.bulb_states());
-  EXPECT_GT(static_cast<int>(phases.begin()->second.bulb_states()->size()), 0.);
+  EXPECT_FALSE(phases.begin()->second.bulb_states()->empty());
 
   // Intersection book
   EXPECT_EQ(1., static_cast<int>(dut->intersection_book()->GetIntersections().size()));
@@ -1282,17 +1282,17 @@ TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
   EXPECT_NE(nullptr, dut->road_geometry());
 
   // RuleRegistry population is deeply tested at rule_registry_builder_test.cc.
-  EXPECT_GT(static_cast<int>(dut->rule_registry()->DiscreteValueRuleTypes().size()), 0.);
-  EXPECT_GT(static_cast<int>(dut->rule_registry()->RangeValueRuleTypes().size()), 0.);
+  EXPECT_FALSE(dut->rule_registry()->DiscreteValueRuleTypes().empty());
+  EXPECT_FALSE(dut->rule_registry()->RangeValueRuleTypes().empty());
 
   // RoadRulebook population is deeply tested at road_rulebook_test.cc.
   const auto rules = dut->rulebook()->Rules();
-  EXPECT_GT(static_cast<int>(rules.discrete_value_rules.size()), 0.);
-  EXPECT_GT(static_cast<int>(rules.range_value_rules.size()), 0.);
+  EXPECT_FALSE(rules.discrete_value_rules.empty());
+  EXPECT_FALSE(rules.range_value_rules.empty());
   // Old Rule API is populated.
-  EXPECT_GT(static_cast<int>(rules.direction_usage.size()), 0.);
-  EXPECT_GT(static_cast<int>(rules.speed_limit.size()), 0.);
-  EXPECT_GT(static_cast<int>(rules.right_of_way.size()), 0.);
+  EXPECT_FALSE(rules.direction_usage.empty());
+  EXPECT_FALSE(rules.speed_limit.empty());
+  EXPECT_FALSE(rules.right_of_way.empty());
 
   // Traffic Light
   const auto traffic_lights = dut->traffic_light_book()->TrafficLights();
@@ -1305,10 +1305,10 @@ TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
   ASSERT_NE(std::nullopt, phase_ring);
   const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
   // RuleStates and DiscreteValueRuleStates of any phases should be greater than zero.
-  EXPECT_GT(static_cast<int>(phases.begin()->second.rule_states().size()), 0.);
-  EXPECT_GT(static_cast<int>(phases.begin()->second.discrete_value_rule_states().size()), 0.);
+  EXPECT_FALSE(phases.begin()->second.rule_states().empty());
+  EXPECT_FALSE(phases.begin()->second.discrete_value_rule_states().empty());
   ASSERT_NE(std::nullopt, phases.begin()->second.bulb_states());
-  EXPECT_GT(static_cast<int>(phases.begin()->second.bulb_states()->size()), 0.);
+  EXPECT_FALSE(phases.begin()->second.bulb_states()->empty());
 
   // Intersection book
   EXPECT_EQ(1., static_cast<int>(dut->intersection_book()->GetIntersections().size()));
