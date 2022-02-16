@@ -1312,6 +1312,16 @@ TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
 
   // Intersection book
   EXPECT_EQ(1., static_cast<int>(dut->intersection_book()->GetIntersections().size()));
+
+  // Phase Provider
+  const auto phase_provider_result = dut->phase_provider()->GetPhase(phase_ring->id());
+  ASSERT_NE(std::nullopt, phase_provider_result);
+  // We know exactly which is the initial phase as the intersection information is loaded via yaml file.
+  EXPECT_EQ(Phase::Id("NorthSouthPhase"), phase_provider_result->state);
+  ASSERT_NE(std::nullopt, phase_provider_result->next);
+  EXPECT_EQ(Phase::Id("EastWestPhase"), phase_provider_result->next->state);
+  ASSERT_NE(std::nullopt, phase_provider_result->next->duration_until);
+  EXPECT_DOUBLE_EQ(45, phase_provider_result->next->duration_until.value());
 }
 
 }  // namespace

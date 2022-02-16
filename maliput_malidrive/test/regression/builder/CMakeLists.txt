@@ -13,6 +13,7 @@ set(UNIT_BUILDER_TEST_SOURCES
   builder_tools_test.cc
   determine_tolerance_test.cc
   id_providers_test.cc
+  phase_provider_builder_test.cc
   road_curve_factory_test.cc
   road_geometry_builder_test.cc
   road_network_builder_test.cc

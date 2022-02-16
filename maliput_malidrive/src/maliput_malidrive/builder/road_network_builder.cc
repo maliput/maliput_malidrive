@@ -9,7 +9,6 @@
 #include <maliput/base/intersection_book.h>
 #include <maliput/base/intersection_book_loader.h>
 #include <maliput/base/manual_discrete_value_rule_state_provider.h>
-#include <maliput/base/manual_phase_provider.h>
 #include <maliput/base/manual_phase_ring_book.h>
 #include <maliput/base/manual_range_value_rule_state_provider.h>
 #include <maliput/base/manual_rulebook.h>
@@ -24,6 +23,7 @@
 #include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/builder/direction_usage_builder.h"
 #include "maliput_malidrive/builder/discrete_value_rule_state_provider_builder.h"
+#include "maliput_malidrive/builder/phase_provider_builder.h"
 #include "maliput_malidrive/builder/range_value_rule_state_provider_builder.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
@@ -89,7 +89,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::log()->trace("Built PhaseRingBook.");
 
   maliput::log()->trace("Building PhaseProvider...");
-  auto manual_phase_provider = std::make_unique<maliput::ManualPhaseProvider>();
+  auto manual_phase_provider = PhaseProviderBuilder(phase_ring_book.get())();
   maliput::log()->trace("Built PhaseProvider.");
 
   maliput::log()->trace("Building DiscreteValueRuleStateProvider...");

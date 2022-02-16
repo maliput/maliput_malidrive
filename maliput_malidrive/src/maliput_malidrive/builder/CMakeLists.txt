@@ -7,6 +7,7 @@ add_library(builder
   direction_usage_builder.cc
   discrete_value_rule_state_provider_builder.cc
   id_providers.cc
+  phase_provider_builder.cc
   range_value_rule_state_provider_builder.cc
   road_curve_factory.cc
   road_geometry_builder.cc
