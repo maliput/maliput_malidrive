@@ -123,6 +123,7 @@ install (FILES resources/ArcLane.xodr
                resources/SingleRoadHighCoefficients.xodr
                resources/SingleRoadNanValues.xodr
                resources/SingleRoadNegativeWidth.xodr
+               resources/SingleRoadPedestrianCrosswalk.xodr
                resources/SingleRoadTinyGeometry.xodr
                resources/SingleRoadTwoGeometries.xodr
                resources/SpiralRoad.xodr
