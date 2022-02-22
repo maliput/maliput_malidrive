@@ -26,9 +26,9 @@ std::unique_ptr<maliput::ManualPhaseProvider> PhaseProviderBuilder::operator()()
     // the collection is selected.
     const Phase::Id initial_phase = phases.begin()->first;
     const std::vector<PhaseRing::NextPhase> next_phases = phase_ring->next_phases().at(initial_phase);
-    if (next_phases.size() > 0) {
+    if (!next_phases.empty()) {
       // Arbitrarily selects the first (index 0) next phase.
-      const PhaseRing::NextPhase n = next_phases.at(0);
+      const PhaseRing::NextPhase& n = next_phases.front();
       next_phase_id = n.id;
       duration_until = n.duration_until;
     }
