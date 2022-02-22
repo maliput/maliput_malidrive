@@ -17,7 +17,7 @@ std::unique_ptr<maliput::ManualPhaseProvider> PhaseProviderBuilder::operator()()
   auto manual_phase_provider = std::make_unique<maliput::ManualPhaseProvider>();
   for (const auto& phase_ring_id : phase_ring_book_->GetPhaseRings()) {
     const std::optional<PhaseRing> phase_ring = phase_ring_book_->GetPhaseRing(phase_ring_id);
-    if (phase_ring == std::nullopt) continue;
+    MALIPUT_THROW_UNLESS(phase_ring != std::nullopt);
     std::optional<Phase::Id> next_phase_id = std::nullopt;
     std::optional<double> duration_until = std::nullopt;
 
@@ -27,7 +27,7 @@ std::unique_ptr<maliput::ManualPhaseProvider> PhaseProviderBuilder::operator()()
     const Phase::Id initial_phase = phases.begin()->first;
     const std::vector<PhaseRing::NextPhase> next_phases = phase_ring->next_phases().at(initial_phase);
     if (!next_phases.empty()) {
-      // Arbitrarily selects the first (index 0) next phase.
+      // Arbitrarily selects the first next phase.
       const PhaseRing::NextPhase& n = next_phases.front();
       next_phase_id = n.id;
       duration_until = n.duration_until;
