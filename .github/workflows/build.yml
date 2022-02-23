@@ -116,10 +116,10 @@ jobs:
     - name: colcon test
       shell: bash
       working-directory: ${{ env.ROS_WS }}
-      # As BUILD_TESTING flag is OFF, only doxygen related test is created.
       run: |
         . /opt/ros/${ROS_DISTRO}/setup.bash;
         . install/setup.bash;
         colcon test --packages-select ${PACKAGE_NAME} \
+            --ctest-args ' -R' ' ${PACKAGE_NAME}_doxygen_warnings' \
             --event-handlers=console_direct+;
         colcon test-result --verbose;
