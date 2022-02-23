@@ -104,7 +104,7 @@ jobs:
             --event-handlers=console_direct+;
         colcon test-result --verbose;
     # Build documentation.
-    - name: colcon build libraries
+    - name: colcon build doxygen documentation
       shell: bash
       working-directory: ${{ env.ROS_WS }}
       run: |
@@ -113,7 +113,7 @@ jobs:
             --event-handlers=console_direct+ \
             --cmake-args -DBUILD_TESTING=OFF -DBUILD_DOCS=ON;
     # Test doxygen documentation.
-    - name: colcon test
+    - name: colcon test doxygen documentation
       shell: bash
       working-directory: ${{ env.ROS_WS }}
       run: |
