@@ -120,6 +120,6 @@ jobs:
         . /opt/ros/${ROS_DISTRO}/setup.bash;
         . install/setup.bash;
         colcon test --packages-select ${PACKAGE_NAME} \
-            --ctest-args ' -R' ' ${PACKAGE_NAME}_doxygen_warnings' \
+            --ctest-args ' -R' ' maliput_malidrive_doxygen_warnings' \
             --event-handlers=console_direct+;
         colcon test-result --verbose;
