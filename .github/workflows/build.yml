@@ -75,6 +75,7 @@ jobs:
       run: |
         rosdep update --include-eol-distros;
         rosdep install  -i -y --rosdistro ${ROS_DISTRO} --from-paths src
+    # Build libraries.
     - name: colcon build libraries
       shell: bash
       working-directory: ${{ env.ROS_WS }}
@@ -82,7 +83,8 @@ jobs:
         . /opt/ros/${ROS_DISTRO}/setup.bash;
         colcon build --packages-up-to ${PACKAGE_NAME} \
             --event-handlers=console_direct+ \
-            --cmake-args -DBUILD_TESTING=OFF;
+            --cmake-args -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF;
+    # Build tests for current package.
     - name: colcon build tests
       shell: bash
       working-directory: ${{ env.ROS_WS }}
@@ -90,7 +92,8 @@ jobs:
         . /opt/ros/${ROS_DISTRO}/setup.bash;
         colcon build --packages-select ${PACKAGE_NAME} \
             --event-handlers=console_direct+ \
-            --cmake-args -DBUILD_TESTING=ON;
+            --cmake-args -DBUILD_TESTING=ON -DBUILD_DOCS=OFF;
+    # Test package.
     - name: colcon test
       shell: bash
       working-directory: ${{ env.ROS_WS }}
@@ -98,5 +101,25 @@ jobs:
         . /opt/ros/${ROS_DISTRO}/setup.bash;
         . install/setup.bash;
         colcon test --packages-select ${PACKAGE_NAME} \
+            --event-handlers=console_direct+;
+        colcon test-result --verbose;
+    # Build documentation.
+    - name: colcon build doxygen documentation
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: |
+        . /opt/ros/${ROS_DISTRO}/setup.bash;
+        colcon build --packages-up-to ${PACKAGE_NAME} \
+            --event-handlers=console_direct+ \
+            --cmake-args -DBUILD_TESTING=OFF -DBUILD_DOCS=ON;
+    # Test doxygen documentation.
+    - name: colcon test doxygen documentation
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: |
+        . /opt/ros/${ROS_DISTRO}/setup.bash;
+        . install/setup.bash;
+        colcon test --packages-select ${PACKAGE_NAME} \
+            --ctest-args ' -R' ' maliput_malidrive_doxygen_warnings' \
             --event-handlers=console_direct+;
         colcon test-result --verbose;
