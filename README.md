@@ -75,6 +75,11 @@ source ./bringup
    colcon build --packages-up-to maliput_malidrive
    ```
 
+   **Note**: To build documentation a `-BUILD_DOCS` cmake flag is required:
+   ```sh
+   colcon build --packages-up-to maliput_malidrive --cmake-args " -DBUILD_DOCS=On"
+   ```
+
 ## Run sample applications
 
 1. Bring up your development workspace:
