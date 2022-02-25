@@ -22,6 +22,7 @@ std::unique_ptr<maliput::ManualPhaseProvider> PhaseProviderBuilder::operator()()
     std::optional<double> duration_until = std::nullopt;
 
     const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
+    if (phases.empty()) continue;
     // As `phases` is an unordered map, the initial phase is randomly selected even though always the "begin" value of
     // the collection is selected.
     const Phase::Id initial_phase = phases.begin()->first;
