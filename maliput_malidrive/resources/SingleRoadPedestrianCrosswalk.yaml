@@ -69,7 +69,7 @@ RoadRulebook:
   - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWest"
     type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
     zone:
-      - lane_id: 1_1_1
+      - lane_id: 1_2_1
         # s_range: [0, 10] # It is commented out as I would like to cover the entire lane.
     values:
       - value: "DoNotStop"
@@ -81,7 +81,7 @@ RoadRulebook:
   - id: "Right-Of-Way Rule Type/EastToWest"
     type: "Right-Of-Way Rule Type"
     zone:
-      - lane_id: 1_1_1
+      - lane_id: 1_2_1
     values:
       - value: "Go"
         severity: 0
