@@ -1,0 +1,352 @@
+# -*- yaml -*-
+# Copyright 2022 Toyota Research Institute
+#
+# This file is hand-written.
+---
+
+RuleRegistry:
+  Vehicle-Stop-In-Zone-Behavior Rule Type:
+    - value: "DoNotStop"
+      severity: 0
+      related_rules: [Yield Group]
+      related_unique_ids: [Bulb Group]
+    - value: "UnconstrainedParking"
+      severity: 0
+      related_rules: [Yield Group]
+      related_unique_ids: [Bulb Group]
+  Right-Of-Way Rule Type:
+    - value: "Go"
+      severity: 0
+      related_rules: [Yield Group, Vehicle-Stop-In-Zone-Behavior Rule Type]
+      related_unique_ids: [Bulb Group]
+    - value: "Stop"
+      severity: 0
+      related_rules: [Yield Group, Vehicle-Stop-In-Zone-Behavior Rule Type]
+      related_unique_ids: [Bulb Group]
+    - value: "StopThenGo"
+      severity: 0
+      related_rules: [Yield Group, Vehicle-Stop-In-Zone-Behavior Rule Type]
+      related_unique_ids: [Bulb Group]
+
+# Bear in mind that maliput_malidrive internally adds a couple of more rule types to handle rules that are obtained
+# from the xodr: speed limit, direction usage, vehicle usage, vehicle exclusive.
+
+
+RoadRulebook:
+  # WestToEast South
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestToEastSouth"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
+    zone:
+      - lane_id: 1_1_-1
+        # s_range: [0, 15] # It is commented out as I would like to cover the entire lane.
+    values:
+      - value: "DoNotStop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+        related_unique_ids:
+        - Bulb Group: []
+  - id: "Right-Of-Way Rule Type/WestToEastSouth"
+    type: "Right-Of-Way Rule Type"
+    zone:
+      - lane_id: 1_1_-1
+    values:
+      - value: "Go"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestToEastSouth"]
+        related_unique_ids:
+        - Bulb Group: ["WestFacingSouth-WestFacingBulbsSouth"]
+      - value: "Stop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestToEastSouth"]
+        related_unique_ids:
+        - Bulb Group: ["WestFacingSouth-WestFacingBulbsSouth"]
+
+  # EastToWest South
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWestSouth"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
+    zone:
+      - lane_id: 1_2_1
+        # s_range: [0, 10] # It is commented out as I would like to cover the entire lane.
+    values:
+      - value: "DoNotStop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+        related_unique_ids:
+        - Bulb Group: []
+  - id: "Right-Of-Way Rule Type/EastToWestSouth"
+    type: "Right-Of-Way Rule Type"
+    zone:
+      - lane_id: 1_2_1
+    values:
+      - value: "Go"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWestSouth"]
+        related_unique_ids:
+        - Bulb Group: ["EastFacingSouth-EastFacingBulbsSouth"]
+      - value: "Stop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWestSouth"]
+        related_unique_ids:
+        - Bulb Group: ["EastFacingSouth-EastFacingBulbsSouth"]
+
+  # WestToEast North
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/WestToEastNorth"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
+    zone:
+      - lane_id: 2_1_-1
+        # s_range: [0, 15] # It is commented out as I would like to cover the entire lane.
+    values:
+      - value: "DoNotStop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+        related_unique_ids:
+        - Bulb Group: []
+  - id: "Right-Of-Way Rule Type/WestToEastNorth"
+    type: "Right-Of-Way Rule Type"
+    zone:
+      - lane_id: 2_1_-1
+    values:
+      - value: "Go"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestToEastNorth"]
+        related_unique_ids:
+        - Bulb Group: ["WestFacingNorth-WestFacingBulbsNorth"]
+      - value: "Stop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/WestToEastNorth"]
+        related_unique_ids:
+        - Bulb Group: ["WestFacingNorth-WestFacingBulbsNorth"]
+
+  # EastToWest North
+  - id: "Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWestNorth"
+    type: "Vehicle-Stop-In-Zone-Behavior Rule Type"
+    zone:
+      - lane_id: 2_2_1
+        # s_range: [0, 10] # It is commented out as I would like to cover the entire lane.
+    values:
+      - value: "DoNotStop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+        related_unique_ids:
+        - Bulb Group: []
+  - id: "Right-Of-Way Rule Type/EastToWestNorth"
+    type: "Right-Of-Way Rule Type"
+    zone:
+      - lane_id: 2_2_1
+    values:
+      - value: "Go"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWestNorth"]
+        related_unique_ids:
+        - Bulb Group: ["EastFacingNorth-EastFacingBulbsNorth"]
+      - value: "Stop"
+        severity: 0
+        related_rules:
+        - Yield Group: []
+          Vehicle-Stop-In-Zone-Behavior Rule Type: ["Vehicle-Stop-In-Zone-Behavior Rule Type/EastToWestNorth"]
+        related_unique_ids:
+        - Bulb Group: ["EastFacingNorth-EastFacingBulbsNorth"]
+
+TrafficLights:
+- ID: WestFacingSouth
+  Pose:
+    orientation_road_network: [0, 0, 0, 1]  # RPY = (0, 0, PI)
+    position_road_network: [30., -3., 7.85]
+  BulbGroups:
+   - ID: WestFacingBulbsSouth
+     Pose:
+       orientation_traffic_light: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+       position_traffic_light: [0, 0, 0]
+     Bulbs:
+     - ID: RedBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0.3937]
+       Color: Red
+       Type: Round
+       States: [On, Off]
+     - ID: YellowBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0]
+       Color: Yellow
+       Type: Round
+       States: [On, Off]
+     - ID: GreenBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, -0.3937]
+       Color: Green
+       Type: Round
+       States: [On, Off]
+- ID: EastFacingSouth
+  Pose:
+    orientation_road_network: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+    position_road_network: [30., 3., 7.85]
+  BulbGroups:
+   - ID: EastFacingBulbsSouth
+     Pose:
+       orientation_traffic_light: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+       position_traffic_light: [0, 0, 0]
+     Bulbs:
+     - ID: RedBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0.3937]
+       Color: Red
+       Type: Round
+       States: [On, Off]
+     - ID: YellowBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0]
+       Color: Yellow
+       Type: Round
+       States: [On, Off]
+     - ID: GreenBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, -0.3937]
+       Color: Green
+       Type: Round
+       States: [On, Off]
+- ID: WestFacingNorth
+  Pose:
+    orientation_road_network: [0, 0, 0, 1]  # RPY = (0, 0, PI)
+    position_road_network: [30., 23., 7.85]
+  BulbGroups:
+   - ID: WestFacingBulbsNorth
+     Pose:
+       orientation_traffic_light: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+       position_traffic_light: [0, 0, 0]
+     Bulbs:
+     - ID: RedBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0.3937]
+       Color: Red
+       Type: Round
+       States: [On, Off]
+     - ID: YellowBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0]
+       Color: Yellow
+       Type: Round
+       States: [On, Off]
+     - ID: GreenBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, -0.3937]
+       Color: Green
+       Type: Round
+       States: [On, Off]
+- ID: EastFacingNorth
+  Pose:
+    orientation_road_network: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+    position_road_network: [30., 17., 7.85]
+  BulbGroups:
+   - ID: EastFacingBulbsNorth
+     Pose:
+       orientation_traffic_light: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+       position_traffic_light: [0, 0, 0]
+     Bulbs:
+     - ID: RedBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0.3937]
+       Color: Red
+       Type: Round
+       States: [On, Off]
+     - ID: YellowBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, 0]
+       Color: Yellow
+       Type: Round
+       States: [On, Off]
+     - ID: GreenBulb
+       Pose:
+         orientation_bulb_group: [1, 0, 0, 0]  # RPY = (0, 0, 0)
+         position_bulb_group: [0, 0, -0.3937]
+       Color: Green
+       Type: Round
+       States: [On, Off]
+
+PhaseRings:
+- ID: PedestrianCrosswalkIntersectionSouth
+  Rules: [Right-Of-Way Rule Type/WestToEastSouth, Right-Of-Way Rule Type/EastToWestSouth]
+  Phases:
+  - ID: AllGoPhase
+    RightOfWayRuleStates: {Right-Of-Way Rule Type/WestToEastSouth: Go, Right-Of-Way Rule Type/EastToWestSouth: Go}
+    TrafficLightStates:
+      WestFacingSouth:
+          WestFacingBulbsSouth: {RedBulb: Off, YellowBulb: Off, GreenBulb: On}
+      EastFacingSouth:
+          EastFacingBulbsSouth: {RedBulb: Off, YellowBulb: Off, GreenBulb: On}
+  - ID: AllStopPhase
+    RightOfWayRuleStates: {Right-Of-Way Rule Type/WestToEastSouth: Stop, Right-Of-Way Rule Type/EastToWestSouth: Stop}
+    TrafficLightStates:
+      WestFacingSouth:
+          WestFacingBulbsSouth: {RedBulb: On, YellowBulb: Off, GreenBulb: Off}
+      EastFacingSouth:
+          EastFacingBulbsSouth: {RedBulb: On, YellowBulb: Off, GreenBulb: Off}
+  PhaseTransitionGraph:
+    AllGoPhase:
+    - ID: AllStopPhase
+      duration_until: 30
+    AllStopPhase:
+    - ID: AllGoPhase
+      duration_until: 30
+
+- ID: PedestrianCrosswalkIntersectionNorth
+  Rules: [Right-Of-Way Rule Type/WestToEastNorth, Right-Of-Way Rule Type/EastToWestNorth]
+  Phases:
+  - ID: AllGoPhase
+    RightOfWayRuleStates: {Right-Of-Way Rule Type/WestToEastNorth: Go, Right-Of-Way Rule Type/EastToWestNorth: Go}
+    TrafficLightStates:
+      WestFacingNorth:
+          WestFacingBulbsNorth: {RedBulb: Off, YellowBulb: Off, GreenBulb: On}
+      EastFacingNorth:
+          EastFacingBulbsNorth: {RedBulb: Off, YellowBulb: Off, GreenBulb: On}
+  - ID: AllStopPhase
+    RightOfWayRuleStates: {Right-Of-Way Rule Type/WestToEastNorth: Stop, Right-Of-Way Rule Type/EastToWestNorth: Stop}
+    TrafficLightStates:
+      WestFacingNorth:
+          WestFacingBulbsNorth: {RedBulb: On, YellowBulb: Off, GreenBulb: Off}
+      EastFacingNorth:
+          EastFacingBulbsNorth: {RedBulb: On, YellowBulb: Off, GreenBulb: Off}
+  PhaseTransitionGraph:
+    AllGoPhase:
+    - ID: AllStopPhase
+      duration_until: 30
+    AllStopPhase:
+    - ID: AllGoPhase
+      duration_until: 30
+
+Intersections:
+- ID: PedestrianCrosswalkIntersectionSouth
+  PhaseRing: PedestrianCrosswalkIntersectionSouth
+  InitialPhase: AllGoPhase
+
+- ID: PedestrianCrosswalkIntersectionNorth
+  PhaseRing: PedestrianCrosswalkIntersectionNorth
+  InitialPhase: AllGoPhase

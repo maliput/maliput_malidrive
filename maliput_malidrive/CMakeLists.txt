@@ -109,6 +109,8 @@ install (FILES resources/ArcLane.xodr
                resources/LineMultipleSpeeds.xodr
                resources/LineVariableOffset.xodr
                resources/LineVariableWidth.xodr
+               resources/LoopRoadPedestrianCrosswalk.xodr
+               resources/LoopRoadPedestrianCrosswalk.yaml
                resources/LShapeRoad.xodr
                resources/LShapeRoadVariableLanes.xodr
                resources/LShapeSection.xodr
