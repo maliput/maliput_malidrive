@@ -39,7 +39,7 @@ class DiscreteValueRuleStateProviderBuilder {
     MALIDRIVE_DEMAND(phase_provider_ != nullptr);
   }
 
-  /// Builds a maliput::PhaseBasedRightOfWayDiscreteValueRuleStateProvider.
+  /// Builds a maliput::PhasedDiscreteRuleStateProvider.
   std::unique_ptr<maliput::api::rules::DiscreteValueRuleStateProvider> operator()() const;
 
  private:
