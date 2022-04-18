@@ -1,7 +1,7 @@
 // Copyright 2020 Toyota Research Institute
 #include "maliput_malidrive/builder/discrete_value_rule_state_provider_builder.h"
 
-#include <maliput/base/phase_discrete_rule_state_provider.h>
+#include <maliput/base/phased_discrete_rule_state_provider.h>
 
 namespace malidrive {
 namespace builder {
