@@ -5,8 +5,8 @@ CHANGE_BRANCH=$1
 SRC_FOLDER=$2
 
 echo try checking out ${CHANGE_BRANCH}
-vcs custom $SRC_FOLDER --args branch -f $CHANGE_BRANCH origin/$CHANGE_BRANCH > /dev/null || true
-vcs custom $SRC_FOLDER --args merge --no-edit $CHANGE_BRANCH  > /dev/null || true
+vcs custom $SRC_FOLDER --args branch -f $CHANGE_BRANCH origin/$CHANGE_BRANCH || true
+vcs custom $SRC_FOLDER --args merge --no-edit $CHANGE_BRANCH  || true
 DIFF=$(vcs diff -s $SRC_FOLDER | tr -d '.\n')
 if [ ! -z "$DIFF" ]; then
     echo "Have merge conflicts!"
