@@ -10,7 +10,7 @@
 #include <maliput/common/maliput_unused.h>
 #include <maliput/geometry_base/branch_point.h>
 #include <maliput/geometry_base/junction.h>
-#include <maliput/utilities/thread_pool.h>
+#include <maliput/utility/thread_pool.h>
 
 #include "maliput_malidrive/builder/determine_tolerance.h"
 #include "maliput_malidrive/builder/road_curve_factory.h"

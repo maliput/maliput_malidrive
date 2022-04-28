@@ -42,7 +42,7 @@ target_link_libraries(
       maliput::base
       maliput::geometry_base
       maliput::math
-      maliput::utilities
+      maliput::utility
       maliput_malidrive::common
     PRIVATE
       maliput_drake::analysis

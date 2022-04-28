@@ -10,7 +10,7 @@
 #include <maliput/api/road_geometry.h>
 #include <maliput/api/road_network.h>
 #include <maliput/common/filesystem.h>
-#include <maliput/utilities/generate_obj.h>
+#include <maliput/utility/generate_obj.h>
 
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"

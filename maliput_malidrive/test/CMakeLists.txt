@@ -163,7 +163,7 @@ macro(malidrive_build_integration_based_tests)
           maliput::api
           maliput::common
           maliput::test_utilities
-          maliput::utilities
+          maliput::utility
           maliput_malidrive::builder
           maliput_malidrive::loader
           maliput_malidrive::test_utilities
