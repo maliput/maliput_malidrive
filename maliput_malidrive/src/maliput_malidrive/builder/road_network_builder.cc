@@ -102,10 +102,11 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::log()->trace("Built RangeValueRuleStateProvider.");
 
   maliput::log()->trace("Building IntersectionBook...");
-  auto intersection_book = !rn_config.intersection_book.has_value()
-                               ? std::make_unique<maliput::IntersectionBook>()
-                               : maliput::LoadIntersectionBookFromFile(rn_config.intersection_book.value(), *rule_book,
-                                                                       *phase_ring_book, manual_phase_provider.get());
+  auto intersection_book =
+      !rn_config.intersection_book.has_value()
+          ? std::make_unique<maliput::IntersectionBook>(rg.get())
+          : maliput::LoadIntersectionBookFromFile(rn_config.intersection_book.value(), *rule_book, *phase_ring_book,
+                                                  rg.get(), manual_phase_provider.get());
   maliput::log()->trace("Built IntersectionBook.");
 
   maliput::log()->trace("Building RuleStateProvider...");
