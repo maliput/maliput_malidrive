@@ -32,5 +32,3 @@ install(TARGETS common
     ARCHIVE DESTINATION lib
     RUNTIME DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
 )
-
-ament_export_libraries(common)
