@@ -14,7 +14,7 @@ add_subdirectory(xodr)
 # Tests
 ##############################################################################
 
-# Test binary name prefix, used by malipu_malidrive_build_tests
+# Test binary name prefix, used by maliput_malidrive_build_tests
 set(TEST_TYPE UNIT)
 
 

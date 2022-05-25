@@ -4,7 +4,7 @@
   <name>maliput_malidrive</name>
   <version>1.0.0</version>
   <description>maliput_malidrive backend</description>
-  <license file="LICENSE">Proprietary</license>
+  <license file="../LICENSE">BSD Clause 3</license>
   <maintainer email="andrew.best@tri.global">Andrew Best</maintainer>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
