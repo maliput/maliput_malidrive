@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  BSD 3-Clause License
 
@@ -29,7 +30,6 @@
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <OpenDRIVE>
     <header revMajor="1" revMinor="4" name="" version="1" date="2018-12-04T11:43:31" north="8.3895001220703125e+2" south="-3.6777216090641389e+2" east="6.8088000488281250e+2" west="-5.9615997314453125e+2" vendor="VectorZero">
         <userData>

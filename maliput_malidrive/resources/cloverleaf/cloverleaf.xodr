@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
  BSD 3-Clause License
 
@@ -29,7 +30,6 @@
  OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 -->
-<?xml version="1.0" encoding="UTF-8"?>
 <OpenDRIVE>
     <header revMajor="1" revMinor="4" name="" version="1" date="2019-09-03T12:56:54" north="3.8442382454732882e+2" south="-4.1767158143754739e+2" east="2.9117380027029537e+2" west="-5.8858322457755753e+2" vendor="VectorZero">
         <geoReference><![CDATA[+proj=tmerc +lat_0=37.4025637 +lon_0=-122.118763 +k=1 +x_0=0 +y_0=0 +datum=WGS84 +units=m +geoidgrids=egm96_15.gtx +vunits=m +no_defs ]]></geoReference>
