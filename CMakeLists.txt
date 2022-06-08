@@ -51,7 +51,7 @@ add_subdirectory(src)
 if(BUILD_TESTING)
   find_package(ament_cmake_clang_format REQUIRED)
   enable_testing()
-  ament_clang_format(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/../.clang-format)
+  ament_clang_format(CONFIG_FILE ${CMAKE_CURRENT_SOURCE_DIR}/.clang-format)
 
   # Integration tests will be armed by default, but it could be configured by
   # the user
