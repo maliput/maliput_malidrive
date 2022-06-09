@@ -1,6 +1,7 @@
 name: gcc
 
 on:
+  push:
   pull_request:
     branches:
       - main
@@ -9,7 +10,6 @@ on:
 env:
   PACKAGE_NAME: maliput_malidrive
   ROS_DISTRO: foxy
-  ROS_WS: maliput_ws
 
 jobs:
   compile_and_test:
@@ -18,90 +18,11 @@ jobs:
     container:
       image: ubuntu:20.04
     steps:
-    # setup-ros first since it installs git, which is needed to fetch all branches from actions/checkout
-    - uses: ros-tooling/setup-ros@0.2.1
-      env:
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+    - uses: ros-tooling/setup-ros@v0.3
+    - uses: ros-tooling/action-ros-ci@v0.2
+      id: action_ros_ci_step
       with:
-        path: ${{ env.ROS_WS }}/src/${{ env.PACKAGE_NAME }}
-    # clone private dependencies
-    - uses: actions/checkout@v2
-      with:
-        repository: ToyotaResearchInstitute/maliput
-        fetch-depth: 0
-        path: ${{ env.ROS_WS }}/src/maliput
-        token: ${{ secrets.MALIPUT_TOKEN }}
-    - uses: actions/checkout@v2
-      with:
-        repository: ToyotaResearchInstitute/maliput_drake
-        fetch-depth: 0
-        path: ${{ env.ROS_WS }}/src/maliput_drake
-        token: ${{ secrets.MALIPUT_TOKEN }}
-    - name: check if dependencies have a matching branch
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}/src
-      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} .
-    # clone public dependencies
-    - name: vcs import
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: vcs import src < src/${PACKAGE_NAME}/.github/dependencies.repos
-    - run: colcon graph
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-    - name: rosdep install
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: |
-        rosdep update --include-eol-distros;
-        rosdep install  -i -y --rosdistro ${ROS_DISTRO} --from-paths src
-    # Build libraries.
-    - name: colcon build libraries
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: |
-        . /opt/ros/${ROS_DISTRO}/setup.bash;
-        colcon build --packages-up-to ${PACKAGE_NAME} \
-            --event-handlers=console_direct+ \
-            --cmake-args -DBUILD_TESTING=ON -DBUILD_DOCS=OFF;
-    # Build tests for current package.
-    - name: colcon build tests
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: |
-        . /opt/ros/${ROS_DISTRO}/setup.bash;
-        colcon build --packages-select ${PACKAGE_NAME} \
-            --event-handlers=console_direct+ \
-            --cmake-args -DBUILD_TESTING=ON -DBUILD_DOCS=OFF;
-    # Test package.
-    - name: colcon test
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: |
-        . /opt/ros/${ROS_DISTRO}/setup.bash;
-        . install/setup.bash;
-        colcon test --packages-select ${PACKAGE_NAME} \
-            --event-handlers=console_direct+;
-        colcon test-result --verbose;
-    # Build documentation.
-    - name: colcon build doxygen documentation
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: |
-        . /opt/ros/${ROS_DISTRO}/setup.bash;
-        . install/setup.bash;
-        colcon build --packages-up-to ${PACKAGE_NAME} \
-            --event-handlers=console_direct+ \
-            --cmake-args -DBUILD_TESTING=ON -DBUILD_DOCS=ON;
-    # Test doxygen documentation.
-    - name: colcon test doxygen documentation
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}
-      run: |
-        . /opt/ros/${ROS_DISTRO}/setup.bash;
-        . install/setup.bash;
-        colcon test --packages-select ${PACKAGE_NAME} \
-            --ctest-args ' -R' ' maliput_malidrive_doxygen_warnings' \
-            --event-handlers=console_direct+;
-        colcon test-result --verbose;
+        package-name: ${{ env.PACKAGE_NAME }}
+        target-ros2-distro: ${{ env.ROS_DISTRO }}
+        vcs-repo-file-url: ${GITHUB_WORKSPACE}/.github/dependencies.repos

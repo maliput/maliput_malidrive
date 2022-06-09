@@ -3,3 +3,11 @@ repositories:
     type: git
     url: https://github.com/ToyotaResearchInstitute/ament_cmake_doxygen
     version: main
+  maliput:
+    type: git
+    url: https://github.com/maliput/maliput
+    version: main
+  maliput_drake:
+    type: git
+    url: https://github.com/maliput/maliput_drake
+    version: main
