@@ -64,7 +64,7 @@ jobs:
         . /opt/ros/${ROS_DISTRO}/setup.bash;
         colcon build --packages-up-to ${PACKAGE_NAME} \
             --event-handlers=console_direct+ \
-            --cmake-args -DBUILD_TESTING=OFF -DBUILD_DOCS=OFF;
+            --cmake-args -DBUILD_TESTING=ON -DBUILD_DOCS=OFF;
     # Build tests for current package.
     - name: colcon build tests
       shell: bash

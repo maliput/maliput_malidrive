@@ -86,7 +86,7 @@ jobs:
         colcon build --packages-up-to ${PACKAGE_NAME} \
             --event-handlers=console_direct+ \
             --cmake-args ${COMPILER_FLAG} \
-              -DBUILD_TESTING=OFF;
+              -DBUILD_TESTING=ON;
     - name: colcon build tests
       shell: bash
       working-directory: ${{ env.ROS_WS }}
