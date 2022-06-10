@@ -136,10 +136,10 @@ class RoadRulebookBuilderTest : public ::testing::Test {
   }
 
  protected:
-  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
-  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
-  const std::string rule_registry_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string road_rulebook_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string map_id{"figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{std::string(DEF_MALIDRIVE_RESOURCES) + map_id + ".xodr"};
+  const std::string rule_registry_path{std::string(DEF_MALIDRIVE_RESOURCES) + map_id + "_new_rules.yaml"};
+  const std::string road_rulebook_path{std::string(DEF_MALIDRIVE_RESOURCES) + map_id + "_new_rules.yaml"};
   const RoadGeometryConfiguration road_geometry_configuration_{RoadGeometryConfiguration::FromMap({
       {"opendrive_file", xodr_file_path},
       {"omit_nondrivable_lanes", "false"},

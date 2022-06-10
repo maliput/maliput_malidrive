@@ -27,6 +27,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#include <cstdlib>
 #include <map>
 #include <memory>
 #include <string>
@@ -45,7 +46,8 @@ namespace malidrive {
 namespace {
 
 GTEST_TEST(RoadNetworkLoader, VerifyRoadNetworkPlugin) {
-  const std::string kXodrFilePath{utility::FindResource("odr/TShapeRoad.xodr")};
+  setenv("MALIPUT_PLUGIN_PATH", DEF_ROAD_NETWORK_PLUGIN, 1);
+  const std::string kXodrFilePath{std::string(DEF_MALIDRIVE_RESOURCES) + "TShapeRoad.xodr"};
 
   // RoadNetworkLoader plugin id.
   const maliput::plugin::MaliputPlugin::Id kMaliputMalidrivePluginId{"maliput_malidrive"};

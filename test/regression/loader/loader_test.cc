@@ -50,7 +50,7 @@ class LoaderTestSingleLane : public ::testing::Test {
  protected:
   const std::map<std::string, std::string> road_geometry_configuration_{
       {builder::params::kRoadGeometryId, "test_id"},
-      {builder::params::kOpendriveFile, utility::FindResource("odr/SingleLane.xodr")},
+      {builder::params::kOpendriveFile, std::string(DEF_MALIDRIVE_RESOURCES) + "SingleLane.xodr"},
       {builder::params::kLinearTolerance, "1e-3"},
       {builder::params::kAngularTolerance, "1e-3"},
       {builder::params::kScaleLength, "1"},

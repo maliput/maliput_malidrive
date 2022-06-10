@@ -78,7 +78,7 @@ class RoadGeometryTest : public ::testing::Test {
       kAssertContiguity);
   std::unique_ptr<road_curve::Function> reference_line_offset = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
   std::unique_ptr<xodr::DBManager> manager =
-      xodr::LoadDataBaseFromFile(utility::FindResource("odr/SingleLane.xodr"), kParserConfiguration);
+      xodr::LoadDataBaseFromFile(std::string(DEF_MALIDRIVE_RESOURCES) + "/SingleLane.xodr", kParserConfiguration);
 };
 
 // Tests getters and the constructor of an empty RoadGeometry.
@@ -145,7 +145,7 @@ class RoadGeometryFigure8Trafficlights : public ::testing::Test {
   void SetUp() override {
     road_geometry_configuration_.id = maliput::api::RoadGeometryId("figure8_trafficlights");
     road_geometry_configuration_.opendrive_file =
-        utility::FindResource("odr/figure8_trafficlights/figure8_trafficlights.xodr");
+        std::string(DEF_MALIDRIVE_RESOURCES) + "/figure8_trafficlights/figure8_trafficlights.xodr";
     road_network_ =
         ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
   }

@@ -246,7 +246,7 @@ class LanePropertiesTest : public ::testing::Test {
 
  protected:
   void SetUp() override {
-    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource("odr/BikingLineLane.xodr"), {std::nullopt});
+    manager_ = xodr::LoadDataBaseFromFile(std::string(DEF_MALIDRIVE_RESOURCES) + "BikingLineLane.xodr", {std::nullopt});
     road_header_ = &manager_->GetRoadHeaders().at(xodr::RoadHeader::Id(kRoadId));
   }
   std::unique_ptr<xodr::DBManager> manager_;
