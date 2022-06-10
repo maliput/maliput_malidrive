@@ -48,14 +48,23 @@ std::string FindResource(const std::string& resource_name);
 
 // Finds a resource file by its `resource_name` name.
 //
-// The first valid file within path_directory/`resource_name` is returned.
-// Where path_directory is indicated by the path that the env variable `path_to_resources` holds.
-// Path delimeter is assumed to be `/`.
+// The first valid `resource_name` file within the paths pointed by the environment variable `path_to_resources` is
+// returned. Path delimeter is assumed to be `/`.
+//
 // @param resource_name The name of the file.
-// @param path_to_resources Env variable holding a directory path.
+// @param path_to_resources Env variable holding one or many directory path.
 // @return The complete file path to the resource.
-// @throws std::runtime_error When the resource cannot be found under any
-// of the possible combinations of 'path_directory/resource_name'.
+// @throws std::runtime_error When the resource cannot be found for any path.
+std::string FindResourceInEnvPath(const std::string& resource_name, const std::string& path_to_resources);
+
+// Finds a resource file by its `resource_name` name.
+//
+// The first valid `resource_name` file within `path_to_resources`.
+//
+// @param resource_name The name of the file.
+// @param path_to_resources Env variable holding one or many directory path.
+// @return The complete file path to the resource.
+// @throws std::runtime_error When the resource cannot be found for any path.
 std::string FindResourceInPath(const std::string& resource_name, const std::string& path_to_resources);
 
 }  // namespace utility

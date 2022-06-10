@@ -103,6 +103,45 @@ macro(maliput_malidrive_build_tests)
   endforeach()
 endmacro()
 
+macro(maliput_malidrive_utility_tests)
+  # Build all the tests
+  foreach(GTEST_SOURCE_file ${ARGN})
+    string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
+    set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
+
+    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
+      TIMEOUT 240)
+
+    target_include_directories(${BINARY_NAME}
+      PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/include
+        ${PYTHON_INCLUDE_DIRS}
+    )
+
+    # Kind of an ugly catch-all bucket
+    target_link_libraries(${BINARY_NAME}
+        utility
+    )
+
+    # To avoid a false positive when running ubsan the symbols must be exported
+    # See https://stackoverflow.com/questions/57361776/use-ubsan-with-dynamically-loaded-shared-libraries
+    set_target_properties(${BINARY_NAME}
+      PROPERTIES
+        ENABLE_EXPORTS ON
+    )
+
+    # Remove a warning in GTest.
+    target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
+
+    target_compile_definitions(${BINARY_NAME}
+      PRIVATE
+        DEF_PROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+    )
+
+  endforeach()
+endmacro()
+
 # This macro generates a test target per each map on the list.
 # Map file will be set using a CLI argument and it's the test responsibility
 # to parse it.
