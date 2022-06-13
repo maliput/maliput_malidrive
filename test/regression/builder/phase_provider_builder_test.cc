@@ -58,6 +58,9 @@ using maliput::api::rules::Phase;
 using maliput::api::rules::PhaseProvider;
 using maliput::api::rules::PhaseRing;
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 // Creates the stack of entities that are necessary to populate the ManualPhaseProvider through the PhaseProviderBuilder
 // functor.
 class PhaseProviderBuilderTest : public ::testing::Test {
@@ -74,12 +77,16 @@ class PhaseProviderBuilderTest : public ::testing::Test {
   }
 
  protected:
-  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
-  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
-  const std::string rule_registry_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string road_rulebook_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string traffic_light_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string phase_ring_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string map_id{"figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResourceInPath(map_id + ".xodr", kMalidriveResourceFolder)};
+  const std::string rule_registry_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string road_rulebook_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string traffic_light_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string phase_ring_book_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
   const RoadGeometryConfiguration road_geometry_configuration_{RoadGeometryConfiguration::FromMap({
       {"opendrive_file", xodr_file_path},
       {"omit_nondrivable_lanes", "false"},

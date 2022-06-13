@@ -48,6 +48,9 @@ namespace builder {
 namespace test {
 namespace {
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 // Obtains all the keys from `map`.
 template <typename T, typename Y>
 std::vector<T> GetAllKeysFromMap(std::map<T, Y> map) {
@@ -245,9 +248,10 @@ class RuleRegistryBuilderTest : public ::testing::Test {
   }
 
  protected:
-  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
-  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
-  const std::string rule_registry_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string map_id{"figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResourceInPath(map_id + ".xodr", kMalidriveResourceFolder)};
+  const std::string rule_registry_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
   const RoadGeometryConfiguration road_geometry_configuration_{RoadGeometryConfiguration::FromMap({
       {"opendrive_file", xodr_file_path},
   })};

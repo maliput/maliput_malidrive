@@ -8,6 +8,7 @@ add_subdirectory(common)
 add_subdirectory(loader)
 add_subdirectory(plugin)
 add_subdirectory(road_curve)
+add_subdirectory(utility)
 add_subdirectory(xodr)
 
 ##############################################################################

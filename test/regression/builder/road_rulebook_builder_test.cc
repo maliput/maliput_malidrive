@@ -61,6 +61,9 @@ using maliput::api::rules::DiscreteValueRule;
 using maliput::api::rules::RangeValueRule;
 using maliput::api::rules::Rule;
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 // Verifies if `rule_a` and `rule_b` are equal based on a `tolerance`. The `tolerance` value applyies when the region
 // of the rule is being evaluated.
 //  `T` param: DiscreteValueRules or RangeValueRules.
@@ -136,10 +139,12 @@ class RoadRulebookBuilderTest : public ::testing::Test {
   }
 
  protected:
-  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
-  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
-  const std::string rule_registry_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string road_rulebook_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string map_id{"figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResourceInPath(map_id + ".xodr", kMalidriveResourceFolder)};
+  const std::string rule_registry_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string road_rulebook_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
   const RoadGeometryConfiguration road_geometry_configuration_{RoadGeometryConfiguration::FromMap({
       {"opendrive_file", xodr_file_path},
       {"omit_nondrivable_lanes", "false"},

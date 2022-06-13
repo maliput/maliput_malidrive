@@ -44,8 +44,12 @@
 namespace malidrive {
 namespace {
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 GTEST_TEST(RoadNetworkLoader, VerifyRoadNetworkPlugin) {
-  const std::string kXodrFilePath{utility::FindResource("odr/TShapeRoad.xodr")};
+  setenv("MALIPUT_PLUGIN_PATH", DEF_ROAD_NETWORK_PLUGIN, 1);
+  const std::string kXodrFilePath{utility::FindResourceInPath("TShapeRoad.xodr", kMalidriveResourceFolder)};
 
   // RoadNetworkLoader plugin id.
   const maliput::plugin::MaliputPlugin::Id kMaliputMalidrivePluginId{"maliput_malidrive"};

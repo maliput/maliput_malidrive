@@ -45,6 +45,9 @@ namespace builder {
 namespace test {
 namespace {
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 // TODO(maliput#341): Remove this operator once it is implemented in maliput.
 bool operator==(const maliput::api::LaneEnd& end_a, const maliput::api::LaneEnd& end_b) {
   return end_a.end == end_b.end && end_a.lane == end_b.lane;
@@ -246,7 +249,8 @@ class LanePropertiesTest : public ::testing::Test {
 
  protected:
   void SetUp() override {
-    manager_ = xodr::LoadDataBaseFromFile(utility::FindResource("odr/BikingLineLane.xodr"), {std::nullopt});
+    manager_ = xodr::LoadDataBaseFromFile(utility::FindResourceInPath("BikingLineLane.xodr", kMalidriveResourceFolder),
+                                          {std::nullopt});
     road_header_ = &manager_->GetRoadHeaders().at(xodr::RoadHeader::Id(kRoadId));
   }
   std::unique_ptr<xodr::DBManager> manager_;

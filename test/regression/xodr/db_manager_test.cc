@@ -44,6 +44,9 @@ namespace xodr {
 namespace test {
 namespace {
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 // Template of a XODR description that contains only the xodr header.
 constexpr const char* kXODRHeaderTemplate = R"R(
 <?xml version='1.0' standalone='yes'?>
@@ -83,8 +86,9 @@ constexpr bool kDontAllowSemanticErrors{false};
 
 // Tests the loading of a XODR description from a file.
 GTEST_TEST(DBManager, LoadFromFile) {
-  const std::string kXodrFile = "odr/SingleLane.xodr";
-  EXPECT_NO_THROW(LoadDataBaseFromFile(utility::FindResource(kXodrFile), {kStrictParserSTolerance}));
+  const std::string kXodrFile = "SingleLane.xodr";
+  EXPECT_NO_THROW(LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder),
+                                       {kStrictParserSTolerance}));
 }
 
 // Tests the loading of a XODR description from a string.
@@ -1269,11 +1273,12 @@ GTEST_TEST(DBManagerTest, GetJunctions) {
                                     {kConnection5.id, kConnection5}} /* connections */};
 
   const std::unordered_map<Junction::Id, Junction> kExpectedJunctions{{kExpectedJunction.id, kExpectedJunction}};
-  const std::string kXodrFile = "odr/TShapeRoad.xodr";
+  const std::string kXodrFile = "TShapeRoad.xodr";
   // If I decrease even more the tolerance, the TShapeRoad.xodr's geometries aren't contiguous in terms of the arc
   // length parameter.
   // TODO(#482): Decrease tolerance once the xodr file is fixed.
-  const std::unique_ptr<DBManager> dut = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {1e-6});
+  const std::unique_ptr<DBManager> dut =
+      LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder), {1e-6});
 
   const std::unordered_map<Junction::Id, Junction> junctions = dut->GetJunctions();
 
@@ -1296,7 +1301,7 @@ std::string LaneUserDataTravelDirTemplate(const std::string& travel_dir) {
 // However, this test's goal is showing the correct functioning by loading a long XODR description and selecting a
 // random Road and Junction and checking that the values are well parsed.
 GTEST_TEST(DBManagerTest, Highway) {
-  const std::string kXodrFile = "odr/Highway.xodr";
+  const std::string kXodrFile = "Highway.xodr";
   const int NumOfRoads{37};
   const int NumOfJunctions{6};
   // Road 52 of Highway description:
@@ -1580,7 +1585,7 @@ GTEST_TEST(DBManagerTest, Highway) {
   // @}
 
   const std::unique_ptr<DBManager> dut =
-      LoadDataBaseFromFile(utility::FindResource(kXodrFile), {kStrictParserSTolerance});
+      LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder), {kStrictParserSTolerance});
 
   const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
   EXPECT_EQ(NumOfRoads, static_cast<int>(road_headers.size()));
@@ -1728,8 +1733,9 @@ GTEST_TEST(DBManagerTest, LoadMapWith2Connections) {
 
 // Loads TShapeRoad.xodr and verifies the shortest and largest Geometry in the XODR.
 GTEST_TEST(DBManager, GetGeometriesLengthInformation) {
-  const std::string kXodrFile = "odr/TShapeRoad.xodr";
-  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
+  const std::string kXodrFile = "TShapeRoad.xodr";
+  const auto db_manager = LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder),
+                                               {constants::kLinearTolerance});
   const DBManager::XodrGeometryLengthData kExpectedShortest{RoadHeader::Id("6"), 3, 6.8474312421988870e-2};
   const DBManager::XodrGeometryLengthData kExpectedLargest{RoadHeader::Id("0"), 0, 46.};
   const auto shortest_geometry{db_manager->GetShortestGeometry()};
@@ -1745,8 +1751,9 @@ GTEST_TEST(DBManager, GetGeometriesLengthInformation) {
 // Loads Highway.xodr and verifies the shortest and largest LaneSection in the XODR.
 GTEST_TEST(DBManager, GetLaneSectionLengthInformation) {
   const double kTolerance{1e-14};
-  const std::string kXodrFile = "odr/Highway.xodr";
-  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
+  const std::string kXodrFile = "Highway.xodr";
+  const auto db_manager = LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder),
+                                               {constants::kLinearTolerance});
   const DBManager::XodrLaneSectionLengthData kExpectedShortest{RoadHeader::Id("4"), 0, 1.1649945427797022};
   const DBManager::XodrLaneSectionLengthData kExpectedLargest{RoadHeader::Id("11"), 0, 2.9161454554383585e+2};
   const auto shortest_lane_section{db_manager->GetShortestLaneSection()};
@@ -1762,8 +1769,9 @@ GTEST_TEST(DBManager, GetLaneSectionLengthInformation) {
 // Loads TShapeRoad.xodr and verifies the shortest and largest GAP between Geometries in the XODR.
 GTEST_TEST(DBManager, GetGeometriesGapInformation) {
   const double kTolerance{1e-14};
-  const std::string kXodrFile = "odr/TShapeRoad.xodr";
-  const auto db_manager = LoadDataBaseFromFile(utility::FindResource(kXodrFile), {constants::kLinearTolerance});
+  const std::string kXodrFile = "TShapeRoad.xodr";
+  const auto db_manager = LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder),
+                                               {constants::kLinearTolerance});
   const DBManager::XodrGapBetweenGeometries kExpectedShortest{RoadHeader::Id("6"), {2, 3}, 0.};
   const DBManager::XodrGapBetweenGeometries kExpectedLargest{RoadHeader::Id("6"), {1, 2}, 1.77636e-15};
   const auto shortest_geometry{db_manager->GetShortestGap()};
