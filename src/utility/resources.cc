@@ -65,10 +65,17 @@ std::string AppendPath(const std::string& base_path, const std::string& relative
 }  // namespace
 
 std::string FindResourceInPath(const std::string& resource_name, const std::string& path_to_resources) {
+  const std::string file_path = AppendPath(path_to_resources, resource_name);
+  if (std::ifstream(file_path)) {
+    return file_path;
+  }
+  throw std::runtime_error(std::string("Resource: ") + resource_name + std::string(" couldn't be found."));
+}
+
+std::string FindResourceInEnvPath(const std::string& resource_name, const std::string& path_to_resources) {
   const std::vector<std::string> env_paths = GetAllPathDirectories(path_to_resources);
-  const std::string resources_folder{"resources"};
   for (const std::string& env_path : env_paths) {
-    const std::string file_path = AppendPath(env_path, AppendPath(resources_folder, resource_name));
+    const std::string file_path = AppendPath(env_path, resource_name);
     if (std::ifstream(file_path)) {
       return file_path;
     }
@@ -77,7 +84,8 @@ std::string FindResourceInPath(const std::string& resource_name, const std::stri
 }
 
 std::string FindResource(const std::string& resource_name) {
-  return FindResourceInPath(resource_name, kMalidriveEnvVariable);
+  const std::string resources_folder{"resources"};
+  return FindResourceInEnvPath(AppendPath(resources_folder, resource_name), kMalidriveEnvVariable);
 }
 
 }  // namespace utility

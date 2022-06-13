@@ -52,7 +52,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineSingleLane"},
-           {"odr/SingleLane.xodr"},
+           {"SingleLane.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -64,7 +64,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"ArcLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"ArcSingleLane"},
-           {"odr/ArcLane.xodr"},
+           {"ArcLane.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -76,7 +76,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"BikingLineLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"BikingLineLane"},
-           {"odr/BikingLineLane.xodr"},
+           {"BikingLineLane.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -88,7 +88,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"DisconnectedRoadInJunction.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"DisconnectedRoadInJunction"},
-           {"odr/DisconnectedRoadInJunction.xodr"},
+           {"DisconnectedRoadInJunction.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -100,7 +100,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SShapeRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SShapeRoad"},
-           {"odr/SShapeRoad.xodr"},
+           {"SShapeRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -112,7 +112,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LShapeRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LShapeRoad"},
-           {"odr/LShapeRoad.xodr"},
+           {"LShapeRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -124,7 +124,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LShapeRoadVariableLanes.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LShapeRoadVariableLanes"},
-           {"odr/LShapeRoadVariableLanes.xodr"},
+           {"LShapeRoadVariableLanes.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -136,7 +136,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LineMultipleSections.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineMultipleSections"},
-           {"odr/LineMultipleSections.xodr"},
+           {"LineMultipleSections.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -148,7 +148,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LineMultipleSectionsMoreCases.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineMultipleSectionsMoreCases"},
-           {"odr/LineMultipleSectionsMoreCases.xodr"},
+           {"LineMultipleSectionsMoreCases.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -160,7 +160,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LineMultipleSpeeds.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineMultipleSpeeds"},
-           {"odr/LineMultipleSpeeds.xodr"},
+           {"LineMultipleSpeeds.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -172,7 +172,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LineVariableOffset.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineVariableOffset"},
-           {"odr/LineVariableOffset.xodr"},
+           {"LineVariableOffset.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -184,7 +184,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"LineVariableWidth.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineVariableWidth"},
-           {"odr/LineVariableWidth.xodr"},
+           {"LineVariableWidth.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -196,7 +196,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"ParkingGarageRamp.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"ParkingGarageRamp"},
-           {"odr/ParkingGarageRamp.xodr"},
+           {"ParkingGarageRamp.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -208,7 +208,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"RRLongRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"RRLongRoad"},
-           {"odr/RRLongRoad.xodr"},
+           {"RRLongRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -220,7 +220,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SShapeSuperelevatedRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SShapeSuperelevatedRoad"},
-           {"odr/SShapeSuperelevatedRoad.xodr"},
+           {"SShapeSuperelevatedRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -232,7 +232,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"TShapeRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"TShapeRoad"},
-           {"odr/TShapeRoad.xodr"},
+           {"TShapeRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -244,7 +244,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"Highway.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"Highway"},
-           {"odr/Highway.xodr"},
+           {"Highway.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -256,7 +256,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"Figure8.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"Figure8"},
-           {"odr/Figure8.xodr"},
+           {"Figure8.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                1e-3 /* linear_tolerance */, 1e-2 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -267,7 +267,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kOmitNondrivableLanes}},
       {"RRFigure8.xodr",
        builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"RRFigure8"},
-                                          {"odr/RRFigure8.xodr"},
+                                          {"RRFigure8.xodr"},
                                           builder::RoadGeometryConfiguration::BuildTolerance{
                                               5e-1 /* linear_tolerance */, 1e-3 /* angular_tolerance */},
                                           constants::kScaleLength,
@@ -279,7 +279,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"StraightForward.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"StraightForward"},
-           {"odr/StraightForward.xodr"},
+           {"StraightForward.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                1e-3 /* linear_tolerance */, 1e-2 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -291,7 +291,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadComplexDescription.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadComplexDescription"},
-           {"odr/SingleRoadComplexDescription.xodr"},
+           {"SingleRoadComplexDescription.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -303,7 +303,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadComplexDescription2.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadComplexDescription2"},
-           {"odr/SingleRoadComplexDescription2.xodr"},
+           {"SingleRoadComplexDescription2.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -315,7 +315,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadNanValues.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadNanValues"},
-           {"odr/SingleRoadNanValues.xodr"},
+           {"SingleRoadNanValues.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -327,7 +327,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadNegativeWidth.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadNegativeWidth"},
-           {"odr/SingleRoadNegativeWidth.xodr"},
+           {"SingleRoadNegativeWidth.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -339,7 +339,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadHighCoefficients.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadHighCoefficients"},
-           {"odr/SingleRoadHighCoefficients.xodr"},
+           {"SingleRoadHighCoefficients.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -351,7 +351,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadTinyGeometry.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadTinyGeometry"},
-           {"odr/SingleRoadTinyGeometry.xodr"},
+           {"SingleRoadTinyGeometry.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -363,7 +363,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"SingleRoadTwoGeometries.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadTwoGeometries"},
-           {"odr/SingleRoadTwoGeometries.xodr"},
+           {"SingleRoadTwoGeometries.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -375,7 +375,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
       {"FlatTown01.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"FlatTown01"},
-           {"odr/FlatTown01.xodr"},
+           {"FlatTown01.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -385,7 +385,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kStandardStrictnessPolicy,
            kOmitNondrivableLanes}},
       {"Town01.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town01"},
-                                                         {"odr/Town01.xodr"},
+                                                         {"Town01.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
                                                              5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/,
                                                              1e-3 /* angular_tolerance */},
@@ -396,7 +396,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kStandardStrictnessPolicy,
                                                          kOmitNondrivableLanes}},
       {"Town02.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town02"},
-                                                         {"odr/Town02.xodr"},
+                                                         {"Town02.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
                                                              5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/,
                                                              1e-3 /* angular_tolerance */},
@@ -407,7 +407,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kStandardStrictnessPolicy,
                                                          kOmitNondrivableLanes}},
       {"Town03.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town03"},
-                                                         {"odr/Town03.xodr"},
+                                                         {"Town03.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
                                                              5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/,
                                                              1e-3 /* angular_tolerance */},
@@ -421,7 +421,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
        /* linear tolerance restricted by 0.052m elevation gap in Road 735 */
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"Town04"},
-           {"odr/Town04.xodr"},
+           {"Town04.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
                6e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
@@ -431,7 +431,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kStandardStrictnessPolicy,
            kOmitNondrivableLanes}},
       {"Town05.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town05"},
-                                                         {"odr/Town05.xodr"},
+                                                         {"Town05.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
                                                              5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/,
                                                              1e-3 /* angular_tolerance */},
@@ -442,7 +442,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kStandardStrictnessPolicy,
                                                          kOmitNondrivableLanes}},
       {"Town06.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town06"},
-                                                         {"odr/Town06.xodr"},
+                                                         {"Town06.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
                                                              5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/,
                                                              1e-3 /* angular_tolerance */},
@@ -453,7 +453,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kStandardStrictnessPolicy,
                                                          kOmitNondrivableLanes}},
       {"Town07.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town07"},
-                                                         {"odr/Town07.xodr"},
+                                                         {"Town07.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
                                                              5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/,
                                                              1e-3 /* angular_tolerance */},
@@ -465,7 +465,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kOmitNondrivableLanes}},
       {"GapInElevationNonDrivableRoad.xodr",
        builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"GapInElevationNonDrivableRoad"},
-                                          {"odr/GapInElevationNonDrivableRoad.xodr"},
+                                          {"GapInElevationNonDrivableRoad.xodr"},
                                           builder::RoadGeometryConfiguration::BuildTolerance{
                                               5e-2 /* linear_tolerance */, 1e-3 /* angular_tolerance */},
                                           constants::kScaleLength,
@@ -476,7 +476,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                           kOmitNondrivableLanes}},
       {"GapInSuperelevationNonDrivableRoad.xodr",
        builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"GapInSuperelevationNonDrivableRoad"},
-                                          {"odr/GapInSuperelevationNonDrivableRoad.xodr"},
+                                          {"GapInSuperelevationNonDrivableRoad.xodr"},
                                           builder::RoadGeometryConfiguration::BuildTolerance{
                                               5e-2 /* linear_tolerance */, 1e-3 /* angular_tolerance */},
                                           constants::kScaleLength,
@@ -487,7 +487,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                           kOmitNondrivableLanes}},
       {"GapInLaneWidthNonDrivableLane.xodr",
        builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"GapInLaneWidthNonDrivableLane"},
-                                          {"odr/GapInLaneWidthNonDrivableLane.xodr"},
+                                          {"GapInLaneWidthNonDrivableLane.xodr"},
                                           builder::RoadGeometryConfiguration::BuildTolerance{
                                               5e-2 /* linear_tolerance */, 1e-3 /* angular_tolerance */},
                                           constants::kScaleLength,

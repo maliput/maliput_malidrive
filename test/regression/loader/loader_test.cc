@@ -46,11 +46,14 @@ namespace loader {
 namespace test {
 namespace {
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 class LoaderTestSingleLane : public ::testing::Test {
  protected:
   const std::map<std::string, std::string> road_geometry_configuration_{
       {builder::params::kRoadGeometryId, "test_id"},
-      {builder::params::kOpendriveFile, utility::FindResource("odr/SingleLane.xodr")},
+      {builder::params::kOpendriveFile, utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder)},
       {builder::params::kLinearTolerance, "1e-3"},
       {builder::params::kAngularTolerance, "1e-3"},
       {builder::params::kScaleLength, "1"},

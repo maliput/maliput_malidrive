@@ -85,6 +85,9 @@ using maliput::api::rules::SpeedLimitRule;
 
 using malidrive::test::GetRoadGeometryConfigurationFor;
 
+// Resource folder path defined via compile definition.
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
 // Functor to compare two maliput::api::rules::RangeValueRule::Ranges with
 // a certain tolerance for `min` and `max`.
 //
@@ -209,7 +212,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
       */
       // TODO(#510): Test was commented out to avoid blocking development.
       //             See issue for more information.
-      // {"TShapeRoad", "odr/TShapeRoad.xodr"},
+      // {"TShapeRoad", "TShapeRoad.xodr"},
 
       /*
         LineMultipleSections map has the following structure:
@@ -222,7 +225,7 @@ std::vector<RoadNetworkBuilderTestParameters> InstantiateBuilderParameters() {
       */
       // TODO(#510): Test was commented out to avoid blocking development.
       //             See issue for more information.
-      // {"LineMultipleSections", "odr/LineMultipleSections.xodr"},
+      // {"LineMultipleSections", "LineMultipleSections.xodr"},
 
       /*
         ParkingGarageRamp describes a Road in the form of a parking garage ramp.
@@ -282,7 +285,8 @@ TEST_P(RoadNetworkBuilderTest, RoadGeometryBuilding) {
   const auto rg_config_opt = GetRoadGeometryConfigurationFor(GetParam().path_to_xodr_file);
   ASSERT_NE(rg_config_opt, std::nullopt);
   RoadGeometryConfiguration road_geometry_configuration{rg_config_opt.value()};
-  road_geometry_configuration.opendrive_file = utility::FindResource(road_geometry_configuration.opendrive_file);
+  road_geometry_configuration.opendrive_file =
+      utility::FindResourceInPath(road_geometry_configuration.opendrive_file, kMalidriveResourceFolder);
   const std::unique_ptr<maliput::api::RoadNetwork> dut =
       builder::RoadNetworkBuilder(road_geometry_configuration.ToStringMap())();
   ASSERT_NE(dynamic_cast<const malidrive::RoadGeometry*>(dut->road_geometry()), nullptr);
@@ -307,9 +311,10 @@ class BuilderTest : public ::testing::Test {
 class RuleRegistryBuildTest : public BuilderTest {
  protected:
   void SetUp() override {
-    const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
+    const std::string kTShapeRoadYAMLPath{utility::FindResourceInPath("TShapeRoad.yaml", kMalidriveResourceFolder)};
     RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
-    road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
+    road_geometry_configuration.opendrive_file =
+        utility::FindResourceInPath(road_geometry_configuration.opendrive_file, kMalidriveResourceFolder);
     RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, std::nullopt,
                                                         kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath,
                                                         kTShapeRoadYAMLPath,         std::nullopt};
@@ -397,9 +402,9 @@ TEST_F(RuleRegistryBuildTest, RangeValueRuleTypesLoadTest) {
 }
 
 TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
-  const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
+  const std::string kTShapeRoadYAMLPath{utility::FindResourceInPath("TShapeRoad.yaml", kMalidriveResourceFolder)};
   RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
-  road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
+  road_geometry_configuration.opendrive_file = utility::FindResourceInPath("TShapeRoad.xodr", kMalidriveResourceFolder);
   const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, std::nullopt,
                                                             kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath,
                                                             kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath};
@@ -448,9 +453,9 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
 // properties are parsed and added to the RoadNetwork variables are correctly
 // parsed.
 TEST_F(BuilderTest, StubProperties) {
-  const std::string kTShapeRoadYAMLPath{utility::FindResource("odr/TShapeRoad.yaml")};
+  const std::string kTShapeRoadYAMLPath{utility::FindResourceInPath("TShapeRoad.yaml", kMalidriveResourceFolder)};
   RoadGeometryConfiguration road_geometry_configuration{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
-  road_geometry_configuration.opendrive_file = utility::FindResource("odr/TShapeRoad.xodr");
+  road_geometry_configuration.opendrive_file = utility::FindResourceInPath("TShapeRoad.xodr", kMalidriveResourceFolder);
   const RoadNetworkConfiguration road_network_configuration{road_geometry_configuration, std::nullopt,
                                                             kTShapeRoadYAMLPath,         kTShapeRoadYAMLPath,
                                                             kTShapeRoadYAMLPath,         std::nullopt};
@@ -493,7 +498,8 @@ class DirectionUsageTest : public ::testing::TestWithParam<DirectionUsageTruthTa
   static constexpr double kLinearTolerance{constants::kLinearTolerance};
 
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(road_geometry_configuration_.opendrive_file);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath(road_geometry_configuration_.opendrive_file, kMalidriveResourceFolder);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -759,7 +765,8 @@ class VehicleRulesTest : public ::testing::TestWithParam<VehicleRulesTruthTable>
   static constexpr double kLinearTolerance{constants::kLinearTolerance};
 
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(road_geometry_configuration_.opendrive_file);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath(road_geometry_configuration_.opendrive_file, kMalidriveResourceFolder);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -824,7 +831,8 @@ struct VehicleRulesStateProviderTruthTable {
 class VehicleRulesStateProviderTest : public ::testing::TestWithParam<VehicleRulesStateProviderTruthTable> {
  protected:
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(road_geometry_configuration_.opendrive_file);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath(road_geometry_configuration_.opendrive_file, kMalidriveResourceFolder);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -912,7 +920,8 @@ class SpeedLimitRuleBuilderTest : public ::testing::TestWithParam<SpeedLimitRule
   static constexpr double kSpeedTolerance{constants::kSpeedTolerance};
 
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(road_geometry_configuration_.opendrive_file);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath(road_geometry_configuration_.opendrive_file, kMalidriveResourceFolder);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -1151,7 +1160,8 @@ struct RangeValueRuleStateProviderTruthTable {
 class RangeValueRuleStateProviderTest : public ::testing::TestWithParam<RangeValueRuleStateProviderTruthTable> {
  protected:
   void SetUp() override {
-    road_geometry_configuration_.opendrive_file = utility::FindResource(road_geometry_configuration_.opendrive_file);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath(road_geometry_configuration_.opendrive_file, kMalidriveResourceFolder);
     reference_values_ = GetParam().reference_values;
   }
 
@@ -1223,13 +1233,18 @@ class RoadNetworkBuilderPopulationTest : public ::testing::Test {
  protected:
   void SetUp() override {}
 
-  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
-  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
-  const std::string rule_registry_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string road_rulebook_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string traffic_light_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string phase_ring_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
-  const std::string intersection_book_path{utility::FindResource(map_id + "_new_rules.yaml")};
+  const std::string map_id{"figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResourceInPath(map_id + ".xodr", kMalidriveResourceFolder)};
+  const std::string rule_registry_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string road_rulebook_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string traffic_light_book_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string phase_ring_book_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
+  const std::string intersection_book_path{
+      utility::FindResourceInPath(map_id + "_new_rules.yaml", kMalidriveResourceFolder)};
   const RoadNetworkConfiguration road_network_configuration_{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path},
       {params::kRuleRegistry, rule_registry_path},
@@ -1287,12 +1302,12 @@ class RoadNetworkBuilderPopulationOldRuleTest : public ::testing::Test {
  protected:
   void SetUp() override {}
 
-  const std::string map_id{"odr/figure8_trafficlights/figure8_trafficlights"};
-  const std::string xodr_file_path{utility::FindResource(map_id + ".xodr")};
-  const std::string road_rulebook_path{utility::FindResource(map_id + ".yaml")};
-  const std::string traffic_light_book_path{utility::FindResource(map_id + ".yaml")};
-  const std::string phase_ring_book_path{utility::FindResource(map_id + ".yaml")};
-  const std::string intersection_book_path{utility::FindResource(map_id + ".yaml")};
+  const std::string map_id{"figure8_trafficlights/figure8_trafficlights"};
+  const std::string xodr_file_path{utility::FindResourceInPath(map_id + ".xodr", kMalidriveResourceFolder)};
+  const std::string road_rulebook_path{utility::FindResourceInPath(map_id + ".yaml", kMalidriveResourceFolder)};
+  const std::string traffic_light_book_path{utility::FindResourceInPath(map_id + ".yaml", kMalidriveResourceFolder)};
+  const std::string phase_ring_book_path{utility::FindResourceInPath(map_id + ".yaml", kMalidriveResourceFolder)};
+  const std::string intersection_book_path{utility::FindResourceInPath(map_id + ".yaml", kMalidriveResourceFolder)};
   const RoadNetworkConfiguration road_network_configuration_{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path},
       {params::kRoadRuleBook, road_rulebook_path},

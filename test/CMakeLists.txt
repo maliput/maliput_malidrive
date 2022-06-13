@@ -17,6 +17,8 @@ macro(maliput_malidrive_plugin_tests)
   foreach(GTEST_SOURCE_file ${ARGN})
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
     set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
+    set(RESOURCE_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
+    set(ROAD_NETWORK_PLUGIN ${CMAKE_INSTALL_PREFIX}/lib/plugins/)
 
     ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
       TIMEOUT 240)
@@ -46,6 +48,12 @@ macro(maliput_malidrive_plugin_tests)
     # Remove a warning in GTest.
     target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
 
+    target_compile_definitions(${BINARY_NAME}
+      PRIVATE
+        DEF_MALIDRIVE_RESOURCES="${RESOURCE_FILE_PREFIX}"
+        DEF_ROAD_NETWORK_PLUGIN="${ROAD_NETWORK_PLUGIN}"
+    )
+
   endforeach()
 endmacro()
 
@@ -54,14 +62,7 @@ macro(maliput_malidrive_build_tests)
   foreach(GTEST_SOURCE_file ${ARGN})
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
     set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
-
-    # When integration tests are disabled, we just skip adding them.
-    if(NOT MALIDRIVE_INTEGRATION_TESTS)
-      if(${TEST_TYPE} MATCHES "INTEGRATION")
-        message(STATUS "Integration tests are disarmed, skipping: " ${BINARY_NAME})
-        continue()
-      endif()
-    endif()
+    set(RESOURCE_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
 
     ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} TIMEOUT 240)
 
@@ -93,6 +94,50 @@ macro(maliput_malidrive_build_tests)
 
     # Remove a warning in GTest.
     target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
+
+    target_compile_definitions(${BINARY_NAME}
+      PRIVATE
+        DEF_MALIDRIVE_RESOURCES="${RESOURCE_FILE_PREFIX}"
+    )
+
+  endforeach()
+endmacro()
+
+macro(maliput_malidrive_utility_tests)
+  # Build all the tests
+  foreach(GTEST_SOURCE_file ${ARGN})
+    string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
+    set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
+
+    ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
+      TIMEOUT 240)
+
+    target_include_directories(${BINARY_NAME}
+      PRIVATE
+        ${PROJECT_SOURCE_DIR}/src
+        ${PROJECT_SOURCE_DIR}/include
+        ${PYTHON_INCLUDE_DIRS}
+    )
+
+    # Kind of an ugly catch-all bucket
+    target_link_libraries(${BINARY_NAME}
+        utility
+    )
+
+    # To avoid a false positive when running ubsan the symbols must be exported
+    # See https://stackoverflow.com/questions/57361776/use-ubsan-with-dynamically-loaded-shared-libraries
+    set_target_properties(${BINARY_NAME}
+      PROPERTIES
+        ENABLE_EXPORTS ON
+    )
+
+    # Remove a warning in GTest.
+    target_compile_options(${BINARY_NAME} PRIVATE "-Wno-sign-compare")
+
+    target_compile_definitions(${BINARY_NAME}
+      PRIVATE
+        DEF_PROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}"
+    )
 
   endforeach()
 endmacro()

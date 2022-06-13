@@ -36,29 +36,12 @@ jobs:
       LDFLAGS: -fuse-ld=lld-8
     steps:
     # setup-ros first since it installs git, which is needed to fetch all branches from actions/checkout
-    - uses: ros-tooling/setup-ros@0.2.1
+    - uses: ros-tooling/setup-ros@v0.3
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         path: ${{ env.ROS_WS }}/src/${{ env.PACKAGE_NAME }}
-    # clone private dependencies
-    - uses: actions/checkout@v2
-      with:
-        repository: ToyotaResearchInstitute/maliput
-        fetch-depth: 0
-        path: ${{ env.ROS_WS }}/src/maliput
-        token: ${{ secrets.MALIPUT_TOKEN }}
-    - uses: actions/checkout@v2
-      with:
-        repository: ToyotaResearchInstitute/maliput_drake
-        fetch-depth: 0
-        path: ${{ env.ROS_WS }}/src/maliput_drake
-        token: ${{ secrets.MALIPUT_TOKEN }}
-    - name: check if dependencies have a matching branch
-      shell: bash
-      working-directory: ${{ env.ROS_WS }}/src
-      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} .
     - name: clang 8 install
       shell: bash
       run: ${{ env.ROS_WS }}/src/${PACKAGE_NAME}/.github/clang_suite_installation.sh
@@ -67,6 +50,10 @@ jobs:
       shell: bash
       working-directory: ${{ env.ROS_WS }}
       run: vcs import src < src/${PACKAGE_NAME}/.github/dependencies.repos
+    - name: check if dependencies have a matching branch
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}/src
+      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} .
     - run: colcon graph
       shell: bash
       working-directory: ${{ env.ROS_WS }}
