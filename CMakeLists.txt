@@ -9,9 +9,6 @@ project(maliput_malidrive LANGUAGES C CXX VERSION 1.0.0)
 # CMake Support
 ##############################################################################
 
-# Useful string/list macros
-include (${PROJECT_SOURCE_DIR}/cmake/Utils.cmake)
-
 # Set CMAKE_INSTALL_<INCLUDEDIR|BINDIR|LIBDIR>
 include(GNUInstallDirs)
 
@@ -33,7 +30,8 @@ find_package(maliput_drake REQUIRED)
 
 message(STATUS "\n\n========= Project Configuration ========\n")
 
-include(${PROJECT_SOURCE_DIR}/cmake/MaliputMalidriveFlags.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/DefaultCFlags.cmake)
+include(${PROJECT_SOURCE_DIR}/cmake/SanitizersConfig.cmake)
 
 set(BUILD_SHARED_LIBS true)
 
