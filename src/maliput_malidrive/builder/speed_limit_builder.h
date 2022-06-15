@@ -55,10 +55,15 @@ class SpeedLimitBuilder {
   /// @param rg is the RoadGeometry pointer. It must not be nullptr.
   SpeedLimitBuilder(const maliput::api::RoadGeometry* rg) : rg_(rg) { MALIDRIVE_THROW_UNLESS(rg_ != nullptr); }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   /// Builds a vector of SpeedLimitRules for each Lane in rg.
   std::vector<maliput::api::rules::SpeedLimitRule> operator()();
+#pragma GCC diagnostic pop
 
  private:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // Builds a maliput::api::rules::SpeedLimitRule for each Lane within `segment`.
   //
   // When there is no maximum speed limit for the lane, the default defined in
@@ -69,6 +74,7 @@ class SpeedLimitBuilder {
   //
   // @pre `segment` must not be nullptr.
   std::vector<maliput::api::rules::SpeedLimitRule> BuildSpeedLimitFor(const maliput::api::Segment* segment);
+#pragma GCC diagnostic pop
 
   const maliput::api::RoadGeometry* rg_{};
 };

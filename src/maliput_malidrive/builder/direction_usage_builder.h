@@ -56,12 +56,17 @@ class DirectionUsageBuilder {
     MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
   }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   /// Builds a vector of maliput::api::rules::DirectionUsageRule.
   ///
   /// Traverses all the lanes within rg and builds a rule for each Lane.
   std::vector<maliput::api::rules::DirectionUsageRule> operator()();
+#pragma GCC diagnostic pop
 
  private:
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   /// Parses `state` and returns the equivalent DirectionUsageRule::State::Type.
   /// Possible return types are:
   /// - kAgainstS --> "backward"
@@ -95,6 +100,7 @@ class DirectionUsageBuilder {
   /// @param lane is the Lane to inspect. It must not be nullptr and its type
   ///        must be `malidrive::Lane`.
   maliput::api::rules::DirectionUsageRule BuildDirectionUsageRuleFor(const maliput::api::Lane* lane);
+#pragma GCC diagnostic pop
 
   const maliput::api::RoadGeometry* rg_{};
   UniqueIntegerProvider direction_usage_indexer_;

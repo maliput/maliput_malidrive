@@ -138,8 +138,11 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::log()->trace("Built IntersectionBook.");
 
   maliput::log()->trace("Building RuleStateProvider...");
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   auto state_provider = std::make_unique<maliput::PhaseBasedRightOfWayRuleStateProvider>(phase_ring_book.get(),
                                                                                          manual_phase_provider.get());
+#pragma GCC diagnostic pop
   maliput::log()->trace("Built RuleStateProvider.");
 
   return std::make_unique<maliput::api::RoadNetwork>(

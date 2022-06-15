@@ -72,6 +72,8 @@ class RoadRuleBookBuilderOldRules {
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadRuleBookBuilderOldRules)
   RoadRuleBookBuilderOldRules() = delete;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   /// Constructs a RoadRuleBook.
   ///
   /// @param rg is the pointer to the RoadGeometry. It must not be nullptr.
@@ -85,6 +87,7 @@ class RoadRuleBookBuilderOldRules {
                               const std::optional<std::string>& road_rulebook_file_path,
                               const std::vector<maliput::api::rules::DirectionUsageRule>& direction_usage_rules,
                               const std::vector<maliput::api::rules::SpeedLimitRule>& speed_limit_rules);
+#pragma GCC diagnostic pop
 
   /// Builds a ManualRulebook.
   ///
@@ -96,8 +99,11 @@ class RoadRuleBookBuilderOldRules {
   const maliput::api::RoadGeometry* rg_{};
   const maliput::api::rules::RuleRegistry* rule_registry_{};
   const std::optional<std::string> road_rulebook_file_path_{};
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   std::vector<maliput::api::rules::DirectionUsageRule> direction_usage_rules_;
   std::vector<maliput::api::rules::SpeedLimitRule> speed_limit_rules_;
+#pragma GCC diagnostic pop
 };
 
 }  // namespace builder
