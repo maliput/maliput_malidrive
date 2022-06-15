@@ -415,7 +415,10 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
   const auto* rulebook = rn->rulebook();
   EXPECT_NE(rulebook, nullptr);
   EXPECT_NE(dynamic_cast<const maliput::ManualRulebook*>(rulebook), nullptr);
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   EXPECT_NO_THROW(rulebook->GetRule(maliput::api::rules::RightOfWayRule::Id("EastApproach")));
+#pragma GCC diagnostic pop
 
   const auto* phase_ring_book = rn->phase_ring_book();
   EXPECT_NE(phase_ring_book, nullptr);
@@ -433,6 +436,8 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
   auto intersection = intersection_book->GetIntersection(maliput::api::Intersection::Id("TIntersection"));
   EXPECT_NE(intersection, nullptr);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // We should be able to phase and verify rule states as well.
   auto right_of_way_rule_state_provider = rn->right_of_way_rule_state_provider();
   auto phase_id = Phase::Id("AllStop");
@@ -440,6 +445,8 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
   auto go_rule_state_id = RightOfWayRule::State::Id("Go");
   auto stop_rule_state_id = RightOfWayRule::State::Id("Stop");
   auto result = right_of_way_rule_state_provider->GetState(rule_id);
+#pragma GCC diagnostic pop
+
   EXPECT_EQ(result.has_value(), true);
   EXPECT_EQ(go_rule_state_id, result.value().state);
   intersection->SetPhase(phase_id);
@@ -463,10 +470,13 @@ TEST_F(BuilderTest, StubProperties) {
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_network_configuration.ToStringMap());
   ASSERT_NE(rn.get(), nullptr);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // TODO(agalbachicar)   Think of a way to test an empty Intersection vector.
   const auto* state_provider = rn->right_of_way_rule_state_provider();
   EXPECT_NE(state_provider, nullptr);
   EXPECT_NE(dynamic_cast<const maliput::PhaseBasedRightOfWayRuleStateProvider*>(state_provider), nullptr);
+#pragma GCC diagnostic pop
 
   const auto* phase_provider = rn->phase_provider();
   EXPECT_NE(phase_provider, nullptr);
@@ -481,11 +491,14 @@ struct DirectionUsageReferenceValue {
   int severity{};
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 // Holds all the reference values to DirectionUsageRules for a map.
 struct DirectionUsageTruthTable {
   std::string file_path;
   std::vector<DirectionUsageReferenceValue> reference_values;
 };
+#pragma GCC diagnostic pop
 
 std::ostream& operator<<(std::ostream& os, const DirectionUsageTruthTable& tt) {
   os << tt.file_path << " ";
@@ -606,6 +619,8 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
   ASSERT_NE(rn.get(), nullptr);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // { @ Code in this block must be removed once the old DirectionUsageRules are deprecated.
   const std::unordered_map<DirectionUsageRule::State::Type, std::string> state_to_string{
       {DirectionUsageRule::State::Type::kAgainstS, "AgainstS"},
@@ -628,7 +643,7 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
     //                      appropriate test.
     const DirectionUsageRule::State state = dut.static_state();
     EXPECT_EQ(state.id().string(), dut.id().string());
-
+#pragma GCC diagnostic pop
     /// Returns the zone to which this rule instance applies, then it is tested.
     const LaneSRange dut_zone = dut.zone();
     auto it_zone = std::find_if(reference_values_.begin(), reference_values_.end(),
@@ -1096,10 +1111,13 @@ TEST_P(SpeedLimitRuleBuilderTest, SpeedLimitRulesTest) {
     int index{};
     for (const auto& speed_limit : results.speed_limit) {
       index++;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       const SpeedLimitRule dut = speed_limit.second;
       EXPECT_EQ(dut.severity(), SpeedLimitRule::Severity(reference_value.state_severity));
       // All SpeedLimitRules are set to constant::kDefaultMinSpeedLimit as it is not
       // defined in OpenDRIVE maps.
+#pragma GCC diagnostic pop
       EXPECT_DOUBLE_EQ(dut.min(), constants::kDefaultMinSpeedLimit);
 
       const auto index_value_range = std::find_if(
@@ -1143,6 +1161,8 @@ TEST_P(SpeedLimitRuleBuilderTest, SpeedLimitRulesTest) {
   }
 }
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 // Holds reference values to create Rule::Id and evaluate that
 // the state in the StateProvider is the same as the first value in
 // the rule' set of values.
@@ -1150,6 +1170,7 @@ struct RangeValueRuleStateProviderReferenceValue {
   maliput::api::LaneId lane_id;
   RangeValueRule::TypeId rule_type;
 };
+#pragma GCC diagnostic pop
 
 // Holds the file path and the references for the file.
 struct RangeValueRuleStateProviderTruthTable {
@@ -1285,9 +1306,12 @@ TEST_F(RoadNetworkBuilderPopulationTest, Builder) {
   const auto phase_ring = dut->phase_ring_book()->GetPhaseRing(phase_rings[0]);
   ASSERT_NE(std::nullopt, phase_ring);
   const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // DiscreteValueRulesStates of any phases should be greater than zero while
   // RuleStates should be zero.
   EXPECT_TRUE(phases.begin()->second.rule_states().empty());
+#pragma GCC diagnostic pop
   EXPECT_FALSE(phases.begin()->second.discrete_value_rule_states().empty());
   ASSERT_NE(std::nullopt, phases.begin()->second.bulb_states());
   EXPECT_FALSE(phases.begin()->second.bulb_states()->empty());
@@ -1347,8 +1371,11 @@ TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
   const auto phase_ring = dut->phase_ring_book()->GetPhaseRing(phase_rings[0]);
   ASSERT_NE(std::nullopt, phase_ring);
   const std::unordered_map<Phase::Id, Phase>& phases = phase_ring->phases();
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // RuleStates and DiscreteValueRuleStates of any phases should be greater than zero.
   EXPECT_FALSE(phases.begin()->second.rule_states().empty());
+#pragma GCC diagnostic pop
   EXPECT_FALSE(phases.begin()->second.discrete_value_rule_states().empty());
   ASSERT_NE(std::nullopt, phases.begin()->second.bulb_states());
   EXPECT_FALSE(phases.begin()->second.bulb_states()->empty());

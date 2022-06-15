@@ -41,6 +41,8 @@ namespace builder {
 
 using maliput::api::LaneSRange;
 using maliput::api::SRange;
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 using maliput::api::rules::SpeedLimitRule;
 
 std::vector<SpeedLimitRule> SpeedLimitBuilder::operator()() {
@@ -82,6 +84,7 @@ std::vector<maliput::api::rules::SpeedLimitRule> SpeedLimitBuilder::BuildSpeedLi
   }
   return speed_limits;
 }
+#pragma GCC diagnostic pop
 
 }  // namespace builder
 }  // namespace malidrive

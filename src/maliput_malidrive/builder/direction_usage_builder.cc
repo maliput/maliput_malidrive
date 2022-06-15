@@ -37,6 +37,8 @@
 namespace malidrive {
 namespace builder {
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 using maliput::api::rules::DirectionUsageRule;
 
 std::vector<DirectionUsageRule> DirectionUsageBuilder::operator()() {
@@ -87,6 +89,8 @@ DirectionUsageRule DirectionUsageBuilder::BuildDirectionUsageRuleFor(const malip
 
   return DirectionUsageRule(rule_id, lane_s_range, {BuildDirectionUsageRuleStateFor(rule_id, mali_lane)});
 }
+
+#pragma GCC diagnostic pop
 
 }  // namespace builder
 }  // namespace malidrive
