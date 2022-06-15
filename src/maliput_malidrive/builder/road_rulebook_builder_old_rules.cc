@@ -46,6 +46,8 @@ using maliput::api::rules::DiscreteValueRule;
 using maliput::api::rules::RangeValueRule;
 using maliput::api::rules::Rule;
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 RoadRuleBookBuilderOldRules::RoadRuleBookBuilderOldRules(
     const maliput::api::RoadGeometry* rg, const maliput::api::rules::RuleRegistry* rule_registry,
     const std::optional<std::string>& road_rulebook_file_path,
@@ -59,6 +61,7 @@ RoadRuleBookBuilderOldRules::RoadRuleBookBuilderOldRules(
   MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
   MALIDRIVE_THROW_UNLESS(rule_registry_ != nullptr);
 }
+#pragma GCC diagnostic pop
 
 std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilderOldRules::operator()() {
   // TODO(francocipollone): Removes the load method that doesn't use the rule registry.
@@ -76,6 +79,8 @@ std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilderOldR
   // Adds rules based on RuleRegistry.
   RoadRuleBookBuilder::AddsXODRBasedRulesToRulebook(rg_, rule_registry_, rulebook_ptr);
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   // Add speed limit rules.
   for (const auto& speed_limit_rule : speed_limit_rules_) {
     rulebook_ptr->AddRule(speed_limit_rule);
@@ -85,6 +90,7 @@ std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilderOldR
   for (const auto& direction_usage_rule : direction_usage_rules_) {
     rulebook_ptr->AddRule(direction_usage_rule);
   }
+#pragma GCC diagnostic pop
 
   return rulebook;
 }
