@@ -415,10 +415,10 @@ TEST_F(BuilderTest, CustomRoadNetworkEntitiesLoadersTest) {
   const auto* rulebook = rn->rulebook();
   EXPECT_NE(rulebook, nullptr);
   EXPECT_NE(dynamic_cast<const maliput::ManualRulebook*>(rulebook), nullptr);
-  #pragma GCC diagnostic push
+#pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
   EXPECT_NO_THROW(rulebook->GetRule(maliput::api::rules::RightOfWayRule::Id("EastApproach")));
-  #pragma GCC diagnostic pop
+#pragma GCC diagnostic pop
 
   const auto* phase_ring_book = rn->phase_ring_book();
   EXPECT_NE(phase_ring_book, nullptr);
