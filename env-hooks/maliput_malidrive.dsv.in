@@ -1,0 +1,5 @@
+prepend-non-duplicate;PATH;bin/@PROJECT_NAME@
+prepend-non-duplicate;PATH;bin/@PROJECT_NAME@/applications
+
+prepend-non-duplicate;MALIPUT_MALIDRIVE_RESOURCE_ROOT;share/@PROJECT_NAME@
+prepend-non-duplicate;MALIPUT_PLUGIN_PATH;lib/maliput_plugins

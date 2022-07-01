@@ -18,7 +18,7 @@ macro(maliput_malidrive_plugin_tests)
     string(REGEX REPLACE ".cc" "" BINARY_NAME ${GTEST_SOURCE_file})
     set(BINARY_NAME ${TEST_TYPE}_${BINARY_NAME})
     set(RESOURCE_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
-    set(ROAD_NETWORK_PLUGIN ${CMAKE_INSTALL_PREFIX}/lib/plugins/)
+    set(ROAD_NETWORK_PLUGIN ${CMAKE_INSTALL_PREFIX}/lib/maliput_plugins/)
 
     ament_add_gtest(${BINARY_NAME} ${GTEST_SOURCE_file} APPEND_LIBRARY_DIRS ${MALIPUT_MALIDRIVE_PLUGIN_LIBRARY_DIRS}
       TIMEOUT 240)

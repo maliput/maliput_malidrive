@@ -171,7 +171,9 @@ install(
 
 ament_export_include_directories(include)
 
-ament_environment_hooks(setup.sh.in)
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.dsv.in")
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.sh.in")
+
 ament_export_dependencies(ament_cmake)
 ament_export_dependencies(fmt)
 ament_export_dependencies(maliput)

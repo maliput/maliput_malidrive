@@ -29,7 +29,7 @@ target_include_directories(road_network
 # Using a different location as this target is a dynamic library
 # which will be loaded at runtime as a maliput plugin.
 set(PLUGIN_INSTALL_DIR
-    lib/plugins
+    lib/maliput_plugins
 )
 
 install(

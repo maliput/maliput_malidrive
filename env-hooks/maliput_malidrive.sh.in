@@ -1,0 +1,5 @@
+ament_prepend_unique_value MALIPUT_MALIDRIVE_RESOURCE_ROOT "$AMENT_CURRENT_PREFIX/share/@PROJECT_NAME@"
+ament_prepend_unique_value MALIPUT_PLUGIN_PATH "$AMENT_CURRENT_PREFIX/lib/maliput_plugins"
+
+ament_prepend_unique_value PATH "$AMENT_CURRENT_PREFIX/bin/@PROJECT_NAME@"
+ament_prepend_unique_value PATH "$AMENT_CURRENT_PREFIX/bin/@PROJECT_NAME@/applications"
