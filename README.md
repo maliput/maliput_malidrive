@@ -1,4 +1,4 @@
-![gcc](https://github.com/ToyotaResearchInstitute/maliput_malidrive/actions/workflows/build.yml/badge.svg)
+[![gcc](https://github.com/maliput/maliput_malidrive/actions/workflows/build.yml/badge.svg)](https://github.com/maliput/maliput_malidrive/actions/workflows/build.yml)
 
 # maliput_malidrive
 
@@ -7,100 +7,91 @@ A maliput backend.
 An implementation of Maliput's API that allows users to
 instantiate a RoadNetwork based on the OpenDRIVE format specification.
 
-## OpenDRIVE format specification coverage
 
-The following table keeps track on the capabilities of the `maliput_malidrive`'s XODR parser according to the 1.5 version of OpenDRIVE format specification.
+## Description
 
-Group | SubGroup | OpenDRIVE Record | Status
-:-:|:-:|:-:|:-:
-Road | Link | Predecessor/Successor | :green_circle:
-Road | Link | Neighbor | :red_circle:
-Road | Road Type | Type | :green_circle:
-Road | Road Type | Country | :green_circle:
-Road | Road Type | Speed | :green_circle:
-Road | PlanView | Lines | :green_circle:
-Road | PlanView | Arcs | :green_circle:
-Road | PlanView | Spirals | :red_circle:
-Road | PlanView | Cubic Polynomials | :red_circle:
-Road | PlanView | Parametric Cubic Polynomials | :red_circle:
-Road | ElevationProfile | Elevation | :green_circle:
-Road | LateralProfile | Superelevation | :green_circle:
-Road | LateralProfile | Crossfall | :red_circle:
-Road | LateralProfile | Road Shape | :red_circle:
-Road | Road Objects | Road Shape | :red_circle:
-Road | Road Signals | Road Shape | :red_circle:
-Road | Surface | OpenCRG | :red_circle:
-Road | Railroad Elements | RailRoad Switches | :red_circle:
-LaneSection | LaneOffset | Lane Offset | :green_circle:
-LaneSection | Lane | Left | :green_circle:
-LaneSection | Lane | Center | :green_circle:
-LaneSection | Lane | Right | :green_circle:
-LaneSection | Lane | LaneLink | :green_circle:
-LaneSection | Lane | LaneWidth | :green_circle:
-LaneSection | Lane | LaneBorder | :red_circle:
-LaneSection | Lane | RoadMark | :red_circle:
-LaneSection | Lane | LaneMaterial | :red_circle:
-LaneSection | Lane | LaneVisibility | :red_circle:
-LaneSection | Lane | LaneSpeed | :green_circle:
-LaneSection | Lane | LaneAccess | :red_circle:
-LaneSection | Lane | LaneRule | :red_circle:
-Controller | ControlEntry | ControlEntry | :red_circle:
-Junction | Connection | Predecessor | :green_circle:
-Junction | Connection | Successor | :green_circle:
-Junction | Connection | LaneLink | :green_circle:
-Junction | Priority | Priority | :red_circle:
-Junction | Controller | Controller | :red_circle:
-Junction | Surface | Surface | :red_circle:
-JunctionGroup | Junction Reference | Junction Reference | :red_circle:
-Stations | Platform | Segment | :red_circle:
-Ancillary Data | Lane | userData | :green_circle:
-Include tag | Include file | include | :red_circle:
-Alternative Layouts | Sets | set | :red_circle:
-Data Quality Description | dataQuality | dataQuality | :red_circle:
+`maliput_malidrive` package is a [Maliput](https://github.com/maliput/maliput) backend implementation.
+Its underlying format specification is based on [OpenDRIVE format](https://www.asam.net/standards/detail/opendrive/). Allowing the users to load a road network out of a XODR file description.
 
-## Build
+Please go to [XODR Parser capabilities](src/maliput_malidrive/xodr/README.md) for further information about OpenDRIVE's parser.
 
-1. Setup a maliput_malidrive (or a wider maliput) development workspace as described [here](https://github.com/ToyotaResearchInstitute/maliput_documentation/blob/main/docs/installation_quickstart.rst)
+**Note**: For full information about Maliput please visit [Maliput Documentation](https://maliput.readthedocs.io/en/latest/index.html).
 
-2. Bring up your development workspace:
+## API Documentation
 
-```sh
-cd path/to/my/workspace
-source ./bringup
+Refer to [Maliput Malidrive's Online API Documentation](https://maliput.readthedocs.io/en/latest/html/deps/maliput_malidrive/html/index.html).
+
+## Examples
+
+[Getting Started](https://maliput.readthedocs.io/en/latest/getting_started.html) page is a good place for starting to see Maliput's capabilities and how to use a Maliput backend for getting a road network.
+
+ - [maliput_malidrive's applications](https://github.com/maliput/maliput_malidrive/blob/francocipollone/improve_readme/src/applications): This package provides some applications to validate a XODR file. See [maliput_malidrive's tutorials](https://maliput.readthedocs.io/en/latest/html/deps/maliput_malidrive/html/tutorials.html).
+ - [maliput_integration](https://github.com/maliput/maliput_integration): Concentrates applications created for maliput. See [maliput_integration's tutorials](https://maliput.readthedocs.io/en/latest/html/deps/maliput_integration/html/integration_tutorials.html). These applications allow to select `maliput_malidrive` as the backend.
+
+## Installation
+
+### Supported platforms
+
+Ubuntu Focal Fossa 20.04 LTS.
+
+### Binary Installation on Ubuntu
+
+See [Installation Docs](https://maliput.readthedocs.io/en/latest/installation.html#binary-installation-on-ubuntu).
+
+### Source Installation on Ubuntu
+
+#### Prerequisites
+
+```
+sudo apt install python3-rosdep python3-colcon-common-extensions
 ```
 
-3. Build maliput_malidrive packages and their dependencies:
+#### Build
 
-   ```sh
-   colcon build --packages-up-to maliput_malidrive
+1. Create colcon workspace if you don't have one yet.
+    ```sh
+    mkdir colcon_ws/src -p
+    ```
+
+2. Clone this repository in the `src` folder
+    ```sh
+    cd colcon_ws/src
+    git clone https://github.com/maliput/maliput_malidrive.git
+    ```
+
+3. Install package dependencies via `rosdep`
+    ```
+    export ROS_DISTRO=foxy
+    ```
+    ```sh
+    rosdep update
+    rosdep install -i -y --rosdistro $ROS_DISTRO --from-paths src
+    ```
+
+4. Build the package
+    ```sh
+    colcon build --packages-up-to maliput_malidrive
+    ```
+
+    **Note**: To build documentation a `-BUILD_DOCS` cmake flag is required:
+    ```sh
+    colcon build --packages-select maliput_malidrive --cmake-args " -DBUILD_DOCS=On"
+    ```
+    More info at [Building Documentation](https://maliput.readthedocs.io/en/latest/developer_guidelines.html#building-the-documentation).
+
+For further info refer to [Source Installation on Ubuntu](https://maliput.readthedocs.io/en/latest/installation.html#source-installation-on-ubuntu)
+
+
+### For development
+
+It is recommended to follow the guidelines for setting up a development workspace as described [here](https://maliput.readthedocs.io/en/latest/developer_setup.html).
+
+## Contributing
+
+Please see [CONTRIBUTING](https://maliput.readthedocs.io/en/latest/contributing.html) page.
+
+## License
+
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://github.com/maliput/maliput_malidrive/blob/main/LICENSE)
+
    ```
-
-   **Note**: To build documentation a `-BUILD_DOCS` cmake flag is required:
-   ```sh
-   colcon build --packages-up-to maliput_malidrive --cmake-args " -DBUILD_DOCS=On"
-   ```
-
-## Run sample applications
-
-1. Bring up your development workspace:
-
-```sh
-cd path/to/my/workspace
-source ./bringup
-```
-
-2. Source your build:
-
-```sh
-source ./install/setup.bash
-```
-
-And then run one of the sample applications. To fully inspect them, visit the
-`applications` directory.
-
-There are more applications for using `maliput_malidrive` backend.
-See [maliput_integration](https://github.com/ToyotaResearchInstitute/maliput_integration) repository.
-
-## Documentation
-
-See [maliput_documentation](https://github.com/ToyotaResearchInstitute/maliput_documentation) repository for further documentation.
