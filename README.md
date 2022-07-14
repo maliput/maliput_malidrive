@@ -93,5 +93,3 @@ Please see [CONTRIBUTING](https://maliput.readthedocs.io/en/latest/contributing.
 ## License
 
 [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://github.com/maliput/maliput_malidrive/blob/main/LICENSE)
-
-   ```
