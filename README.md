@@ -17,6 +17,16 @@ Please go to [XODR Parser capabilities](src/maliput_malidrive/xodr/README.md) fo
 
 **Note**: For full information about Maliput please visit [Maliput Documentation](https://maliput.readthedocs.io/en/latest/index.html).
 
+### Resources
+
+`maliput_malidrive` provides several map resources at [maliput_malidrive/resources](resources).
+These resources are:
+ - XODR files for describing different road networks using OpenDRIVE format specification.
+ - YAML files for describing `maliput`'s road network information of type: Range Value Rules, Discrete Value Rules, Traffic Lights, Phase Rings, Intersections, etc.
+
+Resources are installed natively, so the users are able to use them for their own interest.
+In order to get the installation path check the environment variable: `MALIPUT_MALIDRIVE_RESOURCE_ROOT`.
+
 ## API Documentation
 
 Refer to [Maliput Malidrive's Online API Documentation](https://maliput.readthedocs.io/en/latest/html/deps/maliput_malidrive/html/index.html).
