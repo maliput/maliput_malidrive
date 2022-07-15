@@ -2,12 +2,6 @@
 
 # maliput_malidrive
 
-A maliput backend.
-
-An implementation of Maliput's API that allows users to
-instantiate a RoadNetwork based on the OpenDRIVE format specification.
-
-
 ## Description
 
 `maliput_malidrive` package is a [Maliput](https://github.com/maliput/maliput) backend implementation.
