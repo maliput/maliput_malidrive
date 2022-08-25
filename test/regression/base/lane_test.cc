@@ -261,26 +261,38 @@ constexpr const char* kXODRHeaderTemplate = R"R(
 class MalidriveFlatLineLaneFullyInitializedTest : public LaneTest {
  protected:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration);
-    road_geometry_ =
-        std::make_unique<RoadGeometry>(maliput::api::RoadGeometryId("sample_rg"), std::move(manager), kLinearTolerance,
-                                       kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
+    SetUpRoadCurve();
+    AddNLanesSegmentToRg(1);
+  }
+
+  // Set up road curve.
+  void SetUpRoadCurve() {
     road_curve_ = std::make_unique<road_curve::RoadCurve>(
         kLinearTolerance, kScaleLength,
         std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
         MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
         kAssertContiguity);
     reference_line_offset_ = MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance);
+  }
+
+  // Adds a segment with @p number_of_lanes.
+  // Lanes are added iteratively to the left.
+  // dut_ contains the pointer of the last lane being added.
+  void AddNLanesSegmentToRg(int number_of_lanes) {
     const road_curve::RoadCurve* road_curve_ptr = road_curve_.get();
     const road_curve::Function* reference_line_offset_ptr = reference_line_offset_.get();
     auto junction = std::make_unique<Junction>(maliput::api::JunctionId{"dut"});
     auto segment =
         std::make_unique<Segment>(maliput::api::SegmentId{"dut"}, road_curve_ptr, reference_line_offset_ptr, kP0, kP1);
-    auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
-                                       MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
-                                       MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1);
-    constexpr bool kNotHideLane{false};
-    dut_ = segment->AddLane(std::move(lane), kNotHideLane);
+    for (int i = 0; i < number_of_lanes; ++i) {
+      const maliput::api::LaneId id{std::to_string(i)};
+      auto lane = std::make_unique<Lane>(
+          id, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
+          MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
+          MakeConstantCubicPolynomial(kLaneOffset + kWidth * i, kP0, kP1, kLinearTolerance), kP0, kP1);
+      constexpr bool kNotHideLane{false};
+      dut_ = segment->AddLane(std::move(lane), kNotHideLane);
+    }
     junction->AddSegment(std::move(segment));
     road_geometry_->AddJunction(std::move(junction));
   }
@@ -294,7 +306,9 @@ class MalidriveFlatLineLaneFullyInitializedTest : public LaneTest {
   const double kRRight{-2.};
   const double kH{0};
   const Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
-  std::unique_ptr<RoadGeometry> road_geometry_;
+  std::unique_ptr<RoadGeometry> road_geometry_ = std::make_unique<RoadGeometry>(
+      maliput::api::RoadGeometryId("sample_rg"), xodr::LoadDataBaseFromStr(kXODRHeaderTemplate, kParserConfiguration),
+      kLinearTolerance, kAngularTolerance, kScaleLength, kInertialToBackendFrameTranslation);
   const Lane* dut_{};
 };
 
@@ -412,6 +426,62 @@ TEST_F(MalidriveFlatLineLaneFullyInitializedTest, ToLanePosition) {
   expected_result.nearest_position = InertialPosition{75.05382386916237, 88.36753236814712, 0.};
   expected_result.distance = 0.;
   IsLanePositionResultClose(expected_result, dut_->ToLanePosition(expected_result.nearest_position), kLinearTolerance);
+  //@}
+
+  // Tests when inertial positions fall outside lane boundaries.
+  const double delta_off = 10 * sqrt(2.) / 2.;
+  // Off to the right
+  //@{
+  expected_result.lane_position = LanePosition{kSStart, -kWidth / 2., kH};
+  expected_result.nearest_position = InertialPosition{4.696699141100893, 17.303300858899107, 0.};
+  expected_result.distance = 10.;
+  IsLanePositionResultClose(expected_result,
+                            dut_->ToLanePosition({expected_result.nearest_position.x() + delta_off,
+                                                  expected_result.nearest_position.y() - delta_off, 0.}),
+                            kLinearTolerance);
+
+  expected_result.lane_position = LanePosition{kSHalf, -kWidth / 2., kH};
+  expected_result.nearest_position = InertialPosition{40.05203820042827, 52.658639918226484, 0.};
+  expected_result.distance = 10.;
+  IsLanePositionResultClose(expected_result,
+                            dut_->ToLanePosition({expected_result.nearest_position.x() + delta_off,
+                                                  expected_result.nearest_position.y() - delta_off, 0.}),
+                            kLinearTolerance);
+
+  expected_result.lane_position = LanePosition{kSEnd, -kWidth / 2., kH};
+  expected_result.nearest_position = InertialPosition{75.40737725975565, 88.01397897755386, 0.};
+  expected_result.distance = 10.;
+  IsLanePositionResultClose(expected_result,
+                            dut_->ToLanePosition({expected_result.nearest_position.x() + delta_off,
+                                                  expected_result.nearest_position.y() - delta_off, 0.}),
+                            kLinearTolerance);
+  //@}
+
+  // Off to the left
+  //@{
+  expected_result.lane_position = LanePosition{kSStart, kWidth / 2., kH};
+  expected_result.nearest_position = InertialPosition{1.1611652351681556, 20.838834764831844, 0.};
+  expected_result.distance = 10.;
+  IsLanePositionResultClose(expected_result,
+                            dut_->ToLanePosition({expected_result.nearest_position.x() - delta_off,
+                                                  expected_result.nearest_position.y() + delta_off, 0.}),
+                            kLinearTolerance);
+
+  expected_result.lane_position = LanePosition{kSHalf, kWidth / 2., kH};
+  expected_result.nearest_position = InertialPosition{36.51650429449553, 56.19417382415922, 0.};
+  expected_result.distance = 10.;
+  IsLanePositionResultClose(expected_result,
+                            dut_->ToLanePosition({expected_result.nearest_position.x() - delta_off,
+                                                  expected_result.nearest_position.y() + delta_off, 0.}),
+                            kLinearTolerance);
+
+  expected_result.lane_position = LanePosition{kSEnd, kWidth / 2., kH};
+  expected_result.nearest_position = InertialPosition{71.87184335382291, 91.5495128834866, 0.};
+  expected_result.distance = 10.;
+  IsLanePositionResultClose(expected_result,
+                            dut_->ToLanePosition({expected_result.nearest_position.x() - delta_off,
+                                                  expected_result.nearest_position.y() + delta_off, 0.}),
+                            kLinearTolerance);
   //@}
 }
 
@@ -2278,6 +2348,64 @@ TEST_F(BelowLinearToleranceLaneTest, LengthTest) {
   EXPECT_NEAR(/*kP1 - kP0*/ 5.0, dut_->length(), /*test tolerance*/ 1e-12);
 }
 // @}
+
+// Builds a RoadGeometry with a 3-lane segment in order to test ToSegmentPosition properly.
+class ToSegmentPositionOnFlatLineLaneTest : public MalidriveFlatLineLaneFullyInitializedTest {
+ public:
+  void SetUp() override {
+    SetUpRoadCurve();
+    AddNLanesSegmentToRg(3);
+  }
+};
+
+TEST_F(ToSegmentPositionOnFlatLineLaneTest, WithinLaneBoundaries) {
+  LanePositionResult expected_result;
+
+  expected_result.lane_position = LanePosition{kSHalf, kRCenterline, kH};
+  expected_result.nearest_position = InertialPosition{31.213203435596427, 61.49747468305833, 0.};
+  expected_result.distance = 0.;
+  IsLanePositionResultClose(
+      expected_result,
+      dut_->ToSegmentPosition({expected_result.nearest_position.x(), expected_result.nearest_position.y(), 0.}),
+      kLinearTolerance);
+}
+
+// Inertial position falling outside from lane boundaries but within segment boundaries.
+TEST_F(ToSegmentPositionOnFlatLineLaneTest, WithinSegmentBoundaries) {
+  LanePositionResult expected_result;
+
+  const InertialPosition evaluation_point{38.2842712474619, 54.426406871192846,
+                                          0.};  //-> Center line at most inner lane.
+
+  expected_result.lane_position = LanePosition{kSHalf, -(2 * kWidth), kH};  //> R value is beyond lane boundaries.
+  expected_result.nearest_position = evaluation_point;                      //-> Center line at most inner lane.
+  expected_result.distance = 0.;
+  IsLanePositionResultClose(expected_result, dut_->ToSegmentPosition(evaluation_point), kLinearTolerance);
+
+  // Evaluate for this case whether ToLanePosition result is within lane boundaries.
+  expected_result.lane_position =
+      LanePosition{kSHalf, -(kWidth / 2.), kH};  //> R value is at the limit of the boundaries.
+  expected_result.nearest_position =
+      InertialPosition{32.980970388562795, 59.72970773009196, 0.};  //-> At the right boundary of the lane.
+  expected_result.distance = 1.5 * kWidth;
+  IsLanePositionResultClose(expected_result, dut_->ToLanePosition(evaluation_point), kLinearTolerance);
+}
+
+// Inertial position falling outside segment boundaries.
+TEST_F(ToSegmentPositionOnFlatLineLaneTest, OffSegmentBoundaries) {
+  LanePositionResult expected_result;
+
+  expected_result.lane_position = LanePosition{kSHalf, -(2.5 * kWidth), kH};  //> R value is beyond lane boundaries.
+  expected_result.nearest_position = InertialPosition{
+      40.05203820042827, 52.658639918226484, 0.};  //> Corresponding with rightest point in the segment at the given S.
+  expected_result.distance = 10.;
+
+  const double delta_off = 10 * sqrt(2.) / 2.;
+  // Off to the right of the most inner lane.
+  const InertialPosition evaluation_point{expected_result.nearest_position.x() + delta_off,
+                                          expected_result.nearest_position.y() - delta_off, 0.};
+  IsLanePositionResultClose(expected_result, dut_->ToSegmentPosition(evaluation_point), kLinearTolerance);
+}
 
 }  // namespace
 }  // namespace test

@@ -133,11 +133,17 @@ class Lane : public maliput::geometry_base::Lane {
   maliput::math::Vector3 DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const override;
   void DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
                                maliput::math::Vector3* nearest_backend_pos, double* distance) const override;
+  void DoToSegmentPositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
+                                  maliput::math::Vector3* nearest_backend_pos, double* distance) const override;
   // @}
   maliput::api::Rotation DoGetOrientation(const maliput::api::LanePosition& lane_pos) const override;
   maliput::api::LanePosition DoEvalMotionDerivatives(const maliput::api::LanePosition& position,
                                                      const maliput::api::IsoLaneVelocity& velocity) const override;
   //@}
+
+  void InertialToLaneSegmentPositionBackend(bool use_lane_boundaries, const maliput::math::Vector3& backend_pos,
+                                            maliput::api::LanePosition* lane_position,
+                                            maliput::math::Vector3* nearest_backend_pos, double* distance) const;
 
   // @returns The r-coordinate in LANE Frame from `(p, r)` in the `road_curve`
   //          Frame.

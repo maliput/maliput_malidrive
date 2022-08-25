@@ -189,11 +189,23 @@ Vector3 Lane::BackendFrameToLaneFrame(const Vector3& xyz) const {
 
 void Lane::DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
                                    maliput::math::Vector3* nearest_backend_pos, double* distance) const {
+  InertialToLaneSegmentPositionBackend(true, backend_pos, lane_position, nearest_backend_pos, distance);
+}
+
+void Lane::DoToSegmentPositionBackend(const maliput::math::Vector3& backend_pos,
+                                      maliput::api::LanePosition* lane_position,
+                                      maliput::math::Vector3* nearest_backend_pos, double* distance) const {
+  InertialToLaneSegmentPositionBackend(false, backend_pos, lane_position, nearest_backend_pos, distance);
+}
+
+void Lane::InertialToLaneSegmentPositionBackend(bool use_lane_boundaries, const maliput::math::Vector3& backend_pos,
+                                                maliput::api::LanePosition* lane_position,
+                                                maliput::math::Vector3* nearest_backend_pos, double* distance) const {
   const maliput::math::Vector3 unconstrained_prh{BackendFrameToLaneFrame(backend_pos)};
   MALIDRIVE_IS_IN_RANGE(unconstrained_prh[0], p0_, p1_);
   const double s = s_from_p_(unconstrained_prh[0]);
-  const maliput::api::RBounds segment_boundaries = segment_bounds(s);
-  const double r = maliput::math::saturate(unconstrained_prh[1], segment_boundaries.min(), segment_boundaries.max());
+  const maliput::api::RBounds r_bounds = use_lane_boundaries ? lane_bounds(s) : segment_bounds(s);
+  const double r = maliput::math::saturate(unconstrained_prh[1], r_bounds.min(), r_bounds.max());
   const maliput::api::HBounds elevation_boundaries = elevation_bounds(s, r);
   const double h =
       maliput::math::saturate(unconstrained_prh[2], elevation_boundaries.min(), elevation_boundaries.max());
