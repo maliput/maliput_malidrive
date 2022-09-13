@@ -39,6 +39,15 @@
 #include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
+namespace {
+
+// Values used for the InertialToLaneSegmentPositionBackend method.
+// @{
+static constexpr bool kUseLaneBoundaries = true;
+static constexpr bool kUseSegmentBoundaries = !kUseLaneBoundaries;
+// @}
+
+}  // namespace
 
 using maliput::math::Vector3;
 
@@ -189,13 +198,14 @@ Vector3 Lane::BackendFrameToLaneFrame(const Vector3& xyz) const {
 
 void Lane::DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
                                    maliput::math::Vector3* nearest_backend_pos, double* distance) const {
-  InertialToLaneSegmentPositionBackend(true, backend_pos, lane_position, nearest_backend_pos, distance);
+  InertialToLaneSegmentPositionBackend(kUseLaneBoundaries, backend_pos, lane_position, nearest_backend_pos, distance);
 }
 
 void Lane::DoToSegmentPositionBackend(const maliput::math::Vector3& backend_pos,
                                       maliput::api::LanePosition* lane_position,
                                       maliput::math::Vector3* nearest_backend_pos, double* distance) const {
-  InertialToLaneSegmentPositionBackend(false, backend_pos, lane_position, nearest_backend_pos, distance);
+  InertialToLaneSegmentPositionBackend(kUseSegmentBoundaries, backend_pos, lane_position, nearest_backend_pos,
+                                       distance);
 }
 
 void Lane::InertialToLaneSegmentPositionBackend(bool use_lane_boundaries, const maliput::math::Vector3& backend_pos,
