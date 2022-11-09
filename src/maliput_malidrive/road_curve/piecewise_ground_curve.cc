@@ -34,8 +34,7 @@
 
 #include <maliput/common/assertion_error.h>
 #include <maliput/common/logger.h>
-
-#include "maliput_malidrive/road_curve/open_range_validator.h"
+#include <maliput/common/range_validator.h>
 
 namespace malidrive {
 namespace road_curve {
@@ -104,7 +103,7 @@ PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCur
   p0_ = 0.;
   p1_ = cumulative_p;
   MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= kEpsilon);
-  validate_p_ = OpenRangeValidator::GetRelativeEpsilonValidator(p0_, p1_, linear_tolerance_, kEpsilon);
+  validate_p_ = maliput::common::RangeValidator::GetRelativeEpsilonValidator(p0_, p1_, linear_tolerance_, kEpsilon);
 }
 
 std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(double p) const {

@@ -29,9 +29,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <maliput/common/range_validator.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/function.h"
-#include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
 namespace road_curve {
@@ -72,7 +73,8 @@ class CubicPolynomial : public Function {
         d_(d),
         p0_(p0),
         p1_(p1),
-        validate_p_(OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance, Function::kEpsilon)) {
+        validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
+                                                                                 Function::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(p0_ >= 0);
     MALIDRIVE_THROW_UNLESS(p1_ > p0_);
     MALIDRIVE_THROW_UNLESS(linear_tolerance > 0.);
@@ -105,7 +107,7 @@ class CubicPolynomial : public Function {
   const double p0_{};
   const double p1_{};
   // Validates that p is within [p0_, p1_] with linear_tolerance.
-  const OpenRangeValidator validate_p_;
+  const maliput::common::RangeValidator validate_p_;
 };
 
 }  // namespace road_curve

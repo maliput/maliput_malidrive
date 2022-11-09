@@ -6,7 +6,6 @@ add_library(road_curve
   arc_ground_curve.cc
   lane_offset.cc
   line_ground_curve.cc
-  open_range_validator.cc
   piecewise_function.cc
   piecewise_ground_curve.cc
   road_curve.cc

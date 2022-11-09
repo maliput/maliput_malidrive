@@ -31,9 +31,10 @@
 
 #include <memory>
 
+#include <maliput/common/range_validator.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/function.h"
-#include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
 namespace road_curve {
@@ -64,7 +65,8 @@ class ScaledDomainFunction : public Function {
       : function_(std::move(function)),
         p0_(p0),
         p1_(p1),
-        validate_p_(OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance, Function::kEpsilon)) {
+        validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
+                                                                                 Function::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(function_ != nullptr);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
     MALIDRIVE_THROW_UNLESS(p1_ > p0_);
@@ -104,7 +106,7 @@ class ScaledDomainFunction : public Function {
   double alpha_{};
   double beta_{};
   // Validates that p is within [p0, p1] with linear_tolerance.
-  const OpenRangeValidator validate_p_;
+  const maliput::common::RangeValidator validate_p_;
 };
 
 }  // namespace road_curve

@@ -31,9 +31,10 @@
 
 #include <cmath>
 
+#include <maliput/common/range_validator.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/ground_curve.h"
-#include "maliput_malidrive/road_curve/open_range_validator.h"
 
 namespace malidrive {
 namespace road_curve {
@@ -71,8 +72,8 @@ class LineGroundCurve : public GroundCurve {
         heading_(std::atan2(dxy.y(), dxy.x())),
         p0_(p0),
         p1_(p1),
-        validate_p_(
-            OpenRangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon)) {
+        validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
+                                                                                 GroundCurve::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0);
     MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
@@ -117,7 +118,7 @@ class LineGroundCurve : public GroundCurve {
   // The value of the p parameter at the end of the line.
   const double p1_{};
   // Validates that p is within [p0, p1] with linear_tolerance.
-  const OpenRangeValidator validate_p_;
+  const maliput::common::RangeValidator validate_p_;
 };
 
 }  // namespace road_curve
