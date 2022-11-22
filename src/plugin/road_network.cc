@@ -35,6 +35,7 @@
 
 #include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
+#include "maliput_malidrive/builder/road_network_configuration.h"
 
 namespace malidrive {
 namespace plugin {
@@ -48,7 +49,7 @@ class RoadNetworkLoader : public maliput::plugin::RoadNetworkLoader {
     return malidrive::builder::RoadNetworkBuilder(properties)();
   }
   std::map<std::string, std::string> GetDefaultParameters() const override {
-    return malidrive::builder::params::GetDefaultParameters();
+    return builder::RoadNetworkConfiguration{}.ToStringMap();
   }
 };
 
