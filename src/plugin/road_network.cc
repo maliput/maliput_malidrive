@@ -33,7 +33,6 @@
 
 #include <maliput/plugin/road_network_loader.h>
 
-#include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
 
