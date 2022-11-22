@@ -29,6 +29,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <map>
+#include <string>
+
 namespace malidrive {
 namespace builder {
 namespace params {
@@ -173,6 +176,9 @@ static constexpr char const* kStandardStrictnessPolicy{"standard_strictness_poli
 ///     - 2. <em> "false", "False",  "FALSE", "off", "Off", "OFF" </em>
 ///   - Default: @e "true"
 static constexpr char const* kOmitNonDrivableLanes{"omit_nondrivable_lanes"};
+
+/// @return the default configuration for the RoadNetwork builder.
+std::map<std::string, std::string> GetDefaultParameters();
 
 /// @}
 

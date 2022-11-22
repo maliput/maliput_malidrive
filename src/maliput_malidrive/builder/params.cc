@@ -27,34 +27,16 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include <map>
-#include <memory>
-#include <string>
-
-#include <maliput/plugin/road_network_loader.h>
-
 #include "maliput_malidrive/builder/params.h"
-#include "maliput_malidrive/builder/road_network_builder.h"
+
+#include "maliput_malidrive/builder/road_network_configuration.h"
 
 namespace malidrive {
-namespace plugin {
-namespace {
+namespace builder {
+namespace params {
 
-// Implementation of a maliput::plugin::RoadNetworkLoader using maliput_malidrive backend.
-class RoadNetworkLoader : public maliput::plugin::RoadNetworkLoader {
- public:
-  std::unique_ptr<maliput::api::RoadNetwork> operator()(
-      const std::map<std::string, std::string>& properties) const override {
-    return malidrive::builder::RoadNetworkBuilder(properties)();
-  }
-  std::map<std::string, std::string> GetDefaultParameters() const override {
-    return malidrive::builder::params::GetDefaultParameters();
-  }
-};
+std::map<std::string, std::string> GetDefaultParameters() { return RoadNetworkConfiguration{}.ToStringMap(); }
 
-}  // namespace
-
-REGISTER_ROAD_NETWORK_LOADER_PLUGIN("maliput_malidrive", RoadNetworkLoader);
-
-}  // namespace plugin
+}  // namespace params
+}  // namespace builder
 }  // namespace malidrive
