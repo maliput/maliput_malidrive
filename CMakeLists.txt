@@ -3,7 +3,7 @@
 ##############################################################################
 
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
-project(maliput_malidrive LANGUAGES C CXX VERSION 1.0.0)
+project(maliput_malidrive LANGUAGES C CXX VERSION 0.1.4)
 
 ##############################################################################
 # CMake Support
@@ -19,7 +19,7 @@ include(GNUInstallDirs)
 message(STATUS "\n\n====== Finding 3rd Party Packages ======\n")
 
 find_package(ament_cmake REQUIRED)
-find_package(gflags REQUIRED)
+find_package(fmt REQUIRED)
 
 find_package(maliput REQUIRED)
 
@@ -74,6 +74,41 @@ if(BUILD_DOCS)
   add_definitions(-DBUILD_DOCS)
 else()
   message(STATUS "Doxygen generation - Disabled")
+endif()
+
+
+##############################################################################
+# Wheel
+##############################################################################
+
+if (WHEEL_GENERATION)
+  include(FetchContent)
+  message(STATUS "Wheel generation - Enabled")
+  FetchContent_Declare(python-cmake-wheel
+  GIT_REPOSITORY "https://github.com/francocipollone/python-cmake-wheel"
+  GIT_TAG        "francocipollone/python_lib"
+  GIT_SHALLOW    ON)
+
+  FetchContent_GetProperties(python-cmake-wheel)
+  FetchContent_MakeAvailable(python-cmake-wheel)
+  list(APPEND CMAKE_MODULE_PATH "${python-cmake-wheel_SOURCE_DIR}")
+  include(python-wheel)
+  set(WHEEL_DEPLOY_DIRECTORY "${CMAKE_BINARY_DIR}/wheel")
+
+  set(DEPLOY_FILES "${PROJECT_SOURCE_DIR}/maliput_malidrive/__init__.py")
+
+  add_wheel(road_network
+    NAME maliput_malidrive
+    AUTHOR "Franco Cipollone"
+    URL "https://github.com/maliput/maliput_malidrive"
+    VERSION "${PROJECT_VERSION}"
+    DESCRIPTION "OpenDRIVE-based maliput backend."
+    LICENSE_PATH "${PROJECT_SOURCE_DIR}/LICENSE"
+    DEPLOY_FILES ${DEPLOY_FILES}
+    MALIPUT_PLUGIN_ENTRY_POINT "maliput_malidrive = maliput_malidrive:get_plugin_path"
+  )
+else()
+  message(STATUS "Wheel generation - Disabled")
 endif()
 
 ##############################################################################

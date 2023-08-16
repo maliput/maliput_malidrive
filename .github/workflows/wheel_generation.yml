@@ -1,0 +1,83 @@
+name: Wheel Generation
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  PACKAGE_NAME: maliput_malidrive
+  COLCON_WS: maliput_ws
+  PYTHON_VERSION: cp38-cp38
+  CMAKE_COMMAND_ENV: /opt/_internal/cpython-3.8.18/bin/cmake
+# Cancel previously running PR jobs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  manylinux2014:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/maliput/manylinux2014_maliput:latest
+      credentials:
+         username: ${{ github.actor }}
+         password: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        path: ${{ env.COLCON_WS }}/src/${{ env.PACKAGE_NAME }}
+    # clone public dependencies
+    - name: git clone maliput
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}/src
+      run: git clone https://github.com/maliput/maliput
+    - name: colcon graph
+      run: /opt/python/${PYTHON_VERSION}/bin/colcon graph
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}
+    # colcon build
+    - name: colcon build
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}
+      run: |
+        source /colcon_builds/install/setup.bash;
+        PATH=/opt/python/${PYTHON_VERSION}/bin:$PATH \
+        /opt/python/${PYTHON_VERSION}/bin/colcon build --packages-up-to ${PACKAGE_NAME} \
+          --cmake-args \
+            ' -DWHEEL_GENERATION=On' \
+            ' -DBUILD_TESTING=Off' \
+            ' -DPython3_EXECUTABLE=/opt/python/${{ env.PYTHON_VERSION }}/bin/python3' \
+          --event-handlers=console_direct+
+    # List wheel output
+    - name: list wheel output
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}
+      run: ls build/${PACKAGE_NAME}/wheel
+    # Run auditwheel repair
+    - name: auditwheel repair
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}
+      run: |
+        source install/setup.bash;
+        auditwheel repair \
+          --plat manylinux2014_x86_64 \
+          --wheel-dir build/${PACKAGE_NAME}/wheel/repaired \
+          build/${PACKAGE_NAME}/wheel/*.whl
+    # List repaired wheel output
+    - name: list repaired wheel output
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}
+      run: ls build/${PACKAGE_NAME}/wheel/repaired
+    # Upload repaired wheel as artifact
+    - name: upload wheels as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: manylinux2014_x86_64
+        path: ${{ env.COLCON_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/repaired
+        retention-days: 7
