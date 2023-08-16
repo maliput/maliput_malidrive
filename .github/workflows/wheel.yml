@@ -1,0 +1,80 @@
+name: wheel
+
+on:
+  push:
+  workflow_dispatch:
+
+env:
+  PACKAGE_NAME: maliput_malidrive
+  ROS_DISTRO: foxy
+  ROS_WS: maliput_ws
+
+jobs:
+  wheel_generation:
+    name: Wheel generation
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:20.04
+    steps:
+    # setup-ros first since it installs git, which is needed to fetch all branches from actions/checkout
+    - uses: ros-tooling/setup-ros@v0.6
+    - uses: actions/checkout@v3
+      with:
+        path: ${{ env.ROS_WS }}/src/${{ env.PACKAGE_NAME }}
+    # clone public dependencies
+    - name: vcs import
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: vcs import src < src/${PACKAGE_NAME}/.github/dependencies.repos
+    - name: check if dependencies have a matching branch
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}/src
+      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}} .
+    - run: colcon graph
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+    - name: rosdep install
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: |
+        rosdep update --include-eol-distros;
+        rosdep install  -i -y --rosdistro ${ROS_DISTRO}  --from-paths src
+    - name: colcon build up-to
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: |
+        . /opt/ros/${ROS_DISTRO}/setup.bash;
+        colcon build --packages-up-to ${PACKAGE_NAME} \
+          --packages-skip ${PACKAGE_NAME} \
+          --event-handlers=console_direct+
+    - name: install extra dependencies
+      shell: bash
+      run: pip install patchelf auditwheel
+    - name: build wheel
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: |
+        . /opt/ros/${ROS_DISTRO}/setup.bash;
+        colcon build --packages-select ${PACKAGE_NAME} \
+          --cmake-args -DWHEEL_GENERATION=True \
+          --event-handlers=console_direct+
+
+    - name: upload default wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PACKAGE_NAME }}-wheel
+        path: ${{ env.ROS_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/*.whl
+
+    - name: auditwheel repair wheel
+      shell: bash
+      working-directory: ${{ env.ROS_WS }}
+      run: |
+        . /opt/ros/${ROS_DISTRO}/setup.bash;
+        . install/setup.bash;
+        auditwheel repair build/${PACKAGE_NAME}/wheel/*.whl --plat linux_x86_64 -w build/${PACKAGE_NAME}/wheel/auditwheel_repaired
+
+    - name: upload repaired wheel
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ env.PACKAGE_NAME }}-repaired-wheel
+        path: ${{ env.ROS_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/auditwheel_repaired/*.whl
