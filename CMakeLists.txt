@@ -19,7 +19,7 @@ include(GNUInstallDirs)
 message(STATUS "\n\n====== Finding 3rd Party Packages ======\n")
 
 find_package(ament_cmake REQUIRED)
-find_package(gflags REQUIRED)
+find_package(fmt EXACT REQUIRED)
 
 find_package(maliput REQUIRED)
 
@@ -86,7 +86,7 @@ if (WHEEL_GENERATION)
   message(STATUS "Wheel generation - Enabled")
   FetchContent_Declare(python-cmake-wheel
   GIT_REPOSITORY "https://github.com/francocipollone/python-cmake-wheel"
-  GIT_TAG        "francocipollone/add_entry_point"
+  GIT_TAG        "francocipollone/python_lib"
   GIT_SHALLOW    ON)
 
   FetchContent_GetProperties(python-cmake-wheel)
