@@ -1,0 +1,150 @@
+###############################################################################
+# Libraries
+###############################################################################
+
+# TODO(daniel.stonier): revise these, get in sync with cmake/DefaultCFlags.cmake.
+# Be aware though that many do not work across platforms, e.g. there is no
+# cross-platform mechanism for setting std=c++17 in bazel
+
+COPTS = [
+    "-std=c++17",
+    "-Wno-builtin-macro-redefined",
+    "-Wno-missing-field-initializers",
+    "-Wno-unused-const-variable",
+
+    # Others from cmake/DefaultCFlags.cmake
+    # "-fdata-sections",
+    # "-fdiagnostics-color=always"
+    # "-ffunction-sections"
+    # "-fopenmp"
+    # "-fPIC"
+    # "-fstack-protector"
+    # "-fno-omit-frame-pointer"
+    # "-no-canonical-prefixes"
+    # "-Wall"
+    # "-Wregister"
+    # "-Wstrict-overflow"
+
+    # Some flags that were used in the TRI build
+    # "-Wno-unused-parameter",
+    # "-Wno-missing-braces",
+    # "-Wno-pessimizing-move",
+    # "-Wno-self-assign",
+    # "-Wno-deprecated-declarations",
+    # "-Wno-unused-private-field",
+    # "-Wno-maybe-uninitialized",
+    # "-Wno-deprecated-register",
+]
+
+cc_library(
+    name = "utility",
+    srcs = glob(["src/utility/**/*.cc"]),
+    hdrs = glob(["src/utility/**/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:public"],
+)
+
+cc_library(
+    name = "maliput_malidrive_public_headers",
+    hdrs = glob(["include/maliput_malidrive/**/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maliput//:api",
+        "@maliput//:base",
+        "@maliput//:common",
+        "@maliput//:plugin",
+        "@maliput//:geometry_base",
+    ],
+)
+
+# TODO(stonier): decompose this across dirs in src/maliput_malidrive
+cc_library(
+    name = "maliput_malidrive",
+    srcs = glob(["src/maliput_malidrive/**/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/**/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":maliput_malidrive_public_headers",
+        ":utility",
+        "@maliput//:api",
+        "@maliput//:base",
+        "@maliput//:geometry_base",
+        "@maliput//:utility",
+        "@maliput//:drake",
+        "@tinyxml2//:tinyxml2"
+    ],
+)
+
+cc_library(
+    name = "plugin",
+    srcs = glob(["src/plugin/**/*.cc"]),
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":maliput_malidrive",
+        "@maliput//:api",
+        "@maliput//:base",
+        "@maliput//:common",
+    ],
+)
+
+###############################################################################
+# Binaries
+###############################################################################
+
+cc_library(
+    name = "log_level_flag",
+    hdrs = glob(["src/applications/log_level_flag.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:private"],
+    deps = [
+        "@gflags//:gflags",
+    ],
+)
+
+cc_binary(
+    name = "xodr_extract",
+    srcs = ["src/applications/xodr_extract.cc"],
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":log_level_flag",
+        ":maliput_malidrive",
+        "@gflags//:gflags",
+        "@maliput//:common",
+        "@tinyxml2//:tinyxml2"
+    ],
+)
+
+
+cc_binary(
+    name = "xodr_query",
+    srcs = ["src/applications/xodr_query.cc"],
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":log_level_flag",
+        ":maliput_malidrive",
+        "@gflags//:gflags",
+        "@maliput//:common",
+    ],
+)
+
+cc_binary(
+    name = "xodr_validate",
+    srcs = ["src/applications/xodr_validate.cc"],
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":log_level_flag",
+        ":maliput_malidrive",
+        "@gflags//:gflags",
+        "@maliput//:common",
+    ],
+)
