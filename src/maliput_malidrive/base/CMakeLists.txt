@@ -27,7 +27,6 @@ target_link_libraries(
     maliput_drake::analysis
     maliput_drake::common
     maliput_drake::framework
-    maliput_drake::math
     maliput_drake::trajectories
     maliput_malidrive::common
     maliput_malidrive::road_curve

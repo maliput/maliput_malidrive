@@ -32,7 +32,6 @@ target_link_libraries(
     maliput_drake::analysis
     maliput_drake::common
     maliput_drake::framework
-    maliput_drake::math
     maliput_drake::trajectories
 )
 
