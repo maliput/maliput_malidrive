@@ -102,7 +102,7 @@ if (WHEEL_GENERATION)
     AUTHOR "Franco Cipollone"
     URL "https://github.com/maliput/maliput_malidrive"
     VERSION "${PROJECT_VERSION}"
-    DESCRIPTION "TODO"
+    DESCRIPTION "OpenDRIVE-based maliput backend."
     # TARGET_DEPENDENCIES base builder common road_curve xodr maliput_drake::common maliput_drake::trajectories maliput_drake::analysis maliput_drake::math maliput_drake::framework
     LICENSE_PATH "${PROJECT_SOURCE_DIR}/LICENSE"
     DEPLOY_FILES ${DEPLOY_FILES}
