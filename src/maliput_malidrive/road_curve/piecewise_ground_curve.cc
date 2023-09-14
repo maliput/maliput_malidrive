@@ -150,7 +150,7 @@ double PiecewiseGroundCurve::DoGInverse(const maliput::math::Vector2& xy) const 
     try {
       p_i = ground_curve->GInverse(xy);
     } catch (const maliput::common::assertion_error&) {
-      maliput::log()->info("Mapping to p parameter is not possible at [{}, {}].", xy.x(), xy.y());
+      maliput::log()->info("Mapping to p parameter is not possible at [", xy.x(), ", ", xy.y(), "].");
       p_i = ground_curve->p0();
     }
     const maliput::math::Vector2 xy_i = ground_curve->G(p_i);

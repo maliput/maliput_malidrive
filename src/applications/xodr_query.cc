@@ -289,7 +289,7 @@ class DBManagerQuery {
     const auto road_headers = db_manager_->GetRoadHeaders();
     const auto road = road_headers.find(road_id);
     if (road == road_headers.cend()) {
-      maliput::log()->error("RoadId: {} hasn't been found.", road_id);
+      maliput::log()->error("RoadId: ", road_id, " hasn't been found.");
       return;
     }
     (*out_).precision(std::numeric_limits<double>::digits10);
@@ -336,9 +336,9 @@ int Main(int argc, char** argv) {
 
   // Tries to load the XODR map.
   const std::string xodr_path = std::string(argv[1]);
-  maliput::log()->trace("About to load: {}", xodr_path);
-  maliput::log()->info("Parser: Allow schema errors: {}", (FLAGS_allow_schema_errors ? "enabled" : "disabled"));
-  maliput::log()->info("Parser: Allow semantic errors: {}", (FLAGS_allow_semantic_errors ? "enabled" : "disabled"));
+  maliput::log()->trace("About to load: ", xodr_path);
+  maliput::log()->info("Parser: Allow schema errors: ", (FLAGS_allow_schema_errors ? "enabled" : "disabled"));
+  maliput::log()->info("Parser: Allow semantic errors: ", (FLAGS_allow_semantic_errors ? "enabled" : "disabled"));
   auto db_manager = malidrive::xodr::LoadDataBaseFromFile(
       xodr_path, {FLAGS_tolerance, FLAGS_allow_schema_errors, FLAGS_allow_semantic_errors});
   if (db_manager == nullptr) {

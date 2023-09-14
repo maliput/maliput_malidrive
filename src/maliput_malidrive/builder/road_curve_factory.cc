@@ -170,7 +170,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
   std::vector<std::unique_ptr<road_curve::GroundCurve>> ground_curves;
   for (const xodr::Geometry& geometry : geometries) {
     if (geometry.length < road_curve::GroundCurve::kEpsilon) {
-      maliput::log()->warn("A geometry description is discarded because its length is: {}", geometry.length);
+      maliput::log()->warn("A geometry description is discarded because its length is: ", geometry.length);
       continue;
     }
     switch (geometry.type) {
@@ -237,7 +237,7 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
           MALIDRIVE_THROW_MESSAGE("Last laneWidth's function has invalid length: p0_i: " + std::to_string(p0_i) +
                                   " | p1_i: " + std::to_string(p1_i));
         } else {
-          maliput::log()->warn("Last laneWidth's function has null length: p0_i = p1_1 = {}", p1_i);
+          maliput::log()->warn("Last laneWidth's function has null length: p0_i = p1_1 = ", p1_i);
           continue;
         }
       }
@@ -246,10 +246,11 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
     // functions (~1e-15) in combination with high coefficients values (1e+20). To avoid any kind of numerical error,
     // all the functions whose length is less than constants::kStrictLinearTolerance are discarded. See #117.
     if (p1_i - p0_i < constants::kStrictLinearTolerance) {
-      maliput::log()->trace(
-          "LaneWidth's function in position {} is discarded to avoid numerical errors: Length ({}) is less than "
-          "epsilon ({})",
-          i, p1_i - p0_i, constants::kStrictLinearTolerance);
+      maliput::log()->trace("LaneWidth's function in position ", i, " is discarded to avoid numerical errors: Length (",
+                            p1_i - p0_i,
+                            ") is less than "
+                            "epsilon (",
+                            constants::kStrictLinearTolerance, ")");
       continue;
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));
@@ -307,8 +308,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
           MALIDRIVE_THROW_MESSAGE("Last " + xodr_data_type + "'s function has invalid length: p0_i: " +
                                   std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
         } else {
-          maliput::log()->warn("Last function that compounds {} has null length: p0_i = p1_1 = {}", xodr_data_type,
-                               p1_i);
+          maliput::log()->warn("Last function that compounds ", xodr_data_type,
+                               " has null length: p0_i = p1_1 = ", p1_i);
           continue;
         }
       }
@@ -317,9 +318,9 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
     // functions (~1e-15) in combination with high coefficients values (1e+20). To avoid any kind of numerical error,
     // all the functions whose length is less than constants::kStrictLinearTolerance are discarded. See #117.
     if (p1_i - p0_i < constants::kStrictLinearTolerance) {
-      maliput::log()->trace(
-          "{}'s function in position {} is discarded to avoid numerical errors: Length ({}) is less than epsilon ({})",
-          xodr_data_type, i, p1_i - p0_i, constants::kStrictLinearTolerance);
+      maliput::log()->trace(xodr_data_type, "'s function in position ", i,
+                            " is discarded to avoid numerical errors: Length (", p1_i - p0_i,
+                            ") is less than epsilon (", constants::kStrictLinearTolerance, ")");
       continue;
     }
     polynomials.emplace_back(MakeCubicPolynomial(coeffs[3], coeffs[2], coeffs[1], coeffs[0], p0_i, p1_i));

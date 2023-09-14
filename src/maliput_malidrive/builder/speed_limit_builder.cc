@@ -77,8 +77,8 @@ std::vector<maliput::api::rules::SpeedLimitRule> SpeedLimitBuilder::BuildSpeedLi
       const LaneSRange lane_s_range(lane->id(), SRange(s0, s1));
       const SpeedLimitRule speed_limit_rule(GetSpeedLimitId(lane->id(), speed_limit_indexer.new_id()), lane_s_range,
                                             kDefaultSeverity, kDefaultMinSpeedLimit, speed_limit.max);
-      maliput::log()->trace("Built SpeedLimitRule {} for Lane {} in SRange: [{},{}]", speed_limit_rule.id().string(),
-                            lane->id().string(), s0, s1);
+      maliput::log()->trace("Built SpeedLimitRule ", speed_limit_rule.id().string(), " for Lane ", lane->id().string(),
+                            " in SRange: [", s0, ",", s1, "]");
       speed_limits.push_back(speed_limit_rule);
     }
   }

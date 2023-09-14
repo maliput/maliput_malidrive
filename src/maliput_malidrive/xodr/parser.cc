@@ -127,7 +127,7 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
       if (!allow_schema_errors) {
         MALIDRIVE_THROW_MESSAGE(msg);
       }
-      maliput::log()->warn(msg + "Discarding the first description starting at s = {}", new_function.s_0);
+      maliput::log()->warn(msg + "Discarding the first description starting at s = ", new_function.s_0);
       functions->pop_back();
     }
   }

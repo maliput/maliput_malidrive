@@ -48,9 +48,9 @@ RuleRegistryBuilder::RuleRegistryBuilder(const maliput::api::RoadGeometry* rg,
 }
 
 std::unique_ptr<maliput::api::rules::RuleRegistry> RuleRegistryBuilder::operator()() {
-  maliput::log()->trace("{}", rule_registry_file_path_.has_value()
-                                  ? "RuleRegistry file provided: " + rule_registry_file_path_.value()
-                                  : "No RuleRegistry file provided");
+  maliput::log()->trace(rule_registry_file_path_.has_value()
+                            ? "RuleRegistry file provided: " + rule_registry_file_path_.value()
+                            : "No RuleRegistry file provided");
   auto rule_registry = !rule_registry_file_path_.has_value()
                            ? std::make_unique<maliput::api::rules::RuleRegistry>()
                            : maliput::LoadRuleRegistryFromFile(rule_registry_file_path_.value());

@@ -58,12 +58,12 @@ class DBManager::Impl {
       MALIDRIVE_THROW_UNLESS(*parser_configuration_.tolerance >= 0);
     }
     maliput::log()->trace("XODR Parser configuration:");
-    maliput::log()->trace("|__ tolerance: {}", (parser_configuration_.tolerance.has_value()
-                                                    ? std::to_string(parser_configuration_.tolerance.value())
-                                                    : "None"));
-    maliput::log()->trace("|__ allow_schema_errors: {}",
+    maliput::log()->trace("|__ tolerance: ", (parser_configuration_.tolerance.has_value()
+                                                  ? std::to_string(parser_configuration_.tolerance.value())
+                                                  : "None"));
+    maliput::log()->trace("|__ allow_schema_errors: ",
                           parser_configuration_.allow_schema_errors ? "Enabled" : "Disabled");
-    maliput::log()->trace("|__ allow_semantic_errors: {}",
+    maliput::log()->trace("|__ allow_semantic_errors: ",
                           parser_configuration_.allow_semantic_errors ? "Enabled" : "Disabled");
   };
   ~Impl() = default;
@@ -499,9 +499,9 @@ class DBManager::Impl {
   // @throw maliput::common::assertion_error When predecessor/successor Road ids doesn't exists.
   // @throw maliput::common::assertion_error When predecessor/successor Lane ids doesn't exists.
   void VerifyRoadLinks(const RoadHeader& road_header, const RoadLink::LinkAttributes& link, bool is_predecessor) {
-    maliput::log()->debug("VerifyRoadLinks(Road({}), Link({}({})), {})", road_header.id.string(),
-                          (link.element_type == RoadLink::ElementType::kRoad ? "Road" : "Junction"),
-                          link.element_id.string(), (is_predecessor ? "predecessor" : "successor"));
+    maliput::log()->debug("VerifyRoadLinks(Road(", road_header.id.string(), "), Link(",
+                          (link.element_type == RoadLink::ElementType::kRoad ? "Road" : "Junction"), "(",
+                          link.element_id.string(), ")), ", (is_predecessor ? "predecessor" : "successor"), ")");
     if (std::stoi(road_header.junction) < 0) {
       // Road doesn't belong to a junction.
       if (link.element_type == RoadLink::ElementType::kRoad) {
@@ -525,10 +525,11 @@ class DBManager::Impl {
         const auto connections =
             GetConnectionsByRoadId(road_header.id, junction_link->second, true /* incoming road */);
         if (connections.size() == 0) {
-          maliput::log()->debug(
-              "Connection missing for Junction id {}. There is no incoming road id: {} that matches with a connection "
-              "road id: {}",
-              junction_link->first.string(), road_header.id.string(), link.element_id);
+          maliput::log()->debug("Connection missing for Junction id ", junction_link->first.string(),
+                                ". There is no incoming road id: ", road_header.id.string(),
+                                " that matches with a connection "
+                                "road id: ",
+                                link.element_id);
         } else {
           for (const auto& connection : connections) {
             // Verify that the lanes described in the connection actually exist in the road.
@@ -553,10 +554,11 @@ class DBManager::Impl {
           return c->incoming_road == link.element_id.string();
         });
         if (connection_it == connections.end()) {
-          maliput::log()->debug(
-              "Connection missing for Junction id: {}. There is no connection road id: {} that matches with an "
-              "incoming road id: {}",
-              junction->first.string(), road_header.id.string(), link.element_id);
+          maliput::log()->debug("Connection missing for Junction id: ", junction->first.string(),
+                                ". There is no connection road id: ", road_header.id.string(),
+                                " that matches with an "
+                                "incoming road id: ",
+                                link.element_id);
         } else {
           // Verify that the lanes described in the connection actually exist in the road.
           VerifyRoadLanesWithConnectionLanes(*connection_it, false, road_header, is_predecessor);
@@ -734,9 +736,9 @@ class DBManager::Impl {
   //
   // @throws maliput::common::assertion_error When LaneLinks are not coherent between LaneSections.
   void VerifyLinksBetweenLaneSectionsOfARoad(const RoadHeader& road_header) {
-    maliput::log()->trace("Verify lane links within Road Id: {}", road_header.id.string());
+    maliput::log()->trace("Verify lane links within Road Id: ", road_header.id.string());
     for (int i = 0; i < static_cast<int>(road_header.lanes.lanes_section.size()) - 1; i++) {
-      maliput::log()->trace("Verify lane links between lane section {} and {}", i, i + 1);
+      maliput::log()->trace("Verify lane links between lane section ", i, " and ", i + 1);
       VerifyLaneLinksBetweenTwoLaneSections(GetLanesFromLaneSection(road_header.id, i),
                                             GetLanesFromLaneSection(road_header.id, i + 1));
     }

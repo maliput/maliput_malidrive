@@ -97,8 +97,8 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
     s_range_validation_ = maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(
         0., length_, road_curve_->linear_tolerance(), road_curve_->linear_tolerance() / 4.);
   } else {
-    maliput::log()->trace("Lane {} is shorter than linear tolerance. Will not construct the RoadCurveOffset for it.",
-                          id.string());
+    maliput::log()->trace("Lane ", id.string(),
+                          " is shorter than linear tolerance. Will not construct the RoadCurveOffset for it.");
     p_from_s_ = [p0 = p0_, p1 = p1_, lane_ground_curve_lmax](double s) -> double {
       return p0 + s / lane_ground_curve_lmax * (p1 - p0);
     };

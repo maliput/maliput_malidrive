@@ -112,7 +112,7 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
     } else {
       rg_config_.tolerances.linear_tolerance = constants::kLinearTolerance;
     }
-    maliput::log()->trace("|__ Using `linear_tolerance`: {}", rg_config_.tolerances.linear_tolerance.value());
+    maliput::log()->trace("|__ Using `linear_tolerance`: ", rg_config_.tolerances.linear_tolerance.value());
   }
 
   // Verifies max_linear_tolerance value.
@@ -127,13 +127,13 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
 
   maliput::log()->trace("Tolerances:");
   rg_config_.tolerances.max_linear_tolerance.has_value()
-      ? maliput::log()->trace("|__ linear tolerance: [{}, {}]", rg_config_.tolerances.linear_tolerance.value(),
-                              rg_config_.tolerances.max_linear_tolerance.value())
-      : maliput::log()->trace("|__ linear tolerance: {}", rg_config_.tolerances.linear_tolerance.value());
-  maliput::log()->trace("|__ angular tolerance: {}", rg_config_.tolerances.angular_tolerance);
+      ? maliput::log()->trace("|__ linear tolerance: [", rg_config_.tolerances.linear_tolerance.value(), ", ",
+                              rg_config_.tolerances.max_linear_tolerance.value(), "]")
+      : maliput::log()->trace("|__ linear tolerance: ", rg_config_.tolerances.linear_tolerance.value());
+  maliput::log()->trace("|__ angular tolerance: ", rg_config_.tolerances.angular_tolerance);
 
   maliput::log()->trace(
-      "Build policy for the RoadGeometry building process: {}",
+      "Build policy for the RoadGeometry building process: ",
       rg_config_.build_policy.type == BuildPolicy::Type::kSequential
           ? "sequential"
           : "parallel -- " +
@@ -142,14 +142,13 @@ RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manage
                      : std::to_string(GetEffectiveNumberOfThreads(rg_config_.build_policy)) + " threads(automatic)"));
 
   maliput::log()->trace(
-      "Strictness for meeting the OpenDrive standard: {}",
+      "Strictness for meeting the OpenDrive standard: ",
       RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(rg_config_.standard_strictness_policy));
 
-  maliput::log()->trace("Omit non-drivable lanes policy: {}",
-                        rg_config_.omit_nondrivable_lanes ? "enabled" : "disabled");
+  maliput::log()->trace("Omit non-drivable lanes policy: ", rg_config_.omit_nondrivable_lanes ? "enabled" : "disabled");
 
   maliput::log()->trace(
-      "Geometry simplification policy: {}",
+      "Geometry simplification policy: ",
       rg_config_.simplification_policy ==
               RoadGeometryConfiguration::SimplificationPolicy::kSimplifyWithinToleranceAndKeepGeometryModel
           ? "SimplifyWithinToleranceAndKeepGeometryModel"
@@ -263,7 +262,7 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
 
   //@{
 
-  maliput::log()->trace("Creating LaneWidth for lane id {}_{}_{}", lane_id.string());
+  maliput::log()->trace("Creating LaneWidth for lane id ", lane_id.string());
 
   const double xodr_p_0_lane{lane_section->s_0};
   const double xodr_p_1_lane{lane_section->s_0 + road_header->GetLaneSectionLength(xodr_lane_section_index)};
@@ -289,7 +288,7 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
       factory->MakeLaneWidth(lane->width_description, xodr_p_0_lane, xodr_p_1_lane, enforce_contiguity),
       road_curve_p_0_lane, road_curve_p_1_lane, factory->linear_tolerance());
 
-  maliput::log()->trace("Creating LaneOffset for lane id {}", lane_id.string());
+  maliput::log()->trace("Creating LaneOffset for lane id ", lane_id.string());
   // Build a road_curve::CubicPolynomial for the lane offset.
   const bool no_adjacent_lane{adjacent_lane_functions->width == nullptr && adjacent_lane_functions->offset == nullptr};
   std::unique_ptr<road_curve::Function> lane_offset = std::make_unique<road_curve::ScaledDomainFunction>(
@@ -302,7 +301,7 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   //@}
   adjacent_lane_functions->width = lane_width.get();
   adjacent_lane_functions->offset = lane_offset.get();
-  maliput::log()->trace("Building lane id {}", lane_id.string());
+  maliput::log()->trace("Building lane id ", lane_id.string());
   auto built_lane =
       std::make_unique<Lane>(lane_id, xodr_track_id, xodr_lane_id, elevation_bounds, segment->road_curve(),
                              std::move(lane_width), std::move(lane_offset), road_curve_p_0_lane, road_curve_p_1_lane);
@@ -377,8 +376,8 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
 
     const bool hide_lane =
         rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*built_lane.xodr_lane_properties.lane);
-    maliput::log()->trace("Lane ID: {}{} added to segment {}", built_lane.lane->id().string(),
-                          hide_lane ? "(hidden)" : "", built_lane.segment->id().string());
+    maliput::log()->trace("Lane ID: ", built_lane.lane->id().string(), hide_lane ? "(hidden)" : "",
+                          " added to segment ", built_lane.segment->id().string());
     built_lane.segment->AddLane(std::move(built_lane.lane), hide_lane);
   }
 }
@@ -429,22 +428,23 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
   // Iterates over the tolerances.
   maliput::log()->debug("Starting linear and angular tolerance trials to build the RoadGeometry.");
   for (size_t i = 0; i < linear_tolerances.size(); ++i) {
-    maliput::log()->debug("Iteration [{}] with (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}).", i,
-                          linear_tolerances[i], angular_tolerances[i], scale_lengths[i]);
+    maliput::log()->debug("Iteration [", i, "] with (linear_tolerance: ", linear_tolerances[i],
+                          ", angular_tolerance: ", angular_tolerances[i], ", scale_length: ", scale_lengths[i], ").");
     try {
       std::unique_ptr<const maliput::api::RoadGeometry> rg = DoBuild();
-      maliput::log()->info(
-          "RoadGeometry loaded successfully after iteration [{}] using:\n\t|__ linear_tolerance = {}\n\t|__ "
-          "angular_tolerance = {}\n\t|__ scale_length = {}",
-          i, rg_config_.tolerances.linear_tolerance.value(), rg_config_.tolerances.angular_tolerance,
-          rg_config_.scale_length);
+      maliput::log()->info("RoadGeometry loaded successfully after iteration [", i,
+                           "] using:\n\t|__ linear_tolerance = ", rg_config_.tolerances.linear_tolerance.value(),
+                           "\n\t|__ "
+                           "angular_tolerance = ",
+                           rg_config_.tolerances.angular_tolerance, "\n\t|__ scale_length = ", rg_config_.scale_length);
       return rg;
     } catch (maliput::common::assertion_error& e) {
       maliput::log()->warn(
-          "Iteration [{}] failed with : (linear_tolerance: {}, angular_tolerance: {}, scale_length: {}). "
-          "Error: {}",
-          i, rg_config_.tolerances.linear_tolerance.value(), rg_config_.tolerances.angular_tolerance,
-          rg_config_.scale_length, e.what());
+          "Iteration [", i, "] failed with : (linear_tolerance: ", rg_config_.tolerances.linear_tolerance.value(),
+          ", angular_tolerance: ", rg_config_.tolerances.angular_tolerance, ", scale_length: ", rg_config_.scale_length,
+          "). "
+          "Error: ",
+          e.what());
     }
     if (i < linear_tolerances.size() - 1) {
       Reset(linear_tolerances[i + 1], angular_tolerances[i + 1], scale_lengths[i + 1]);
@@ -484,9 +484,9 @@ void RoadGeometryBuilder::Reset(double linear_tolerance, double angular_toleranc
 }
 
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild() {
-  maliput::log()->trace("Using: linear_tolerance: {}", rg_config_.tolerances.linear_tolerance.value());
-  maliput::log()->trace("Using: angular_tolerance: {}", rg_config_.tolerances.angular_tolerance);
-  maliput::log()->trace("Using: scale_length: {}", rg_config_.scale_length);
+  maliput::log()->trace("Using: linear_tolerance: ", rg_config_.tolerances.linear_tolerance.value());
+  maliput::log()->trace("Using: angular_tolerance: ", rg_config_.tolerances.angular_tolerance);
+  maliput::log()->trace("Using: scale_length: ", rg_config_.scale_length);
 
   const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers = manager_->GetRoadHeaders();
 
@@ -503,10 +503,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
 
   maliput::log()->trace("Visiting XODR Roads...");
   for (const auto& road_header : road_headers) {
-    maliput::log()->trace("Visiting XODR Road ID: {}.", road_header.first);
+    maliput::log()->trace("Visiting XODR Road ID: ", road_header.first);
     auto road_curve = BuildRoadCurve(
         road_header.second, FilterGeometriesToSimplifyByRoadHeaderId(geometries_to_simplify, road_header.first));
-    maliput::log()->trace("Creating ReferenceLineOffset for road id {}", road_header.first.string());
+    maliput::log()->trace("Creating ReferenceLineOffset for road id ", road_header.first.string());
     auto reference_line_offset = std::make_unique<road_curve::ScaledDomainFunction>(
         factory_->MakeReferenceLineOffset(road_header.second.lanes.lanes_offset, road_header.second.s0(),
                                           road_header.second.s1()),
@@ -515,22 +515,22 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     rg->AddRoadCharacteristics(road_header.first, std::move(road_curve), std::move(reference_line_offset));
     int lane_section_index = 0;
     for (const auto& lane_section : road_header.second.lanes.lanes_section) {
-      maliput::log()->trace("Visiting XODR LaneSection: {} of Road: {}...", lane_section_index, road_header.first);
+      maliput::log()->trace("Visiting XODR LaneSection: ", lane_section_index, " of Road: ", road_header.first, "...");
       maliput::geometry_base::Junction* junction{nullptr};
       // If junction id is specified in the xodr description.
       if (road_header.second.junction != "-1") {
         const maliput::api::JunctionId junction_id{road_header.second.junction};
         if (junctions_.find(junction_id) == junctions_.end()) {
           junction = rg->AddJunction(BuildJunction(road_header.second.junction));
-          maliput::log()->trace("Built Junction ID: {}.", junction->id().string());
+          maliput::log()->trace("Built Junction ID: ", junction->id().string(), ".");
           junctions_[junction->id()] = junction;
         } else {
           junction = junctions_.at(junction_id);
-          maliput::log()->trace("Using Junction ID: {}.", junction->id().string());
+          maliput::log()->trace("Using Junction ID: ", junction->id().string(), ".");
         }
       } else {
         junction = rg->AddJunction(BuildJunction(road_header.first.string(), lane_section_index));
-        maliput::log()->trace("Built Junction ID: {}.", junction->id().string());
+        maliput::log()->trace("Built Junction ID: ", junction->id().string(), ".");
         junctions_[junction->id()] = junction;
       }
       // Add a segment for each lane section.
@@ -540,10 +540,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
           GetSegmentId(std::stoi(road_header.first.string()), lane_section_index), road_curve, reference_line_offset,
           road_curve->PFromP(lane_section.s_0),
           road_curve->PFromP(lane_section.s_0 + road_header.second.GetLaneSectionLength(lane_section_index))));
-      maliput::log()->trace("Built Segment ID: {}.", segment->id().string());
+      maliput::log()->trace("Built Segment ID: ", segment->id().string(), ".");
 
-      maliput::log()->trace("Visiting XODR Lanes from XODR LaneSection: {} in XODR Road: {}...", lane_section_index,
-                            road_header.first);
+      maliput::log()->trace("Visiting XODR Lanes from XODR LaneSection: ", lane_section_index,
+                            " in XODR Road: ", road_header.first, "...");
 
       // Save all the attributes for building the lanes later on.
       junctions_segments_attributes_[junction][segment] = {&road_header.second, &lane_section, lane_section_index};
@@ -576,9 +576,9 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
         std::to_string(start_lane_section->s_0));
   }
   const auto& geometries{road_header.reference_geometry.plan_view.geometries};
-  maliput::log()->trace("Creating GroundCurve for road id {}", road_header.id.string());
+  maliput::log()->trace("Creating GroundCurve for road id ", road_header.id.string());
   auto ground_curve = MakeGroundCurve(geometries, geometries_to_simplify);
-  maliput::log()->trace("Creating elevation function for road id {}", road_header.id.string());
+  maliput::log()->trace("Creating elevation function for road id ", road_header.id.string());
   const bool allow_semantic_errors{(rg_config_.standard_strictness_policy &
                                     RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
                                    RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
@@ -589,15 +589,15 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
       factory_->MakeElevation(road_header.reference_geometry.elevation_profile, road_header.s0(), road_header.s1(),
                               enforce_contiguity),
       ground_curve->p0(), ground_curve->p1(), rg_config_.tolerances.linear_tolerance.value());
-  maliput::log()->trace("Creating superelevation function for road id {}", road_header.id.string());
+  maliput::log()->trace("Creating superelevation function for road id ", road_header.id.string());
   auto superelevation = std::make_unique<road_curve::ScaledDomainFunction>(
       factory_->MakeSuperelevation(road_header.reference_geometry.lateral_profile, road_header.s0(), road_header.s1(),
                                    enforce_contiguity),
       ground_curve->p0(), ground_curve->p1(), rg_config_.tolerances.linear_tolerance.value());
-  maliput::log()->trace("Creating RoadCurve for road id {}", road_header.id.string());
+  maliput::log()->trace("Creating RoadCurve for road id ", road_header.id.string());
   auto road_curve = factory_->MakeMalidriveRoadCurve(std::move(ground_curve), std::move(elevation),
                                                      std::move(superelevation), enforce_contiguity);
-  maliput::log()->trace("RoadCurve for road id {} created.", road_header.id.string());
+  maliput::log()->trace("RoadCurve for road id ", road_header.id.string(), " created.");
   return road_curve;
 }
 
@@ -621,12 +621,12 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
   // the top most left. Code below guarantees the right construction and registration
   // order.
   for (auto lane_it = lane_section->right_lanes.crbegin(); lane_it != lane_section->right_lanes.crend(); ++lane_it) {
-    maliput::log()->trace("Building Lane ID: {}_{}_{}.", road_header->id.string(), xodr_lane_section_index,
-                          lane_it->id.string());
+    maliput::log()->trace("Building Lane ID: ", road_header->id.string(), "_", xodr_lane_section_index, "_",
+                          lane_it->id.string(), ".");
     LaneConstructionResult lane_construction_result =
         BuildLane(&(*lane_it), road_header, lane_section, xodr_lane_section_index, factory, rg_config, segment,
                   &adjacent_lane_functions);
-    maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
+    maliput::log()->trace("Built Lane ID: ", lane_construction_result.lane->id().string(), ".");
     built_lanes_result.insert(built_lanes_result.begin(), std::move(lane_construction_result));
   }
   adjacent_lane_functions = road_curve::LaneOffset::AdjacentLaneFunctions{nullptr, nullptr};
@@ -634,7 +634,7 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
     LaneConstructionResult lane_construction_result =
         BuildLane(&(*lane_it), road_header, lane_section, xodr_lane_section_index, factory, rg_config, segment,
                   &adjacent_lane_functions);
-    maliput::log()->trace("Built Lane ID: {}.", lane_construction_result.lane->id().string());
+    maliput::log()->trace("Built Lane ID: ", lane_construction_result.lane->id().string(), ".");
     built_lanes_result.push_back(std::move(lane_construction_result));
   }
   return built_lanes_result;
@@ -661,7 +661,7 @@ std::unique_ptr<malidrive::road_curve::GroundCurve> RoadGeometryBuilder::MakeGro
   MALIDRIVE_THROW_UNLESS(!geometries.empty());
 
   if (!geometries_to_simplify.empty()) {
-    maliput::log()->trace("Simplifying XODR Road {}.", geometries_to_simplify.front().road_header_id.string());
+    maliput::log()->trace("Simplifying XODR Road ", geometries_to_simplify.front().road_header_id.string(), ".");
   }
 
   if (geometries.size() == 1) {
@@ -699,7 +699,7 @@ void RoadGeometryBuilder::FindOrCreateBranchPointFor(const MalidriveXodrLaneProp
   std::vector<maliput::api::LaneEnd> connecting_lane_ends;
   // Start BP
   const maliput::api::LaneEnd start_lane_end(lane, maliput::api::LaneEnd::Which::kStart);
-  maliput::log()->trace("Looking for start connections of Lane ID: {}.", lane->id().string());
+  maliput::log()->trace("Looking for start connections of Lane ID: ", lane->id().string(), ".");
   // Gets all the connecting LaneEnds to which this lane end connects to.
   connecting_lane_ends = FindConnectingLaneEndsForLaneEnd(start_lane_end, xodr_lane_properties, rg);
   // FindsOrCreates and Attaches to the BranchPoint.
@@ -707,7 +707,7 @@ void RoadGeometryBuilder::FindOrCreateBranchPointFor(const MalidriveXodrLaneProp
 
   // End BP
   const maliput::api::LaneEnd end_lane_end(lane, maliput::api::LaneEnd::Which::kFinish);
-  maliput::log()->trace("Looking for end connections of Lane ID: {}.", lane->id().string());
+  maliput::log()->trace("Looking for end connections of Lane ID: ", lane->id().string(), ".");
   // Gets all the connecting LaneEnds to which this lane end connects to.
   connecting_lane_ends = FindConnectingLaneEndsForLaneEnd(end_lane_end, xodr_lane_properties, rg);
   // FindsOrCreates and Attaches to the BranchPoint.
@@ -785,7 +785,7 @@ void RoadGeometryBuilder::AttachLaneEndToBranchPoint(const maliput::api::LaneEnd
   }
   if (bp_side.first == nullptr) {
     bps_.push_back(std::make_unique<BranchPoint>(GetNewBranchPointId()));
-    maliput::log()->trace("Created BranchPoint ID: {}.", bps_.back()->id().string());
+    maliput::log()->trace("Created BranchPoint ID: ", bps_.back()->id().string(), ".");
     bp_side = std::make_pair<BranchPoint*, std::optional<BranchPointSide>>(bps_.back().get(), BranchPointSide::kASide);
   }
 
@@ -811,9 +811,9 @@ void RoadGeometryBuilder::AttachLaneEndToBranchPoint(const maliput::api::LaneEnd
       bp_side.first->AddBBranch(mutable_geometry_base_lane_cast(lane_end.lane), lane_end.end);
     }
   }
-  maliput::log()->trace("LaneEnd ({}, {}) is attached to BranchPoint {}.", lane_end.lane->id().string(),
+  maliput::log()->trace("LaneEnd (", lane_end.lane->id().string(), ", ",
                         lane_end.end == maliput::api::LaneEnd::Which::kStart ? "start" : "end",
-                        bp_side.first->id().string());
+                        ") is attached to BranchPoint ", bp_side.first->id().string(), ".");
 }
 
 void RoadGeometryBuilder::SetDefaultsToBranchPoints() {
