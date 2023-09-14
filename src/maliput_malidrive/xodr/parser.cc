@@ -113,7 +113,6 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
     if (new_function == functions->back()) {
       std::string msg{node_id + " node describes two identical functions:\n" + ConvertXMLNodeToText(xml_node) +
                       "Discarding the first repeated description."};
-      DuplicateCurlyBracesForFmtLogging(&msg);
       maliput::log()->trace(msg);
       functions->pop_back();
     } else if (new_function.s_0 == functions->back().s_0) {
@@ -123,7 +122,6 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
       // (even though not necessarily the values in the XML and the values after parsing are the same).
       std::string msg{node_id + " node describes two functions starting at the same s:\n" +
                       ConvertXMLNodeToText(xml_node)};
-      DuplicateCurlyBracesForFmtLogging(&msg);
       if (!allow_schema_errors) {
         MALIDRIVE_THROW_MESSAGE(msg);
       }
@@ -176,7 +174,6 @@ std::optional<double> AttributeParser::As(const std::string& attribute_name) con
   }
   if (std::isnan(value)) {
     std::string msg{"Attributes with NaN values has been found. " + ConvertXMLNodeToText(element_)};
-    DuplicateCurlyBracesForFmtLogging(&msg);
     maliput::log()->warn(msg);
     if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
@@ -545,7 +542,6 @@ Lane NodeParser::As() const {
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(width_description)) {
     std::string msg{std::string(Lane::kLaneTag) + " node has a width description with NaN values:\n" +
                     ConvertXMLNodeToText(element_)};
-    DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }
 
@@ -649,7 +645,6 @@ Lanes NodeParser::As() const {
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(lanes_offsets)) {
     std::string msg{std::string(LaneOffset::kLaneOffsetTag) +
                     " node describes a lane offset description with NaN values:\n" + ConvertXMLNodeToText(element_)};
-    DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }
 
@@ -738,7 +733,6 @@ ElevationProfile NodeParser::As() const {
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(elevations)) {
     std::string msg{std::string(ElevationProfile::kElevationProfileTag) +
                     " node describes a elevation description with NaN values:\n" + ConvertXMLNodeToText(element_)};
-    DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }
   return {elevations};
@@ -784,7 +778,6 @@ LateralProfile NodeParser::As() const {
   if (parser_configuration_.allow_schema_errors && !AreFunctionsCoeffValid(superelevations)) {
     std::string msg{std::string(LateralProfile::kLateralProfileTag) +
                     " node describes a superelevation description with NaN values:\n" + ConvertXMLNodeToText(element_)};
-    DuplicateCurlyBracesForFmtLogging(&msg);
     MALIDRIVE_THROW_MESSAGE(msg);
   }
   return {superelevations};
@@ -977,7 +970,6 @@ Junction NodeParser::As() const {
     if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
-    DuplicateCurlyBracesForFmtLogging(&msg);
     maliput::log()->warn(msg);
   }
   std::unordered_map<Connection::Id, Connection> connections;
@@ -997,20 +989,6 @@ std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element) {
   tinyxml2::XMLPrinter printer;
   element->Accept(&printer);
   return printer.CStr();
-}
-
-void DuplicateCurlyBracesForFmtLogging(std::string* text) {
-  MALIDRIVE_THROW_UNLESS(text != nullptr);
-  // Duplicates `key` if found in `text`.
-  auto duplicates_key = [](const std::string& key, std::string* text) {
-    std::size_t last_pos = text->find(key);
-    while (last_pos != text->npos) {
-      text->insert(last_pos, key);
-      last_pos = text->find(key, last_pos + 2);
-    }
-  };
-  duplicates_key("{", text);
-  duplicates_key("}", text);
 }
 
 }  // namespace xodr
