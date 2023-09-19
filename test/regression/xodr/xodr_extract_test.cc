@@ -29,10 +29,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/xodr_extract.h"
 
+#include <sstream>
 #include <string>
 #include <vector>
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
 
@@ -43,15 +43,24 @@ namespace xodr {
 namespace test {
 namespace {
 
-// Template of a XODR description that contains only the xodr header.
-constexpr const char* kXODRTemplate =
-    R"R(<OpenDRIVE>
-    <header revMajor="1" revMinor="4" name="" vendor="xodr_extract App"/>{}
-</OpenDRIVE>
-)R";
+// A road link node.
+constexpr const char* kRoadLinkNode = R"R(
+        <link>
+            <predecessor elementType="road" elementId="5" contactPoint="end"/>
+            <successor elementType="road" elementId="669" contactPoint="start"/>
+        </link>)R";
 
-constexpr const char* kRoadNodeTemplate = R"R(
-    <road name="Road {0}" length="2." id="{0}" junction="{1}">{2}
+class XodrExtractTestBase : public ::testing::Test {
+ public:
+  // Returns a road node.
+  // @param road_id: The road id.
+  // @param junction_id: The junction id.
+  // @param road_link_node: The road link node.
+  static std::string GetRoadNode(const std::string& road_id, const std::string& junction_id,
+                                 const std::string& road_link_node) {
+    std::stringstream ss;
+    ss << "\n    <road name=\"Road " << road_id << "\" length=\"2.\" id=\"" << road_id << "\" junction=\""
+       << junction_id << "\">" << road_link_node << R"R(
         <planView>
             <geometry s="0.0" x="0.0" y="0.0" hdg="1.3" length="2.">
                 <line/>
@@ -70,25 +79,23 @@ constexpr const char* kRoadNodeTemplate = R"R(
             </laneSection>
         </lanes>
     </road>)R";
-
-constexpr const char* kRoadLinkNode = R"R(
-        <link>
-            <predecessor elementType="road" elementId="5" contactPoint="end"/>
-            <successor elementType="road" elementId="669" contactPoint="start"/>
-        </link>)R";
-
-class XodrExtractTestBase : public ::testing::Test {
- public:
-  std::string GetRoadNode(const std::string& road_id, const std::string& junction_id,
-                          const std::string& road_link_node) {
-    return fmt::format(kRoadNodeTemplate, road_id, junction_id, road_link_node);
+    return ss.str();
   }
-  std::string GetXodrDescription(const std::vector<std::string>& road_nodes) {
+
+  // Returns a XODR description.
+  // @param road_nodes: The road nodes.
+  static std::string GetXodrDescription(const std::vector<std::string>& road_nodes) {
     std::string all_roads{};
     for (const auto& road_node : road_nodes) {
       all_roads += road_node;
     }
-    return fmt::format(kXODRTemplate, all_roads);
+    all_roads += "\n";
+    std::stringstream ss;
+    ss << "<OpenDRIVE>\n";
+    ss << "    <header revMajor=\"1\" revMinor=\"4\" name=\"\" vendor=\"xodr_extract App\"/>";
+    ss << all_roads;
+    ss << "</OpenDRIVE>\n";
+    return ss.str();
   }
 };
 
