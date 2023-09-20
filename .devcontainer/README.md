@@ -30,7 +30,7 @@ Locally:
 * Open a terminal in the container and run
 
 ```
-(docker) zen@bazel-zen:/workspaces/maliput$ bazel build //...
+(docker) zen@bazel-zen:/workspaces/maliput_malidrive$ bazel build //...
 ```
 
 CodeSpaces:

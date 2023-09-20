@@ -1,0 +1,51 @@
+###############################################################################
+# Resources
+###############################################################################
+
+# TODO(stonier): Consider making individual targets available. This would be
+# especially useful when the road network is more than just the .xodr file
+
+filegroup(
+    name = "all",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name="carla",
+    srcs = glob(["Town*.xodr"]),
+    visibility = ["//visibility:public"]
+)
+
+# !!! KEEP SYNC'D WITH test/CMakeLists.txt !!!
+filegroup(
+    name = "golden",
+    srcs = [
+        "ArcLane.xodr",
+        "Highway.xodr",
+        "LShapeRoad.xodr",
+        "LShapeRoadVariableLanes.xodr",
+        "LineMultipleSections.xodr",
+        "LineVariableWidth.xodr",
+        "LineVariableOffset.xodr",
+        "ParkingGarageRamp.xodr",
+        "RRFigure8.xodr",
+        "RRLongRoad.xodr",
+        "SingleLane.xodr",
+        "SingleRoadComplexDescription.xodr",
+        "SingleRoadComplexDescription2.xodr",
+        "SingleRoadHighCoefficients.xodr",
+        "SingleRoadNanValues.xodr",
+        "SingleRoadNegativeWidth.xodr",
+        "SingleRoadTinyGeometry.xodr",
+        "SingleRoadTwoGeometries.xodr",
+        "SShapeRoad.xodr",
+        "SShapeSuperelevatedRoad.xodr",
+        "StraightForward.xodr",
+        "TShapeRoad.xodr",
+        "Figure8.xodr",
+    ] + glob(["Town*.xodr"]),
+    visibility = ["//visibility:private"],
+    testonly = True
+)
+

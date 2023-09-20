@@ -145,6 +145,9 @@ endmacro()
 # This macro generates a test target per each map on the list.
 # Map file will be set using a CLI argument and it's the test responsibility
 # to parse it.
+#
+# !!! KEEP SYNC'D WITH resources/BUILD.bazel !!!
+#
 macro(malidrive_build_integration_based_tests)
   set(XODR_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
   set(XODR_FILE_PATHS
