@@ -10,7 +10,6 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <doc_depend>ament_cmake_doxygen</doc_depend>
 
-  <depend>fmt</depend>
   <depend>libgflags-dev</depend>
   <depend>maliput</depend>
   <depend>maliput_drake</depend>
