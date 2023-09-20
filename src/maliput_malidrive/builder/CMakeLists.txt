@@ -44,12 +44,11 @@ target_link_libraries(
       maliput::math
       maliput::utility
       maliput_malidrive::common
-    PRIVATE
-      maliput_drake::analysis
-      maliput_drake::common
-      maliput_drake::framework
-      maliput_drake::math
-      maliput_drake::trajectories
+      PRIVATE
+      maliput::drake_common
+      maliput::drake_common_trajectories
+      maliput::drake_systems_analysis
+      maliput::drake_systems_framework
       maliput_malidrive::base
       maliput_malidrive::road_curve
       maliput_malidrive::xodr
