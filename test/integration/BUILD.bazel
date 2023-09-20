@@ -1,0 +1,46 @@
+###############################################################################
+# Loaders
+###############################################################################
+
+load("//:bazel/variables.bzl", "COPTS")
+load("//:bazel/testing.bzl", "generate_integration_tests")
+
+###############################################################################
+# Test
+###############################################################################
+
+generate_integration_tests(
+    sources = ["extensive_queries_test.cc"],
+    xodr_files = [
+        "ArcLane.xodr",
+        "Highway.xodr",
+        "LShapeRoad.xodr",
+        "LShapeRoadVariableLanes.xodr",
+        "LineMultipleSections.xodr",
+        "LineVariableWidth.xodr",
+        "LineVariableOffset.xodr",
+        "ParkingGarageRamp.xodr",
+        "RRFigure8.xodr",
+        "RRLongRoad.xodr",
+        "SingleLane.xodr",
+        "SingleRoadComplexDescription.xodr",
+        "SingleRoadComplexDescription2.xodr",
+        "SingleRoadHighCoefficients.xodr",
+        "SingleRoadNanValues.xodr",
+        "SingleRoadNegativeWidth.xodr",
+        "SingleRoadTinyGeometry.xodr",
+        "SingleRoadTwoGeometries.xodr",
+        "SShapeRoad.xodr",
+        "SShapeSuperelevatedRoad.xodr",
+        "StraightForward.xodr",
+        "TShapeRoad.xodr",
+        "Figure8.xodr",
+        "Town01.xodr",
+        "Town02.xodr",
+        "Town03.xodr",
+        "Town04.xodr",
+        "Town05.xodr",
+        "Town06.xodr",
+        "Town07.xodr",
+    ]
+)
