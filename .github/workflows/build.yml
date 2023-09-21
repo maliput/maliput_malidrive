@@ -10,7 +10,6 @@ env:
   PACKAGE_NAME: maliput_malidrive
   ROS_DISTRO: foxy
 
-
 # Cancel previously running PR jobs
 concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
@@ -28,6 +27,7 @@ jobs:
       shell: bash
       run: |
         bazel build //...
+        bazel test //...
 
   cmake:
     name: Compile and Test (CMake)
