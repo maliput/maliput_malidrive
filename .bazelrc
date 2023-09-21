@@ -7,7 +7,7 @@
 common --enable_bzlmod
 
 # TODO(daniel.stonier) Delete once 'yaml-cpp' has made it into the official BCR
-build --registry=https://raw.githubusercontent.com/stonier/bazel-central-registry/maliput_releases/
+common --registry=https://raw.githubusercontent.com/stonier/bazel-central-registry/maliput_releases/
 
 ########################################
 # Bazel Configuration
