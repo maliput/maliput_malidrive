@@ -36,6 +36,7 @@ target_include_directories(
 
 target_link_libraries(
   xodr
+    maliput::api
     maliput::math
     maliput_malidrive::common
     tinyxml2

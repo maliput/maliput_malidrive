@@ -17,38 +17,163 @@ cc_library(
     visibility = ["//visibility:public"],
 )
 
-cc_library(
-    name = "maliput_malidrive_public_headers",
-    hdrs = glob(["include/maliput_malidrive/**/*.h"]),
-    copts = COPTS,
-    strip_include_prefix = "include",
-    visibility = ["//visibility:public"],
-    deps = [
-        "@maliput//:api",
-        "@maliput//:base",
-        "@maliput//:common",
-        "@maliput//:plugin",
-        "@maliput//:geometry_base",
-    ],
-)
-
 # TODO(stonier): decompose this across dirs in src/maliput_malidrive
 cc_library(
     name = "maliput_malidrive",
-    srcs = glob(["src/maliput_malidrive/**/*.cc"]),
-    hdrs = glob(["src/maliput_malidrive/**/*.h"]),
+    visibility = ["//visibility:public"],
+    deps = [
+        ":constants",
+        ":base",
+        ":builder",
+        ":common",
+        ":loader",
+        ":road_curve",
+        ":test_utilities",
+    ],
+)
+
+cc_library(
+    name = "constants",
+    hdrs = ["include/maliput_malidrive/constants.h"],
+    copts = COPTS,
+    strip_include_prefix = "include",
+    visibility = ["//visibility:private"],
+)
+
+cc_library(
+    name = "base",
+    srcs = glob(["src/maliput_malidrive/base/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/base/*.h"]),
     copts = COPTS,
     strip_include_prefix = "src",
     visibility = ["//visibility:public"],
     deps = [
-        ":maliput_malidrive_public_headers",
-        ":utility",
+        ":constants",
+        ":common",
+        ":road_curve",
+        ":xodr",
+        "@maliput//:api",
+        "@maliput//:base",
+        "@maliput//:drake",
+        "@maliput//:geometry_base",
+        "@maliput//:math",
+    ],
+)
+
+cc_library(
+    name = "private_builder_headers",
+    hdrs = glob(["src/maliput_malidrive/builder/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:private"],
+)
+
+cc_library(
+    name = "builder",
+    srcs = glob(["src/maliput_malidrive/builder/*.cc"]),
+    hdrs = glob(["include/maliput_malidrive/builder/*.h"]),
+    copts = COPTS,
+    linkopts = ["-lpthread"],
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":private_builder_headers",
+        ":base",
+        ":common",
+        ":road_curve",
+        ":xodr",
+        "@maliput//:api",
+        "@maliput//:base",
+        "@maliput//:drake",
+        "@maliput//:geometry_base",
+        "@maliput//:math",
+        "@maliput//:utility",
+    ],
+)
+
+cc_library(
+    name = "common",
+    srcs = glob(["src/maliput_malidrive/common/*.cc"]),
+    hdrs = glob(["include/maliput_malidrive/common/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        "@maliput//:common",
+    ],
+)
+
+cc_library(
+    name = "private_loader_headers",
+    hdrs = glob(["src/maliput_malidrive/loader/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:private"],
+)
+
+cc_library(
+    name = "loader",
+    srcs = glob(["src/maliput_malidrive/loader/*.cc"]),
+    hdrs = glob(["include/maliput_malidrive/loader/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "include",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":private_loader_headers",
+        ":builder",
+        ":common",
         "@maliput//:api",
         "@maliput//:base",
         "@maliput//:geometry_base",
-        "@maliput//:utility",
+        "@maliput//:math",
+    ],
+)
+
+cc_library(
+    name = "road_curve",
+    srcs = glob(["src/maliput_malidrive/road_curve/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/road_curve/*.h"]),
+    strip_include_prefix = "src",
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common",
+        "@eigen",
+        "@maliput//:base",
+        "@maliput//:common",
         "@maliput//:drake",
+        "@maliput//:math",
+    ],
+)
+
+cc_library(
+    name = "xodr",
+    srcs = glob(["src/maliput_malidrive/xodr/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/xodr/*.h"]),
+    strip_include_prefix = "src",
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common",
+        "@maliput//:api",
+        "@maliput//:math",
         "@tinyxml2//:tinyxml2"
+    ],
+)
+
+
+cc_library(
+    name = "test_utilities",
+    srcs = glob(["src/maliput_malidrive/test_utilities/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/test_utilities/*.h"]),
+    strip_include_prefix = "src",
+    copts = COPTS,
+    visibility = ["//visibility:private"],
+    deps = [
+        ":builder",
+        ":common",
+        "@maliput//:api",
+        "@maliput//:math",
     ],
 )
 
@@ -58,10 +183,8 @@ cc_library(
     copts = COPTS,
     visibility = ["//visibility:public"],
     deps = [
-        ":maliput_malidrive",
-        "@maliput//:api",
-        "@maliput//:base",
-        "@maliput//:common",
+        ":builder",
+        "@maliput//:plugin",
     ],
 )
 
@@ -87,7 +210,8 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":log_level_flag",
-        ":maliput_malidrive",
+        ":common",
+        ":xodr",
         "@gflags//:gflags",
         "@maliput//:common",
         "@tinyxml2//:tinyxml2"
@@ -102,7 +226,8 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":log_level_flag",
-        ":maliput_malidrive",
+        ":utility",
+        ":xodr",
         "@gflags//:gflags",
         "@maliput//:common",
     ],
@@ -115,7 +240,8 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":log_level_flag",
-        ":maliput_malidrive",
+        ":utility",
+        ":xodr",
         "@gflags//:gflags",
         "@maliput//:common",
     ],
