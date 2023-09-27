@@ -27,13 +27,12 @@ target_include_directories(
 target_link_libraries(
   road_curve
     maliput::common
+    maliput::drake_common
+    maliput::drake_common_trajectories
+    maliput::drake_systems_analysis
+    maliput::drake_systems_framework
     maliput::math
     maliput_malidrive::common
-    maliput_drake::analysis
-    maliput_drake::common
-    maliput_drake::framework
-    maliput_drake::math
-    maliput_drake::trajectories
 )
 
 install(TARGETS road_curve
