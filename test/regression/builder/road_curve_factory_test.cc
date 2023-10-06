@@ -34,7 +34,6 @@
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
 #include <maliput/math/vector.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
 
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
@@ -47,7 +46,6 @@ namespace test {
 namespace {
 
 using maliput::math::Vector2;
-using maliput::math::test::CompareVectors;
 
 GTEST_TEST(RoadCurveFactoryConstructorTest, Prerequisites) {
   const double kAngularTolerance{1e-12};

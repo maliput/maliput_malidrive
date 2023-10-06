@@ -35,10 +35,11 @@
 
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
+#include <maliput/math/compare.h>
 #include <maliput/math/matrix.h>
 #include <maliput/math/vector.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
@@ -50,12 +51,13 @@ namespace road_curve {
 namespace test {
 namespace {
 
+using malidrive::test::AssertCompare;
+using maliput::math::CompareMatrices;
+using maliput::math::CompareVectors;
 using maliput::math::Matrix3;
 using maliput::math::RollPitchYaw;
 using maliput::math::Vector2;
 using maliput::math::Vector3;
-using maliput::math::test::CompareMatrices;
-using maliput::math::test::CompareVectors;
 
 // TODO(maliput#336)  Move this to maliput and use the right gtest semantics.
 #define CompareRollPitchYaw(rpy_a, rpy_b, angular_tolerance)                  \
@@ -349,48 +351,48 @@ class MalidriveRoadCurveStubWTest : public MalidriveRoadCurveStubTest {};
 TEST_F(MalidriveRoadCurveStubWTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZero}, flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZ}, elevated_dut_->W(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZero}, flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZ}, elevated_dut_->W(kPRH), kLinearTolerance)));
   //@{ At the centerline, the superelevation and elevation (with pitched roads) make no difference because the
   //   curve is the center of rotation.
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZero}, superelevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZ}, pitched_dut_->W(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZero}, superelevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZ}, pitched_dut_->W(kPRH), kLinearTolerance)));
   //@}
 }
 
 TEST_F(MalidriveRoadCurveStubWTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(
+  EXPECT_TRUE(AssertCompare(
       CompareVectors({/* kG.x() - kR * kSinHeading */ 7.401923788646684, /* kG.y() + kR * kCosHeading */ 21.5, kZero},
-                     flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(
+                     flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors({/* kG.x() - kR * kSinHeading */ 7.401923788646684, /* kG.y() + kR * kCosHeading */ 21.5, kZ},
-                     elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading * kCosTheta */ 7.89811219233389,
-                              /* kG.y() + kR * kCosHeading * kCosTheta */ 21.21352549156242,
-                              /* kR * kSinTheta */ 1.763355756877419},
-                             superelevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(
+                     elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading * kCosTheta */ 7.89811219233389,
+                                            /* kG.y() + kR * kCosHeading * kCosTheta */ 21.21352549156242,
+                                            /* kR * kSinTheta */ 1.763355756877419},
+                                           superelevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors({/* kG.x() - kR * kSinHeading */ 7.401923788646684, /* kG.y() + kR * kCosHeading */ 21.5, kZ},
-                     pitched_dut_->W(kPRH), kLinearTolerance));
+                     pitched_dut_->W(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubWTest, WithAVerticalOffset) {
   const maliput::math::Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors(flat_dut_->W(kPRH), {kG.x(), kG.y(), kH}, kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(elevated_dut_->W(kPRH), {kG.x(), kG.y(), kZ + kH}, kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(superelevated_dut_->W(kPRH),
-                             {/* kG.x() + kH * kSinHeading * kSinTheta */ 10.50903696045513,
-                              /* kG.y() - kH * kCosHeading * kSinTheta */ 19.70610737385377,
-                              /* kH * kCosTheta */ 0.8090169943749475},
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(pitched_dut_->W(kPRH),
-                             {/* kG.x() + kH * kCosHeading * kSinBeta */ 9.950248140489501,
-                              /* kG.y() + kH * kSinHeading * kSinBeta */ 19.913827251556786,
-                              /* kZ + kH * kCosBeta */ 30.995037190209988},
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(flat_dut_->W(kPRH), {kG.x(), kG.y(), kH}, kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(elevated_dut_->W(kPRH), {kG.x(), kG.y(), kZ + kH}, kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(superelevated_dut_->W(kPRH),
+                                           {/* kG.x() + kH * kSinHeading * kSinTheta */ 10.50903696045513,
+                                            /* kG.y() - kH * kCosHeading * kSinTheta */ 19.70610737385377,
+                                            /* kH * kCosTheta */ 0.8090169943749475},
+                                           kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(pitched_dut_->W(kPRH),
+                                           {/* kG.x() + kH * kCosHeading * kSinBeta */ 9.950248140489501,
+                                            /* kG.y() + kH * kSinHeading * kSinBeta */ 19.913827251556786,
+                                            /* kZ + kH * kCosBeta */ 30.995037190209988},
+                                           kLinearTolerance)));
 }
 
 class MalidriveRoadCurveStubOrientationOfPTest : public MalidriveRoadCurveStubTest {};
@@ -408,51 +410,54 @@ class MalidriveRoadCurveStubWDotTest : public MalidriveRoadCurveStubTest {};
 TEST_F(MalidriveRoadCurveStubWDotTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, superelevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZDot}, pitched_dut_->WDot(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, superelevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZDot}, pitched_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubWDotTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors({/*kGDot.x() -kCosHeading * kR * kDGamma*/ -0.8000000000000005,
-                              /*kGDot.y() - kSinHeading * kR * kDGamma*/ -1.3856406460551018, 0.},
-                             flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/*kGDot.x() -kCosHeading * kR * kDGamma*/ -0.8000000000000005,
-                              /*kGDot.y() - kSinHeading * kR * kDGamma*/ -1.3856406460551018, 0.},
-                             elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+  EXPECT_TRUE(AssertCompare(CompareVectors({/*kGDot.x() -kCosHeading * kR * kDGamma*/ -0.8000000000000005,
+                                            /*kGDot.y() - kSinHeading * kR * kDGamma*/ -1.3856406460551018, 0.},
+                                           flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/*kGDot.x() -kCosHeading * kR * kDGamma*/ -0.8000000000000005,
+                                            /*kGDot.y() - kSinHeading * kR * kDGamma*/ -1.3856406460551018, 0.},
+                                           elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       {/*kGDot.x() - kCosTheta * kCosHeading * kR * kDGamma + kSinTheta * kSinHeading * kR * kDTheta*/
        0.0019026745347084928,
        /*kGDot.y() -kCosTheta * kSinHeading * kR * kDGamma -kSinTheta * kCosHeading * kR * kDTheta*/
        -1.0547179251620677,
        /*kCosTheta * kR * kDTheta*/ 0.7281152949374526},
-      superelevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/*kGDot.x() - kCosHeading * kR * kDGamma*/ -0.8000000000000005,
-                              /*kGDot.y() - kSinHeading * kR * kDGamma*/ -1.3856406460551018,
-                              /*kZDot*/ 0.2},
-                             pitched_dut_->WDot(kPRH), kLinearTolerance));
+      superelevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/*kGDot.x() - kCosHeading * kR * kDGamma*/ -0.8000000000000005,
+                                            /*kGDot.y() - kSinHeading * kR * kDGamma*/ -1.3856406460551018,
+                                            /*kZDot*/ 0.2},
+                                           pitched_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubWDotTest, WithAVerticalOffset) {
   const Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       {/*kGDot.x()  + kSinTheta * kCosHeading * kH * kDGamma + kCosTheta * kSinHeading * kH * kDAlpha*/
        1.5628599321420948,
        /*kGDot.y() + kSinTheta * kSinHeading * kH * kDGamma - kCosTheta * kCosHeading * kH * kDAlpha*/
        2.2215426109587875,
        /*-kSinTheta * kH * kDAlpha*/ -0.17633557568774194},
-      superelevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+      superelevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       {/*kGDot.x() + kCosBeta * kCosHeading * kDBeta * kH - kSinBeta * kSinHeading * kDGamma * kH*/ 1.1280369315528962,
        /*kGDot.y() + kCosBeta * kSinHeading * kDBeta * kH + kSinBeta * kCosHeading * kDGamma * kH*/ 1.7150083526133144,
        /*kZDot - kSinBeta * kDBeta * kH*/ 0.2049259266842079},
-      pitched_dut_->WDot(kPRH), kLinearTolerance));
+      pitched_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveStubNormalizedDerivatives : public MalidriveRoadCurveStubTest {
@@ -467,10 +472,10 @@ TEST_F(MalidriveRoadCurveStubSHatTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
   const Vector3 kExpectedPitchedSHat{0.49751859510499463, 0.8617274844321391, 0.09950371902099893};
 
-  EXPECT_TRUE(CompareVectors(kExpectedSHat, flat_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSHat, elevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSHat, superelevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedPitchedSHat, pitched_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedSHat, flat_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedSHat, elevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedSHat, superelevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedPitchedSHat, pitched_dut_->SHat(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubSHatTest, WithALateralOffset) {
@@ -479,10 +484,11 @@ TEST_F(MalidriveRoadCurveStubSHatTest, WithALateralOffset) {
   const Vector3 kExpectedSuperelevatedSHat{0.0014845694727125196, -0.8229479111929087, 0.5681148928840971};
   const Vector3 kExpectedPitchedSHat{-0.4961389383568341, -0.8593378488473195, 0.12403473458920845};
 
-  EXPECT_TRUE(CompareVectors(kExpectedFlatSHat, flat_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedFlatSHat, elevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSuperelevatedSHat, superelevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedPitchedSHat, pitched_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedFlatSHat, flat_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedFlatSHat, elevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kExpectedSuperelevatedSHat, superelevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedPitchedSHat, pitched_dut_->SHat(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubSHatTest, WithAVerticalOffset) {
@@ -490,10 +496,11 @@ TEST_F(MalidriveRoadCurveStubSHatTest, WithAVerticalOffset) {
   const Vector3 kExpectedSuperelevatedSHat{0.5741744530994537, 0.8161659195754601, -0.06478340166652961};
   const Vector3 kExpectedPitchedSHat{0.5468107194094988, 0.8313424187227605, 0.099336901356226};
 
-  EXPECT_TRUE(CompareVectors(kExpectedSHat, flat_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSHat, elevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSuperelevatedSHat, superelevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedPitchedSHat, pitched_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedSHat, flat_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedSHat, elevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kExpectedSuperelevatedSHat, superelevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedPitchedSHat, pitched_dut_->SHat(kPRH), kLinearTolerance)));
 }
 //@}
 
@@ -518,10 +525,11 @@ TEST_F(MalidriveRoadCurveStubRHatTest, AtTheCenterline) {
   // Expected derivative is orthonormal to s_hat at the centerline but it is shifted because of superelevation.
   const Vector3 kExpectedSuperelevatedRHat{-0.70062926922203672, 0.40450849718747384, 0.58778525229247314};
 
-  EXPECT_TRUE(CompareVectors(kExpectedRHat, flat_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedRHat, elevated_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSuperelevatedRHat, superelevated_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedRHat, pitched_dut_->RHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedRHat, flat_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedRHat, elevated_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kExpectedSuperelevatedRHat, superelevated_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedRHat, pitched_dut_->RHat(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubRHatTest, WithALateralOffset) {
@@ -531,10 +539,11 @@ TEST_F(MalidriveRoadCurveStubRHatTest, WithALateralOffset) {
   const Vector3 kExpectedFlatRHat{-kExpectedFlatSHat.y(), kExpectedFlatSHat.x(), kExpectedFlatSHat.z()};
   const Vector3 kExpectedSuperelevatedRHat{0.80841328164017134, 0.33538844850188776, 0.48371743268076017};
 
-  EXPECT_TRUE(CompareVectors(kExpectedFlatRHat, flat_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedFlatRHat, elevated_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSuperelevatedRHat, superelevated_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedFlatRHat, pitched_dut_->RHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedFlatRHat, flat_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedFlatRHat, elevated_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kExpectedSuperelevatedRHat, superelevated_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedFlatRHat, pitched_dut_->RHat(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubRHatTest, WithAVerticalOffset) {
@@ -542,10 +551,11 @@ TEST_F(MalidriveRoadCurveStubRHatTest, WithAVerticalOffset) {
   const Vector3 kExpectedSuperelevatedRHat{-0.63977220436668092, 0.49663871500361961, 0.58655052065389168};
   const Vector3 kExpectedPitchedRHat{-0.83547479582279804, 0.5495287668037534, 0};
 
-  EXPECT_TRUE(CompareVectors(kExpectedRHat, flat_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedRHat, elevated_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedSuperelevatedRHat, superelevated_dut_->RHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedPitchedRHat, pitched_dut_->RHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedRHat, flat_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedRHat, elevated_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kExpectedSuperelevatedRHat, superelevated_dut_->RHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedPitchedRHat, pitched_dut_->RHat(kPRH), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveStubOrientationOfPRHTest : public MalidriveRoadCurveStubTest {
@@ -565,14 +575,15 @@ TEST_F(MalidriveRoadCurveStubOrientationOfPRHTest, Orientation) {
   // TODO(agalbachicar): Should add and fix the bug when kH is not zero.
 
   for (const Vector3& prh : {kAtCenterline, kWithLateralOffset}) {
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(flat_dut_->SHat(prh), flat_dut_->RHat(prh)),
-                                flat_dut_->Orientation(prh).ToMatrix(), kLinearTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(elevated_dut_->SHat(prh), elevated_dut_->RHat(prh)),
-                                elevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(superelevated_dut_->SHat(prh), superelevated_dut_->RHat(prh)),
-                                superelevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(pitched_dut_->SHat(prh), pitched_dut_->RHat(prh)),
-                                pitched_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(flat_dut_->SHat(prh), flat_dut_->RHat(prh)),
+                                              flat_dut_->Orientation(prh).ToMatrix(), kLinearTolerance)));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(elevated_dut_->SHat(prh), elevated_dut_->RHat(prh)),
+                                              elevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
+    EXPECT_TRUE(
+        AssertCompare(CompareMatrices(MakeRotationMatrix(superelevated_dut_->SHat(prh), superelevated_dut_->RHat(prh)),
+                                      superelevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(pitched_dut_->SHat(prh), pitched_dut_->RHat(prh)),
+                                              pitched_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
   }
 }
 
@@ -581,32 +592,37 @@ class MalidriveRoadCurveStubWInverseTest : public MalidriveRoadCurveStubTest {};
 TEST_F(MalidriveRoadCurveStubWInverseTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kZero}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, superelevated_dut_->WInverse({kG.x(), kG.y(), kZero}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, pitched_dut_->WInverse({kG.x(), kG.y(), kZ}), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kZero}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH, superelevated_dut_->WInverse({kG.x(), kG.y(), kZero}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, pitched_dut_->WInverse({kG.x(), kG.y(), kZ}), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubWInverseTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors(kPRH, flat_dut_->WInverse({7.401923788646684, 21.5, kZero}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, elevated_dut_->WInverse({7.401923788646684, 21.5, kZ}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
-      kPRH, superelevated_dut_->WInverse({7.89811219233389, 21.21352549156242, 1.763355756877419}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, pitched_dut_->WInverse({7.401923788646684, 21.5, kZ}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH, flat_dut_->WInverse({7.401923788646684, 21.5, kZero}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH, elevated_dut_->WInverse({7.401923788646684, 21.5, kZ}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kPRH, superelevated_dut_->WInverse({7.89811219233389, 21.21352549156242, 1.763355756877419}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH, pitched_dut_->WInverse({7.401923788646684, 21.5, kZ}), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveStubWInverseTest, WithAVerticalOffset) {
   const maliput::math::Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kH}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ + kH}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             superelevated_dut_->WInverse({10.50903696045513, 19.70610737385377, 0.8090169943749475}),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, pitched_dut_->WInverse({9.950248140489501, 19.913827251556786, 30.995037190209988}),
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ + kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kPRH, superelevated_dut_->WInverse({10.50903696045513, 19.70610737385377, 0.8090169943749475}),
+                     kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kPRH, pitched_dut_->WInverse({9.950248140489501, 19.913827251556786, 30.995037190209988}), kLinearTolerance)));
 }
 
 // Use a LineGroundCurve
@@ -723,39 +739,48 @@ class MalidriveRoadCurveLineWDotTest : public MalidriveRoadCurveLineTest {};
 TEST_F(MalidriveRoadCurveLineWDotTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZDot0}, pitched_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZDot}, crest_dut_->WDot(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZDot0}, pitched_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZDot}, crest_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWDotTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZDot0}, pitched_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZDot}, crest_dut_->WDot(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZDot0}, pitched_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZDot}, crest_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWDotTest, WithAVerticalOffset) {
   const Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kGDot.x(), kGDot.y(), kZDot0}, pitched_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() + kH * kCrestDBeta * kCrestCosBeta * kCosHeading */ 0.10357770876399967,
-                              /* kGDot.y() + kH * kCrestDBeta * kCrestCosBeta * kSinHeading */ 0.17940185411081958,
-                              /* kZDot - kH * kCrestDBeta * kCrestSinBeta */ 0.10357770876399967},
-                             crest_dut_->WDot(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZero}, elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kGDot.x(), kGDot.y(), kZDot0}, pitched_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors({/* kGDot.x() + kH * kCrestDBeta * kCrestCosBeta * kCosHeading */ 0.10357770876399967,
+                      /* kGDot.y() + kH * kCrestDBeta * kCrestCosBeta * kSinHeading */ 0.17940185411081958,
+                      /* kZDot - kH * kCrestDBeta * kCrestSinBeta */ 0.10357770876399967},
+                     crest_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWDotTest, WithVariableOffset) {
   const Vector3 kPRH{kP, lane_offset_->f(kP), kZero};
   const Vector3 kExpectedWDot{0.082679491924311, 0.183205080756888, 0.};
   const Vector3 kExpectedSHat{0.411345846661781, 0.911479343942639, 0.};
-  EXPECT_TRUE(CompareVectors(kExpectedWDot, flat_dut_->WDot(kPRH, lane_offset_.get()), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedWDot.normalized(), flat_dut_->SHat(kPRH, lane_offset_.get()), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kExpectedWDot, flat_dut_->WDot(kPRH, lane_offset_.get()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedWDot.normalized(), flat_dut_->SHat(kPRH, lane_offset_.get()), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveLineOrientationOfPTest : public MalidriveRoadCurveLineTest {};
@@ -786,14 +811,14 @@ TEST_F(MalidriveRoadCurveLineOrientationOfPRHTest, Orientation) {
   const Vector3 kWithVerticalOffset{kP, kZero, kH};
 
   for (const Vector3& prh : {kAtCenterline, kWithLateralOffset, kWithVerticalOffset}) {
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(flat_dut_->SHat(prh), flat_dut_->RHat(prh)),
-                                flat_dut_->Orientation(prh).ToMatrix(), kLinearTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(elevated_dut_->SHat(prh), elevated_dut_->RHat(prh)),
-                                elevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(pitched_dut_->SHat(prh), pitched_dut_->RHat(prh)),
-                                pitched_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(crest_dut_->SHat(prh), crest_dut_->RHat(prh)),
-                                crest_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(flat_dut_->SHat(prh), flat_dut_->RHat(prh)),
+                                              flat_dut_->Orientation(prh).ToMatrix(), kLinearTolerance)));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(elevated_dut_->SHat(prh), elevated_dut_->RHat(prh)),
+                                              elevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(pitched_dut_->SHat(prh), pitched_dut_->RHat(prh)),
+                                              pitched_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(crest_dut_->SHat(prh), crest_dut_->RHat(prh)),
+                                              crest_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
   }
 }
 
@@ -811,52 +836,54 @@ class MalidriveRoadCurveLineWTest : public MalidriveRoadCurveLineTest {};
 TEST_F(MalidriveRoadCurveLineWTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZero}, flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZ0}, elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZ0 + kZDot0 * kP}, pitched_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP}, crest_dut_->W(kPRH),
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZero}, flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZ0}, elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({kG.x(), kG.y(), kZ0 + kZDot0 * kP}, pitched_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP},
+                                           crest_dut_->W(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
-                              /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZero},
-                             flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
-                              /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0},
-                             elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
-                              /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0 + kZDot0 * kP},
-                             pitched_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
+                                            /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZero},
+                                           flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
+                                            /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0},
+                                           elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
+                                            /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0 + kZDot0 * kP},
+                                           pitched_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
                       /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP},
-                     crest_dut_->W(kPRH), kLinearTolerance));
+                     crest_dut_->W(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWTest, WithAVerticalOffset) {
   const maliput::math::Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kH}, flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({kG.x(), kG.y(), kZ0 + kH}, elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(pitched_dut_->W(kPRH),
-                             {/* kG.x() + kH * kCosHeading * kPitchedSinBeta */ 14.646446609406727,
-                              /* kG.y() + kH * kSinHeading * kPitchedSinBeta */ 28.047881602148593,
-                              /* kZ0 + kZDot0 * kP + kH * kPitchedCosBeta */ 40.707106781186546},
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(crest_dut_->W(kPRH),
-                             {/* kG.x() + kH * kCosHeading * kCrestSinBeta */ 14.776393202250022,
-                              /* kG.y() + kH * kSinHeading * kCrestSinBeta */ 28.272955703223644,
-                              /* kZ0 + kZDot0*kP + 0.5*kZDotDot*kP*kP + kH*kCrestCosBeta */ 38.39442719099991},
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kH}, flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({kG.x(), kG.y(), kZ0 + kH}, elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(pitched_dut_->W(kPRH),
+                                           {/* kG.x() + kH * kCosHeading * kPitchedSinBeta */ 14.646446609406727,
+                                            /* kG.y() + kH * kSinHeading * kPitchedSinBeta */ 28.047881602148593,
+                                            /* kZ0 + kZDot0 * kP + kH * kPitchedCosBeta */ 40.707106781186546},
+                                           kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(crest_dut_->W(kPRH),
+                                   {/* kG.x() + kH * kCosHeading * kCrestSinBeta */ 14.776393202250022,
+                                    /* kG.y() + kH * kSinHeading * kCrestSinBeta */ 28.272955703223644,
+                                    /* kZ0 + kZDot0*kP + 0.5*kZDotDot*kP*kP + kH*kCrestCosBeta */ 38.39442719099991},
+                                   kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWTest, WithVariableOffset) {
   const Vector3 kPRH{kP, lane_offset_->f(kP), kZero};
   const Vector3 kExpectedW{14.13397459621556, 29.160254037844386, 0.};
-  EXPECT_TRUE(CompareVectors(kExpectedW, flat_dut_->W(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedW, flat_dut_->W(kPRH), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveLineWInverseTest : public MalidriveRoadCurveLineTest {};
@@ -864,53 +891,57 @@ class MalidriveRoadCurveLineWInverseTest : public MalidriveRoadCurveLineTest {};
 TEST_F(MalidriveRoadCurveLineWInverseTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kZero}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ0}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, pitched_dut_->WInverse({kG.x(), kG.y(), kZ0 + kZDot0 * kP}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, crest_dut_->WInverse({kG.x(), kG.y(), kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP}),
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kZero}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ0}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kPRH, pitched_dut_->WInverse({kG.x(), kG.y(), kZ0 + kZDot0 * kP}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kPRH, crest_dut_->WInverse({kG.x(), kG.y(), kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP}), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWInverseTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             flat_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
-                                                  /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZero}),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             elevated_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
-                                                      /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0}),
-                             kLinearTolerance));
   EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH,
+                                   flat_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
+                                                        /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZero}),
+                                   kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH,
+                                   elevated_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
+                                                            /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0}),
+                                   kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors(kPRH,
                      pitched_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
                                              /* kG.y() + kR * kCosHeading */ 30.160254037844386, kZ0 + kZDot0 * kP}),
-                     kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             crest_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
-                                                   /* kG.y() + kR * kCosHeading */ 30.160254037844386,
-                                                   kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP}),
-                             kLinearTolerance));
+                     kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH,
+                                           crest_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 12.401923788646684,
+                                                                 /* kG.y() + kR * kCosHeading */ 30.160254037844386,
+                                                                 kZ0 + kZDot0 * kP + 0.5 * kZDotDot * kP * kP}),
+                                           kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveLineWInverseTest, WithAVerticalOffset) {
   const maliput::math::Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kH}), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ0 + kH}), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kPRH, flat_dut_->WInverse({kG.x(), kG.y(), kH}), kLinearTolerance)));
   EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH, elevated_dut_->WInverse({kG.x(), kG.y(), kZ0 + kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors(kPRH,
                      pitched_dut_->WInverse({/* kG.x() + kH * kCosHeading * kPitchedSinBeta */ 14.646446609406727,
                                              /* kG.y() + kH * kSinHeading * kPitchedSinBeta */ 28.047881602148593,
                                              /* kZ0 + kZDot0 * kP + kH * kPitchedCosBeta */ 40.707106781186546}),
-                     kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+                     kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       kPRH,
       crest_dut_->WInverse({/* kG.x() + kH * kCosHeading * kCrestSinBeta */ 14.776393202250022,
                             /* kG.y() + kH * kSinHeading * kCrestSinBeta */ 28.272955703223644,
                             /* kZ0 + kZDot0*kP + 0.5*kZDotDot*kP*kP + kH*kCrestCosBeta */ 38.39442719099991}),
-      kLinearTolerance));
+      kLinearTolerance)));
 }
 
 // Use an ArcGroundCurve
@@ -1007,47 +1038,56 @@ class MalidriveRoadCurveArcWDotTest : public MalidriveRoadCurveArcTest {};
 TEST_F(MalidriveRoadCurveArcWDotTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
-                             flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
-                             elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZDot0},
-                             pitched_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
-                             superelevated_dut_->WDot(kPRH), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
+                                   flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
+                                   elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZDot0},
+                                   pitched_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
+                                   superelevated_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcWDotTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading*/ -0.1360349523175663,
-                              /* kGDot.y() - kR * kHeadingDot * kSinHeading*/ 0.07853981633974488, kZero},
-                             flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading*/ -0.1360349523175663,
-                              /* kGDot.y() - kR * kHeadingDot * kSinHeading*/ 0.07853981633974488, kZero},
-                             elevated_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading*/ -0.1360349523175663,
-                              /* kGDot.y() - kR * kHeadingDot * kSinHeading*/ 0.07853981633974488, kZDot0},
-                             pitched_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading * kCosTheta*/ -0.13881611947518255,
-                              /* kGDot.y() - kR * kHeadingDot * kSinHeading * kCosTheta*/ 0.08014552394685596, kZero},
-                             superelevated_dut_->WDot(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading*/ -0.1360349523175663,
+                                            /* kGDot.y() - kR * kHeadingDot * kSinHeading*/ 0.07853981633974488, kZero},
+                                           flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading*/ -0.1360349523175663,
+                                            /* kGDot.y() - kR * kHeadingDot * kSinHeading*/ 0.07853981633974488, kZero},
+                                           elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading*/ -0.1360349523175663,
+                                    /* kGDot.y() - kR * kHeadingDot * kSinHeading*/ 0.07853981633974488, kZDot0},
+                                   pitched_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors({/* kGDot.x() - kR * kHeadingDot * kCosHeading * kCosTheta*/ -0.13881611947518255,
+                      /* kGDot.y() - kR * kHeadingDot * kSinHeading * kCosTheta*/ 0.08014552394685596, kZero},
+                     superelevated_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcWDotTest, WithAVerticalOffset) {
   const Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
-                             flat_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
-                             elevated_dut_->WDot(kPRH), kLinearTolerance));
   EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
+                                   flat_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors({/* kGDot.x() */ -0.2176559237081061, /* kGDot.y() */ 0.12566370614359182, kZero},
+                                   elevated_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors({/* kGDot.x() + kH * kHeadingDot * kSinHeading * kSinPitchedBeta */ -0.2078749363852686,
                       /* kGDot.y() - kH * kHeadingDot * kCosHeading * kSinPitchedBeta */ 0.14260487313493342, kZDot0},
-                     pitched_dut_->WDot(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kGDot.x() + kH * kHeadingDot * kSinHeading * kSinTheta*/ -0.2106142364162262,
-                              /* kGDot.y() + kH * kHeadingDot * kCosHeading * kSinTheta*/ 0.12159818609007579, kZero},
-                             superelevated_dut_->WDot(kPRH), kLinearTolerance));
+                     pitched_dut_->WDot(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors({/* kGDot.x() + kH * kHeadingDot * kSinHeading * kSinTheta*/ -0.2106142364162262,
+                      /* kGDot.y() + kH * kHeadingDot * kCosHeading * kSinTheta*/ 0.12159818609007579, kZero},
+                     superelevated_dut_->WDot(kPRH), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveArcSHatTest : public MalidriveRoadCurveArcTest {};
@@ -1055,45 +1095,45 @@ class MalidriveRoadCurveArcSHatTest : public MalidriveRoadCurveArcTest {};
 TEST_F(MalidriveRoadCurveArcSHatTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             flat_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             elevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading * kCosPitchedBeta */ -0.6776466796536645,
-                              /* kSinHeading * kCosPitchedBeta */ 0.39123949291349935,
-                              /* kSinPitchedBeta */ 0.6226769922994999},
-                             pitched_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             superelevated_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           flat_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           elevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading * kCosPitchedBeta */ -0.6776466796536645,
+                                            /* kSinHeading * kCosPitchedBeta */ 0.39123949291349935,
+                                            /* kSinPitchedBeta */ 0.6226769922994999},
+                                           pitched_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           superelevated_dut_->SHat(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcSHatTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             flat_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             elevated_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading * kCosPitchedRBeta */ -0.5349160274107262,
-                              /* kSinHeading * kCosPitchedRBeta */ 0.30883391241942804,
-                              /* kSinPitchedRBeta */ 0.7864391000953832},
-                             pitched_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             superelevated_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           flat_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           elevated_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading * kCosPitchedRBeta */ -0.5349160274107262,
+                                            /* kSinHeading * kCosPitchedRBeta */ 0.30883391241942804,
+                                            /* kSinPitchedRBeta */ 0.7864391000953832},
+                                           pitched_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           superelevated_dut_->SHat(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcSHatTest, WithAVerticalOffset) {
   const Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             flat_dut_->SHat(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             elevated_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           flat_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           elevated_dut_->SHat(kPRH), kLinearTolerance)));
   // expected values normalized from WDot test expectations above
-  EXPECT_TRUE(CompareVectors({-0.6459977126878251, 0.44316271824404935, 0.6215253497329318}, pitched_dut_->SHat(kPRH),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
-                             superelevated_dut_->SHat(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({-0.6459977126878251, 0.44316271824404935, 0.6215253497329318},
+                                           pitched_dut_->SHat(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kCosHeading */ -0.8660254037844386, /* kSinHeading */ 0.5, kZero},
+                                           superelevated_dut_->SHat(kPRH), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveArcSHatRHatOrthogonalTest : public MalidriveRoadCurveArcTest {};
@@ -1152,12 +1192,13 @@ TEST_F(MalidriveRoadCurveArcOrientationOfPRHTest, Orientation) {
   const Vector3 kWithVerticalOffset{kP, kZero, kH};
 
   for (const Vector3& prh : {kAtCenterline, kWithLateralOffset, kWithVerticalOffset}) {
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(flat_dut_->SHat(prh), flat_dut_->RHat(prh)),
-                                flat_dut_->Orientation(prh).ToMatrix(), kLinearTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(elevated_dut_->SHat(prh), elevated_dut_->RHat(prh)),
-                                elevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
-    EXPECT_TRUE(CompareMatrices(MakeRotationMatrix(superelevated_dut_->SHat(prh), superelevated_dut_->RHat(prh)),
-                                superelevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(flat_dut_->SHat(prh), flat_dut_->RHat(prh)),
+                                              flat_dut_->Orientation(prh).ToMatrix(), kLinearTolerance)));
+    EXPECT_TRUE(AssertCompare(CompareMatrices(MakeRotationMatrix(elevated_dut_->SHat(prh), elevated_dut_->RHat(prh)),
+                                              elevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
+    EXPECT_TRUE(
+        AssertCompare(CompareMatrices(MakeRotationMatrix(superelevated_dut_->SHat(prh), superelevated_dut_->RHat(prh)),
+                                      superelevated_dut_->Orientation(prh).ToMatrix(), kAngularTolerance)));
   }
 }
 
@@ -1166,40 +1207,40 @@ class MalidriveRoadCurveArcWTest : public MalidriveRoadCurveArcTest {};
 TEST_F(MalidriveRoadCurveArcWTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero},
-                             flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0},
-                             elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero},
-                             superelevated_dut_->W(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero},
+                                           flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0},
+                                           elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero},
+                                           superelevated_dut_->W(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcWTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
-                              /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZero},
-                             flat_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
-                              /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZ0},
-                             elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() - kR * kSinHeading * kCosTheta */ 5.6229080302908905,
-                              /* kG.y() + kR * kCosHeading * kCosTheta */ 28.418654319062085,
-                              /* kR * kSinTheta */ -0.7764571353075622},
-                             superelevated_dut_->W(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
+                                            /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZero},
+                                           flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
+                                            /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZ0},
+                                           elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() - kR * kSinHeading * kCosTheta */ 5.6229080302908905,
+                                            /* kG.y() + kR * kCosHeading * kCosTheta */ 28.418654319062085,
+                                            /* kR * kSinTheta */ -0.7764571353075622},
+                                           superelevated_dut_->W(kPRH), kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcWTest, WithAVerticalOffset) {
   const maliput::math::Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kH}, flat_dut_->W(kPRH),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0 + kH},
-                             elevated_dut_->W(kPRH), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors({/* kG.x() + kH * kSinHeading * kSinTheta */ 6.942387247173233,
-                              /* kG.y() - kH * kCosHeading * kSinTheta */ 30.704059362233494,
-                              /* kH * kCosTheta */ 0.9659258262890683},
-                             superelevated_dut_->W(kPRH), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kH},
+                                           flat_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0 + kH},
+                                           elevated_dut_->W(kPRH), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({/* kG.x() + kH * kSinHeading * kSinTheta */ 6.942387247173233,
+                                            /* kG.y() - kH * kCosHeading * kSinTheta */ 30.704059362233494,
+                                            /* kH * kCosTheta */ 0.9659258262890683},
+                                           superelevated_dut_->W(kPRH), kLinearTolerance)));
 }
 
 class MalidriveRoadCurveArcWInverseTest : public MalidriveRoadCurveArcTest {};
@@ -1207,51 +1248,53 @@ class MalidriveRoadCurveArcWInverseTest : public MalidriveRoadCurveArcTest {};
 TEST_F(MalidriveRoadCurveArcWInverseTest, AtTheCenterline) {
   const Vector3 kPRH{kP, kZero, kZero};
 
-  EXPECT_TRUE(CompareVectors(
-      kPRH, flat_dut_->WInverse({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero}),
-      kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
-      kPRH, elevated_dut_->WInverse({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0}),
-      kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kPRH, flat_dut_->WInverse({/* kG.x()) */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero}),
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kPRH, elevated_dut_->WInverse({/* kG).x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0}),
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       kPRH, superelevated_dut_->WInverse({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZero}),
-      kLinearTolerance));
+      kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcWInverseTest, WithALateralOffset) {
   const Vector3 kPRH{kP, kR, kZero};
 
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             flat_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
-                                                  /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZero}),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             elevated_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
-                                                      /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZ0}),
-                             kLinearTolerance));
   EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH,
+                                   flat_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
+                                                        /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZero}),
+                                   kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(kPRH,
+                                   elevated_dut_->WInverse({/* kG.x() - kR * kSinHeading */ 5.571796769724493,
+                                                            /* kG.y() + kR * kCosHeading */ 28.33012701892219, kZ0}),
+                                   kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors(kPRH,
                      superelevated_dut_->WInverse({/* kG.x() - kR * kSinHeading * kCosTheta */ 5.6229080302908905,
                                                    /* kG.y() + kR * kCosHeading * kCosTheta */ 28.418654319062085,
                                                    /* kR * kSinTheta */ -0.7764571353075622}),
-                     kLinearTolerance));
+                     kLinearTolerance)));
 }
 
 TEST_F(MalidriveRoadCurveArcWInverseTest, WithAVerticalOffset) {
   const maliput::math::Vector3 kPRH{kP, kZero, kH};
 
-  EXPECT_TRUE(CompareVectors(kPRH,
-                             flat_dut_->WInverse({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kH}),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kPRH, flat_dut_->WInverse({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kH}),
+                     kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       kPRH, elevated_dut_->WInverse({/* kG.x() */ 7.071796769724494, /* kG.y() */ 30.928203230275507, kZ0 + kH}),
-      kLinearTolerance));
-  EXPECT_TRUE(
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors(kPRH,
                      superelevated_dut_->WInverse({/* kG.x() + kH * kSinHeading * kSinTheta */ 6.942387247173233,
                                                    /* kG.y() - kH * kCosHeading * kSinTheta */ 30.704059362233494,
                                                    /* kH * kCosTheta */ 0.9659258262890683}),
-                     kLinearTolerance));
+                     kLinearTolerance)));
 }
 
 }  // namespace

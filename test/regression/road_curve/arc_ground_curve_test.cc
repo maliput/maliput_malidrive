@@ -31,16 +31,18 @@
 
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
+#include <maliput/math/compare.h>
+
+#include "assert_compare.h"
 
 namespace malidrive {
 namespace road_curve {
 namespace test {
 namespace {
 
+using malidrive::test::AssertCompare;
+using maliput::math::CompareVectors;
 using maliput::math::Vector2;
-using maliput::math::test::CompareVectors;
-
 class ArcGroundCurveConstructorTest : public ::testing::Test {
  protected:
   const Vector2 kZero{0., 0.};
@@ -254,25 +256,32 @@ TEST_F(ArcGroundCurveTest, IsG1Contiguous) {
 
 TEST_F(ArcGroundCurveTest, G) {
   // check values at p0, p1, and midpoint
-  EXPECT_TRUE(CompareVectors(/* kLeftTurn90DegG_p0 */ {0., 0.}, left_turn_90deg_dut_->G(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kLeftTurn90DegG_p1 */ {16., 16.}, left_turn_90deg_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kLeftTurn90DegG_Midpoint */ {11.313708498984761, 4.686291501015239},
-                             left_turn_90deg_dut_->G(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kRightTurn90DegG_p0 */ {0., 0.}, right_turn_90deg_dut_->G(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kRightTurn90DegG_p1 */ {16., -16.}, right_turn_90deg_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kRightTurn90DegG_Midpoint */ {11.313708498984761, -4.686291501015239},
-                             right_turn_90deg_dut_->G(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kUTurnQuadrant1G_p0 */ {1., 0.}, u_turn_quadrant1_dut_->G(kP0), kTolerance));
   EXPECT_TRUE(
-      CompareVectors(/* kUTurnQuadrant1G_p1 */ {-12.856406460551018, 8.}, u_turn_quadrant1_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kUTurnQuadrant1G_Midpoint */ {-1.9282032302755061, 10.928203230275509},
-                             u_turn_quadrant1_dut_->G(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kSlightRightTurnQuadrant3G_p0 */ {10., 9.}, slight_right_turn_quadrant3_dut_->G(kP0),
-                             kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kSlightRightTurnQuadrant3G_p1 */ {-13.646323697916673, 0.9731547142802199},
-                             slight_right_turn_quadrant3_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kSlightRightTurnQuadrant3G_Midpoint */ {-1.4278742205976478, 3.8220975545173204},
-                             slight_right_turn_quadrant3_dut_->G(/* kPMidpoint */ 15.), kTolerance));
+      AssertCompare(CompareVectors(/* kLeftTurn90DegG_p0 */ {0., 0.}, left_turn_90deg_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kLeftTurn90DegG_p1 */ {16., 16.}, left_turn_90deg_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kLeftTurn90DegG_Midpoint */ {11.313708498984761, 4.686291501015239},
+                                           left_turn_90deg_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kRightTurn90DegG_p0 */ {0., 0.}, right_turn_90deg_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kRightTurn90DegG_p1 */ {16., -16.}, right_turn_90deg_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kRightTurn90DegG_Midpoint */ {11.313708498984761, -4.686291501015239},
+                                           right_turn_90deg_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kUTurnQuadrant1G_p0 */ {1., 0.}, u_turn_quadrant1_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(/* kUTurnQuadrant1G_p1 */ {-12.856406460551018, 8.}, u_turn_quadrant1_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kUTurnQuadrant1G_Midpoint */ {-1.9282032302755061, 10.928203230275509},
+                                           u_turn_quadrant1_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kSlightRightTurnQuadrant3G_p0 */ {10., 9.},
+                                           slight_right_turn_quadrant3_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kSlightRightTurnQuadrant3G_p1 */ {-13.646323697916673, 0.9731547142802199},
+                                   slight_right_turn_quadrant3_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kSlightRightTurnQuadrant3G_Midpoint */ {-1.4278742205976478, 3.8220975545173204},
+                                   slight_right_turn_quadrant3_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.
@@ -288,30 +297,33 @@ TEST_F(ArcGroundCurveTest, G) {
 
 TEST_F(ArcGroundCurveTest, GDot) {
   // check values at p0, p1, and midpoint
-  EXPECT_TRUE(CompareVectors(/* kLeftTurn90DegGDot_p0 */ {2.5132741228718345, 0.}, left_turn_90deg_dut_->GDot(kP0),
-                             kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kLeftTurn90DegGDot_p1 */ {0., 2.5132741228718345}, left_turn_90deg_dut_->GDot(kP1),
-                             kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kLeftTurn90DegGDot_Midpoint */ {1.7771531752633463, 1.7771531752633463},
-                             left_turn_90deg_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kRightTurn90DegGDot_p0 */ {2.5132741228718345, 0.}, right_turn_90deg_dut_->GDot(kP0),
-                             kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kRightTurn90DegGDot_p1 */ {0., -2.5132741228718345}, right_turn_90deg_dut_->GDot(kP1),
-                             kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kRightTurn90DegGDot_Midpoint */ {1.7771531752633463, -1.7771531752633463},
-                             right_turn_90deg_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kUTurnQuadrant1GDot_p0 */ {1.2566370614359172, 2.176559237081061},
-                             u_turn_quadrant1_dut_->GDot(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kUTurnQuadrant1GDot_p1 */ {-1.2566370614359172, -2.176559237081061},
-                             u_turn_quadrant1_dut_->GDot(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kUTurnQuadrant1GDot_Midpoint */ {-2.176559237081061, 1.2566370614359172},
-                             u_turn_quadrant1_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kSlightRightTurnQuadrant3GDot_p0 */ {-2.1765592370810616, -1.2566370614359166},
-                             slight_right_turn_quadrant3_dut_->GDot(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kSlightRightTurnQuadrant3GDot_p1 */ {-2.4917727143450508, -0.3280481012636511},
-                             slight_right_turn_quadrant3_dut_->GDot(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kSlightRightTurnQuadrant3GDot_Midpoint */ {-2.3798949906277245, -0.8078654902161948},
-                             slight_right_turn_quadrant3_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kLeftTurn90DegGDot_p0 */ {2.5132741228718345, 0.},
+                                           left_turn_90deg_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kLeftTurn90DegGDot_p1 */ {0., 2.5132741228718345},
+                                           left_turn_90deg_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kLeftTurn90DegGDot_Midpoint */ {1.7771531752633463, 1.7771531752633463},
+                                           left_turn_90deg_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kRightTurn90DegGDot_p0 */ {2.5132741228718345, 0.},
+                                           right_turn_90deg_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kRightTurn90DegGDot_p1 */ {0., -2.5132741228718345},
+                                           right_turn_90deg_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kRightTurn90DegGDot_Midpoint */ {1.7771531752633463, -1.7771531752633463},
+                                           right_turn_90deg_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kUTurnQuadrant1GDot_p0 */ {1.2566370614359172, 2.176559237081061},
+                                           u_turn_quadrant1_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kUTurnQuadrant1GDot_p1 */ {-1.2566370614359172, -2.176559237081061},
+                                           u_turn_quadrant1_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kUTurnQuadrant1GDot_Midpoint */ {-2.176559237081061, 1.2566370614359172},
+                                           u_turn_quadrant1_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kSlightRightTurnQuadrant3GDot_p0 */ {-2.1765592370810616, -1.2566370614359166},
+                                   slight_right_turn_quadrant3_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(CompareVectors(/* kSlightRightTurnQuadrant3GDot_p1 */ {-2.4917727143450508, -0.3280481012636511},
+                                   slight_right_turn_quadrant3_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(/* kSlightRightTurnQuadrant3GDot_Midpoint */ {-2.3798949906277245, -0.8078654902161948},
+                     slight_right_turn_quadrant3_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.

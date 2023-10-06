@@ -32,9 +32,10 @@
 #include <memory>
 
 #include <gtest/gtest.h>
+#include <maliput/api/compare.h>
 #include <maliput/common/assertion_error.h>
-#include <maliput/test_utilities/maliput_types_compare.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
@@ -47,6 +48,8 @@
 #include "maliput_malidrive/xodr/parser_configuration.h"
 #include "utility/resources.h"
 
+using malidrive::test::AssertCompare;
+using maliput::api::IsLanePositionClose;
 using maliput::api::RoadGeometryId;
 
 namespace malidrive {
@@ -164,7 +167,7 @@ TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheStart) {
 
   auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
-  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
 TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionWithInertialToBackendFrameTranslation) {
@@ -179,7 +182,7 @@ TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionWithInertialToBackendF
 
   auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
-  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
 TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionInBetween) {
@@ -190,7 +193,7 @@ TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionInBetween) {
 
   auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
-  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
 TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheEnd) {
@@ -201,7 +204,7 @@ TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheEnd) {
 
   auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
-  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
 // TODO(francocipollone): Adds tests for ToRoadPosition and FindRoadPosition methods
