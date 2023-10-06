@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2022, Woven Planet. All rights reserved.
-// Copyright (c) 2020-2022, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2023, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,51 +26,21 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/road_curve/ground_curve.h"
+#pragma once
 
 #include <gtest/gtest.h>
-#include <maliput/math/compare.h>
-
-#include "maliput_malidrive/test_utilities/assert_compare.h"
-#include "maliput_malidrive/test_utilities/ground_curve_stub.h"
+#include <maliput/common/compare.h>
 
 namespace malidrive {
-namespace road_curve {
 namespace test {
-namespace {
 
-using malidrive::test::AssertCompare;
-using maliput::math::CompareVectors;
-
-// Exercises the interface.
-GTEST_TEST(GrounCurveTest, InterfaceTest) {
-  const maliput::math::Vector2 kG{1., 2.};
-  const maliput::math::Vector2 kGDot{3., 4.};
-  const double kHeading{5.};
-  const double kHeadingDot{6.};
-  const double kGInverse{7.};
-  const double kArcLength{8.};
-  const double kLinearTolerance{0.1};
-  const double kP0{9.};
-  const double kP1{10.};
-  const bool kIsG1Contiguous{true};
-
-  const GroundCurveStub dut(kG, kGDot, kHeading, kHeadingDot, kGInverse, kArcLength, kLinearTolerance, kP0, kP1,
-                            kIsG1Contiguous);
-
-  EXPECT_TRUE(AssertCompare(CompareVectors(dut.G(kP0), kG)));
-  EXPECT_TRUE(AssertCompare(CompareVectors(dut.GDot(kP0), kGDot)));
-  EXPECT_EQ(dut.Heading(kP0), kHeading);
-  EXPECT_EQ(dut.HeadingDot(kP0), kHeadingDot);
-  EXPECT_EQ(dut.GInverse(kG), kGInverse);
-  EXPECT_EQ(dut.ArcLength(), kArcLength);
-  EXPECT_EQ(dut.linear_tolerance(), kLinearTolerance);
-  EXPECT_EQ(dut.p0(), kP0);
-  EXPECT_EQ(dut.p1(), kP1);
-  EXPECT_EQ(dut.IsG1Contiguous(), kIsG1Contiguous);
+template <typename T>
+::testing::AssertionResult AssertCompare(const maliput::common::ComparisonResult<T>& res) {
+  if (!res.message.has_value()) {
+    return ::testing::AssertionSuccess();
+  }
+  return ::testing::AssertionFailure() << res.message.value();
 }
 
-}  // namespace
 }  // namespace test
-}  // namespace road_curve
 }  // namespace malidrive

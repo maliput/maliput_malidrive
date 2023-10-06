@@ -31,19 +31,21 @@
 
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
+#include <maliput/math/compare.h>
 
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
+#include "maliput_malidrive/test_utilities/assert_compare.h"
 
 namespace malidrive {
 namespace road_curve {
 namespace test {
 namespace {
 
+using malidrive::test::AssertCompare;
+using maliput::math::CompareVectors;
 using maliput::math::Vector2;
-using maliput::math::test::CompareVectors;
 
 class PiecewiseGroundCurveConstructorTest : public ::testing::Test {
  protected:
@@ -216,60 +218,68 @@ TEST_F(PiecewiseGroundCurveTest, IsGContiguous) { EXPECT_TRUE(piecewise_ground_c
 
 TEST_F(PiecewiseGroundCurveTest, G) {
   // First geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kP0LineX), piecewise_ground_curve_->G(kP0), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kPHalfLineX), piecewise_ground_curve_->G(kPLineXToArcRight / 2),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kP1LineX - kEpsilon),
-                             piecewise_ground_curve_->G(kPLineXToArcLeft), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kP1LineX), piecewise_ground_curve_->G(kPLineXToArcRight),
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedLineXDirection->G(kP0LineX), piecewise_ground_curve_->G(kP0), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineXDirection->G(kPHalfLineX),
+                                           piecewise_ground_curve_->G(kPLineXToArcRight / 2), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineXDirection->G(kP1LineX - kEpsilon),
+                                           piecewise_ground_curve_->G(kPLineXToArcLeft), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineXDirection->G(kP1LineX),
+                                           piecewise_ground_curve_->G(kPLineXToArcRight), kLinearTolerance)));
   // Second geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kP0Arc), piecewise_ground_curve_->G(kPLineXToArcRight), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kPHalfArc),
-                             piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight / 2), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kP1Arc - kEpsilon),
-                             piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYLeft), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kP1Arc), piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight),
-                             kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedArc->G(kP0Arc), piecewise_ground_curve_->G(kPLineXToArcRight), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedArc->G(kPHalfArc),
+                                           piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight / 2),
+                                           kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedArc->G(kP1Arc - kEpsilon),
+                                           piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYLeft),
+                                           kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedArc->G(kP1Arc), piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight), kLinearTolerance)));
   // Third geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kP0LineY),
-                             piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kPHalfLineY),
-                             piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndRight / 2),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kP1LineY - kEpsilon),
-                             piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndLeft),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kP1LineY), piecewise_ground_curve_->G(kP1), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineYDirection->G(kP0LineY),
+                                           piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight),
+                                           kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineYDirection->G(kPHalfLineY),
+      piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndRight / 2), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineYDirection->G(kP1LineY - kEpsilon),
+      piecewise_ground_curve_->G(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndLeft), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedLineYDirection->G(kP1LineY), piecewise_ground_curve_->G(kP1), kLinearTolerance)));
 }
 
 TEST_F(PiecewiseGroundCurveTest, GDot) {
   // First geometry.
-  EXPECT_TRUE(
-      CompareVectors(kExpectedLineXDirection->GDot(kP0LineX), piecewise_ground_curve_->GDot(kP0), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->GDot(kPHalfLineX),
-                             piecewise_ground_curve_->GDot((kPLineXToArcRight) / 2), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->GDot(kP1LineX - kEpsilon),
-                             piecewise_ground_curve_->GDot(kPLineXToArcLeft), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedLineXDirection->GDot(kP0LineX), piecewise_ground_curve_->GDot(kP0), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineXDirection->GDot(kPHalfLineX),
+                                           piecewise_ground_curve_->GDot((kPLineXToArcRight) / 2), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineXDirection->GDot(kP1LineX - kEpsilon),
+                                           piecewise_ground_curve_->GDot(kPLineXToArcLeft), kLinearTolerance)));
   // Second geometry.
-  EXPECT_TRUE(
-      CompareVectors(kExpectedArc->GDot(kP0Arc), piecewise_ground_curve_->GDot(kPLineXToArcRight), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->GDot(kPHalfArc),
-                             piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight / 2),
-                             kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->GDot(kP1Arc - kEpsilon),
-                             piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYLeft), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedArc->GDot(kP0Arc), piecewise_ground_curve_->GDot(kPLineXToArcRight), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedArc->GDot(kPHalfArc),
+                                           piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight / 2),
+                                           kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedArc->GDot(kP1Arc - kEpsilon),
+                                           piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYLeft),
+                                           kLinearTolerance)));
   // Third geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->GDot(kP0LineY),
-                             piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineYDirection->GDot(kP0LineY),
+                                           piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight),
+                                           kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       kExpectedLineYDirection->GDot(kPHalfLineY),
-      piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndRight / 2), kLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->GDot(kP1LineY - kEpsilon),
-                             piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndLeft),
-                             kLinearTolerance));
-  EXPECT_TRUE(
-      CompareVectors(kExpectedLineYDirection->GDot(kP1LineY), piecewise_ground_curve_->GDot(kP1), kLinearTolerance));
+      piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndRight / 2), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineYDirection->GDot(kP1LineY - kEpsilon),
+      piecewise_ground_curve_->GDot(kPLineXToArcRight + kPArcToLineYRight + kPLineYToEndLeft), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedLineYDirection->GDot(kP1LineY), piecewise_ground_curve_->GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(PiecewiseGroundCurveTest, Heading) {
@@ -359,52 +369,55 @@ TEST_F(PiecewiseGroundCurveGInverseTest, GInverse) {
   const Vector2 kEpsilonY{Vector2::UnitY() * kEpsilon};
 
   // First geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kLineXMiddleCoord)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineXMiddleCoord)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kLineXEndCoord - kEpsilonX)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineXEndCoord - kEpsilonX)),
-                             kStrictLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kLineXMiddleCoord)),
+      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineXMiddleCoord)), kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kLineXEndCoord - kEpsilonX)),
+                     piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineXEndCoord - kEpsilonX)),
+                     kStrictLinearTolerance)));
   // Second geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kExpectedArc->GInverse(kLineXEndCoord)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineXEndCoord)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kExpectedArc->GInverse(kArcMiddleCoord)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kArcMiddleCoord)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedArc->G(kExpectedArc->GInverse(kArcEndCoord - kEpsilonY)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kArcEndCoord - kEpsilonY)),
-                             kStrictLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedArc->G(kExpectedArc->GInverse(kLineXEndCoord)),
+      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineXEndCoord)), kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedArc->G(kExpectedArc->GInverse(kArcMiddleCoord)),
+      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kArcMiddleCoord)), kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedArc->G(kExpectedArc->GInverse(kArcEndCoord - kEpsilonY)),
+                     piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kArcEndCoord - kEpsilonY)),
+                     kStrictLinearTolerance)));
   // Third geometry.
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kArcEndCoord)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kArcEndCoord)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kLineYMiddleCoord)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineYMiddleCoord)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(CompareVectors(kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kLineYEndCoord)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineYEndCoord)),
-                             kStrictLinearTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kArcEndCoord)),
+                                           piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kArcEndCoord)),
+                                           kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kLineYMiddleCoord)),
+      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineYMiddleCoord)), kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kLineYEndCoord)),
+      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kLineYEndCoord)), kStrictLinearTolerance)));
 
   // Equidistant coordinate to startpoint LineX and endpoint LineY.
   const Vector2 kCoordEquidistantLineXLineY{0., 150.};
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kCoordEquidistantLineXLineY)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordEquidistantLineXLineY)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(CompareVectors(
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kCoordEquidistantLineXLineY)),
+                     piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordEquidistantLineXLineY)),
+                     kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(
       kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kCoordEquidistantLineXLineY + kEpsilonX)),
       piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordEquidistantLineXLineY + kEpsilonX)),
-      kStrictLinearTolerance));
+      kStrictLinearTolerance)));
   // Center of curvature of arc GroundCurve.
   const Vector2 kCoordCenterOfCurvature{100., 50.};
   EXPECT_THROW(kExpectedArc->GInverse(kCoordCenterOfCurvature), maliput::common::assertion_error);
-  EXPECT_TRUE(CompareVectors(kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kCoordCenterOfCurvature)),
-                             piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordCenterOfCurvature)),
-                             kStrictLinearTolerance));
-  EXPECT_TRUE(
+  EXPECT_TRUE(AssertCompare(CompareVectors(
+      kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kCoordCenterOfCurvature)),
+      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordCenterOfCurvature)), kStrictLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
       CompareVectors(kExpectedLineYDirection->G(kExpectedLineYDirection->GInverse(kCoordCenterOfCurvature + kEpsilonY)),
                      piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordCenterOfCurvature + kEpsilonY)),
-                     kStrictLinearTolerance));
+                     kStrictLinearTolerance)));
 }
 
 // Tests the PFromP method using overlapped geometries.
