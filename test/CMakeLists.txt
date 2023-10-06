@@ -27,6 +27,7 @@ macro(maliput_malidrive_plugin_tests)
       PRIVATE
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/test
         ${PYTHON_INCLUDE_DIRS}
     )
 
@@ -70,6 +71,7 @@ macro(maliput_malidrive_build_tests)
       PRIVATE
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/test
         ${PYTHON_INCLUDE_DIRS}
     )
 
@@ -116,6 +118,7 @@ macro(maliput_malidrive_utility_tests)
       PRIVATE
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/test
         ${PYTHON_INCLUDE_DIRS}
     )
 

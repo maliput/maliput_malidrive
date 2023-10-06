@@ -33,7 +33,7 @@
 #include <maliput/common/assertion_error.h>
 #include <maliput/math/compare.h>
 
-#include "maliput_malidrive/test_utilities/assert_compare.h"
+#include "assert_compare.h"
 
 namespace malidrive {
 namespace road_curve {

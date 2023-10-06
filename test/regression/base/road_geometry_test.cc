@@ -35,6 +35,7 @@
 #include <maliput/api/compare.h>
 #include <maliput/common/assertion_error.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
@@ -43,7 +44,6 @@
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
-#include "maliput_malidrive/test_utilities/assert_compare.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/parser_configuration.h"
 #include "utility/resources.h"

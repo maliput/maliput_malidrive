@@ -37,10 +37,10 @@
 #include <maliput/api/lane_data.h>
 #include <maliput/common/assertion_error.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"
-#include "maliput_malidrive/test_utilities/assert_compare.h"
 #include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
 #include "utility/resources.h"
 

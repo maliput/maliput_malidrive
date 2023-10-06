@@ -42,6 +42,7 @@
 #include <maliput/geometry_base/road_geometry.h>
 #include <maliput/math/roll_pitch_yaw.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/base/segment.h"
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
@@ -52,7 +53,6 @@
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
-#include "maliput_malidrive/test_utilities/assert_compare.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 
 namespace malidrive {

@@ -32,7 +32,7 @@
 #include <gtest/gtest.h>
 #include <maliput/math/compare.h>
 
-#include "maliput_malidrive/test_utilities/assert_compare.h"
+#include "assert_compare.h"
 #include "maliput_malidrive/test_utilities/ground_curve_stub.h"
 
 namespace malidrive {
