@@ -559,6 +559,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     rg->AddBranchPoint(std::move(bps_[i]));
   }
 
+  maliput::log()->trace(
+      "Initializing maliput::geometry_base::KDTreeStrategy for improving RoadGeometry::ToRoadPosition and "
+      "RoadGeometry::FindRoadPosition methods.");
+  rg->InitializeStrategy<maliput::geometry_base::KDTreeStrategy>(0.5);
   maliput::log()->trace("RoadGeometry is built.");
   return rg;
 }
