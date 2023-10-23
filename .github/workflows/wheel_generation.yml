@@ -78,6 +78,6 @@ jobs:
     - name: upload wheels as artifact
       uses: actions/upload-artifact@v3
       with:
-        name: manylinux2014_x86_64
+        name: maliput_malidrive_manylinux2014_x86_64
         path: ${{ env.COLCON_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/repaired
         retention-days: 7
