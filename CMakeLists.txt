@@ -94,7 +94,9 @@ if (WHEEL_GENERATION)
   include(python-wheel)
   set(WHEEL_DEPLOY_DIRECTORY "${CMAKE_BINARY_DIR}/wheel")
 
-  set(DEPLOY_FILES "${PROJECT_SOURCE_DIR}/maliput_malidrive/__init__.py" "${PROJECT_SOURCE_DIR}/maliput_malidrive/resources")
+  set (DEPLOY_FILES "")
+  list(APPEND DEPLOY_FILES "${PROJECT_SOURCE_DIR}/maliput_malidrive/__init__.py")
+  # TODO(francocipollone): Deploy the resources folder as well
 
   add_wheel(road_network
     NAME maliput_malidrive
