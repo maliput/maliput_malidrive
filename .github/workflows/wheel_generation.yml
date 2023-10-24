@@ -14,7 +14,9 @@ env:
   COLCON_WS: maliput_ws
   PYTHON_VERSION: cp38-cp38
   CMAKE_COMMAND_ENV: /opt/_internal/cpython-3.8.18/bin/cmake
-# Cancel previously running PR jobs
+  RETENTION_DAYS: 7
+
+  # Cancel previously running PR jobs
 concurrency:
   group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
   cancel-in-progress: true
@@ -80,4 +82,4 @@ jobs:
       with:
         name: maliput_malidrive_manylinux2014_x86_64
         path: ${{ env.COLCON_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/repaired
-        retention-days: 7
+        retention-days: ${{ env.RETENTION_DAYS }}
