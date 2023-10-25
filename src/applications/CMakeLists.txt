@@ -1,3 +1,5 @@
+find_package(gflags REQUIRED)
+
 add_library(log_level_flag INTERFACE)
 target_sources(
   log_level_flag
