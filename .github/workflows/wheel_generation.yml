@@ -8,6 +8,8 @@ on:
     branches:
       - main
   workflow_dispatch:
+  schedule:
+    - cron:  '0 9 * * *' # 9:00am UTC, 1:00am PST.
 
 env:
   PACKAGE_NAME: maliput_malidrive
