@@ -37,10 +37,14 @@ jobs:
       with:
         path: ${{ env.COLCON_WS }}/src/${{ env.PACKAGE_NAME }}
     # clone public dependencies
-    - name: git clone maliput
+    - name: vcs import
+      shell: bash
+      working-directory: ${{ env.COLCON_WS }}
+      run: vcs import src < src/${PACKAGE_NAME}/.github/dependencies.repos
+    - name: check if dependencies have a matching branch
       shell: bash
       working-directory: ${{ env.COLCON_WS }}/src
-      run: git clone https://github.com/maliput/maliput
+      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
     - name: colcon graph
       run: /opt/python/${PYTHON_VERSION}/bin/colcon graph
       shell: bash
