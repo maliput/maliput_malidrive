@@ -27,9 +27,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         path: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME }}
-    - name: Install vcs-tool
-      shell: bash
-      run: pip install vcstool
     # clone public dependencies
     - name: vcs import
       shell: bash
