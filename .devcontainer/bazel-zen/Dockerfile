@@ -44,7 +44,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     zip \
     # python
     python3-dev \
+    python3-pip \
     && apt-get autoremove -y && apt-get clean -y && rm -rf /var/lib/apt/lists/*
+
+################################################################################
+# Install vcstool
+################################################################################
+RUN pip install vcstool
 
 ################################################################################
 # Bazelisk
