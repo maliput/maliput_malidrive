@@ -17,6 +17,7 @@ env:
   PYTHON_VERSION: cp38-cp38
   CMAKE_COMMAND_ENV: /opt/_internal/cpython-3.8.18/bin/cmake
   RETENTION_DAYS: 7
+  VCS_PATH: /opt/_internal/cpython-3.8.18/bin/
 
   # Cancel previously running PR jobs
 concurrency:
@@ -40,11 +41,11 @@ jobs:
     - name: vcs import
       shell: bash
       working-directory: ${{ env.COLCON_WS }}
-      run: vcs import src < src/${PACKAGE_NAME}/.github/dependencies.repos
+      run: PATH=$PATH:${{ env.VCS_PATH }} vcs import src < src/${PACKAGE_NAME}/.github/dependencies.repos
     - name: check if dependencies have a matching branch
       shell: bash
       working-directory: ${{ env.COLCON_WS }}/src
-      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+      run: PATH=$PATH:${{ env.VCS_PATH }} ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
     - name: colcon graph
       run: /opt/python/${PYTHON_VERSION}/bin/colcon graph
       shell: bash
