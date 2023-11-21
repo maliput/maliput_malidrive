@@ -11,6 +11,7 @@ COPTS = [
     "-Wno-builtin-macro-redefined",
     "-Wno-missing-field-initializers",
     "-Wno-unused-const-variable",
+    "-O2",
 
     # Others from cmake/DefaultCFlags.cmake
     # "-fdata-sections",
