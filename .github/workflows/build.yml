@@ -31,7 +31,7 @@ jobs:
     - name: vcs import
       shell: bash
       working-directory: ${{ env.BAZEL_WS }}
-      run: vcs import src < ${{ env.PACKAGE_NAME }}/.github/dependencies.repos
+      run: vcs import . < ${{ env.PACKAGE_NAME }}/.github/dependencies.repos
     - name: Check if dependencies have a matching branch
       shell: bash
       working-directory: ${{ env.COLCON_WS }}
