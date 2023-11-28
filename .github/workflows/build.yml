@@ -9,6 +9,7 @@ on:
 env:
   PACKAGE_NAME: maliput_malidrive
   ROS_DISTRO: foxy
+  BAZEL_WS: bazel_ws
 
 # Cancel previously running PR jobs
 concurrency:
@@ -22,9 +23,27 @@ jobs:
     container:
       image: ghcr.io/${{ github.repository }}-bazel-ci:latest
     steps:
-    - uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
+      with:
+        path: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME }}
+    # clone public dependencies
+    - name: vcs import
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}
+      run: vcs import . < ${{ env.PACKAGE_NAME }}/.github/dependencies.repos
+    - name: Check if dependencies have a matching branch
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}
+      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+    - name: Update the dependent modules to use the local checkouts instead of branch
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME }}
+      run: |
+        echo 'local_path_override(module_name="maliput", path="../maliput")' >> ./MODULE.bazel
     - name: Build
       shell: bash
+      working-directory: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME}}
       run: |
         bazel build //...
         bazel test //...
