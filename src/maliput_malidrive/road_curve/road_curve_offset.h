@@ -31,8 +31,8 @@
 
 #include <functional>
 
-#include <maliput/drake/systems/analysis/antiderivative_function.h>
-#include <maliput/drake/systems/analysis/scalar_initial_value_problem.h>
+#include <maliput/drake/arc_length_integrator.h>
+#include <maliput/drake/inverse_arc_length_integrator.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
@@ -136,11 +136,11 @@ class RoadCurveOffset {
 
   // The inverse arc length IVP, or the parameter track_s as a function of the
   // arc length lane_s.
-  std::unique_ptr<maliput::drake::systems::ScalarInitialValueProblem<double>> p_from_s_ivp_{};
+  std::unique_ptr<maliput::drake::InverseArcLengthIntegrator> p_from_s_ivp_{};
 
   // The arc length function, or the arc length lane_s as a function of the
   // parameter track_s.
-  std::unique_ptr<maliput::drake::systems::AntiderivativeFunction<double>> s_from_p_func_{};
+  std::unique_ptr<maliput::drake::ArcLengthIntegrator> s_from_p_func_{};
 };
 
 }  // namespace road_curve
