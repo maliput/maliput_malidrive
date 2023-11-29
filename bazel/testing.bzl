@@ -64,12 +64,14 @@ def generate_unit_tests(sources):
             deps = [
                 "//:maliput_malidrive",
                 "//:utility",
-                "@googletest//:gtest",
+                "@googletest//:gtest_main",
                 "@maliput//:api",
                 "@maliput//:base",
                 "@maliput//:common",
                 "@maliput//:geometry_base",
                 "@maliput//:math",
+                "@maliput//:plugin",
                 "@maliput//:test_utilities",
+                "//:private_test_headers",
             ],
         )
