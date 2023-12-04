@@ -197,7 +197,7 @@ cc_library(
 	hdrs = glob(["test/*.h"]),
 	copts = COPTS,
 	strip_include_prefix = "test",
-	visibility = ["//visibility:public"],
+	visibility = ["//test:__subpackages__"],
 	deps = [
 			"@googletest//:gtest",
 			"@maliput//:test_utilities",
