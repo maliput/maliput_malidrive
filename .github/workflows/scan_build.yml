@@ -23,7 +23,7 @@ jobs:
       LDFLAGS: -fuse-ld=lld-8
     steps:
     # setup-ros first since it installs git, which is needed to fetch all branches from actions/checkout
-    - uses: ros-tooling/setup-ros@v0.3
+    - uses: ros-tooling/setup-ros@v0.6
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     - uses: actions/checkout@v3
