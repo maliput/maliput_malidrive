@@ -118,7 +118,7 @@ int Main(int argc, char** argv) {
   output_xodr_doc.SaveFile(FLAGS_output_file_path.c_str());
   maliput::log()->info("XODR file created: ", FLAGS_output_file_path);
 
-  return 1;
+  return 0;
 }
 
 }  // namespace

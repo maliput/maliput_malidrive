@@ -234,6 +234,24 @@ cc_binary(
 )
 
 cc_binary(
+    name = "xodr_to_obj",
+    srcs = ["src/applications/xodr_to_obj.cc"],
+    copts = COPTS,
+    visibility = ["//visibility:public"],
+    deps = [
+        ":log_level_flag",
+        ":builder",
+        ":common",
+        ":loader",
+        ":xodr",
+        "@gflags//:gflags",
+        "@maliput//:common",
+        "@maliput//:utility",
+        "@tinyxml2//:tinyxml2"
+    ],
+)
+
+cc_binary(
     name = "xodr_validate",
     srcs = ["src/applications/xodr_validate.cc"],
     copts = COPTS,

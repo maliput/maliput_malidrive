@@ -383,7 +383,7 @@ int Main(int argc, char** argv) {
     query.GetGeometries(RoadHeaderIdFromCli(&(argv[3])));
   }
 
-  return 1;
+  return 0;
 }
 
 }  // namespace
