@@ -385,6 +385,20 @@ Geometry::Arc NodeParser::As() const {
   return Geometry::Arc{ValidateDouble(curvature, kDontAllowNan)};
 }
 
+// Specialization to parse `Spiral`'s node.
+template <>
+Geometry::Spiral NodeParser::As() const {
+  if (NumberOfAttributes() != 2) {
+    MALIDRIVE_THROW_MESSAGE(std::string("Bad Spiral description. Spiral demands only two arguments: 'curvStart' and "
+                                        "'curvEnd'. ") +
+                            ConvertXMLNodeToText(element_));
+  }
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+  const auto curv_start = attribute_parser.As<double>(Geometry::Spiral::kCurvStart);
+  const auto curv_end = attribute_parser.As<double>(Geometry::Spiral::kCurvEnd);
+  return Geometry::Spiral{ValidateDouble(curv_start, kDontAllowNan), ValidateDouble(curv_end, kDontAllowNan)};
+}
+
 // Specialization to parse `LaneWidth`'s node.
 template <>
 LaneWidth NodeParser::As() const {
@@ -688,6 +702,9 @@ Geometry NodeParser::As() const {
       break;
     case Geometry::Type::kArc:
       geometry.description = geometry_type.As<Geometry::Arc>();
+      break;
+    case Geometry::Type::kSpiral:
+      geometry.description = geometry_type.As<Geometry::Spiral>();
       break;
     default:
       MALIDRIVE_THROW_MESSAGE(std::string("The Geometry type '") + Geometry::type_to_str(geometry.type) +
