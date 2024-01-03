@@ -454,7 +454,7 @@ TEST_F(ParsingTests, NodeParserArcGeometry) {
 TEST_F(ParsingTests, NodeParserSpiralGeometry) {
   const Geometry kExpectedGeometry{
       1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},     0.77 /* orientation */,
-      100. /* length */, Geometry::Type::kSpiral /* Type */, Geometry::Spiral{0.5, 0.25} /* description */};
+      100. /* length */, Geometry::Type::kSpiral /* Type */, Geometry::Spiral{0.5, -0.25} /* description */};
   const std::string geometry_description =
       Geometry::type_to_str(kExpectedGeometry.type) + " " + Geometry::Spiral::kCurvStart + "='" +
       std::to_string(std::get<Geometry::Spiral>(kExpectedGeometry.description).curv_start) + "' " +
