@@ -450,6 +450,27 @@ TEST_F(ParsingTests, NodeParserArcGeometry) {
   EXPECT_EQ(kExpectedGeometry, geometry);
 }
 
+// Tests `Geometry` parsing.
+TEST_F(ParsingTests, NodeParserSpiralGeometry) {
+  const Geometry kExpectedGeometry{
+      1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},     0.77 /* orientation */,
+      100. /* length */, Geometry::Type::kSpiral /* Type */, Geometry::Spiral{0.5, -0.25} /* description */};
+  const std::string geometry_description =
+      Geometry::type_to_str(kExpectedGeometry.type) + " " + Geometry::Spiral::kCurvStart + "='" +
+      std::to_string(std::get<Geometry::Spiral>(kExpectedGeometry.description).curv_start) + "' " +
+      Geometry::Spiral::kCurvEnd + "='" +
+      std::to_string(std::get<Geometry::Spiral>(kExpectedGeometry.description).curv_end) + "'";
+  const std::string xml_description =
+      GetGeometry(kExpectedGeometry.s_0, kExpectedGeometry.start_point.x(), kExpectedGeometry.start_point.y(),
+                  kExpectedGeometry.orientation, kExpectedGeometry.length, geometry_description);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Geometry::kGeometryTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Geometry::kGeometryTag, dut.GetName());
+  const Geometry geometry = dut.As<Geometry>();
+  EXPECT_EQ(kExpectedGeometry, geometry);
+}
+
 // Get a XML description that contains a XODR PlanView.
 // @param s_0 The s_0 value of first geometry.
 // @param x_0 The x_0 value of first geometry.

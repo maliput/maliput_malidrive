@@ -55,6 +55,9 @@ namespace xodr {
 ///               <geometry s="0.0000000000000000e+00" x="0.0" y="0.0" hdg="0.0" length="100.0">
 ///                   <arc curvature="0.025"/>
 ///               </geometry>
+///               <geometry s="0.0000000000000000e+00" x="0.0" y="0.0" hdg="0.0" length="100.0">
+///                   <spiral curvStart="0.025" curvEnd="0.05"/>
+///               </geometry>
 ///           </planView>
 ///       ...
 ///   </OpenDRIVE>
@@ -72,6 +75,7 @@ struct Geometry {
   enum class Type {
     kLine = 0,
     kArc,
+    kSpiral,
   };
 
   /// Line geometry description.
@@ -89,6 +93,21 @@ struct Geometry {
 
     /// Equality operator.
     bool operator==(const Arc& other) const { return curvature == other.curvature; }
+  };
+
+  /// Spiral geometry description.
+  struct Spiral {
+    /// Holds the tag name in the XODR Geometry description.
+    static constexpr const char* kCurvStart = "curvStart";
+    static constexpr const char* kCurvEnd = "curvEnd";
+
+    /// Spiral's start curvature.
+    double curv_start{};
+    /// Spiral's end curvature.
+    double curv_end{};
+
+    /// Equality operator.
+    bool operator==(const Spiral& other) const { return curv_start == other.curv_start && curv_end == other.curv_end; }
   };
 
   /// Matches string with a Type.
@@ -119,7 +138,7 @@ struct Geometry {
   /// Type of geometric element.
   Type type{Type::kLine};
   /// Description of the geometric type.
-  std::variant<Line, Arc> description;
+  std::variant<Line, Arc, Spiral> description;
 };
 
 /// Streams a string representation of @p geometry into @p os.

@@ -39,16 +39,21 @@ namespace xodr {
 namespace test {
 namespace {
 
+static constexpr char kLineTypeStr[]{"line"};
+static constexpr char kArcTypeStr[]{"arc"};
+static constexpr char kSpiralTypeStr[]{"spiral"};
+
 GTEST_TEST(Geometry, TypeToStrMethod) {
-  const std::string kExpectedStr{"line"};
-  EXPECT_EQ(kExpectedStr, Geometry::type_to_str(Geometry::Type::kLine));
+  EXPECT_EQ(kLineTypeStr, Geometry::type_to_str(Geometry::Type::kLine));
+  EXPECT_EQ(kArcTypeStr, Geometry::type_to_str(Geometry::Type::kArc));
+  EXPECT_EQ(kSpiralTypeStr, Geometry::type_to_str(Geometry::Type::kSpiral));
 }
 
 GTEST_TEST(Geometry, StrToTypeMethod) {
-  const Geometry::Type kExpectedType{Geometry::Type::kLine};
-  const std::string kTypeStr{"line"};
   const std::string kWrongTypeStr{"WrongType"};
-  EXPECT_EQ(kExpectedType, Geometry::str_to_type(kTypeStr));
+  EXPECT_EQ(Geometry::Type::kLine, Geometry::str_to_type(kLineTypeStr));
+  EXPECT_EQ(Geometry::Type::kArc, Geometry::str_to_type(kArcTypeStr));
+  EXPECT_EQ(Geometry::Type::kSpiral, Geometry::str_to_type(kSpiralTypeStr));
   EXPECT_THROW(Geometry::str_to_type(kWrongTypeStr), maliput::common::assertion_error);
 }
 
@@ -83,24 +88,49 @@ GTEST_TEST(Geometry, EqualityOperator) {
   EXPECT_NE(geometry, geometry_arc);
   geometry.description = Geometry::Arc{0.5};
   EXPECT_EQ(geometry, geometry_arc);
+
+  Geometry geometry_spiral = kGeometry;
+  geometry_spiral.type = Geometry::Type::kSpiral;
+  geometry_spiral.description = Geometry::Spiral{0.5, 0.25};
+  EXPECT_NE(kGeometry, geometry_spiral);
+  geometry.type = Geometry::Type::kSpiral;
+  geometry.description = Geometry::Spiral{0.25, 0.5};
+  EXPECT_NE(geometry, geometry_spiral);
+  geometry.description = Geometry::Spiral{0.5, 0.25};
+  EXPECT_EQ(geometry, geometry_spiral);
 }
 
-GTEST_TEST(Geometry, Serialization) {
+GTEST_TEST(Geometry, LineGeometrySerialization) {
   const Geometry kGeometryLine{
       1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},   0.77 /* orientation */,
       100. /* length */, Geometry::Type::kLine /* Type */, {Geometry::Line{}} /* description */};
   const std::string kExpectedStrGeometryLine("Geometry type: line | s: 1.23 | {x, y} : {523.2, 83.27} | hdg: 0.77\n");
-  const Geometry kGeometryARc{
+  std::stringstream ss;
+  ss << kGeometryLine;
+  EXPECT_EQ(kExpectedStrGeometryLine, ss.str());
+}
+
+GTEST_TEST(Geometry, ArcGeometrySerialization) {
+  const Geometry kGeometryArc{
       1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},  0.77 /* orientation */,
       100. /* length */, Geometry::Type::kArc /* Type */, {Geometry::Arc{1.95}} /* description */};
   const std::string kExpectedStrGeometryArc(
       "Geometry type: arc - curvature: 1.95 | s: 1.23 | {x, y} : {523.2, 83.27} | hdg: 0.77\n");
   std::stringstream ss;
-  ss << kGeometryLine;
-  EXPECT_EQ(kExpectedStrGeometryLine, ss.str());
-  ss.str("");
-  ss << kGeometryARc;
+  ss << kGeometryArc;
   EXPECT_EQ(kExpectedStrGeometryArc, ss.str());
+}
+
+GTEST_TEST(Geometry, SpiralGeometrySerialization) {
+  const Geometry kGeometrySpiral{
+      1.23 /* s_0 */,    {523.2 /* x */, 83.27 /* y */},     0.77 /* orientation */,
+      100. /* length */, Geometry::Type::kSpiral /* Type */, {Geometry::Spiral{-1.95, -0.5}} /* description */};
+  const std::string kExpectedStrGeometrySpiral(
+      "Geometry type: spiral - curvature at [start, end]: [-1.95, -0.5] | s: 1.23 | {x, y} : {523.2, 83.27} | hdg: "
+      "0.77\n");
+  std::stringstream ss;
+  ss << kGeometrySpiral;
+  EXPECT_EQ(kExpectedStrGeometrySpiral, ss.str());
 }
 
 }  // namespace
