@@ -186,7 +186,7 @@ cc_binary(
         ":builder",
         "@maliput//:plugin",
     ],
-    linkstatic = True,
+    linkstatic = False,
     linkshared = True,
 )
 
