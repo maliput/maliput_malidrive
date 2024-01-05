@@ -2,6 +2,33 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.0 (2024-01-05)
+------------------
+* [xodr] SmallTownRoads.xodr (`#266 <https://github.com/maliput/maliput_malidrive/issues/266>`_)
+* [applications] xodr_to_obj (`#259 <https://github.com/maliput/maliput_malidrive/issues/259>`_)
+* [infra] commented instructions for development with local maliput/registries (`#263 <https://github.com/maliput/maliput_malidrive/issues/263>`_)
+* [infra] use the REAL bazel central registry (`#264 <https://github.com/maliput/maliput_malidrive/issues/264>`_)
+* Adds spiral geometry parsing capabilities (`#261 <https://github.com/maliput/maliput_malidrive/issues/261>`_)
+* Updates ros-tooling version to avoid error with dependency. (`#256 <https://github.com/maliput/maliput_malidrive/issues/256>`_)
+* Replaces drake API by maliput new API. (`#244 <https://github.com/maliput/maliput_malidrive/issues/244>`_)
+* Uses try_vcs_checkout for the branching scheme in bazel build. (`#253 <https://github.com/maliput/maliput_malidrive/issues/253>`_)
+* Adds vcstool and pip to bazel-zen docker image. (`#254 <https://github.com/maliput/maliput_malidrive/issues/254>`_)
+* Adds try_vcs_checkout to wheel_generation workflow. (`#252 <https://github.com/maliput/maliput_malidrive/issues/252>`_)
+* Adds -O2 flag to bazel build. (`#255 <https://github.com/maliput/maliput_malidrive/issues/255>`_)
+* Adds periodic wheel generation.(once a week) (`#251 <https://github.com/maliput/maliput_malidrive/issues/251>`_)
+* Fixes bazel version not being correctly set. (`#249 <https://github.com/maliput/maliput_malidrive/issues/249>`_)
+* Adds workflow for manylinux wheel creation. (`#248 <https://github.com/maliput/maliput_malidrive/issues/248>`_)
+* Use compare methods instead of test_utilities' . (`#243 <https://github.com/maliput/maliput_malidrive/issues/243>`_)
+* Removes maliput_drake dependency (`#240 <https://github.com/maliput/maliput_malidrive/issues/240>`_)
+* Decompose bazel superlibrary (`#241 <https://github.com/maliput/maliput_malidrive/issues/241>`_)
+* Bazel integration and utility tests (`#238 <https://github.com/maliput/maliput_malidrive/issues/238>`_)
+* Removes fmt dependency (`#239 <https://github.com/maliput/maliput_malidrive/issues/239>`_)
+* Bazel module (`#237 <https://github.com/maliput/maliput_malidrive/issues/237>`_)
+* Containers for local devcontainer and CI workflows (`#235 <https://github.com/maliput/maliput_malidrive/issues/235>`_)
+* Matches with change in logger format. (`#232 <https://github.com/maliput/maliput_malidrive/issues/232>`_)
+* Adds missing gflags dependency to package. (`#233 <https://github.com/maliput/maliput_malidrive/issues/233>`_)
+* Contributors: Agustin Alba Chicar, Daniel Stonier, Franco Cipollone
+
 0.1.4 (2022-12-13)
 ------------------
 * Provides default parameters for the RoadNetworkLoader. (`#231 <https://github.com/maliput/maliput_malidrive/issues/231>`_)
