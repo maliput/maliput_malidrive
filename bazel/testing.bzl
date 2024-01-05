@@ -22,7 +22,7 @@ def camel_to_snake(camel_case_name):
 #   The size = medium hammer is overkill for some tests too (bazel
 #   test grumbles about this). If re-inventing, make sure to re-invent
 #   the CMake test too.
-#   
+#
 def generate_integration_tests(sources, xodr_files):
     for xodr_file in xodr_files:
         camel_case_name = xodr_file[:-len(".xodr")]
@@ -47,33 +47,31 @@ def generate_integration_tests(sources, xodr_files):
             ],
         )
 
-# TODO(stonier): Reneable once a solution to #585 (see below) is found.
-#
-# # Not very bazel style (prefer individual test definitions)
-# def generate_unit_tests(sources):
-#     for source in sources:
-#         name = source[:-len(".cc")]
-#         native.cc_test(
-#             name = name,
-#             srcs = [source],
-#             size = "small",
-#             copts = COPTS,
-#             linkopts = ["-lpthread"],
-#             defines = [
-#                 "DEF_MALIDRIVE_RESOURCES=\\\"resources/\\\""
-#             ],
-#             data = ["//resources:all"],  # sledge hammer
-#             deps = [
-#                 "//:maliput_malidrive",
-#                 "//:utility",
-#                 "@googletest//:gtest",
-#                 "@maliput//:api",
-#                 "@maliput//:base",
-#                 "@maliput//:common",
-#                 "@maliput//:geometry_base",
-#                 "@maliput//:math",
-#                 # TODO(stonier): Can't ship test_utilities without infecting maliput with gtest
-#                 # https://github.com/maliput/maliput/issues/585
-#                 "@maliput//:test_utilities",
-#             ],
-#         )
+# Not very bazel style (prefer individual test definitions)
+def generate_unit_tests(sources):
+    for source in sources:
+        name = source[:-len(".cc")]
+        native.cc_test(
+            name = name,
+            srcs = [source],
+            size = "small",
+            copts = COPTS,
+            linkopts = ["-lpthread"],
+            defines = [
+                "DEF_MALIDRIVE_RESOURCES=\\\"resources/\\\""
+            ],
+            data = ["//resources:all"],  # sledge hammer
+            deps = [
+                "//:maliput_malidrive",
+                "//:utility",
+                "@googletest//:gtest_main",
+                "@maliput//:api",
+                "@maliput//:base",
+                "@maliput//:common",
+                "@maliput//:geometry_base",
+                "@maliput//:math",
+                "@maliput//:plugin",
+                "@maliput//:test_utilities",
+                "//:private_test_headers",
+            ],
+        )

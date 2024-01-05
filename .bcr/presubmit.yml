@@ -8,9 +8,8 @@ bcr_test_module:
       platform: ${{ platform }}
       build_targets:
         - '@maliput_malidrive//:maliput_malidrive'
-    # TODO(stonier): no tests yet...
-    # run_tests:
-    #   name: "Run test module"
-    #   platform: ${{ platform }}
-    #   test_targets:
-    #     - "//..."
+    run_tests:
+      name: "Run test module"
+      platform: ${{ platform }}
+      test_targets:
+        - "//..."

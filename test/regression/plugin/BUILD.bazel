@@ -9,6 +9,8 @@ load("//:bazel/testing.bzl", "generate_unit_tests")
 # Test
 ###############################################################################
 
-generate_unit_tests(
-   sources = glob(["*.cc"])
-)
+# TODO(francocipollone): The test uses a compile definition (DEF_MALIDRIVE_RESOURCES)
+#                        that is not being passed in the bazel world.
+# generate_unit_tests(
+#    sources = glob(["*.cc"])
+# )

@@ -135,7 +135,7 @@ TEST_F(FlatLineRoadCurveTest, CalcSFromP) {
                                             RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
 
   for (const auto& dut : duts) {
-    for (int i = 0; i < kPs.size(); ++i) {
+    for (std::size_t i = 0; i < kPs.size(); ++i) {
       EXPECT_NEAR(kSs[i], dut.CalcSFromP(kPs[i]), kLinearTolerance);
     }
   }
@@ -147,7 +147,7 @@ TEST_F(FlatLineRoadCurveTest, PFromS) {
                                             RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
   for (const auto& dut : duts) {
     auto p_from_s = dut.PFromS();
-    for (int i = 0; i < kSs.size(); ++i) {
+    for (std::size_t i = 0; i < kSs.size(); ++i) {
       EXPECT_NEAR(kPs[i], p_from_s(kSs[i]), kLinearTolerance);
     }
   }
@@ -160,7 +160,7 @@ TEST_F(FlatLineRoadCurveTest, SFromP) {
 
   for (const auto& dut : duts) {
     auto s_from_p = dut.SFromP();
-    for (int i = 0; i < kPs.size(); ++i) {
+    for (std::size_t i = 0; i < kPs.size(); ++i) {
       EXPECT_NEAR(kSs[i], s_from_p(kPs[i]), kLinearTolerance);
     }
   }
@@ -185,7 +185,7 @@ TEST_F(FlatLineRoadCurveSubRangeTest, CalcSFromP) {
       RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
       RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
   for (const auto& dut : duts) {
-    for (int i = 0; i < kPsSub.size(); ++i) {
+    for (std::size_t i = 0; i < kPsSub.size(); ++i) {
       EXPECT_NEAR(kSsSub[i], dut.CalcSFromP(kPsSub[i]), kLinearTolerance);
     }
   }
@@ -198,7 +198,7 @@ TEST_F(FlatLineRoadCurveSubRangeTest, SFromP) {
       RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
   for (const auto& dut : duts) {
     auto s_from_p = dut.SFromP();
-    for (int i = 0; i < kPsSub.size(); ++i) {
+    for (std::size_t i = 0; i < kPsSub.size(); ++i) {
       EXPECT_NEAR(kSsSub[i], s_from_p(kPsSub[i]), kLinearTolerance);
     }
   }
@@ -211,7 +211,7 @@ TEST_F(FlatLineRoadCurveSubRangeTest, PFromS) {
       RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
   for (const auto& dut : duts) {
     auto p_from_s = dut.PFromS();
-    for (int i = 0; i < kSsSub.size(); ++i) {
+    for (std::size_t i = 0; i < kSsSub.size(); ++i) {
       EXPECT_NEAR(kPsSub[i], p_from_s(kSsSub[i]), kLinearTolerance);
     }
   }
@@ -283,7 +283,7 @@ TEST_F(FlatArcRoadCurveTest, CalcSFromP) {
                                             RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
                                             RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
-    for (int i = 0; i < kPs.size(); ++i) {
+    for (std::size_t i = 0; i < kPs.size(); ++i) {
       EXPECT_NEAR(kSs[j][i], duts[j].CalcSFromP(kPs[i]), kLinearTolerance);
     }
   }
@@ -296,7 +296,7 @@ TEST_F(FlatArcRoadCurveTest, PFromS) {
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto p_from_s = duts[j].PFromS();
-    for (int i = 0; i < kSs.size(); ++i) {
+    for (std::size_t i = 0; i < kSs.size(); ++i) {
       EXPECT_NEAR(kPs[i], p_from_s(kSs[j][i]), kLinearTolerance);
     }
   }
@@ -363,7 +363,7 @@ TEST_F(FlatArcRoadCurveSubRangeTest, PFromS) {
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto p_from_s = duts[j].PFromS();
-    for (int i = 0; i < kSsSub.size(); ++i) {
+    for (std::size_t i = 0; i < kSsSub.size(); ++i) {
       EXPECT_NEAR(kPsSub[i], p_from_s(kSsSub[j][i]), kLinearTolerance);
     }
   }
@@ -377,7 +377,7 @@ TEST_F(FlatArcRoadCurveSubRangeTest, SFromP) {
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto s_from_p = duts[j].SFromP();
-    for (int i = 0; i < kPsSub.size(); ++i) {
+    for (std::size_t i = 0; i < kPsSub.size(); ++i) {
       EXPECT_NEAR(kSsSub[j][i], s_from_p(kPsSub[i]), kLinearTolerance);
     }
   }
