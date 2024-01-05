@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2022, Woven Planet. All rights reserved.
-// Copyright (c) 2020-2022, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2023, Woven Planet. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -28,7 +27,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-// Validates a XODR map.
+// Generates an OBJ from an XODR map.
 #include <iostream>
 #include <memory>
 #include <optional>
@@ -36,10 +35,13 @@
 #include <string>
 
 #include <gflags/gflags.h>
+#include <maliput/common/filesystem.h>
 #include <maliput/common/logger.h>
+#include <maliput/utility/generate_obj.h>
 
 #include "applications/log_level_flag.h"
-#include "maliput_malidrive/xodr/db_manager.h"
+#include "maliput_malidrive/builder/road_network_builder.h"
+#include "maliput_malidrive/loader/loader.h"
 
 namespace malidrive {
 namespace applications {
@@ -49,13 +51,16 @@ namespace {
 // @return A string with the usage message.
 std::string GetUsageMessage() {
   std::stringstream ss;
-  ss << "CLI for XODR validation:" << std::endl << std::endl;
-  ss << "  xodr_validate --xodr_file=<xodr_file_path>" << std::endl;
+  ss << "CLI for XODR to OBJ conversion:" << std::endl << std::endl;
+  ss << "  xodr_to_obj --xodr_file=<path> --out-dir=<path> --tolerance=<float> [--allow-schema-errors] "
+        "[--allow-semantic-errors]"
+     << std::endl;
   return ss.str();
 }
 
 // @{ CLI Arguments
 DEFINE_string(xodr_file, "", "XODR input file defining a Malidrive road geometry");
+DEFINE_string(out_dir, ".", "Directory to save the OBJ to");
 DEFINE_double(tolerance, 1e-3, "Tolerance to validate continuity in piecewise defined geometries.");
 DEFINE_bool(allow_schema_errors, false, "If true, the XODR parser will attempt to work around XODR schema violations.");
 DEFINE_bool(allow_semantic_errors, false,
@@ -75,15 +80,18 @@ int Main(int argc, char** argv) {
   maliput::log()->info("Parser: Allow schema errors: ", (FLAGS_allow_schema_errors ? "enabled" : "disabled"));
   maliput::log()->info("Parser: Allow semantic errors: ", (FLAGS_allow_semantic_errors ? "enabled" : "disabled"));
 
-  // Tries to load the XODR map and logs the result.
-  try {
-    auto db_manager = malidrive::xodr::LoadDataBaseFromFile(
-        FLAGS_xodr_file, {FLAGS_tolerance, FLAGS_allow_schema_errors, FLAGS_allow_semantic_errors});
-    std::cout << "Successfully loaded the map." << std::endl;
-  } catch (const std::exception& e) {
-    std::cerr << e.what() << std::endl;
-    std::cerr << "The map could not be loaded." << std::endl;
-  }
+  // Load the road network
+  std::map<std::string, std::string> road_network_configuration;
+  road_network_configuration.emplace("opendrive_file", FLAGS_xodr_file);
+  auto road_network = malidrive::loader::Load<malidrive::builder::RoadNetworkBuilder>(road_network_configuration);
+
+  std::string name = FLAGS_xodr_file;
+  name.erase(name.begin(), name.begin() + name.rfind("/") + 1);
+  name.erase(name.begin() + name.rfind("."), name.end());
+
+  maliput::utility::ObjFeatures features;
+  features.min_grid_resolution = 5.0;
+  maliput::utility::GenerateObjFile(road_network->road_geometry(), FLAGS_out_dir, name, features);
   return 0;
 }
 
