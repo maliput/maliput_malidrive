@@ -34,12 +34,12 @@ namespace xodr {
 namespace {
 
 // Map for Type to string conversion.
-const std::map<Geometry::Type, std::string> type_to_str_map{{Geometry::Type::kLine, "line"},
-                                                            {Geometry::Type::kArc, "arc"}};
+const std::map<Geometry::Type, std::string> type_to_str_map{
+    {Geometry::Type::kLine, "line"}, {Geometry::Type::kArc, "arc"}, {Geometry::Type::kSpiral, "spiral"}};
 
 // Map for string to Type conversion.
-const std::map<std::string, Geometry::Type> str_to_type_map{{"line", Geometry::Type::kLine},
-                                                            {"arc", Geometry::Type::kArc}};
+const std::map<std::string, Geometry::Type> str_to_type_map{
+    {"line", Geometry::Type::kLine}, {"arc", Geometry::Type::kArc}, {"spiral", Geometry::Type::kSpiral}};
 
 }  // namespace
 
@@ -66,6 +66,10 @@ std::ostream& operator<<(std::ostream& os, const Geometry& geometry) {
       os << " - curvature: " << std::get<xodr::Geometry::Arc>(geometry.description).curvature;
       break;
     case Geometry::Type::kLine:
+      break;
+    case Geometry::Type::kSpiral:
+      os << " - curvature at [start, end]: [" << std::get<xodr::Geometry::Spiral>(geometry.description).curv_start;
+      os << ", " << std::get<xodr::Geometry::Spiral>(geometry.description).curv_end << "]";
       break;
     default:
       MALIPUT_THROW_MESSAGE("Unknown Geometry::Type");
