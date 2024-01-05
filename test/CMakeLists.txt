@@ -172,6 +172,7 @@ macro(malidrive_build_integration_based_tests)
     SingleRoadNegativeWidth.xodr
     SingleRoadTinyGeometry.xodr
     SingleRoadTwoGeometries.xodr
+    # "SmallTownRoads.xodr",  # TODO(stonier): requires spirals geometry support, #260
     SShapeRoad.xodr
     SShapeSuperelevatedRoad.xodr
     StraightForward.xodr

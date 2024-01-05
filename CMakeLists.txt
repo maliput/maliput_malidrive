@@ -159,6 +159,7 @@ install (FILES resources/ArcLane.xodr
                resources/SingleRoadPedestrianCrosswalk.yaml
                resources/SingleRoadTinyGeometry.xodr
                resources/SingleRoadTwoGeometries.xodr
+               resources/SmallTownRoads.xodr
                resources/SpiralRoad.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr
