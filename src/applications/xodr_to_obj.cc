@@ -40,7 +40,6 @@
 #include <maliput/utility/generate_obj.h>
 
 #include "applications/log_level_flag.h"
-
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/loader/loader.h"
 
@@ -53,7 +52,9 @@ namespace {
 std::string GetUsageMessage() {
   std::stringstream ss;
   ss << "CLI for XODR to OBJ conversion:" << std::endl << std::endl;
-  ss << "  xodr_to_obj --xodr_file=<path> --out-dir=<path> --tolerance=<float> [--allow-schema-errors] [--allow-semantic-errors]" << std::endl;
+  ss << "  xodr_to_obj --xodr_file=<path> --out-dir=<path> --tolerance=<float> [--allow-schema-errors] "
+        "[--allow-semantic-errors]"
+     << std::endl;
   return ss.str();
 }
 
@@ -82,9 +83,7 @@ int Main(int argc, char** argv) {
   // Load the road network
   std::map<std::string, std::string> road_network_configuration;
   road_network_configuration.emplace("opendrive_file", FLAGS_xodr_file);
-  auto road_network = malidrive::loader::Load<malidrive::builder::RoadNetworkBuilder>(
-    road_network_configuration
-  );
+  auto road_network = malidrive::loader::Load<malidrive::builder::RoadNetworkBuilder>(road_network_configuration);
 
   std::string name = FLAGS_xodr_file;
   name.erase(name.begin(), name.begin() + name.rfind("/") + 1);
@@ -92,12 +91,7 @@ int Main(int argc, char** argv) {
 
   maliput::utility::ObjFeatures features;
   features.min_grid_resolution = 5.0;
-  maliput::utility::GenerateObjFile(
-    road_network->road_geometry(),
-    FLAGS_out_dir,
-    name,
-    features
-  );
+  maliput::utility::GenerateObjFile(road_network->road_geometry(), FLAGS_out_dir, name, features);
   return 0;
 }
 
