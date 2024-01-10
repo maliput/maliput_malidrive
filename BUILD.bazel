@@ -177,8 +177,8 @@ cc_library(
     ],
 )
 
-cc_library(
-    name = "plugin",
+cc_binary(
+    name = "maliput_plugins/libmaliput_malidrive_road_network.so",
     srcs = glob(["src/plugin/**/*.cc"]),
     copts = COPTS,
     visibility = ["//visibility:public"],
@@ -186,6 +186,8 @@ cc_library(
         ":builder",
         "@maliput//:plugin",
     ],
+    linkstatic = False,
+    linkshared = True,
 )
 
 ###############################################################################
