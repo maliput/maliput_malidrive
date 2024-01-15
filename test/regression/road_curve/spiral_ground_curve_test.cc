@@ -277,8 +277,8 @@ double BruteForcePathLengthIntegral(const SpiralGroundCurve& dut, double p0, dou
 // </pre>
 class NormalizedSpiralGroundCurveTest : public ::testing::Test {
  protected:
-  static constexpr double kTolerance{1e-10};
-  static constexpr double kLinearTolerance{1e-9};
+  static constexpr double kLinearTolerance{1e-10};
+  static constexpr double kGInverseTolerance{1e-6};
   const Vector2 kXy0{0., 0.};
   static constexpr double kStartHeading{0.};
   static constexpr double kStartCurvature{0.};
@@ -292,27 +292,33 @@ class NormalizedSpiralGroundCurveTest : public ::testing::Test {
 };
 
 TEST_F(NormalizedSpiralGroundCurveTest, G) {
-  EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.4968840292, 0.0414810243}, dut_.G(kMidP), kTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9045242379, 0.3102683017}, dut_.G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.4968840292, 0.0414810243}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9045242379, 0.3102683017}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, GDot) {
-  EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9689124217, 0.2474039593}, dut_.GDot(kMidP), kTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.5403023059, 0.8414709848}, dut_.GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9689124217, 0.2474039593}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.5403023059, 0.8414709848}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, Heading) {
-  EXPECT_NEAR(0., dut_.Heading(kP0), kTolerance);
-  EXPECT_NEAR(0.25, dut_.Heading(kMidP), kTolerance);
-  EXPECT_NEAR(1., dut_.Heading(kP1), kTolerance);
+  EXPECT_NEAR(0., dut_.Heading(kP0), kLinearTolerance);
+  EXPECT_NEAR(0.25, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(1., dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, HeadingDot) {
-  EXPECT_NEAR(0., dut_.HeadingDot(kP0), kTolerance);
-  EXPECT_NEAR(1., dut_.HeadingDot(kMidP), kTolerance);
-  EXPECT_NEAR(2., dut_.HeadingDot(kP1), kTolerance);
+  EXPECT_NEAR(0., dut_.HeadingDot(kP0), kLinearTolerance);
+  EXPECT_NEAR(1., dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(2., dut_.HeadingDot(kP1), kLinearTolerance);
+}
+
+TEST_F(NormalizedSpiralGroundCurveTest, GInverse) {
+  EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({0.4968840292, 0.0414810243}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({0.9045242379, 0.3102683017}), kGInverseTolerance);
 }
 
 // Check the internal normalization parameter does not affect the construct arc length.

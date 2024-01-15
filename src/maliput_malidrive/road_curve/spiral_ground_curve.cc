@@ -184,9 +184,89 @@ maliput::math::Vector2 SpiralGroundCurve::DoGDot(double p) const {
   return maliput::math::Vector2{std::cos(PowerOf(t, 2)), std::sin(PowerOf(t, 2))} * norm_;
 }
 
-double SpiralGroundCurve::DoGInverse(const maliput::math::Vector2&) const {
-  MALIPUT_THROW_MESSAGE("Unimplemented: SpiralGroundCurve::DoGInverse().");
-  return {};
+namespace {
+
+// @brief Find the best p parameter for @p curve that maps a point in the 2D INERTIAL-Frame that minimizes
+// the distance to @p point.
+// @details The function implements a binary search within a range trying to minimize the distance against
+// @p point. The range is split into equal @p partitions. The search can be early terminated if any of the
+// extents of the range at each iteration is within @p tolerance.
+// @param curve The SpiralGoundCurve to use.
+// @param point The point in the 2D INERTIAL-Frame to find a p parameter value for.
+// @param p0 The p parameter start range value. It must be non-negative.
+// @param p1 The p parameter end range value. It must be greater than @p p0 by GroundCurve::kEpsilon.
+// @param partitions The number of partitions of the range [@p p0; @p p1]. It must be greater or equal to 2.
+// @param tolerance The tolereance to early stop the search. It must be non-negative.
+// @return The p parameter value that minimizes the distance against @p point.
+double FindBestPParameter(const SpiralGroundCurve& curve, const maliput::math::Vector2& point, double p0, double p1,
+                          size_t partitions, double tolerance) {
+  MALIPUT_THROW_UNLESS(p0 >= 0.);
+  MALIPUT_THROW_UNLESS(p1 - p0 >= GroundCurve::kEpsilon);
+  MALIPUT_THROW_UNLESS(partitions >= 2u);
+  MALIPUT_THROW_UNLESS(tolerance >= 0.);
+
+  const size_t kIterations{2u * static_cast<size_t>(std::ceil(std::log(partitions))) + 1u};
+  // Initialize the list of p values.
+  std::vector<double> p_values(partitions);
+  const double step = (p1 - p0) / static_cast<double>(partitions - 1u);
+  for (size_t i = 0u; i < partitions - 1u; ++i) {
+    p_values[i] = p0 + static_cast<double>(i) * step;
+  }
+  p_values[partitions - 1u] = p1;
+
+  // Find the p-value that minimizes the distance to the target point using a binary search
+  // across the list of p values.
+  size_t start_i{0u};
+  size_t end_i{partitions - 1u};
+  for (size_t iter = 0u; iter < kIterations; ++iter) {
+    const maliput::math::Vector2 start_point = curve.G(p_values[start_i]);
+    const maliput::math::Vector2 end_point = curve.G(p_values[end_i]);
+    const double start_distance = (start_point - point).norm();
+    const double end_distance = (end_point - point).norm();
+    // Early termination conditions.
+    if (start_distance <= tolerance) {
+      return p_values[start_i];
+    }
+    if (end_distance <= tolerance) {
+      return p_values[end_i];
+    }
+    // Index adjustment for the next iteration.
+    if (start_distance <= end_distance) {
+      end_i = std::ceil((end_i + start_i) / 2u);
+    } else {
+      start_i = std::floor((end_i + start_i) / 2u);
+    }
+  }
+  return p_values[start_i];
+}
+
+}  // namespace
+
+double SpiralGroundCurve::DoGInverse(const maliput::math::Vector2& point) const {
+  static constexpr size_t kMaxIterations{10u};
+  static constexpr size_t kPartitionSize{1000u};
+
+  // Initializes the error and the extents of the range to search.
+  double start_p = p0_;
+  double end_p = p1_;
+  double best_p = p0_;
+  // Iterates in the search to get a better precision of the p value.
+  for (size_t i = 0; i < kMaxIterations; ++i) {
+    // Obtains the best p parameter value for the given range.
+    best_p = FindBestPParameter(*this, point, start_p, end_p, kPartitionSize, linear_tolerance_);
+    // Computes the error, i.e. distance to the point to match. When the error
+    // is less or equal to linear_tolerance, there is no need to continue iterating.
+    if ((G(best_p) - point).norm() <= linear_tolerance_) {
+      return best_p;
+    }
+    // Creates a new extent whose range is step. Note that FindBestPParameter
+    // returns the minimum out of the two possible values in the range.
+    const double step = (end_p - start_p) / static_cast<double>(kPartitionSize);
+    start_p = best_p;
+    end_p = std::min(p1_, best_p + step);
+  }
+
+  return best_p;
 }
 
 double SpiralGroundCurve::DoHeading(double p) const {
