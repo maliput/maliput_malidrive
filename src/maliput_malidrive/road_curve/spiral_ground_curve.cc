@@ -153,16 +153,16 @@ SpiralGroundCurve::SpiralGroundCurve(double linear_tolerance, const maliput::mat
       validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
                                                                                GroundCurve::kEpsilon)),
       k_dot_{(curvature1 - curvature0) / arc_length},
-      norm_{1. / std::sqrt(k_dot_)},
+      norm_{1. / std::sqrt(std::abs(k_dot_))},
       spiral_p0_{curvature0 * arc_length / (curvature1 - curvature0)},
-      spiral_heading0_{std::atan2(std::sin(PowerOf(spiral_p0_, 2)), std::cos(PowerOf(spiral_p0_, 2)))},
-      spiral_xy0_{FresnelSpiral(spiral_p0_ / norm_)} {
+      spiral_heading0_{std::atan2(std::sin(PowerOf(spiral_p0_ / norm_, 2)), std::cos(PowerOf(spiral_p0_ / norm_, 2)))},
+      spiral_xy0_{FresnelSpiral(spiral_p0_ / norm_) * norm_} {
   MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0.);
   MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
   MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
   MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon);
   MALIDRIVE_THROW_UNLESS(std::fabs(curvature1_ - curvature0_) >= GroundCurve::kEpsilon);
-  MALIDRIVE_THROW_UNLESS(std::signbit(curvature1_) == std::signbit(curvature0_));
+  spiral_xy0_ = k_dot_ < 0. ? maliput::math::Vector2{spiral_xy0_.x(), -spiral_xy0_.y()} : spiral_xy0_;
 }
 
 double SpiralGroundCurve::DoPFromP(double xodr_p) const { return validate_p_(xodr_p); }
@@ -172,16 +172,17 @@ double SpiralGroundCurve::NormalizedSpiralCoordinateAt(double p) const { return 
 maliput::math::Vector2 SpiralGroundCurve::DoG(double p) const {
   p = validate_p_(p);
   const double t = NormalizedSpiralCoordinateAt(p);
-  // TODO(#265): when k_dot_ is negative, y must be multiplied by -1.
-  const maliput::math::Vector2 spiral_pos = (FresnelSpiral(t) - spiral_xy0_) * norm_;
+  maliput::math::Vector2 spiral_pos = (FresnelSpiral(t) - spiral_xy0_) * norm_;
+  spiral_pos = k_dot_ < 0. ? maliput::math::Vector2{spiral_pos.x(), -spiral_pos.y()} : spiral_pos;
   return xy0_ + Rotate2dVector(spiral_pos, heading0_ - spiral_heading0_);
 }
 
 maliput::math::Vector2 SpiralGroundCurve::DoGDot(double p) const {
   p = validate_p_(p);
   const double t = NormalizedSpiralCoordinateAt(p);
-  // TODO(#265): when k_dot_ is negative, y must be multiplied by -1.
-  return maliput::math::Vector2{std::cos(PowerOf(t, 2)), std::sin(PowerOf(t, 2))} * norm_;
+  maliput::math::Vector2 g_dot = maliput::math::Vector2{std::cos(PowerOf(t, 2)), std::sin(PowerOf(t, 2))} / norm_;
+  g_dot = k_dot_ < 0. ? maliput::math::Vector2{g_dot.x(), -g_dot.y()} : g_dot;
+  return Rotate2dVector(g_dot, heading0_ - spiral_heading0_);
 }
 
 namespace {
@@ -218,17 +219,19 @@ double FindBestPParameter(const SpiralGroundCurve& curve, const maliput::math::V
   // across the list of p values.
   size_t start_i{0u};
   size_t end_i{partitions - 1u};
+  double start_distance{std::numeric_limits<double>::max()};
+  double end_distance{std::numeric_limits<double>::max()};
   for (size_t iter = 0u; iter < kIterations; ++iter) {
     const maliput::math::Vector2 start_point = curve.G(p_values[start_i]);
     const maliput::math::Vector2 end_point = curve.G(p_values[end_i]);
-    const double start_distance = (start_point - point).norm();
-    const double end_distance = (end_point - point).norm();
+    start_distance = (start_point - point).norm();
+    end_distance = (end_point - point).norm();
     // Early termination conditions.
-    if (start_distance <= tolerance) {
-      return p_values[start_i];
+    if (start_distance <= tolerance || end_distance <= tolerance) {
+      break;
     }
-    if (end_distance <= tolerance) {
-      return p_values[end_i];
+    if ((end_i - start_i) <= 1u) {
+      break;
     }
     // Index adjustment for the next iteration.
     if (start_distance <= end_distance) {
@@ -237,7 +240,7 @@ double FindBestPParameter(const SpiralGroundCurve& curve, const maliput::math::V
       start_i = std::floor((end_i + start_i) / 2u);
     }
   }
-  return p_values[start_i];
+  return start_distance <= end_distance ? p_values[start_i] : p_values[end_i];
 }
 
 }  // namespace
@@ -262,17 +265,20 @@ double SpiralGroundCurve::DoGInverse(const maliput::math::Vector2& point) const 
     // Creates a new extent whose range is step. Note that FindBestPParameter
     // returns the minimum out of the two possible values in the range.
     const double step = (end_p - start_p) / static_cast<double>(kPartitionSize);
-    start_p = best_p;
+    start_p = std::max(p0_, best_p - step);
     end_p = std::min(p1_, best_p + step);
+    // When the range has been constrained beyond the GroundCurve::kEpsilon, we should
+    // return to avoid further numerical error even if the parameter is not good enough.
+    if ((end_p - start_p) < GroundCurve::kEpsilon) {
+      return best_p;
+    }
   }
 
   return best_p;
 }
 
 double SpiralGroundCurve::DoHeading(double p) const {
-  p = validate_p_(p);
-  const double t = NormalizedSpiralCoordinateAt(p);
-  const maliput::math::Vector2 g_dot = GDot(t);
+  const maliput::math::Vector2 g_dot = GDot(p);
   return std::atan2(g_dot.y(), g_dot.x());
 }
 

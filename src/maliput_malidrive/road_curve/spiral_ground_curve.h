@@ -59,9 +59,6 @@ namespace road_curve {
 /// <a href="https://github.com/pageldev/libOpenDRIVE/blob/master/LICENSE">Apache License 2.0</a>
 /// <a
 /// href="https://github.com/pageldev/libOpenDRIVE/blob/9a0437f8a18d445d5c43fe2a4c9401d8a4b770f0/src/Geometries/Spiral.cpp">Spiral.cpp</a>
-///
-/// This implementation does not admit different signs in the start and end curvatures.
-// TODO(#265): Evaluate start and end curvature being of different sign.
 class SpiralGroundCurve : public GroundCurve {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(SpiralGroundCurve);
@@ -77,11 +74,11 @@ class SpiralGroundCurve : public GroundCurve {
   /// @param curvature0 Quantity which indicates the reciprocal of the
   ///        turning radius of the arc at @p p0. A positive @p curvature0 makes a
   ///        counterclockwise turn. It must be different from @p curvature1 by at least
-  ///        GroundCurve::kEpsilon. It must be of the same sign as @p curvature1.
+  ///        GroundCurve::kEpsilon.
   /// @param curvature1 Quantity which indicates the reciprocal of the
   ///        turning radius of the arc at @p p1. A positive @p curvature1 makes a
   ///        counterclockwise turn. It must be different from @p curvature1 by at least
-  ///        GroundCurve::kEpsilon. It must be of the same sign as @p curvature0.
+  ///        GroundCurve::kEpsilon.
   /// @param arc_length The spiral's length. It must be greate-r or equal to
   ///        GroundCurve::kEpsilon.
   /// @param p0 The value of the @f$ p @f$ parameter at the beginning of the
@@ -92,9 +89,7 @@ class SpiralGroundCurve : public GroundCurve {
   /// @throws maliput::common::assertion_error When @p linear_tolerance is
   ///         non-positive.
   /// @throws maliput::common::assertion_error When @p curvature0 is
-  ///         different from @p curvature1 by less than  GroundCurve::kEpsilon.
-  /// @throws maliput::common::assertion_error When @p curvature0 and @p curvature1
-  ///         have a different sign.
+  ///         different from @p curvature1 by less than GroundCurve::kEpsilon.
   /// @throws maliput::common::assertion_error When @p arc_length is smaller
   ///         than GroundCurve::kEpsilon.
   /// @throws maliput::common::assertion_error When @p p0 is negative.
@@ -150,7 +145,7 @@ class SpiralGroundCurve : public GroundCurve {
   // Heading of the normalized spiral at `p0_`.
   const double spiral_heading0_{};
   // Start position of the spiral in the normalized spiral frame.
-  const maliput::math::Vector2 spiral_xy0_{};
+  maliput::math::Vector2 spiral_xy0_{};
 };
 
 }  // namespace road_curve
