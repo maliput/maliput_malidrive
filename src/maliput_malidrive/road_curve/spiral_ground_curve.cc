@@ -153,7 +153,7 @@ SpiralGroundCurve::SpiralGroundCurve(double linear_tolerance, const maliput::mat
       validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
                                                                                GroundCurve::kEpsilon)),
       k_dot_{(curvature1 - curvature0) / arc_length},
-      norm_{1. / std::sqrt(std::abs(k_dot_))},
+      norm_{std::sqrt(M_PI) / std::sqrt(std::abs(k_dot_))},
       spiral_p0_{curvature0 * arc_length / (curvature1 - curvature0)},
       spiral_heading0_{std::atan2(std::sin(PowerOf(spiral_p0_ / norm_, 2)), std::cos(PowerOf(spiral_p0_ / norm_, 2)))},
       spiral_xy0_{FresnelSpiral(spiral_p0_ / norm_) * norm_} {
