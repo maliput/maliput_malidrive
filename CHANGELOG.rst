@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.2.1 (2024-02-02)
+------------------
+* [bazel] Guarantee shared library creation for the plugin (`#269 <https://github.com/maliput/maliput_malidrive/issues/269>`_)
+* Enables regression testing in bazel. (`#246 <https://github.com/maliput/maliput_malidrive/issues/246>`_)
+
 0.2.0 (2024-01-05)
 ------------------
 * [xodr] SmallTownRoads.xodr (`#266 <https://github.com/maliput/maliput_malidrive/issues/266>`_)
