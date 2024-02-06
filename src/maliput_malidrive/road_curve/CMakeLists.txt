@@ -11,6 +11,7 @@ add_library(road_curve
   road_curve.cc
   road_curve_offset.cc
   spiral_ground_curve.cc
+  odr_spiral.cc
 )
 add_library(maliput_malidrive::road_curve ALIAS road_curve)
 set_target_properties(road_curve
