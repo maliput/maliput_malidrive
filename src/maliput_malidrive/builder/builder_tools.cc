@@ -71,6 +71,7 @@ const std::map<xodr::Lane::Type, XodrLaneProperties> kXodrLaneTypesToMaliputProp
     {xodr::Lane::Type::kBorder, {false, "NonVehicles", {}}},
     {xodr::Lane::Type::kRestricted, {false, "NonVehicles", {}}},
     {xodr::Lane::Type::kParking, {false, "Unrestricted", {}}},
+    {xodr::Lane::Type::kCurb, {false, "NonVehicles", {}}},
     {xodr::Lane::Type::kMwyEntry, {true, "NonPedestrians", {"MotorizedVehicleOnly"}}},
     {xodr::Lane::Type::kMwyExit, {true, "NonPedestrians", {"MotorizedVehicleOnly"}}},
     {xodr::Lane::Type::kSpecial1, {true, "NonPedestrians", {}}},
