@@ -137,6 +137,8 @@ class RoadCurveFactoryBase {
   ///         xodr::Geometry::Type::kLine.
   virtual std::unique_ptr<road_curve::GroundCurve> MakeLineGroundCurve(const xodr::Geometry& line_geometry) const = 0;
 
+  virtual std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(const xodr::Geometry& spiral_geometry) const = 0;
+
   /// Makes a road_curve::PiecewiseGroundCurve.
   ///
   /// Its linear tolerance will be the constructor argument.
@@ -282,6 +284,8 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   std::unique_ptr<road_curve::GroundCurve> MakeArcGroundCurve(const xodr::Geometry& arc_geometry) const override;
 
   std::unique_ptr<road_curve::GroundCurve> MakeLineGroundCurve(const xodr::Geometry& line_geometry) const override;
+
+  std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(const xodr::Geometry& spiral_geometry) const override;
 
   std::unique_ptr<road_curve::GroundCurve> MakePiecewiseGroundCurve(
       const std::vector<xodr::Geometry>& geometries) const override;
