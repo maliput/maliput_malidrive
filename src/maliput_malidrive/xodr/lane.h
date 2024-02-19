@@ -105,6 +105,7 @@ struct Lane {
     kBorder,
     kRestricted,
     kParking,
+    kCurb,
     /// `bidirectional` could be used on a narrow road which may be used in both directios or in a continuous two-way
     /// left turn lane on multi-lane roads.
     kBidirectional,

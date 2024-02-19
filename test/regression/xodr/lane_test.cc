@@ -54,21 +54,64 @@ GTEST_TEST(LaneSpeed, EqualityOperator) {
   EXPECT_EQ(kSpeed, speed);
 };
 
-GTEST_TEST(Lane, TypeToStr) {
-  const std::string kExpected1{"driving"};
-  const std::string kExpected2{"shoulder"};
-  EXPECT_EQ(kExpected1, Lane::type_to_str(Lane::Type::kDriving));
-  EXPECT_EQ(kExpected2, Lane::type_to_str(Lane::Type::kShoulder));
+// Holds the Lane::Type and its string representation.
+struct LaneTypeAndStrType {
+  Lane::Type type{};
+  std::string str_type{};
+};
+
+// Provides a list with all the Lane::Type and its string representations.
+std::vector<LaneTypeAndStrType> GetTestingLaneTypeAndStringTypes() {
+  return std::vector<LaneTypeAndStrType>{
+      {Lane::Type::kNone, "none"},
+      {Lane::Type::kDriving, "driving"},
+      {Lane::Type::kStop, "stop"},
+      {Lane::Type::kShoulder, "shoulder"},
+      {Lane::Type::kBiking, "biking"},
+      {Lane::Type::kSidewalk, "sidewalk"},
+      {Lane::Type::kBorder, "border"},
+      {Lane::Type::kRestricted, "restricted"},
+      {Lane::Type::kParking, "parking"},
+      {Lane::Type::kCurb, "curb"},
+      {Lane::Type::kBidirectional, "bidirectional"},
+      {Lane::Type::kMedian, "median"},
+      {Lane::Type::kSpecial1, "special1"},
+      {Lane::Type::kSpecial2, "special2"},
+      {Lane::Type::kSpecial3, "special3"},
+      {Lane::Type::kRoadWorks, "roadworks"},
+      {Lane::Type::kTram, "tram"},
+      {Lane::Type::kRail, "rail"},
+      {Lane::Type::kEntry, "entry"},
+      {Lane::Type::kExit, "exit"},
+      {Lane::Type::kOffRamp, "offRamp"},
+      {Lane::Type::kOnRamp, "onRamp"},
+      {Lane::Type::kConnectingRamp, "connectingRamp"},
+      {Lane::Type::kBus, "bus"},
+      {Lane::Type::kTaxi, "taxi"},
+      {Lane::Type::kHOV, "hov"},
+      {Lane::Type::kMwyEntry, "mwyEntry"},
+      {Lane::Type::kMwyExit, "mwyExit"},
+  };
 }
 
-GTEST_TEST(Lane, StrToType) {
-  const std::string kDriving{"driving"};
-  const std::string kShoulder{"shoulder"};
-  EXPECT_EQ(Lane::Type::kDriving, Lane::str_to_type(kDriving));
-  EXPECT_EQ(Lane::Type::kShoulder, Lane::str_to_type(kShoulder));
+// Tests Lane::Type to and from string conversion.
+class TypeStringConversionTest : public ::testing::TestWithParam<LaneTypeAndStrType> {
+ public:
+  const Lane::Type type_{GetParam().type};
+  const std::string str_type_{GetParam().str_type};
+};
+
+TEST_P(TypeStringConversionTest, TypeToStr) { ASSERT_EQ(str_type_, Lane::type_to_str(type_)); }
+
+TEST_P(TypeStringConversionTest, StrToType) { ASSERT_EQ(type_, Lane::str_to_type(str_type_)); }
+
+GTEST_TEST(LaneTypeTest, StrToTypeThrowsWithUnknownToken) {
   const std::string kWrongValue{"WrongValue"};
   EXPECT_THROW(Lane::str_to_type(kWrongValue), maliput::common::assertion_error);
 }
+
+INSTANTIATE_TEST_CASE_P(GroupTypeStringConversionTest, TypeStringConversionTest,
+                        ::testing::ValuesIn(GetTestingLaneTypeAndStringTypes()));
 
 GTEST_TEST(Lane, EqualityOperator) {
   const LaneLink lane_link{LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id("35")},
