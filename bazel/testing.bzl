@@ -55,6 +55,7 @@ def generate_unit_tests(sources):
             name = name,
             srcs = [source],
             size = "small",
+            timeout = "moderate",
             copts = COPTS,
             linkopts = ["-lpthread"],
             defines = [
