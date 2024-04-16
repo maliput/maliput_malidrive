@@ -137,18 +137,31 @@ class RoadCurveFactoryBase {
   ///         xodr::Geometry::Type::kLine.
   virtual std::unique_ptr<road_curve::GroundCurve> MakeLineGroundCurve(const xodr::Geometry& line_geometry) const = 0;
 
+  /// Makes a road_curve::SpiralGroundCurve.
+  ///
+  /// Its linear tolerance will be the constructor argument.
+  ///
+  /// @param spiral_geometry xodr::Geometry definition to construct a
+  ///        road_curve::SpiralGroundCurve. Its type must be
+  ///        xodr::Geometry::Type::kSpiral.
+  /// @return A road_curve::SpiralGroundCurve.
+  /// @throws maliput::common::assertion_error When `spiral_geometry.type` is not
+  ///         xodr::Geometry::Type::kSpiral.
+  virtual std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(
+      const xodr::Geometry& spiral_geometry) const = 0;
+
   /// Makes a road_curve::PiecewiseGroundCurve.
   ///
   /// Its linear tolerance will be the constructor argument.
   ///
   /// @param geometries A vector of xodr::Geometry definitions to construct a
   ///        road_curve::PiecewiseGroundCurve. Item's type must be one of
-  ///        {xodr::Geometry::Type::kArc, xodr::Geometry::Type::kLine}. It must
-  ///        not be empty. Geometries whose length is less than GroundCurve::kEpsilon are discarded.
+  ///        {xodr::Geometry::Type::kArc, xodr::Geometry::Type::kLine, xodr::Geometry::Type::kSpiral}.
+  ///        It must not be empty. Geometries whose length is less than GroundCurve::kEpsilon are discarded.
   /// @return A road_curve::PiecewiseGroundCurve.
   /// @throws maliput::common::assertion_error When any item of @p geometries
   ///         has other type than {xodr::Geometry::Type::kArc,
-  ///         xodr::Geometry::Type::kLine}.
+  ///         xodr::Geometry::Type::kLine, xodr::Geometry::Type::kSpiral}.
   /// @throws maliput::common::assertion_error When @p geometries is empty.
   virtual std::unique_ptr<road_curve::GroundCurve> MakePiecewiseGroundCurve(
       const std::vector<xodr::Geometry>& geometries) const = 0;
@@ -282,6 +295,8 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   std::unique_ptr<road_curve::GroundCurve> MakeArcGroundCurve(const xodr::Geometry& arc_geometry) const override;
 
   std::unique_ptr<road_curve::GroundCurve> MakeLineGroundCurve(const xodr::Geometry& line_geometry) const override;
+
+  std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(const xodr::Geometry& spiral_geometry) const override;
 
   std::unique_ptr<road_curve::GroundCurve> MakePiecewiseGroundCurve(
       const std::vector<xodr::Geometry>& geometries) const override;

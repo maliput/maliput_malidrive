@@ -209,6 +209,20 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
        {{1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 100.}, {{1, 0, -1}, {1, 0, 1}}}}}}},
       /*
+        SpiralRoad map has the following structure (it is an spiral, but the ASCII art
+        does not allow to get the right curvature in it):
+                          (0.,0.,0.)         (10.2160688068, -85.2892703626,0.)
+        Driving   | L: 1  |-------->---------| Width: 2.0m
+        Track lane| L: 0  |========>=========| Width: 0m
+        Driving   | L: -1 |-------->---------| Width: 2.0m
+                          Road 1
+                          Section 0
+      */
+      {"SpiralRoad",
+       "SpiralRoad.xodr",
+       {{1 /* road_id */, 0.0 /* heading */}},
+       {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 100.}, {{1, 0, -1}, {1, 0, 1}}}}}}},
+      /*
         SShapeRoad map has the following structure:
           - 1 Road
             - 1 Lane Section.

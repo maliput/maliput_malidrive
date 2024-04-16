@@ -30,7 +30,8 @@ generate_integration_tests(
         "SingleRoadNegativeWidth.xodr",
         "SingleRoadTinyGeometry.xodr",
         "SingleRoadTwoGeometries.xodr",
-        # "SmallTownRoads.xodr",  # TODO(stonier): requires spirals geometry support, #260
+        "SpiralRoald.xodr",
+        "SmallTownRoads.xodr",
         "SShapeRoad.xodr",
         "SShapeSuperelevatedRoad.xodr",
         "StraightForward.xodr",
