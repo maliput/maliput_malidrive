@@ -209,26 +209,28 @@ double BruteForcePathLengthIntegral(const SpiralGroundCurve& dut, double p0, dou
 //     return (x * ca - y * sa, x * sa + y * ca)
 //
 // def fresnel(t):
-//     yx = sp.fresnel(t)
-//     return np.array([yx[1], yx[0]])
+//     sc = sp.fresnel(t)
+//     if k_dot < 0.:
+//         return np.array([sc[1], -sc[0]])
+//     return np.array([sc[1], sc[0]])
 //
 // def fresnel_heading(t, k_dot):
-//     return 0.5 * t * t * k_dot
+//     return t * t * k_dot * 0.5
 //
-// def heading(t, heading0, k_dot, heading0_spiral):
-//     return fresnel_heading(t, k_dot) - heading0_spiral + heading0
+// def heading(t, heading0, k_dot, norm, heading0_spiral):
+//     return fresnel_heading(t * norm, k_dot) - heading0_spiral + heading0
 //
-// def heading_dot(t, k_dot):
-//     return t * k_dot
+// def heading_dot(t, k_dot, norm):
+//     return t * norm * k_dot
 //
-// def g(t, heading0, norm, k_dot, heading0_spiral, xy0_spiral):
+// def g(t, heading0, norm, k_dot, norm, heading0_spiral, xy0_spiral):
 //     xy = np.array(fresnel(t) * norm) - xy0_spiral
-//     h = heading(t, heading0, k_dot, heading0_spiral)
+//     h = heading0 - heading0_spiral
 //     x, y = rot_vec(xy[0], xy[1], h)
 //     return np.array([x, y])
 //
-// def g_dot(t, heading0, k_dot, heading0_spiral):
-//     h = heading(t, heading0, k_dot, heading0_spiral)
+// def g_dot(t, heading0, k_dot, norm, heading0_spiral):
+//     h = heading(t, heading0, k_dot, norm, heading0_spiral)
 //     return np.array([np.cos(h), np.sin(h)])
 //
 // def t_from_p(p, s0_spiral, norm):
@@ -290,9 +292,9 @@ double BruteForcePathLengthIntegral(const SpiralGroundCurve& dut, double p0, dou
 class BaseSpiralGroundCurveTest : public ::testing::Test {
  protected:
   static constexpr double kLinearTolerance{1e-10};
-  static constexpr double kGInverseTolerance{5e-2};  // TODO: reduce to 1e-6 or smaller.
+  static constexpr double kGInverseTolerance{1e-10};
   static constexpr int kOrder{7};
-  static constexpr double kToleranceForBruteForceIntegral{5e-2};  // TODO: reduce to 1e-6 or smaller.
+  static constexpr double kToleranceForBruteForceIntegral{5e-5};
 };
 
 // Tests the SpiralGroundCurve with a curvature derivative of one, making it normalized.
@@ -312,35 +314,35 @@ class NormalizedSpiralGroundCurveTest : public BaseSpiralGroundCurveTest {
 
 TEST_F(NormalizedSpiralGroundCurveTest, G) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.4979964103, 0.0406516876}, dut_.G(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9370155385, 0.3162123412}, dut_.G(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.4992193149, 0.0208100934}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9752876882, 0.1637140474}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, GDot) {
   EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9992085327, 0.0397782381}, dut_.GDot(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9873615638, 0.1584838866}, dut_.GDot(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9921976672, 0.1246747334}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.8775825619, 0.4794255386}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, Heading) {
   EXPECT_NEAR(0., dut_.Heading(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.03978873577297383, dut_.Heading(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.15915494309189532, dut_.Heading(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.1249999999999999, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.4999999999999999, dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, HeadingDot) {
   EXPECT_NEAR(0., dut_.HeadingDot(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.28209479177387814, dut_.HeadingDot(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.5641895835477563, dut_.HeadingDot(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.4999999999999999, dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.9999999999999999, dut_.HeadingDot(kP1), kLinearTolerance);
 }
 
 TEST_F(NormalizedSpiralGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
-  EXPECT_NEAR(kMidP, dut_.GInverse({0.4979964103, 0.0406516876}), kGInverseTolerance);
-  EXPECT_NEAR(kP1, dut_.GInverse({0.9370155385, 0.3162123412}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({0.4992193149, 0.0208100934}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({0.9752876882, 0.1637140474}), kGInverseTolerance);
 }
 
-TEST_F(NormalizedSpiralGroundCurveTest, ProperNormalizationYieldsArcLengthToBekP1MinuskP0) {
+TEST_F(NormalizedSpiralGroundCurveTest, ArcLengthEvaluation) {
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kMidP, kOrder), dut_.ArcLength() / 2.,
               kToleranceForBruteForceIntegral);
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kP1, kOrder), dut_.ArcLength(), kToleranceForBruteForceIntegral);
@@ -363,36 +365,36 @@ class OffsetPNormalizedSpiralGroundCurveTest : public BaseSpiralGroundCurveTest 
 
 TEST_F(OffsetPNormalizedSpiralGroundCurveTest, G) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.4979964103, 0.0406516876}, dut_.G(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9370155385, 0.3162123412}, dut_.G(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.4992193149, 0.0208100934}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9752876882, 0.1637140474}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(OffsetPNormalizedSpiralGroundCurveTest, GDot) {
   EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9992085327, 0.0397782381}, dut_.GDot(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9873615638, 0.1584838866}, dut_.GDot(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9921976672, 0.1246747334}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.8775825619, 0.4794255386}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(OffsetPNormalizedSpiralGroundCurveTest, Heading) {
   EXPECT_NEAR(0., dut_.Heading(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.03978873577297383, dut_.Heading(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.15915494309189532, dut_.Heading(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.1249999999999999, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.4999999999999999, dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(OffsetPNormalizedSpiralGroundCurveTest, HeadingDot) {
   EXPECT_NEAR(0., dut_.HeadingDot(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.28209479177387814, dut_.HeadingDot(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.5641895835477563, dut_.HeadingDot(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.4999999999999999, dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.9999999999999999, dut_.HeadingDot(kP1), kLinearTolerance);
 }
 
 TEST_F(OffsetPNormalizedSpiralGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
-  EXPECT_NEAR(kMidP, dut_.GInverse({0.4968840292, 0.0414810243}), kGInverseTolerance);
-  EXPECT_NEAR(kP1, dut_.GInverse({0.9045242379, 0.3102683017}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({0.4992193149, 0.0208100934}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({0.9752876882, 0.1637140474}), kGInverseTolerance);
 }
 
 // Check the internal normalization parameter does not affect the construct arc length.
-TEST_F(OffsetPNormalizedSpiralGroundCurveTest, ProperNormalizationYieldsArcLengthToBekP1MinuskP0) {
+TEST_F(OffsetPNormalizedSpiralGroundCurveTest, ArcLengthEvaluation) {
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kMidP, kOrder), dut_.ArcLength() / 2.,
               kToleranceForBruteForceIntegral);
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kP1, kOrder), dut_.ArcLength(), kToleranceForBruteForceIntegral);
@@ -415,36 +417,36 @@ class InvertedCurvatureNormalizedSpiralGroundCurveTest : public BaseSpiralGround
 
 TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, G) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.4896982421, -0.0851954681}, dut_.G(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9889076155, -0.0070775745}, dut_.G(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.4863011077, 0.1028293182}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9343841633, 0.3239052321}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, GDot) {
   EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9928843092, 0.1190829484}, dut_.GDot(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9873615638, 0.1584838866}, dut_.GDot(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9305076219, 0.3662725291}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.8775825619, 0.4794255386}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, Heading) {
   EXPECT_NEAR(0., dut_.Heading(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.11936620731892149, dut_.Heading(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.15915494309189532, dut_.Heading(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.375, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.5, dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, HeadingDot) {
-  EXPECT_NEAR(0.5641895835477563, dut_.HeadingDot(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.28209479177387814, dut_.HeadingDot(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0., dut_.HeadingDot(kP1), kLinearTolerance);
+  EXPECT_NEAR(1.0, dut_.HeadingDot(kP0), kLinearTolerance);
+  EXPECT_NEAR(0.4999999999999999, dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.0, dut_.HeadingDot(kP1), kLinearTolerance);
 }
 
 TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
-  EXPECT_NEAR(kMidP, dut_.GInverse({0.4896982421, -0.0851954681}), kGInverseTolerance);
-  EXPECT_NEAR(kP1, dut_.GInverse({0.9889076155, -0.0070775745}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({0.4863011077, 0.1028293182}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({0.9343841633, 0.3239052321}), kGInverseTolerance);
 }
 
 // Check the internal normalization parameter does not affect the construct arc length.
-TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, ProperNormalizationYieldsArcLengthToBekP1MinuskP0) {
+TEST_F(InvertedCurvatureNormalizedSpiralGroundCurveTest, ArcLengthEvaluation) {
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kMidP, kOrder), dut_.ArcLength() / 2.,
               kToleranceForBruteForceIntegral);
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kP1, kOrder), dut_.ArcLength(), kToleranceForBruteForceIntegral);
@@ -467,35 +469,35 @@ class InvertedCurvatureGradientNormalizedSpiralGroundCurveTest : public BaseSpir
 
 TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, G) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.4979964103, -0.0406516876}, dut_.G(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9370155385, -0.3162123412}, dut_.G(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.4992193149, -0.0208100934}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9752876882, -0.1637140474}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, GDot) {
   EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9992085327, -0.0397782381}, dut_.GDot(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9873615638, -0.1584838866}, dut_.GDot(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9921976672, -0.1246747334}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.8775825619, -0.4794255386}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, Heading) {
   EXPECT_NEAR(0., dut_.Heading(kP0), kLinearTolerance);
-  EXPECT_NEAR(-0.03978873577297383, dut_.Heading(kMidP), kLinearTolerance);
-  EXPECT_NEAR(-0.15915494309189532, dut_.Heading(kP1), kLinearTolerance);
+  EXPECT_NEAR(-0.1249999999999999, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(-0.4999999999999999, dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, HeadingDot) {
   EXPECT_NEAR(0., dut_.HeadingDot(kP0), kLinearTolerance);
-  EXPECT_NEAR(-0.28209479177387814, dut_.HeadingDot(kMidP), kLinearTolerance);
-  EXPECT_NEAR(-0.5641895835477563, dut_.HeadingDot(kP1), kLinearTolerance);
+  EXPECT_NEAR(-0.4999999999999999, dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(-0.9999999999999999, dut_.HeadingDot(kP1), kLinearTolerance);
 }
 
 TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
-  EXPECT_NEAR(kMidP, dut_.GInverse({0.4979964103, -0.0406516876}), kGInverseTolerance);
-  EXPECT_NEAR(kP1, dut_.GInverse({0.9370155385, -0.3162123412}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({0.4992193149, -0.0208100934}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({0.9752876882, -0.1637140474}), kGInverseTolerance);
 }
 
-TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, ProperNormalizationYieldsArcLengthToBekP1MinuskP0) {
+TEST_F(InvertedCurvatureGradientNormalizedSpiralGroundCurveTest, ArcLengthEvaluation) {
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kMidP, kOrder), dut_.ArcLength() / 2.,
               kToleranceForBruteForceIntegral);
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kP1, kOrder), dut_.ArcLength(), kToleranceForBruteForceIntegral);
@@ -518,35 +520,35 @@ class HeadingOffsetNormalizedSpiralGroundCurveTest : public BaseSpiralGroundCurv
 
 TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, G) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.3233915547, 0.3808817227}, dut_.G(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.4389741506, 0.8861659321}, dut_.G(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.3382864047, 0.3677163211}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.5738692249, 0.8053958510}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, GDot) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0.7071067812, 0.7071067812}, dut_.GDot(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.6784196674, 0.7346745912}, dut_.GDot(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.5861050263, 0.8102350882}, dut_.GDot(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.6134313494, 0.7897480482}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.2815395311, 0.9595496300}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, Heading) {
   EXPECT_NEAR(0.7853981633974483, dut_.Heading(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.8251868991704221, dut_.Heading(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.9445531064893435, dut_.Heading(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.9103981633974483, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(1.2853981633974483, dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, HeadingDot) {
   EXPECT_NEAR(0., dut_.HeadingDot(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.28209479177387814, dut_.HeadingDot(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.5641895835477563, dut_.HeadingDot(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.4999999999999999, dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.9999999999999999, dut_.HeadingDot(kP1), kLinearTolerance);
 }
 
 TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
-  EXPECT_NEAR(kMidP, dut_.GInverse({0.3233915547, 0.3808817227}), kGInverseTolerance);
-  EXPECT_NEAR(kP1, dut_.GInverse({0.4389741506, 0.8861659321}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({0.3382864047, 0.3677163211}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({0.5738692249, 0.8053958510}), kGInverseTolerance);
 }
 
-TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, ProperNormalizationYieldsArcLengthToBekP1MinuskP0) {
+TEST_F(HeadingOffsetNormalizedSpiralGroundCurveTest, ArcLengthEvaluation) {
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kMidP, kOrder), dut_.ArcLength() / 2.,
               kToleranceForBruteForceIntegral);
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kP1, kOrder), dut_.ArcLength(), kToleranceForBruteForceIntegral);
@@ -569,35 +571,35 @@ class DenormalizedSpiralGroundCurveTest : public BaseSpiralGroundCurveTest {
 
 TEST_F(DenormalizedSpiralGroundCurveTest, G) {
   EXPECT_TRUE(AssertCompare(CompareVectors({0., 0.}, dut_.G(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({4.9681738083, 0.4227178689}, dut_.G(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({9.0253069245, 3.1602035564}, dut_.G(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({4.9688402921, 0.4148102427}, dut_.G(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({9.0452423790, 3.1026830172}, dut_.G(kP1), kLinearTolerance)));
 }
 
 TEST_F(DenormalizedSpiralGroundCurveTest, GDot) {
   EXPECT_TRUE(AssertCompare(CompareVectors({1., 0.}, dut_.GDot(kP0), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9999987335, 0.0015915488}, dut_.GDot(kMidP), kLinearTolerance)));
-  EXPECT_TRUE(AssertCompare(CompareVectors({0.9999797358, 0.0063661547}, dut_.GDot(kP1), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.9689124217, 0.2474039593}, dut_.GDot(kMidP), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors({0.5403023059, 0.8414709848}, dut_.GDot(kP1), kLinearTolerance)));
 }
 
 TEST_F(DenormalizedSpiralGroundCurveTest, Heading) {
   EXPECT_NEAR(0., dut_.Heading(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.0015915494309189536, dut_.Heading(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.006366197723675814, dut_.Heading(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.25, dut_.Heading(kMidP), kLinearTolerance);
+  EXPECT_NEAR(1., dut_.Heading(kP1), kLinearTolerance);
 }
 
 TEST_F(DenormalizedSpiralGroundCurveTest, HeadingDot) {
   EXPECT_NEAR(0., dut_.HeadingDot(kP0), kLinearTolerance);
-  EXPECT_NEAR(0.007978845608028654, dut_.HeadingDot(kMidP), kLinearTolerance);
-  EXPECT_NEAR(0.015957691216057307, dut_.HeadingDot(kP1), kLinearTolerance);
+  EXPECT_NEAR(0.1, dut_.HeadingDot(kMidP), kLinearTolerance);
+  EXPECT_NEAR(0.2, dut_.HeadingDot(kP1), kLinearTolerance);
 }
 
 TEST_F(DenormalizedSpiralGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP0, dut_.GInverse({0., 0.}), kGInverseTolerance);
-  EXPECT_NEAR(kMidP, dut_.GInverse({4.9681738083, 0.4227178689}), kGInverseTolerance);
-  EXPECT_NEAR(kP1, dut_.GInverse({9.0253069245, 3.1602035564}), kGInverseTolerance);
+  EXPECT_NEAR(kMidP, dut_.GInverse({4.9688402921, 0.4148102427}), kGInverseTolerance);
+  EXPECT_NEAR(kP1, dut_.GInverse({9.0452423790, 3.1026830172}), kGInverseTolerance);
 }
 
-TEST_F(DenormalizedSpiralGroundCurveTest, ProperNormalizationYieldsArcLengthToBekP1MinuskP0) {
+TEST_F(DenormalizedSpiralGroundCurveTest, ArcLengthEvaluation) {
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kMidP, kOrder), dut_.ArcLength() / 2.,
               kToleranceForBruteForceIntegral);
   EXPECT_NEAR(BruteForcePathLengthIntegral(dut_, kP0, kP1, kOrder), dut_.ArcLength(), kToleranceForBruteForceIntegral);
