@@ -125,7 +125,7 @@ SpiralGroundCurve::SpiralGroundCurve(double linear_tolerance, const maliput::mat
       norm_(std::sqrt(M_PI / std::abs(k_dot_))),
       t0_(curvature0 / (k_dot_ * norm_)),
       xy0_spiral_(ConditionalShiftYComponent(maliput::math::ComputeFresnelCosineAndSine(t0_) * norm_, k_dot_ < 0.)),
-      heading0_spiral_(maliput::math::FresnelSpiralHeading(t0_, k_dot_)),
+      heading0_spiral_(maliput::math::FresnelSpiralHeading(t0_ * norm_, k_dot_)),
       p0_(p0),
       p1_(p1),
       validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
@@ -142,7 +142,7 @@ maliput::math::Vector2 SpiralGroundCurve::DoG(double p) const {
   const double t = TFromP(p);
   const maliput::math::Vector2 xy =
       ConditionalShiftYComponent(maliput::math::ComputeFresnelCosineAndSine(t) * norm_, k_dot_ < 0.) - xy0_spiral_;
-  const double heading = Heading(p);
+  const double heading = heading0_ - heading0_spiral_;
   return RotateVector(xy, heading) + xy0_;
 }
 
@@ -186,14 +186,14 @@ double SpiralGroundCurve::DoGInverse(const maliput::math::Vector2& point) const 
 double SpiralGroundCurve::DoHeading(double p) const {
   p = validate_p_(p);
   const double t = TFromP(p);
-  const double heading_fresnel = maliput::math::FresnelSpiralHeading(t, k_dot_);
+  const double heading_fresnel = maliput::math::FresnelSpiralHeading(t * norm_, k_dot_);
   return heading_fresnel - heading0_spiral_ + heading0_;
 }
 
 double SpiralGroundCurve::DoHeadingDot(double p) const {
   p = validate_p_(p);
   const double t = TFromP(p);
-  return maliput::math::FresnelSpiralHeadingDot(t, k_dot_);
+  return maliput::math::FresnelSpiralHeadingDot(t * norm_, k_dot_);
 }
 
 }  // namespace road_curve

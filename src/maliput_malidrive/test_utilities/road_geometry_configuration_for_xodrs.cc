@@ -78,7 +78,7 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            maliput::api::RoadGeometryId{"SpiralRoad"},
            {"SpiralRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
-               5e-2 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
+               1e-3 /* linear_tolerance */, 5e-1 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
            constants::kScaleLength,
            kZeroVector,
            kBuildPolicy,
@@ -89,8 +89,8 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SmallTownRoads"},
            {"SmallTownRoads.xodr"},
-           builder::RoadGeometryConfiguration::BuildTolerance{1.0 /* linear_tolerance */, 5.0 /*max_linear_tolerance*/,
-                                                              5e-1 /* angular_tolerance */},
+           builder::RoadGeometryConfiguration::BuildTolerance{1e-2 /* linear_tolerance */, 1.0 /*max_linear_tolerance*/,
+                                                              1e-3 /* angular_tolerance */},
            constants::kScaleLength,
            kZeroVector,
            kBuildPolicy,
