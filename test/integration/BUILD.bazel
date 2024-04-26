@@ -30,7 +30,7 @@ generate_integration_tests(
         "SingleRoadNegativeWidth.xodr",
         "SingleRoadTinyGeometry.xodr",
         "SingleRoadTwoGeometries.xodr",
-        "SpiralRoald.xodr",
+        "SpiralRoad.xodr",
         "SmallTownRoads.xodr",
         "SShapeRoad.xodr",
         "SShapeSuperelevatedRoad.xodr",
