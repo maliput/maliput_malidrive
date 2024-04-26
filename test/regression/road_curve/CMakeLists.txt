@@ -21,6 +21,7 @@ set(UNIT_TEST_ROAD_CURVE_SOURCES
   road_curve_test.cc
   road_curve_offset_test.cc
   scaled_domain_function_test.cc
+  spiral_ground_curve_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_TEST_ROAD_CURVE_SOURCES})

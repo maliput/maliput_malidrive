@@ -260,6 +260,9 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     rn_ = loader::Load<builder::RoadNetworkBuilder>(rg_config->ToStringMap());
     ASSERT_NE(rn_, nullptr);
     ASSERT_NE(rn_->road_geometry(), nullptr);
+    // Amend the linear_tolerance after construction which may have changed depending on the map.
+    linear_tolerance_ = rn_->road_geometry()->linear_tolerance();
+
     ASSERT_NO_THROW({
       maliput::utility::GenerateObjFile(rn_->road_geometry(), directory_.get_path(),
                                         utility::GetFileNameFromPath(xodr_file_path_), features);
@@ -296,6 +299,8 @@ TEST_F(MalidriveExtensiveQueriesTest, QueriesTest) {
   rg_config->opendrive_file = xodr_file_path_;
   rn_ = loader::Load<builder::RoadNetworkBuilder>(rg_config->ToStringMap());
   ASSERT_NE(rn_, nullptr);
+  // Amend the linear_tolerance after construction which may have changed depending on the map.
+  linear_tolerance_ = rn_->road_geometry()->linear_tolerance();
 
   RunLaneBoundsTest();
   RunBranchPointTransitionTest();

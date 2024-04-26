@@ -40,6 +40,7 @@
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
+#include "maliput_malidrive/road_curve/spiral_ground_curve.h"
 
 namespace malidrive {
 namespace builder {
@@ -163,6 +164,21 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeLineGroundCurve(
       line_geometry.length * Vector2(std::cos(line_geometry.orientation), std::sin(line_geometry.orientation)), p0, p1);
 }
 
+std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeSpiralGroundCurve(
+    const xodr::Geometry& spiral_geometry) const {
+  MALIDRIVE_THROW_UNLESS(spiral_geometry.type == xodr::Geometry::Type::kSpiral);
+  const double p0{spiral_geometry.s_0};
+  const double p1{spiral_geometry.s_0 + spiral_geometry.length};
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
+                     "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
+                         "\n\tp1: " + std::to_string(p1) +
+                         "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
+  return std::make_unique<road_curve::SpiralGroundCurve>(
+      linear_tolerance(), spiral_geometry.start_point, spiral_geometry.orientation,
+      std::get<xodr::Geometry::Spiral>(spiral_geometry.description).curv_start,
+      std::get<xodr::Geometry::Spiral>(spiral_geometry.description).curv_end, spiral_geometry.length, p0, p1);
+}
+
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCurve(
     const std::vector<xodr::Geometry>& geometries) const {
   MALIDRIVE_THROW_UNLESS(!geometries.empty());
@@ -179,6 +195,9 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
         break;
       case xodr::Geometry::Type::kLine:
         ground_curves.emplace_back(MakeLineGroundCurve(geometry));
+        break;
+      case xodr::Geometry::Type::kSpiral:
+        ground_curves.emplace_back(MakeSpiralGroundCurve(geometry));
         break;
       default:
         MALIDRIVE_THROW_MESSAGE("Geometries contain a xodr::Geometry whose type is not in {kLine, kArc}.");

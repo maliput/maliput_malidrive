@@ -39,6 +39,7 @@
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
+#include "maliput_malidrive/road_curve/spiral_ground_curve.h"
 
 namespace malidrive {
 namespace builder {
@@ -77,6 +78,10 @@ class RoadCurveFactoryTest : public ::testing::Test {
   const double kP1{1.};
   const double kP2{2.};
   const double kCurvature{-0.002};
+  const double kCurvatureStart{0.001};
+  const double kCurvatureEnd{0.005};
+  const double kCurvatureStartB{0.0};
+  const double kCurvatureEndB{0.005};
   const Vector2 kStartPoint{1., 2.};
   const Vector2 kStartPointB{1. + std::sqrt(2.) / 2., 2. + std::sqrt(2.) / 2.};
   const double kHeading{M_PI / 4.};
@@ -84,8 +89,20 @@ class RoadCurveFactoryTest : public ::testing::Test {
       kP0, kStartPoint, kHeading, kP1 - kP0, xodr::Geometry::Type::kArc, {xodr::Geometry::Arc{kCurvature}}};
   const xodr::Geometry kLineGeometry{
       kP0, kStartPoint, kHeading, kP1 - kP0, xodr::Geometry::Type::kLine, {xodr::Geometry::Line{}}};
+  const xodr::Geometry kSpiralGeometry{kP0,
+                                       kStartPoint,
+                                       kHeading,
+                                       kP1 - kP0,
+                                       xodr::Geometry::Type::kSpiral,
+                                       {xodr::Geometry::Spiral{kCurvatureStart, kCurvatureEnd}}};
   const xodr::Geometry kArcGeometryB{
       kP1, kStartPointB, kHeading, kP2 - kP1, xodr::Geometry::Type::kArc, {xodr::Geometry::Arc{kCurvature}}};
+  const xodr::Geometry kSpiralGeometryB{kP1,
+                                        kStartPointB,
+                                        kHeading,
+                                        kP2 - kP1,
+                                        xodr::Geometry::Type::kSpiral,
+                                        {xodr::Geometry::Spiral{kCurvatureStartB, kCurvatureEndB}}};
   const RoadCurveFactory dut_{kLinearTolerance, kScaleLength, kAngularTolerance};
 };
 
@@ -108,8 +125,22 @@ TEST_F(RoadCurveFactoryTest, ArcGroundCurve) {
   EXPECT_EQ(kLinearTolerance, arc_ground_curve->linear_tolerance());
 }
 
-TEST_F(RoadCurveFactoryTest, PiecewiseGroundCurve) {
+TEST_F(RoadCurveFactoryTest, SpiralGroundCurve) {
+  auto spiral_ground_curve = dut_.MakeSpiralGroundCurve(kSpiralGeometry);
+
+  EXPECT_NE(dynamic_cast<road_curve::SpiralGroundCurve*>(spiral_ground_curve.get()), nullptr);
+  EXPECT_EQ(kLinearTolerance, spiral_ground_curve->linear_tolerance());
+}
+
+TEST_F(RoadCurveFactoryTest, PiecewiseGroundCurveWithLineAndArc) {
   auto piecewise_ground_curve = dut_.MakePiecewiseGroundCurve({kLineGeometry, kArcGeometryB});
+
+  EXPECT_NE(dynamic_cast<road_curve::PiecewiseGroundCurve*>(piecewise_ground_curve.get()), nullptr);
+  EXPECT_EQ(kLinearTolerance, piecewise_ground_curve->linear_tolerance());
+}
+
+TEST_F(RoadCurveFactoryTest, PiecewiseGroundCurveWithLineAndSpiral) {
+  auto piecewise_ground_curve = dut_.MakePiecewiseGroundCurve({kLineGeometry, kSpiralGeometryB});
 
   EXPECT_NE(dynamic_cast<road_curve::PiecewiseGroundCurve*>(piecewise_ground_curve.get()), nullptr);
   EXPECT_EQ(kLinearTolerance, piecewise_ground_curve->linear_tolerance());
