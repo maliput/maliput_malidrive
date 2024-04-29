@@ -13,7 +13,7 @@ Road | Road Type | Country | :green_circle:
 Road | Road Type | Speed | :green_circle:
 Road | PlanView | Lines | :green_circle:
 Road | PlanView | Arcs | :green_circle:
-Road | PlanView | Spirals | :gree_circle:
+Road | PlanView | Spirals | :green_circle:
 Road | PlanView | Cubic Polynomials | :red_circle:
 Road | PlanView | Parametric Cubic Polynomials | :red_circle:
 Road | ElevationProfile | Elevation | :green_circle:
