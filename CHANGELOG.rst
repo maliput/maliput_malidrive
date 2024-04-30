@@ -2,6 +2,16 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.0 (2024-04-29)
+------------------
+* Flags spiral support. (`#279 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/279>`_)
+* Spiral Lane integration (`#277 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/277>`_)
+* Adds bazel version information to presubmit.yml file. (`#275 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/275>`_)
+* Add curbs to the builder. (`#274 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/274>`_)
+
+  ---------
+* Contributors: Agustin Alba Chicar, Franco Cipollone
+
 0.2.1 (2024-02-02)
 ------------------
 * [bazel] Guarantee shared library creation for the plugin (`#269 <https://github.com/maliput/maliput_malidrive/issues/269>`_)
