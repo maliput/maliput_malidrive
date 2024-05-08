@@ -34,7 +34,7 @@ jobs:
          password: ${{ secrets.GITHUB_TOKEN }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: ${{ env.COLCON_WS }}/src/${{ env.PACKAGE_NAME }}
     # clone public dependencies
@@ -85,7 +85,7 @@ jobs:
       run: ls build/${PACKAGE_NAME}/wheel/repaired
     # Upload repaired wheel as artifact
     - name: upload wheels as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: maliput_malidrive_manylinux2014_x86_64
         path: ${{ env.COLCON_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/repaired

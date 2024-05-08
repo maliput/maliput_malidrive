@@ -24,7 +24,7 @@ jobs:
       image: ghcr.io/${{ github.repository }}-bazel-ci:latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         path: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME }}
     # clone public dependencies
@@ -54,9 +54,9 @@ jobs:
     container:
       image: ubuntu:20.04
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: ros-tooling/setup-ros@v0.6
-    - uses: ros-tooling/action-ros-ci@v0.2
+    - uses: ros-tooling/action-ros-ci@v0.3
       id: action_ros_ci_step
       with:
         package-name: ${{ env.PACKAGE_NAME }}
