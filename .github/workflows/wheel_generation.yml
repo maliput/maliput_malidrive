@@ -33,8 +33,9 @@ jobs:
          username: ${{ github.actor }}
          password: ${{ secrets.GITHUB_TOKEN }}
     steps:
+    # TODO: The container has installed glibc-2.17-326.el7_9.x86_64 and v4 requires 2.25 and above. Need to stick with an old version.
     - name: Checkout code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
       with:
         path: ${{ env.COLCON_WS }}/src/${{ env.PACKAGE_NAME }}
     # clone public dependencies
@@ -84,8 +85,9 @@ jobs:
       working-directory: ${{ env.COLCON_WS }}
       run: ls build/${PACKAGE_NAME}/wheel/repaired
     # Upload repaired wheel as artifact
+    # TODO: The container has installed glibc-2.17-326.el7_9.x86_64 and v4 requires 2.25 and above. Need to stick with an old version.
     - name: upload wheels as artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v3
       with:
         name: maliput_malidrive_manylinux2014_x86_64
         path: ${{ env.COLCON_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/repaired
