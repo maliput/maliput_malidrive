@@ -26,7 +26,7 @@ jobs:
     - uses: ros-tooling/setup-ros@v0.6
       env:
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
         path: ${{ env.ROS_WS }}/src/${{ env.PACKAGE_NAME }}
     - name: clang 8 install
