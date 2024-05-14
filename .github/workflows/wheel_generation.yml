@@ -15,9 +15,9 @@ env:
   PACKAGE_NAME: maliput_malidrive
   COLCON_WS: maliput_ws
   PYTHON_VERSION: cp38-cp38
-  CMAKE_COMMAND_ENV: /opt/_internal/cpython-3.8.18/bin/cmake
+  CMAKE_COMMAND_ENV: /opt/python/cp38-cp38/bin/cmake
   RETENTION_DAYS: 7
-  VCS_PATH: /opt/_internal/cpython-3.8.18/bin/
+  VCS_PATH: /opt/python/cp38-cp38/bin/
 
   # Cancel previously running PR jobs
 concurrency:
