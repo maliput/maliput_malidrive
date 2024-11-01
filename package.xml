@@ -2,10 +2,11 @@
 <?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>maliput_malidrive</name>
-  <version>0.3.0</version>
+  <version>0.3.1</version>
   <description>maliput_malidrive backend</description>
   <license file="LICENSE">BSD Clause 3</license>
   <maintainer email="andrew.best@tri.global">Andrew Best</maintainer>
+  <maintainer email="franco.c@ekumenlabs.com">Franco Cipollone</maintainer>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <doc_depend>ament_cmake_doxygen</doc_depend>
