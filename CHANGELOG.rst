@@ -2,6 +2,15 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.3.1 (2024-11-01)
+------------------
+* Minor changes to presubmit.yml file. (`#284 <https://github.com/maliput/maliput_malidrive/issues/284>`_)
+* Bazel: Bumps maliput to 1.3.1. (`#283 <https://github.com/maliput/maliput_malidrive/issues/283>`_)
+* Update wheel_generation.yml (`#282 <https://github.com/maliput/maliput_malidrive/issues/282>`_)
+* Update github action versions. (`#281 <https://github.com/maliput/maliput_malidrive/issues/281>`_)
+  ---------
+* Contributors: Agustin Alba Chicar, Franco Cipollone
+
 0.3.0 (2024-04-29)
 ------------------
 * Flags spiral support. (`#279 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/279>`_)
