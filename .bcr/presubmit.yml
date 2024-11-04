@@ -8,9 +8,16 @@ tasks:
     platform: ${{ platform }}
     build_targets:
       - '@maliput_malidrive//:maliput_malidrive'
-  run_tests:
-    name: "Run test module"
-    bazel: ${{ bazel }}
-    platform: ${{ platform }}
-    test_targets:
-      - "//..."
+
+bcr_test_module:
+  module_path: "."
+  matrix:
+    bazel: [6.x, 7.x]
+    platform: ["ubuntu2004"]  # "debian10", "macos", "windows"
+  tasks:
+    run_tests:
+      name: "Run test module"
+      bazel: ${{ bazel }}
+      platform: ${{ platform }}
+      test_targets:
+        - "//..."
