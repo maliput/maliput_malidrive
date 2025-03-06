@@ -96,6 +96,20 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// @throw maliput::common::assertion_error When there is no a function described for `road_id`.
   const road_curve::Function* GetReferenceLineOffset(const xodr::RoadHeader::Id& road_id) const;
 
+  /// Converts an OpenScenario LanePosition to a maliput LanePosition.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  ///
+  /// @param xodr_road_id The id of the road in the OpenDrive file.
+  /// @param xodr_s The s-coordinate taken along the road's reference line from the start point of the target road.
+  /// @param xodr_lane_id The lane id.
+  /// @param offset The lateral offset to the center line of the target lane.
+  /// @returns A maliput LanePosition.
+  ///
+  /// @throws When the correspondent maliput lane is not found.
+  maliput::api::RoadPosition OpenScenarioLanePositionToMaliputLanePosition(int xodr_road_id, double xodr_s,
+                                                                           int xodr_lane_id, double offset) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {
