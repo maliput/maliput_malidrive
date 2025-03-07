@@ -120,6 +120,7 @@ set(MALIPUT_MALIDRIVE_RESOURCES_PATH share/maliput_malidrive/resources)
 set(OPENDRIVE_SAMPLES_PATH ${MALIPUT_MALIDRIVE_RESOURCES_PATH}/odr)
 install (FILES resources/ArcLane.xodr
                resources/ArcLaneRolled.xodr
+               resources/ArcLaneRolledAndOffset.xodr
                resources/ArcElevatedRoad.xodr
                resources/BikingLineLane.xodr
                resources/ComplexLaneSection.xodr

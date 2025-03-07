@@ -102,6 +102,17 @@ class Lane : public maliput::geometry_base::Lane {
   ///         lane is part of.
   double get_track_s_end() const { return p1_; }
 
+  // @returns The r-coordinate in LANE Frame from `(p, r)` in the `road_curve`
+  //          Frame.
+  double to_lane_r(double p, double r) const { return r - lane_offset_->f(p); }
+
+  // @returns The r-coordinate in `road_curve` Frame from `(p, r)` in the LANE
+  //          Frame.
+  double to_reference_r(double p, double r) const { return r + lane_offset_->f(p); }
+
+  // @returns The lane width evaluated at `p` (Track s coordinate).
+  double lane_width_at(double p) const { return lane_width_->f(p); }
+
   /// Converts `lane_s` coordinate in the LANE Frame to the TRACK Frame `s`
   /// coordinate the ODRM uses.
   ///
@@ -144,14 +155,6 @@ class Lane : public maliput::geometry_base::Lane {
   void InertialToLaneSegmentPositionBackend(bool use_lane_boundaries, const maliput::math::Vector3& backend_pos,
                                             maliput::api::LanePosition* lane_position,
                                             maliput::math::Vector3* nearest_backend_pos, double* distance) const;
-
-  // @returns The r-coordinate in LANE Frame from `(p, r)` in the `road_curve`
-  //          Frame.
-  double to_lane_r(double p, double r) const { return r - lane_offset_->f(p); }
-
-  // @returns The r-coordinate in `road_curve` Frame from `(p, r)` in the LANE
-  //          Frame.
-  double to_reference_r(double p, double r) const { return r + lane_offset_->f(p); }
 
   // @returns The prh coordinate in LANE Frame from `xyz` in the Backend Frame.
   maliput::math::Vector3 BackendFrameToLaneFrame(const maliput::math::Vector3& xyz) const;
