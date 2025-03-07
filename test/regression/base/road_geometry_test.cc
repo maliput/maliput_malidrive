@@ -554,6 +554,45 @@ TEST_F(RoadGeometryOpenScenarioConversionsLineVariableOffset, OpenScenarioRoadPo
   }
 }
 
+// Holds the input and expected output for the DoBackendCustomCommand test.
+struct CommandsInputOutputs {
+  std::string command;
+  std::string expected_output;
+};
+
+std::vector<CommandsInputOutputs> InstanciateCommandsInputOutputsParameters() {
+  return {
+      {{"OpenScenarioLanePositionToMaliputRoadPosition,1,50,-1,0."}, {"1_0_-1,51.250000,0.000000,0.000000"}},
+      {{"OpenScenarioLanePositionToMaliputRoadPosition,1,50,-1,0.5"}, {"1_0_-1,51.250000,0.500000,0.000000"}},
+      {{"OpenScenarioRoadPositionToMaliputRoadPosition,1,50,0."}, {"1_0_-1,51.250000,1.000000,0.000000"}},
+      {{"OpenScenarioRoadPositionToMaliputRoadPosition,1,50,-1."}, {"1_0_-1,51.250000,0.000000,0.000000"}},
+      {{"OpenScenarioRoadPositionToMaliputRoadPosition,1,50,1."}, {"1_0_1,48.750000,0.000000,0.000000"}},
+  };
+}
+
+// Test the DoBackendCustomCommand method.
+class RoadGeometryDoBackendCustomCommand : public ::testing::TestWithParam<CommandsInputOutputs> {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("ArcLane");
+    road_geometry_configuration_.opendrive_file = utility::FindResourceInPath("ArcLane.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_P(RoadGeometryDoBackendCustomCommand, DoBackendCustomCommand) {
+  const auto input_output = GetParam();
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  const std::string result = rg->BackendCustomCommand(input_output.command);
+  EXPECT_EQ(input_output.expected_output, result);
+}
+
+INSTANTIATE_TEST_CASE_P(RoadGeometryDoBackendCustomCommandGroup, RoadGeometryDoBackendCustomCommand,
+                        ::testing::ValuesIn(InstanciateCommandsInputOutputsParameters()));
+
 }  // namespace
 }  // namespace tests
 }  // namespace malidrive
