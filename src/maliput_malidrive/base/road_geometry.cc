@@ -34,7 +34,11 @@
 #include <maliput/geometry_base/brute_force_find_road_positions_strategy.h>
 #include <maliput/geometry_base/filter_positions.h>
 
+#include "maliput_malidrive/base/lane.h"
+#include "maliput_malidrive/base/segment.h"
 #include "maliput_malidrive/constants.h"
+
+static constexpr double kEpsilon{1e-12};
 
 namespace {
 
@@ -95,6 +99,10 @@ bool IsNewRoadPositionResultCloser(const maliput::api::RoadPositionResult& new_r
   }
   return false;
 }
+
+bool is_less_than_or_close(double a, double b) { return a < b || std::abs(a - b) < kEpsilon; }
+
+bool is_greater_than_or_close(double a, double b) { return a > b || std::abs(a - b) < kEpsilon; }
 
 }  // namespace
 
@@ -161,6 +169,113 @@ maliput::api::RoadPositionResult RoadGeometry::DoToRoadPosition(
 std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindRoadPositions(
     const maliput::api::InertialPosition& inertial_position, double radius) const {
   return maliput::geometry_base::BruteForceFindRoadPositionsStrategy(this, inertial_position, radius);
+}
+
+maliput::api::RoadPosition RoadGeometry::OpenScenarioLanePositionToMaliputRoadPosition(int xodr_road_id, double xodr_s,
+                                                                                       int xodr_lane_id,
+                                                                                       double offset) const {
+  MALIDRIVE_THROW_UNLESS(xodr_road_id >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_s >= 0.);
+  MALIDRIVE_THROW_UNLESS(xodr_lane_id != 0);
+  const std::unordered_map<maliput::api::LaneId, const maliput::api::Lane*> all_lanes = this->ById().GetLanes();
+  const Lane* target_lane{nullptr};
+  for (const auto& lane : all_lanes) {
+    const Lane* mali_lane = dynamic_cast<const Lane*>(lane.second);
+    if (mali_lane->get_track() == xodr_road_id && mali_lane->get_lane_id() == xodr_lane_id) {
+      if (is_greater_than_or_close(xodr_s, mali_lane->get_track_s_start()) &&
+          is_less_than_or_close(xodr_s, mali_lane->get_track_s_end())) {
+        if (target_lane != nullptr) {
+          target_lane = target_lane->get_track_s_start() > mali_lane->get_track_s_start() ? target_lane : mali_lane;
+        } else {
+          target_lane = mali_lane;
+        }
+      }
+    }
+  }
+  if (target_lane == nullptr) {
+    MALIDRIVE_THROW_MESSAGE(
+        "A maliput lane can't be found for the given OpenSCENARIO lane position: "
+        "RoadID: " +
+        std::to_string(xodr_road_id) + ", s: " + std::to_string(xodr_s) + ", LaneID: " + std::to_string(xodr_lane_id) +
+        ", offset: " + std::to_string(offset));
+  }
+  const double mali_lane_s = target_lane->LaneSFromTrackS(xodr_s);
+  const auto segment = dynamic_cast<const Segment*>(target_lane->segment());
+  const auto road_curve = segment->road_curve();
+  const double p = road_curve->PFromP(xodr_s);
+  const double roll_at_p = road_curve->superelevation()->f(p);
+  const double r = offset / std::cos(roll_at_p);
+  const double r_max = target_lane->lane_bounds(mali_lane_s).max();
+  const double r_min = target_lane->lane_bounds(mali_lane_s).min();
+  if (r_min > r || r_max < r) {
+    MALIDRIVE_THROW_MESSAGE(
+        "The lane offset is out of bounds for the given OpenSCENARIO lane position: "
+        "RoadID: " +
+        std::to_string(xodr_road_id) + ", s: " + std::to_string(xodr_s) + ", LaneID: " + std::to_string(xodr_lane_id) +
+        ", offset: " + std::to_string(offset) + " | Maliput LaneID: " + target_lane->id().string() +
+        ", Maliput Lane's s-coordinate: " + std::to_string(mali_lane_s) + ", Maliput Lane's r-coordinate: " +
+        std::to_string(r) + ", Maliput Lane's r-coordinate bounds: [" + std::to_string(r_min) + ", " +
+        std::to_string(r_max) + "]" + ", Superelevation at s: " + std::to_string(roll_at_p));
+  }
+  return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
+}
+
+maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPosition(int xodr_road_id, double xodr_s,
+                                                                                       double xodr_t) const {
+  MALIDRIVE_THROW_UNLESS(xodr_road_id >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_s >= 0.);
+  const std::unordered_map<maliput::api::LaneId, const maliput::api::Lane*> all_lanes = this->ById().GetLanes();
+  const Segment* target_segment{nullptr};
+  // Identify which is the segment that could contain position determined by xodr_road_id / xodr_s / xodr_t.
+  // This only can match only one maliput::api::Segment.
+  for (const auto& lane : all_lanes) {
+    const Lane* mali_lane = dynamic_cast<const Lane*>(lane.second);
+    MALIPUT_THROW_UNLESS(mali_lane != nullptr);
+
+    if (mali_lane->get_track() == xodr_road_id && is_greater_than_or_close(xodr_s, mali_lane->get_track_s_start()) &&
+        is_less_than_or_close(xodr_s, mali_lane->get_track_s_end())) {
+      target_segment = dynamic_cast<const Segment*>(mali_lane->segment());
+      MALIPUT_THROW_UNLESS(target_segment != nullptr);
+      break;
+    }
+  }
+  if (target_segment == nullptr) {
+    MALIDRIVE_THROW_MESSAGE(
+        "A maliput segment can't be found for the given OpenSCENARIO road position: "
+        "RoadID: " +
+        std::to_string(xodr_road_id) + ", s: " + std::to_string(xodr_s) + ", t: " + std::to_string(xodr_t));
+  }
+  const double p = target_segment->road_curve()->PFromP(xodr_s);
+  const Lane* target_lane{nullptr};
+  double r{};
+  double mali_lane_s{};
+  for (int i = 0; i < target_segment->num_lanes(); ++i) {
+    const Lane* mali_lane = dynamic_cast<const Lane*>(target_segment->lane(i));
+    // Obtains the r-coordinate in road curve's frame.
+    const double r_road_curve = mali_lane->to_reference_r(p, 0.);
+    const double width = mali_lane->lane_width_at(p);
+    const double r_road_curve_min = r_road_curve - width / 2.;
+    const double r_road_curve_max = r_road_curve + width / 2.;
+    // r-coordinates are located in RoadCurve FRAME while t-coordinate are respect to Road Reference Line in the ground.
+    const double roll_at_p = target_segment->road_curve()->superelevation()->f(p);
+    const double xodr_t_projected_on_r = xodr_t / std::cos(roll_at_p);
+    if (is_greater_than_or_close(xodr_t_projected_on_r, r_road_curve_min) &&
+        is_less_than_or_close(xodr_t_projected_on_r, r_road_curve_max)) {
+      // If the lane r value lies the limit of lanes then the right lane is the target lane as lanes are iterated from
+      // right to left by definition.
+      target_lane = mali_lane;
+      r = mali_lane->to_lane_r(p, xodr_t_projected_on_r);
+      mali_lane_s = target_lane->LaneSFromTrackS(xodr_s);
+      break;
+    }
+  }
+  if (target_lane == nullptr) {
+    MALIDRIVE_THROW_MESSAGE(
+        "A maliput lane can't be found for the given OpenSCENARIO road position: "
+        "RoadID: " +
+        std::to_string(xodr_road_id) + ", s: " + std::to_string(xodr_s) + ", t: " + std::to_string(xodr_t));
+  }
+  return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
 }
 
 }  // namespace malidrive

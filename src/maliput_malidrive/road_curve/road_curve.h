@@ -140,6 +140,15 @@ class RoadCurve {
   /// @see maliput::api::RoadGeometry::scale_length().
   double scale_length() const { return scale_length_; }
 
+  /// @return A pointer to the reference GroundCurve.
+  const GroundCurve* ground_curve() const { return ground_curve_.get(); }
+
+  /// @return A pointer to the elevation function.
+  const Function* elevation() const { return elevation_.get(); }
+
+  /// @return A pointer to the superelevation function.
+  const Function* superelevation() const { return superelevation_.get(); }
+
   /// Evaluates @f$ W(p, r, h) @f$.
   ///
   /// @param prh A vector in the RoadCurve domain.
