@@ -30,9 +30,12 @@
 #include "maliput_malidrive/base/road_geometry.h"
 
 #include <algorithm>
+#include <string>
+#include <vector>
 
 #include <maliput/geometry_base/brute_force_find_road_positions_strategy.h>
 #include <maliput/geometry_base/filter_positions.h>
+#include <string_view>
 
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/base/segment.h"
@@ -103,6 +106,87 @@ bool IsNewRoadPositionResultCloser(const maliput::api::RoadPositionResult& new_r
 bool is_less_than_or_close(double a, double b) { return a < b || std::abs(a - b) < kEpsilon; }
 
 bool is_greater_than_or_close(double a, double b) { return a > b || std::abs(a - b) < kEpsilon; }
+
+// Splits a string into a vector of strings using a delimiter.
+std::vector<std::string_view> split_string(std::string_view s, std::string_view delimiter) {
+  std::vector<std::string_view> result;
+  size_t pos = 0;
+  while ((pos = s.find(delimiter)) != std::string_view::npos) {
+    result.emplace_back(s.substr(0, pos));
+    s.remove_prefix(pos + delimiter.size());
+  }
+  result.emplace_back(s);  // Add the last segment
+  return result;
+}
+
+// A helper class to hold the commands that the RoadGeometry class can execute.
+class CommandsHandler {
+ public:
+  MALIPUT_NO_COPY_NO_MOVE_NO_ASSIGN(CommandsHandler)
+
+  struct Command {
+    std::string_view name{};
+    std::vector<std::string_view> args{};
+  };
+
+  // Constructor.
+  CommandsHandler(const malidrive::RoadGeometry* rg) : rg_(rg) {}
+
+  // Parses a string command into a Command object.
+  // The string command should be in the format: "<CommandName>,<arg_1_value>,<arg_2_value>,...,<arg_n_value>"
+  Command ParseCommand(const std::string& str_command) {
+    static constexpr char const* kArgumentDelimiter{","};
+    Command command;
+    const std::vector<std::string_view> tokens = split_string(str_command, kArgumentDelimiter);
+    MALIDRIVE_THROW_UNLESS(tokens.size() > 0);
+    command.name = tokens[0];
+    for (size_t i = 1; i < tokens.size(); ++i) {
+      command.args.emplace_back(tokens[i]);
+    }
+    return command;
+  }
+
+  // Executes a command and returns the output as a string.
+  std::string Execute(const Command& command) {
+    if (command.name == "OpenScenarioLanePositionToMaliputRoadPosition") {
+      if (command.args.size() != 4) {
+        MALIDRIVE_THROW_MESSAGE(std::string("OpenScenarioLanePositionToMaliputRoadPosition expects 4 arguments, got ") +
+                                std::to_string(command.args.size()));
+      }
+      const int xodr_road_id = std::stoi(std::string(command.args[0]));
+      const double xodr_s = std::stod(std::string(command.args[1]));
+      const int xodr_lane_id = std::stoi(std::string(command.args[2]));
+      const double offset = std::stod(std::string(command.args[3]));
+      const maliput::api::RoadPosition road_position =
+          rg_->OpenScenarioLanePositionToMaliputRoadPosition(xodr_road_id, xodr_s, xodr_lane_id, offset);
+      return to_output_format(road_position);
+    }
+    if (command.name == "OpenScenarioRoadPositionToMaliputRoadPosition") {
+      if (command.args.size() != 3) {
+        MALIDRIVE_THROW_MESSAGE(std::string("OpenScenarioRoadPositionToMaliputRoadPosition expects 3 arguments, got ") +
+                                std::to_string(command.args.size()));
+      }
+      const int xodr_road_id = std::stoi(std::string(command.args[0]));
+      const double xodr_s = std::stod(std::string(command.args[1]));
+      const double xodr_t = std::stod(std::string(command.args[2]));
+      const maliput::api::RoadPosition road_position =
+          rg_->OpenScenarioRoadPositionToMaliputRoadPosition(xodr_road_id, xodr_s, xodr_t);
+      return to_output_format(road_position);
+
+    } else {
+      MALIDRIVE_THROW_MESSAGE(std::string("Unknown command: ") + std::string(command.name));
+    }
+  }
+
+ private:
+  // Converts a RoadPosition to a string using the format: "<lane_id>,<s>,<r>,<h>"
+  std::string to_output_format(const maliput::api::RoadPosition& road_position) {
+    return road_position.lane->id().string() + "," + std::to_string(road_position.pos.s()) + "," +
+           std::to_string(road_position.pos.r()) + "," + std::to_string(road_position.pos.h());
+  }
+
+  const malidrive::RoadGeometry* rg_;
+};
 
 }  // namespace
 
@@ -276,6 +360,11 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPo
         std::to_string(xodr_road_id) + ", s: " + std::to_string(xodr_s) + ", t: " + std::to_string(xodr_t));
   }
   return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
+}
+
+std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) const {
+  CommandsHandler commands_handler(this);
+  return commands_handler.Execute(commands_handler.ParseCommand(command));
 }
 
 }  // namespace malidrive

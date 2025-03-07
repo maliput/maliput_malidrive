@@ -137,6 +137,41 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   std::vector<maliput::api::RoadPositionResult> DoFindRoadPositions(
       const maliput::api::InertialPosition& inertial_position, double radius) const override;
 
+  // Provide custom commands support for the backend.
+  //
+  // @details This function is expected to be called by the user via maliput::api::RoadGeometry::BackendCustomCommand.
+  // The user can provide a command string that will be parsed and executed by the backend.
+  // The backend returns a string with the result of the command execution.
+  // The format defined for the command string and the output string is up to the backend implementation.
+  // In this case the format is defined as follows:
+  //  - Command: "<command_name>,<arg1>,<arg2>,...,<argN>"
+  //  - Output: "<output1>,<output2>,...,<outputN>"
+  //
+  // Continue reading the documentation for the available commands and how they should be used.
+  //
+  // Available Commands:
+  // - OpenScenarioLanePositionToMaliputRoadPosition
+  //   - Converts an OpenScenario LanePosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_s>,<xodr_lane_id>,<offset>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  //
+  // - OpenScenarioRoadPositionToMaliputRoadPosition
+  //   - Converts an OpenScenario RoadPosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_s>,<xodr_t>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
+  //
+  // @param command The command string to be executed by the backend.
+  // @returns The output string of the command execution.
+  //
+  // @throws When the command is unknown or can't be executed.
+  std::string DoBackendCustomCommand(const std::string& command) const override;
+
   std::unique_ptr<xodr::DBManager> manager_;
   std::unordered_map<xodr::RoadHeader::Id, RoadCharacteristics> road_characteristics_;
 };
