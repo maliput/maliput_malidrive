@@ -110,7 +110,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   maliput::api::RoadPosition OpenScenarioLanePositionToMaliputRoadPosition(int xodr_road_id, double xodr_s,
                                                                            int xodr_lane_id, double offset) const;
 
-  /// Converts an OpenScenario LanePosition to a maliput RoadPosition.
+  /// Converts an OpenScenario RoadPosition to a maliput RoadPosition.
   /// See
   /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   ///
