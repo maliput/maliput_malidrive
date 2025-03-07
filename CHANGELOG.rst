@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.0 (2025-03-07)
+------------------
+* Implements DoBackendCustomCommand method. (`#289 <https://github.com/maliput/maliput_malidrive/issues/289>`_)
+* Provide some useful conversions for OpenScenario users (`#288 <https://github.com/maliput/maliput_malidrive/issues/288>`_)
+* Updates to presubmit file. (`#286 <https://github.com/maliput/maliput_malidrive/issues/286>`_)
+* Contributors: Franco Cipollone
+
 0.3.1 (2024-11-01)
 ------------------
 * Minor changes to presubmit.yml file. (`#284 <https://github.com/maliput/maliput_malidrive/issues/284>`_)
