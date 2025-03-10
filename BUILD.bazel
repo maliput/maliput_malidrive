@@ -104,14 +104,6 @@ cc_library(
 )
 
 cc_library(
-    name = "private_loader_headers",
-    hdrs = glob(["src/maliput_malidrive/loader/*.h"]),
-    copts = COPTS,
-    strip_include_prefix = "src",
-    visibility = ["//visibility:private"],
-)
-
-cc_library(
     name = "loader",
     srcs = glob(["src/maliput_malidrive/loader/*.cc"]),
     hdrs = glob(["include/maliput_malidrive/loader/*.h"]),
@@ -119,7 +111,6 @@ cc_library(
     strip_include_prefix = "include",
     visibility = ["//visibility:public"],
     deps = [
-        ":private_loader_headers",
         ":builder",
         ":common",
         "@maliput//:api",
