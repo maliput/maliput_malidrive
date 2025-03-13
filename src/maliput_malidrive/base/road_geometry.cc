@@ -304,6 +304,19 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioLanePositionToMaliputRoadPo
   return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
 }
 
+RoadGeometry::OpenScenarioLanePosition RoadGeometry::MaliputRoadPositionToOpenScenarioLanePosition(
+    const maliput::api::RoadPosition& road_position) const {
+  OpenScenarioLanePosition xodr_lane_position;
+  const auto mali_lane = dynamic_cast<const Lane*>(road_position.lane);
+  xodr_lane_position.road_id = mali_lane->get_track();
+  xodr_lane_position.lane_id = mali_lane->get_lane_id();
+  xodr_lane_position.s = mali_lane->TrackSFromLaneS(road_position.pos.s());
+  const auto segment = dynamic_cast<const Segment*>(mali_lane->segment());
+  const auto roll_at_p = segment->road_curve()->superelevation()->f(xodr_lane_position.s);
+  xodr_lane_position.offset = road_position.pos.r() / std::cos(roll_at_p);
+  return xodr_lane_position;
+}
+
 maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPosition(int xodr_road_id, double xodr_s,
                                                                                        double xodr_t) const {
   MALIDRIVE_THROW_UNLESS(xodr_road_id >= 0);
@@ -360,6 +373,31 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPo
         std::to_string(xodr_road_id) + ", s: " + std::to_string(xodr_s) + ", t: " + std::to_string(xodr_t));
   }
   return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
+}
+
+RoadGeometry::OpenScenarioRoadPosition RoadGeometry::MaliputRoadPositionToOpenScenarioRoadPosition(
+    const maliput::api::RoadPosition& road_position) const {
+  OpenScenarioRoadPosition xodr_road_position;
+  const auto mali_lane = dynamic_cast<const Lane*>(road_position.lane);
+  xodr_road_position.road_id = mali_lane->get_track();
+  xodr_road_position.s = mali_lane->TrackSFromLaneS(road_position.pos.s());
+  const auto segment = dynamic_cast<const Segment*>(mali_lane->segment());
+  double t = 0.;
+
+  int t_direction = mali_lane->get_lane_id() > 0 ? 1 : -1;
+  // Start at 1 to ignore lane 0.
+  for (int i = 1; i < std::abs(mali_lane->get_lane_id()); ++i) {
+    const Lane* curr_mali_lane = dynamic_cast<const Lane*>(segment->lane(i));
+    const double width = curr_mali_lane->lane_width_at(xodr_road_position.s);
+    const double roll_at_p = segment->road_curve()->superelevation()->f(xodr_road_position.s);
+    t += width / std::cos(roll_at_p) * t_direction;
+  }
+
+  const double width = mali_lane->lane_width_at(xodr_road_position.s);
+  t += (road_position.pos.r() * t_direction + width / 2.) * t_direction;
+  t += segment->reference_line_offset()->f(xodr_road_position.s) * t_direction;
+  xodr_road_position.t = t;
+  return xodr_road_position;
 }
 
 std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) const {
