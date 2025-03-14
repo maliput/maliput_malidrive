@@ -206,6 +206,22 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   // @param command The command string to be executed by the backend.
   // @returns The output string of the command execution.
   //
+  // - MaliputRoadPositionToOpenScenarioLanePosition
+  //   - Converts a maliput RoadPosition to an OpenScenario Lane Position
+  //   - In/Out:
+  //     - Input: "<lane_id>,<s>,<r>,<h>"
+  //     - Output: "<xodr_road_id>,<xodr_s>,<xodr_lane_id>,<offset>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  //
+  // - MaliputRoadPositionToOpenScenarioRoadPosition
+  //   - Converts a maliput RoadPosition to an OpenScenario Road Position
+  //   - In/Out:
+  //     - Input: "<lane_id>,<s>,<r>,<h>"
+  //     - Output: "<xodr_road_id>,<xodr_s>,<xodr_t>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
+  //
   // @throws When the command is unknown or can't be executed.
   std::string DoBackendCustomCommand(const std::string& command) const override;
 

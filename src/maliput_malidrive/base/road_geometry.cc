@@ -172,6 +172,36 @@ class CommandsHandler {
       const maliput::api::RoadPosition road_position =
           rg_->OpenScenarioRoadPositionToMaliputRoadPosition(xodr_road_id, xodr_s, xodr_t);
       return to_output_format(road_position);
+    }
+    if (command.name == "MaliputRoadPositionToOpenScenarioLanePosition") {
+      if (command.args.size() != 4) {
+        MALIDRIVE_THROW_MESSAGE(std::string("MaliputRoadPositionToOpenScenarioLanePosition expects 4 arguments, got ") +
+                                std::to_string(command.args.size()));
+      }
+      const maliput::api::LaneId lane_id(std::string(command.args[0]));
+      const double s = std::stod(std::string(command.args[1]));
+      const double r = std::stod(std::string(command.args[2]));
+      const double h = std::stod(std::string(command.args[3]));
+      const maliput::api::RoadPosition road_position =
+          maliput::api::RoadPosition{rg_->ById().GetLane(lane_id), maliput::api::LanePosition{s, r, h}};
+      const malidrive::RoadGeometry::OpenScenarioLanePosition xodr_lane_position =
+          rg_->MaliputRoadPositionToOpenScenarioLanePosition(road_position);
+      return to_output_format(xodr_lane_position);
+    }
+    if (command.name == "MaliputRoadPositionToOpenScenarioRoadPosition") {
+      if (command.args.size() != 4) {
+        MALIDRIVE_THROW_MESSAGE(std::string("MaliputRoadPositionToOpenScenarioRoadPosition expects 4 arguments, got ") +
+                                std::to_string(command.args.size()));
+      }
+      const maliput::api::LaneId lane_id(std::string(command.args[0]));
+      const double s = std::stod(std::string(command.args[1]));
+      const double r = std::stod(std::string(command.args[2]));
+      const double h = std::stod(std::string(command.args[3]));
+      const maliput::api::RoadPosition road_position =
+          maliput::api::RoadPosition{rg_->ById().GetLane(lane_id), maliput::api::LanePosition{s, r, h}};
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition xodr_road_position =
+          rg_->MaliputRoadPositionToOpenScenarioRoadPosition(road_position);
+      return to_output_format(xodr_road_position);
 
     } else {
       MALIDRIVE_THROW_MESSAGE(std::string("Unknown command: ") + std::string(command.name));
@@ -183,6 +213,19 @@ class CommandsHandler {
   std::string to_output_format(const maliput::api::RoadPosition& road_position) {
     return road_position.lane->id().string() + "," + std::to_string(road_position.pos.s()) + "," +
            std::to_string(road_position.pos.r()) + "," + std::to_string(road_position.pos.h());
+  }
+
+  // Converts an OpenScenarioLanePosition to a string using the format:
+  // "<xodr_road_id>,<xodr_s>,<xodr_lane_id>,<offset>"
+  std::string to_output_format(const malidrive::RoadGeometry::OpenScenarioLanePosition& lane_position) {
+    return std::to_string(lane_position.road_id) + "," + std::to_string(lane_position.s) + "," +
+           std::to_string(lane_position.lane_id) + "," + std::to_string(lane_position.offset);
+  }
+
+  // Converts an OpenScenarioRoadPosition to a string using the format: "<xodr_road_id>,<xodr_s>,<xodr_t>"
+  std::string to_output_format(const malidrive::RoadGeometry::OpenScenarioRoadPosition& road_position) {
+    return std::to_string(road_position.road_id) + "," + std::to_string(road_position.s) + "," +
+           std::to_string(road_position.t);
   }
 
   const malidrive::RoadGeometry* rg_;
