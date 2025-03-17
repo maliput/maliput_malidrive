@@ -431,9 +431,11 @@ RoadGeometry::OpenScenarioRoadPosition RoadGeometry::MaliputRoadPositionToOpenSc
   double t = 0.;
 
   int t_direction = mali_lane->get_lane_id() > 0 ? 1 : -1;
+  int n_lanes = segment->num_lanes();
   // Start at 1 to ignore lane 0.
   for (int i = 1; i < std::abs(mali_lane->get_lane_id()); ++i) {
-    const Lane* curr_mali_lane = dynamic_cast<const Lane*>(segment->lane(i * t_direction));
+    int index = n_lanes / 2 + i * t_direction + (t_direction > 0 ? -1 : 0);
+    const Lane* curr_mali_lane = dynamic_cast<const Lane*>(segment->lane(index));
     const double width = curr_mali_lane->lane_width_at(xodr_road_position.s);
     const double roll_at_p = segment->road_curve()->superelevation()->f(xodr_road_position.s);
     t += width * std::cos(roll_at_p) * t_direction;
