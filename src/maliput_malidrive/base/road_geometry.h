@@ -46,6 +46,32 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadGeometry);
 
+  /// @brief Represents a OSC-XML Lane Position.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  struct OpenScenarioLanePosition {
+    /// The id of the road in the OpenDrive file.
+    int road_id;
+    /// The s-coordinate taken along the road's reference line from the start point of the target road.
+    double s;
+    /// The lane id.
+    int lane_id;
+    /// The lateral offset to the center line of the target lane.
+    double offset;
+  };
+
+  /// @brief Represents a OSC-XML Road Position.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
+  struct OpenScenarioRoadPosition {
+    /// The id of the road in the OpenDrive file.
+    int road_id;
+    /// The s-coordinate taken along the road's reference line from the start point of the target road.
+    double s;
+    /// The t-coordinate taken on the axis orthogonal to the reference line of the road.
+    double t;
+  };
+
   /// Constructs a RoadGeometry.
   ///
   /// @param id see @ref
@@ -96,24 +122,11 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// @throw maliput::common::assertion_error When there is no a function described for `road_id`.
   const road_curve::Function* GetReferenceLineOffset(const xodr::RoadHeader::Id& road_id) const;
 
-  /// @brief Represents a OSC-XML Lane Position.
-  /// See
-  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
-  struct OpenScenarioLanePosition {
-    /// The id of the road in the OpenDrive file.
-    int road_id;
-    /// The s-coordinate taken along the road's reference line from the start point of the target road.
-    double s;
-    /// The lane id.
-    int lane_id;
-    /// The lateral offset to the center line of the target lane.
-    double offset;
-  };
-
   /// Converts an OpenScenario LanePosition to a maliput RoadPosition.
   /// See
   /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
   ///
+  /// @param xodr_lane_position The lane position to get the maliput road position from.
   /// @returns A maliput RoadPosition.
   ///
   /// @throws When the correspondent maliput lane is not found.
@@ -130,18 +143,6 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// @throws When the correspondent open scenario road is not found.
   OpenScenarioLanePosition MaliputRoadPositionToOpenScenarioLanePosition(
       const maliput::api::RoadPosition& road_position) const;
-
-  /// @brief Represents a OSC-XML Road Position.
-  /// See
-  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
-  struct OpenScenarioRoadPosition {
-    /// The id of the road in the OpenDrive file.
-    int road_id;
-    /// The s-coordinate taken along the road's reference line from the start point of the target road.
-    double s;
-    /// The t-coordinate taken on the axis orthogonal to the reference line of the road.
-    double t;
-  };
 
   /// Converts an OpenScenario RoadPosition to a maliput RoadPosition.
   /// See
@@ -203,9 +204,6 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   //
-  // @param command The command string to be executed by the backend.
-  // @returns The output string of the command execution.
-  //
   // - MaliputRoadPositionToOpenScenarioLanePosition
   //   - Converts a maliput RoadPosition to an OpenScenario Lane Position
   //   - In/Out:
@@ -221,6 +219,9 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //     - Output: "<xodr_road_id>,<xodr_s>,<xodr_t>"
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
+  //
+  // @param command The command string to be executed by the backend.
+  // @returns The output string of the command execution.
   //
   // @throws When the command is unknown or can't be executed.
   std::string DoBackendCustomCommand(const std::string& command) const override;
