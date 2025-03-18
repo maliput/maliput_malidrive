@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.1 (2025-03-18)
+------------------
+* Useful conversions from Maliput to OpenScenario Position types. (`#292 <https://github.com/maliput/maliput_malidrive/issues/292>`_)
+* Contributors: Santiago Lopez
+
 0.4.0 (2025-03-07)
 ------------------
 * Implements DoBackendCustomCommand method. (`#289 <https://github.com/maliput/maliput_malidrive/issues/289>`_)
