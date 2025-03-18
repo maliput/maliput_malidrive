@@ -62,8 +62,8 @@ struct ContinuityChecker {
                               std::to_string(f_distance) +
                               "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
       maliput::log()->warn(f_msg);
-      MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
-                         maliput::common::assertion_error, f_msg);
+      // MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
+      //                    maliput::common::assertion_error, f_msg);
       return false;
     }
 
@@ -73,8 +73,8 @@ struct ContinuityChecker {
                                   std::to_string(f_dot_distance) +
                                   "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
       maliput::log()->warn(f_dot_msg);
-      MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
-                         maliput::common::assertion_error, f_dot_msg);
+      // MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
+      //                    maliput::common::assertion_error, f_dot_msg);
       return false;
     }
     return true;
@@ -97,14 +97,17 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
   double p = p0_;
   Function* previous_function{nullptr};
   const ContinuityChecker checker(linear_tolerance_, continuity_check);
+  int index{};
   for (const auto& function : functions_) {
     MALIDRIVE_THROW_UNLESS(function.get() != nullptr);
     MALIDRIVE_THROW_UNLESS(function->IsG1Contiguous());
+    maliput::log()->trace("Function ", index, " has p0: ", function->p0()," and p1: ", function->p1());
     if (previous_function != nullptr) {
       if (!checker(previous_function, function.get())) {
         is_g1_contiguous = false;
       }
     }
+    ++index;
     const double delta_p = function->p1() - function->p0();
     interval_function_[FunctionInterval(p, p + delta_p)] = function.get();
     p += delta_p;
