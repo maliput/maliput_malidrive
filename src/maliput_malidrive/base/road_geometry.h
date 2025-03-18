@@ -46,6 +46,32 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(RoadGeometry);
 
+  /// @brief Represents a OSC-XML Lane Position.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  struct OpenScenarioLanePosition {
+    /// The id of the road in the OpenDrive file.
+    int road_id;
+    /// The s-coordinate taken along the road's reference line from the start point of the target road.
+    double s;
+    /// The lane id.
+    int lane_id;
+    /// The lateral offset to the center line of the target lane.
+    double offset;
+  };
+
+  /// @brief Represents a OSC-XML Road Position.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
+  struct OpenScenarioRoadPosition {
+    /// The id of the road in the OpenDrive file.
+    int road_id;
+    /// The s-coordinate taken along the road's reference line from the start point of the target road.
+    double s;
+    /// The t-coordinate taken on the axis orthogonal to the reference line of the road.
+    double t;
+  };
+
   /// Constructs a RoadGeometry.
   ///
   /// @param id see @ref
@@ -100,28 +126,40 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// See
   /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
   ///
-  /// @param xodr_road_id The id of the road in the OpenDrive file.
-  /// @param xodr_s The s-coordinate taken along the road's reference line from the start point of the target road.
-  /// @param xodr_lane_id The lane id.
-  /// @param offset The lateral offset to the center line of the target lane.
+  /// @param xodr_lane_position The lane position to get the maliput road position from.
   /// @returns A maliput RoadPosition.
   ///
   /// @throws When the correspondent maliput lane is not found.
-  maliput::api::RoadPosition OpenScenarioLanePositionToMaliputRoadPosition(int xodr_road_id, double xodr_s,
-                                                                           int xodr_lane_id, double offset) const;
+  maliput::api::RoadPosition OpenScenarioLanePositionToMaliputRoadPosition(
+      const OpenScenarioLanePosition& xodr_lane_position) const;
+
+  /// Converts a maliput RoadPosition to an OpenScenario LanePosition.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  ///
+  /// @param road_position The road position to get the OS lane position from.
+  /// @returns An Open Scenario LanePosition.
+  ///
+  /// @throws When the correspondent open scenario road is not found.
+  OpenScenarioLanePosition MaliputRoadPositionToOpenScenarioLanePosition(
+      const maliput::api::RoadPosition& road_position) const;
 
   /// Converts an OpenScenario RoadPosition to a maliput RoadPosition.
   /// See
   /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   ///
-  /// @param xodr_road_id The id of the road in the OpenDrive file.
-  /// @param xodr_s The s-coordinate taken along the road's reference line from the start point of the target road.
-  /// @param xodr_t The t-coordinate taken on the axis orthogonal to the reference line of the road.
   /// @returns A maliput RoadPosition.
+  maliput::api::RoadPosition OpenScenarioRoadPositionToMaliputRoadPosition(
+      const OpenScenarioRoadPosition& xodr_road_position) const;
+
+  /// Converts a maliput RoadPosition to an OpenScenario RoadPosition.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   ///
-  /// @throws When the correspondent maliput lane is not found.
-  maliput::api::RoadPosition OpenScenarioRoadPositionToMaliputRoadPosition(int xodr_road_id, double xodr_s,
-                                                                           double xodr_t) const;
+  /// @param road_position The road position to get the OS road position from.
+  /// @returns An Open Scenario RoadPosition.
+  OpenScenarioRoadPosition MaliputRoadPositionToOpenScenarioRoadPosition(
+      const maliput::api::RoadPosition& road_position) const;
 
  private:
   // Holds the description of the Road.
@@ -163,6 +201,22 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - In/Out:
   //     - Input: "<xodr_road_id>,<xodr_s>,<xodr_t>"
   //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
+  //
+  // - MaliputRoadPositionToOpenScenarioLanePosition
+  //   - Converts a maliput RoadPosition to an OpenScenario Lane Position
+  //   - In/Out:
+  //     - Input: "<lane_id>,<s>,<r>,<h>"
+  //     - Output: "<xodr_road_id>,<xodr_s>,<xodr_lane_id>,<offset>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
+  //
+  // - MaliputRoadPositionToOpenScenarioRoadPosition
+  //   - Converts a maliput RoadPosition to an OpenScenario Road Position
+  //   - In/Out:
+  //     - Input: "<lane_id>,<s>,<r>,<h>"
+  //     - Output: "<xodr_road_id>,<xodr_s>,<xodr_t>"
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   //
