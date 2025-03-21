@@ -549,6 +549,9 @@ TEST_F(RoadGeometryOpenScenarioConversionsLineMultipleSections,
   EXPECT_TRUE(std::abs(input_xodr_lane_position.offset - xodr_lane_pos.offset) < constants::kLinearTolerance);
 }
 
+// TODO: Add test for RelativeRoadPosition on LineMultipleSections (1 road multiple lane sections)
+// TODO: Add test for RelativeRoadPosition on LShapeRoad (multiple roads)
+
 class RoadGeometryOpenScenarioConversionsLineVariableOffset : public ::testing::Test {
  protected:
   void SetUp() override {
