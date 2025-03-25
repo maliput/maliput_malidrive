@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.2 (2025-03-25)
+------------------
+* Provides OpenScenarioRelativeRoadPositionToMaliputRoadPosition conversion method. (`#294 <https://github.com/maliput/maliput_malidrive/issues/294>`_)
+* Contributors: Franco Cipollone
+
 0.4.1 (2025-03-18)
 ------------------
 * Useful conversions from Maliput to OpenScenario Position types. (`#292 <https://github.com/maliput/maliput_malidrive/issues/292>`_)
