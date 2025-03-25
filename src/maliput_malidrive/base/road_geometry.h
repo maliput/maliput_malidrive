@@ -35,6 +35,7 @@
 
 #include <maliput/geometry_base/road_geometry.h>
 
+#include "maliput_malidrive/base/segment.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/xodr/db_manager.h"
@@ -161,6 +162,23 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   OpenScenarioRoadPosition MaliputRoadPositionToOpenScenarioRoadPosition(
       const maliput::api::RoadPosition& road_position) const;
 
+  /// Converts an OpenScenario RelativeRoadPosition to a maliput RoadPosition.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeRoadPosition.html
+  ///
+  /// When xodr_ds makes xodr_s to be out of bounds of the road, the calculation continues with the connecting road.
+  /// This make sense when only having a single connecting road (road successor in the xodr). When having multiple
+  /// connecting roads, the calculation will arbitrarily choose one of the connecting roads. (Default branch via maliput
+  /// api). This might need to change in the future as we probably want to have a more deterministic behavior that could
+  /// reflect the expecting routing of the vehicle acting as reference.
+  /// @param xodr_reference_road_position The OpenScenario RoadPosition used as reference.
+  /// @param xodr_ds The offset along the road's reference line relative to the s-coordinate of the reference.
+  /// @param xodr_dt The offset orthogonal to the road's reference line relative to the t-coordinate of the reference.
+  ///
+  /// @returns A maliput RoadPosition.
+  maliput::api::RoadPosition OpenScenarioRelativeRoadPositionToMaliputRoadPosition(
+      const OpenScenarioRoadPosition& xodr_reference_road_position, double xodr_ds, double xodr_dt) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {
@@ -220,11 +238,22 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   //
+  // - OpenScenarioRelativeRoadPositionToMaliputRoadPosition
+  //   - Converts an OpenScenario RelativeRoadPosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_s>,<xodr_t>,<ds>,<dt>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeRoadPosition.html
+  //
   // @param command The command string to be executed by the backend.
   // @returns The output string of the command execution.
   //
   // @throws When the command is unknown or can't be executed.
   std::string DoBackendCustomCommand(const std::string& command) const override;
+
+  // Finds the maliput segment that corresponds to the given OpenScenario RoadPosition.
+  const Segment* FindSegmentByOpenScenarioRoadPosition(const OpenScenarioRoadPosition& xodr_road_position) const;
 
   std::unique_ptr<xodr::DBManager> manager_;
   std::unordered_map<xodr::RoadHeader::Id, RoadCharacteristics> road_characteristics_;

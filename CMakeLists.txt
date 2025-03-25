@@ -159,6 +159,7 @@ install (FILES resources/ArcLane.xodr
                resources/SingleRoadNegativeWidth.xodr
                resources/SingleRoadPedestrianCrosswalk.xodr
                resources/SingleRoadPedestrianCrosswalk.yaml
+               resources/SingleRoadSDirectionChange.xodr
                resources/SingleRoadTinyGeometry.xodr
                resources/SingleRoadTwoGeometries.xodr
                resources/SmallTownRoads.xodr
