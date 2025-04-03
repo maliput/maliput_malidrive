@@ -179,6 +179,9 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   maliput::api::RoadPosition OpenScenarioRelativeRoadPositionToMaliputRoadPosition(
       const OpenScenarioRoadPosition& xodr_reference_road_position, double xodr_ds, double xodr_dt) const;
 
+  maliput::api::RoadPosition OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(
+      const OpenScenarioLanePosition& xodr_reference_lane_position, int d_lane, double ds_lane, double offset) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {
@@ -246,6 +249,22 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeRoadPosition.html
   //
+  // - OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition
+  //   - Converts an OpenScenario RelativeLanePosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_lane_id>,<xodr_s>,<d_lane>,<ds>,<offset>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeLanePosition.html
+  //
+  // - OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition
+  //   - Converts an OpenScenario RelativeLanePosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_lane_id>,<xodr_s>,<d_lane>,<ds_lane>,<offset>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeLanePosition.html
+  //
   // @param command The command string to be executed by the backend.
   // @returns The output string of the command execution.
   //
@@ -254,6 +273,9 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
 
   // Finds the maliput segment that corresponds to the given OpenScenario RoadPosition.
   const Segment* FindSegmentByOpenScenarioRoadPosition(const OpenScenarioRoadPosition& xodr_road_position) const;
+
+  // Finds the maliput lane that corresponds to the given OpenScenario LanePosition.
+  const Lane* GetMaliputLaneFromOpenScenarioLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const;
 
   std::unique_ptr<xodr::DBManager> manager_;
   std::unordered_map<xodr::RoadHeader::Id, RoadCharacteristics> road_characteristics_;

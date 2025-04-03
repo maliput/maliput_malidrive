@@ -672,6 +672,118 @@ class RoadGeometryOpenScenarioConversionsSingleRoadSDirectionChange : public ::t
 };
 
 TEST_F(RoadGeometryOpenScenarioConversionsSingleRoadSDirectionChange,
+       OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition) {
+  ///////////////////////////////////////////////////////
+  // RelativeLanePosition falling within the same Road //
+  ///////////////////////////////////////////////////////
+  // Final pos in same lane
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 5., 1, 0.};  // Lane 2_0_1's srh(5,0,0)
+    const int d_lane = 0;
+    const double ds_lane = 2.;
+    const double offset = 0.5;
+    // Maliput expected results.
+    const maliput::api::LaneId expected_lane_id("2_0_1");
+    const maliput::api::LanePosition expected_lane_position(7., 0.5, 0.);
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane, ds_lane,
+                                                                            offset);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+  // Final pos in other lane
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 5., 1, 0.};  // Lane 2_0_1's srh(5,0,0)
+    const int d_lane = -1;
+    const double ds_lane = 2.;
+    const double offset = 0.5;
+    // Maliput expected results.
+    const maliput::api::LaneId expected_lane_id("2_0_-1");
+    const maliput::api::LanePosition expected_lane_position(7., 0.5, 0.);
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane, ds_lane,
+                                                                            offset);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+  // Final pos out of bounds
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 5., 1, 0.};  // Lane 2_0_1's srh(5,0,0)
+    const int d_lane = 1;
+    const double ds_lane = 2.;
+    const double offset = 0.5;
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    EXPECT_THROW(rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane,
+                                                                                     ds_lane, offset),
+                 maliput::common::assertion_error);
+  }
+  ///////////////////////////////////////////////////////////
+  // RelativeLanePosition not falling within the same Road //
+  ///////////////////////////////////////////////////////////
+  // Final pos in same lane
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 5., 1, 0.};  // Lane 2_0_1's srh(5, 0, 0)
+    const int d_lane = 0;
+    const double ds_lane = 10.;
+    const double offset = 0.5;
+    // Maliput expected results.
+    const maliput::api::LaneId expected_lane_id("1_0_-1");
+    const maliput::api::LanePosition expected_lane_position(5., 0.5, 0.);
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane, ds_lane,
+                                                                            offset);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+  // Final pos in other lane
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 7., -1, 0.};  // Lane 2_0_-1's srh(7, 0, 0)
+    const int d_lane = 1;
+    const double ds_lane = 5.;
+    const double offset = -0.5;
+    // Maliput expected results.
+    const maliput::api::LaneId expected_lane_id("1_0_-1");
+    const maliput::api::LanePosition expected_lane_position(8., -0.5, 0.);
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane, ds_lane,
+                                                                            offset);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+  // Final pos in other lane
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 7., 1, 0.};  // Lane 2_0_1's srh(7, 0, 0)
+    const int d_lane = -1;
+    const double ds_lane = -10.;
+    const double offset = 0.5;
+    // Maliput expected results.
+    const maliput::api::LaneId expected_lane_id("3_0_1");
+    const maliput::api::LanePosition expected_lane_position(3., 0.5, 0.);
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane, ds_lane,
+                                                                            offset);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+}
+
+TEST_F(RoadGeometryOpenScenarioConversionsSingleRoadSDirectionChange,
        OpenScenarioRelativeRoadPositionToMaliputRoadPosition) {
   ///////////////////////////////////////////////////////////
   // RelativeRoadPosition not falling within the same Road //
