@@ -179,6 +179,44 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   maliput::api::RoadPosition OpenScenarioRelativeRoadPositionToMaliputRoadPosition(
       const OpenScenarioRoadPosition& xodr_reference_road_position, double xodr_ds, double xodr_dt) const;
 
+  /// Converts an OpenScenario RelativeLanePosition to a maliput RoadPosition.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeLanePosition.html
+  ///
+  /// When ds_lane makes xodr_s to be out of bounds of the road, the calculation continues with the connecting road.
+  /// This make sense when only having a single connecting road (road successor in the xodr). When having multiple
+  /// connecting roads, the calculation will arbitrarily choose one of the connecting roads. (Default branch via maliput
+  /// api). This might need to change in the future as we probably want to have a more deterministic behavior that could
+  /// reflect the expecting routing of the vehicle acting as reference.
+  /// @param xodr_reference_lane_position The OpenScenario LanePosition used as reference.
+  /// @param d_lane The lane offset relative to the lane the reference.
+  /// @param ds_lane The offset along the center line of the lane, where the reference entity is located.
+  /// @param offset The lateral offset to the center line of the target lane (along the t-axis of the target lane center
+  /// line).
+  ///
+  /// @returns A maliput RoadPosition.
+  maliput::api::RoadPosition OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(
+      const OpenScenarioLanePosition& xodr_reference_lane_position, int d_lane, double ds_lane, double offset) const;
+
+  /// Converts an OpenScenario RelativeLanePosition to a maliput RoadPosition.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeRoadPosition.html
+  ///
+  /// When xodr_ds makes xodr_s to be out of bounds of the road, the calculation continues with the connecting road.
+  /// This make sense when only having a single connecting road (road successor in the xodr). When having multiple
+  /// connecting roads, the calculation will arbitrarily choose one of the connecting roads. (Default branch via maliput
+  /// api). This might need to change in the future as we probably want to have a more deterministic behavior that could
+  /// reflect the expecting routing of the vehicle acting as reference.
+  /// @param xodr_reference_lane_position The OpenScenario LanePosition used as reference.
+  /// @param d_lane The lane offset relative to the lane the reference.
+  /// @param xodr_ds The offset along the road's reference line relative to the s-coordinate of the reference entity.
+  /// @param offset The lateral offset to the center line of the target lane (along the t-axis of the target lane center
+  /// line).
+  ///
+  /// @returns A maliput RoadPosition.
+  maliput::api::RoadPosition OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(
+      const OpenScenarioLanePosition& xodr_reference_lane_position, int d_lane, double xodr_ds, double offset) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {
@@ -246,6 +284,22 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeRoadPosition.html
   //
+  // - OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition
+  //   - Converts an OpenScenario RelativeLanePosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_lane_id>,<xodr_s>,<d_lane>,<xodr_ds>,<offset>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeLanePosition.html
+  //
+  // - OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition
+  //   - Converts an OpenScenario RelativeLanePosition to a maliput RoadPosition.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_lane_id>,<xodr_s>,<d_lane>,<ds_lane>,<offset>"
+  //     - Output: "<lane_id>,<s>,<r>,<h>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeLanePosition.html
+  //
   // @param command The command string to be executed by the backend.
   // @returns The output string of the command execution.
   //
@@ -254,6 +308,12 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
 
   // Finds the maliput segment that corresponds to the given OpenScenario RoadPosition.
   const Segment* FindSegmentByOpenScenarioRoadPosition(const OpenScenarioRoadPosition& xodr_road_position) const;
+
+  // Finds the maliput lane that corresponds to the given OpenScenario LanePosition.
+  const Lane* GetMaliputLaneFromOpenScenarioLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const;
+
+  // Finds the maliput lane that corresponds to the offset from the intial_lane.
+  const Lane* ApplyOffsetToLane(const Lane* initial_lane, int lane_offset) const;
 
   std::unique_ptr<xodr::DBManager> manager_;
   std::unordered_map<xodr::RoadHeader::Id, RoadCharacteristics> road_characteristics_;
