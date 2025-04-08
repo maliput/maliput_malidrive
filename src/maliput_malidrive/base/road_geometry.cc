@@ -242,8 +242,7 @@ class CommandsHandler {
       const double xodr_ds = std::stod(std::string(command.args[4]));
       const double offset = std::stod(std::string(command.args[5]));
       const maliput::api::RoadPosition road_position =
-          rg_->OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(xodr_lane_position, d_lane, xodr_ds,
-                                                                               offset);
+          rg_->OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(xodr_lane_position, d_lane, xodr_ds, offset);
       return to_output_format(road_position);
     } else if (command.name == "OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition") {
       if (command.args.size() != 6) {
