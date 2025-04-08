@@ -179,6 +179,14 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   maliput::api::RoadPosition OpenScenarioRelativeRoadPositionToMaliputRoadPosition(
       const OpenScenarioRoadPosition& xodr_reference_road_position, double xodr_ds, double xodr_dt) const;
 
+  /// Obtains the road's roll, pitch and yaw angles at the specified OpenScenario RoadPosition.
+  ///
+  /// @param xodr_road_position The OpenScenario RoadPosition to get the angles at.
+  ///
+  /// @returns A maliput RollPitchYaw.
+  maliput::math::RollPitchYaw OpenScenarioRoadPositionReferenceLineOrientation(
+      const OpenScenarioRoadPosition& xodr_road_position) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {
@@ -246,6 +254,13 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeRoadPosition.html
   //
+  // - OpenScenarioRoadPositionReferenceLineOrientation
+  //   - Obtains the orientation with respect to the (s,t)-coordinate system of the target road.
+  //   - In/Out:
+  //     - Input: "<xodr_road_id>,<xodr_s>"
+  //     - Output: "<roll>,<pitch>,<yaw>"
+  //   - See
+  //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
   // @param command The command string to be executed by the backend.
   // @returns The output string of the command execution.
   //

@@ -226,6 +226,17 @@ class CommandsHandler {
       const maliput::api::RoadPosition road_position =
           rg_->OpenScenarioRelativeRoadPositionToMaliputRoadPosition(xodr_road_position, ds, dt);
       return to_output_format(road_position);
+    } else if (command.name == "OpenScenarioRoadPositionReferenceLineOrientation") {
+      if (command.args.size() != 2) {
+        MALIDRIVE_THROW_MESSAGE(
+            std::string("OpenScenarioRoadPositionReferenceLineOrientation expects 2 arguments, got ") +
+            std::to_string(command.args.size()));
+      }
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition xodr_road_position{
+          std::stoi(std::string(command.args[0])), std::stod(std::string(command.args[1])), 0.};
+      const maliput::math::RollPitchYaw rotation =
+          rg_->OpenScenarioRoadPositionReferenceLineOrientation(xodr_road_position);
+      return to_output_format(rotation);
     } else {
       MALIDRIVE_THROW_MESSAGE(std::string("Unknown command: ") + std::string(command.name));
     }
@@ -243,6 +254,12 @@ class CommandsHandler {
   std::string to_output_format(const malidrive::RoadGeometry::OpenScenarioLanePosition& lane_position) {
     return std::to_string(lane_position.road_id) + "," + std::to_string(lane_position.s) + "," +
            std::to_string(lane_position.lane_id) + "," + std::to_string(lane_position.offset);
+  }
+
+  // Converts a RollPitchYaw to a string using the format: "<roll>,<pitch>,<yaw>"
+  std::string to_output_format(const maliput::math::RollPitchYaw& rotation) {
+    return std::to_string(rotation.roll_angle()) + "," + std::to_string(rotation.pitch_angle()) + "," +
+           std::to_string(rotation.yaw_angle());
   }
 
   // Converts an OpenScenarioRoadPosition to a string using the format: "<xodr_road_id>,<xodr_s>,<xodr_t>"
@@ -528,6 +545,16 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeRoadPositionToMalip
     return OpenScenarioRelativeRoadPositionToMaliputRoadPosition(new_xodr_reference_road_position, new_xodr_ds,
                                                                  new_xodr_dt);
   }
+}
+
+maliput::math::RollPitchYaw RoadGeometry::OpenScenarioRoadPositionReferenceLineOrientation(
+    const OpenScenarioRoadPosition& xodr_road_position) const {
+  MALIDRIVE_THROW_UNLESS(xodr_road_position.road_id >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_road_position.s >= 0.);
+  const Segment* target_segment{this->FindSegmentByOpenScenarioRoadPosition(xodr_road_position)};
+  MALIPUT_THROW_UNLESS(target_segment != nullptr);
+  const double p = target_segment->road_curve()->PFromP(xodr_road_position.s);
+  return target_segment->road_curve()->Orientation(p);
 }
 
 std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) const {

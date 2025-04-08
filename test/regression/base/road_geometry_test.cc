@@ -34,6 +34,7 @@
 #include <gtest/gtest.h>
 #include <maliput/api/compare.h>
 #include <maliput/common/assertion_error.h>
+#include <maliput/math/compare.h>
 
 #include "assert_compare.h"
 #include "maliput_malidrive/builder/road_geometry_configuration.h"
@@ -614,6 +615,16 @@ class RoadGeometryOpenScenarioConversionsLineVariableOffset : public ::testing::
   std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
 };
 
+TEST_F(RoadGeometryOpenScenarioConversionsLineVariableOffset, OpenScenarioRoadPositionReferenceLineOrientation) {
+  const RoadGeometry::OpenScenarioRoadPosition xodr_road_position{1, 33., 0.};
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  const maliput::math::RollPitchYaw expected_roll_pitch_roll{0., 0., 0.};
+  const maliput::math::RollPitchYaw roll_pitch_roll =
+      rg->OpenScenarioRoadPositionReferenceLineOrientation(xodr_road_position);
+  EXPECT_TRUE(AssertCompare(CompareVectors(expected_roll_pitch_roll.vector(), roll_pitch_roll.vector(),
+                                           constants::kAngularTolerance, maliput::math::CompareType::kAbsolute)));
+}
+
 // Test at the begining of the lane 1_0_3 and in the middle of the lane 1_0_-3.
 // It should be the same xodr_t due to the effect of the lane offset in this map
 TEST_F(RoadGeometryOpenScenarioConversionsLineVariableOffset, RoundTripOpenScenarioRoadPositionToMaliputRoadPosition) {
@@ -790,6 +801,29 @@ TEST_F(RoadGeometryOpenScenarioConversionsSingleRoadSDirectionChange,
   }
 }
 
+class RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("SShapeSuperelevatedRoad");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("SShapeSuperelevatedRoad.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_F(RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad, OpenScenarioRoadPositionReferenceLineOrientation) {
+  const RoadGeometry::OpenScenarioRoadPosition xodr_road_position{1, 60., 0.};
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  const maliput::math::RollPitchYaw expected_roll_pitch_roll{-0.745567, 0., 1.5};
+  const maliput::math::RollPitchYaw roll_pitch_roll =
+      rg->OpenScenarioRoadPositionReferenceLineOrientation(xodr_road_position);
+  EXPECT_TRUE(AssertCompare(CompareVectors(expected_roll_pitch_roll.vector(), roll_pitch_roll.vector(),
+                                           constants::kAngularTolerance, maliput::math::CompareType::kAbsolute)));
+}
+
 // Holds the input and expected output for the DoBackendCustomCommand test.
 struct CommandsInputOutputs {
   std::string command;
@@ -809,6 +843,7 @@ std::vector<CommandsInputOutputs> InstanciateCommandsInputOutputsParameters() {
       {{"MaliputRoadPositionToOpenScenarioRoadPosition,1_0_-1,51.25,0.,0."}, {"1,50.000000,-1.000000"}},
       {{"MaliputRoadPositionToOpenScenarioRoadPosition,1_0_1,48.75,0.,0."}, {"1,50.000000,1.000000"}},
       {{"OpenScenarioRelativeRoadPositionToMaliputRoadPosition,1,0.,1.,50.,1."}, {"1_0_1,48.750000,1.000000,0.000000"}},
+      {{"OpenScenarioRoadPositionReferenceLineOrientation,1,50."}, {"0.000000,-0.000000,1.250000"}},
   };
 }
 
