@@ -533,9 +533,9 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeRoadPositionToMalip
     //  - we move forwards (positive ds) and next road is geometrically constructed in the opposite direction.
     //  - we move forwards (positive ds) and next road is geometrically constructed in the same direction.
     const bool forward_direction = xodr_ds >= 0.;
-    const double lane_s_to_road_end = forward_direction ? reference_road_curve->p1() - xodr_reference_road_position.s
+    const double xodr_s_to_road_end = forward_direction ? reference_road_curve->p1() - xodr_reference_road_position.s
                                                         : reference_road_curve->p0() - xodr_reference_road_position.s;
-    const double new_raw_xodr_ds = xodr_ds - lane_s_to_road_end;
+    const double new_raw_xodr_ds = xodr_ds - xodr_s_to_road_end;
     // We need to get the last road position before branching in order to identify which is the connected lane(ergo xodr
     // Road) to follow. So if we are moving forward we get the road position at p1, if we are moving backwards we get
     // the road position at p0.
