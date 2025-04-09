@@ -615,12 +615,12 @@ class RoadGeometryOpenScenarioConversionsLineVariableOffset : public ::testing::
   std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
 };
 
-TEST_F(RoadGeometryOpenScenarioConversionsLineVariableOffset, OpenScenarioRoadPositionReferenceLineOrientation) {
+TEST_F(RoadGeometryOpenScenarioConversionsLineVariableOffset, GetRoadOrientationAtOpenScenarioRoadPosition) {
   const RoadGeometry::OpenScenarioRoadPosition xodr_road_position{1, 33., 0.};
   auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
   const maliput::math::RollPitchYaw expected_roll_pitch_roll{0., 0., 0.};
   const maliput::math::RollPitchYaw roll_pitch_roll =
-      rg->OpenScenarioRoadPositionReferenceLineOrientation(xodr_road_position);
+      rg->GetRoadOrientationAtOpenScenarioRoadPosition(xodr_road_position);
   EXPECT_TRUE(AssertCompare(CompareVectors(expected_roll_pitch_roll.vector(), roll_pitch_roll.vector(),
                                            constants::kAngularTolerance, maliput::math::CompareType::kAbsolute)));
 }
@@ -1121,12 +1121,12 @@ class RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad : public ::test
   std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
 };
 
-TEST_F(RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad, OpenScenarioRoadPositionReferenceLineOrientation) {
+TEST_F(RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad, GetRoadOrientationAtOpenScenarioRoadPosition) {
   const RoadGeometry::OpenScenarioRoadPosition xodr_road_position{1, 60., 0.};
   auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
   const maliput::math::RollPitchYaw expected_roll_pitch_roll{-0.745567, 0., 1.5};
   const maliput::math::RollPitchYaw roll_pitch_roll =
-      rg->OpenScenarioRoadPositionReferenceLineOrientation(xodr_road_position);
+      rg->GetRoadOrientationAtOpenScenarioRoadPosition(xodr_road_position);
   EXPECT_TRUE(AssertCompare(CompareVectors(expected_roll_pitch_roll.vector(), roll_pitch_roll.vector(),
                                            constants::kAngularTolerance, maliput::math::CompareType::kAbsolute)));
 }
@@ -1154,7 +1154,7 @@ std::vector<CommandsInputOutputs> InstanciateCommandsInputOutputsParameters() {
        {"1_0_-1,48.750000,-0.800000,0.000000"}},
       {{"OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition,1,-1,0.,1,50.,0.8"},
        {"1_0_1,50.000000,0.800000,0.000000"}},
-      {{"OpenScenarioRoadPositionReferenceLineOrientation,1,50."}, {"0.000000,-0.000000,1.250000"}},
+      {{"GetRoadOrientationAtOpenScenarioRoadPosition,1,50.,0."}, {"0.000000,-0.000000,1.250000"}},
   };
 }
 

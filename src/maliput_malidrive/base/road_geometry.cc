@@ -263,16 +263,16 @@ class CommandsHandler {
           rg_->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(xodr_lane_position, d_lane, ds_lane,
                                                                                offset);
       return to_output_format(road_position);
-    } else if (command.name == "OpenScenarioRoadPositionReferenceLineOrientation") {
-      if (command.args.size() != 2) {
-        MALIDRIVE_THROW_MESSAGE(
-            std::string("OpenScenarioRoadPositionReferenceLineOrientation expects 2 arguments, got ") +
-            std::to_string(command.args.size()));
+    } else if (command.name == "GetRoadOrientationAtOpenScenarioRoadPosition") {
+      if (command.args.size() != 3) {
+        MALIDRIVE_THROW_MESSAGE(std::string("GetRoadOrientationAtOpenScenarioRoadPosition expects 3 arguments, got ") +
+                                std::to_string(command.args.size()));
       }
       const malidrive::RoadGeometry::OpenScenarioRoadPosition xodr_road_position{
-          std::stoi(std::string(command.args[0])), std::stod(std::string(command.args[1])), 0.};
+          std::stoi(std::string(command.args[0])), std::stod(std::string(command.args[1])),
+          std::stod(std::string(command.args[2]))};
       const maliput::math::RollPitchYaw rotation =
-          rg_->OpenScenarioRoadPositionReferenceLineOrientation(xodr_road_position);
+          rg_->GetRoadOrientationAtOpenScenarioRoadPosition(xodr_road_position);
       return to_output_format(rotation);
     } else {
       MALIDRIVE_THROW_MESSAGE(std::string("Unknown command: ") + std::string(command.name));
@@ -750,7 +750,7 @@ const Lane* RoadGeometry::ApplyOffsetToLane(const Lane* initial_lane, int lane_o
   return target_lane;
 }
 
-maliput::math::RollPitchYaw RoadGeometry::OpenScenarioRoadPositionReferenceLineOrientation(
+maliput::math::RollPitchYaw RoadGeometry::GetRoadOrientationAtOpenScenarioRoadPosition(
     const OpenScenarioRoadPosition& xodr_road_position) const {
   MALIDRIVE_THROW_UNLESS(xodr_road_position.road_id >= 0);
   MALIDRIVE_THROW_UNLESS(xodr_road_position.s >= 0.);

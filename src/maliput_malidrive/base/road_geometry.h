@@ -222,7 +222,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// @param xodr_road_position The OpenScenario RoadPosition to get the angles at.
   ///
   /// @returns A maliput RollPitchYaw.
-  maliput::math::RollPitchYaw OpenScenarioRoadPositionReferenceLineOrientation(
+  maliput::math::RollPitchYaw GetRoadOrientationAtOpenScenarioRoadPosition(
       const OpenScenarioRoadPosition& xodr_road_position) const;
 
  private:
@@ -308,10 +308,10 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RelativeLanePosition.html
   //
-  // - OpenScenarioRoadPositionReferenceLineOrientation
-  //   - Obtains the orientation with respect to the (s,t)-coordinate system of the target road.
+  // - GetRoadOrientationAtOpenScenarioRoadPosition
+  //   - Obtains the road orientation at a OpenScenario RoadPosition.
   //   - In/Out:
-  //     - Input: "<xodr_road_id>,<xodr_s>"
+  //     - Input: "<xodr_road_id>,<xodr_s>,<xodr_t>"
   //     - Output: "<roll>,<pitch>,<yaw>"
   //   - See
   //   https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/RoadPosition.html
