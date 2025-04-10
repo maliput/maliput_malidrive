@@ -2,6 +2,12 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.3 (2025-04-10)
+------------------
+* Provide method to obtain the road orientation from a OS RoadPosition. (`#297 <https://github.com/maliput/maliput_malidrive/issues/297>`_)
+* Provides OpenScenarioRelativeLanePositionToMaliputRoadPosition conversion method. (`#296 <https://github.com/maliput/maliput_malidrive/issues/296>`_)
+* Contributors: Santiago Lopez
+
 0.4.2 (2025-03-25)
 ------------------
 * Provides OpenScenarioRelativeRoadPositionToMaliputRoadPosition conversion method. (`#294 <https://github.com/maliput/maliput_malidrive/issues/294>`_)
