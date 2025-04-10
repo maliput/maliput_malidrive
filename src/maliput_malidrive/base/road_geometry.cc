@@ -263,6 +263,17 @@ class CommandsHandler {
           rg_->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(xodr_lane_position, d_lane, ds_lane,
                                                                                offset);
       return to_output_format(road_position);
+    } else if (command.name == "GetRoadOrientationAtOpenScenarioRoadPosition") {
+      if (command.args.size() != 3) {
+        MALIDRIVE_THROW_MESSAGE(std::string("GetRoadOrientationAtOpenScenarioRoadPosition expects 3 arguments, got ") +
+                                std::to_string(command.args.size()));
+      }
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition xodr_road_position{
+          std::stoi(std::string(command.args[0])), std::stod(std::string(command.args[1])),
+          std::stod(std::string(command.args[2]))};
+      const maliput::math::RollPitchYaw rotation =
+          rg_->GetRoadOrientationAtOpenScenarioRoadPosition(xodr_road_position);
+      return to_output_format(rotation);
     } else {
       MALIDRIVE_THROW_MESSAGE(std::string("Unknown command: ") + std::string(command.name));
     }
@@ -280,6 +291,12 @@ class CommandsHandler {
   std::string to_output_format(const malidrive::RoadGeometry::OpenScenarioLanePosition& lane_position) {
     return std::to_string(lane_position.road_id) + "," + std::to_string(lane_position.s) + "," +
            std::to_string(lane_position.lane_id) + "," + std::to_string(lane_position.offset);
+  }
+
+  // Converts a RollPitchYaw to a string using the format: "<roll>,<pitch>,<yaw>"
+  std::string to_output_format(const maliput::math::RollPitchYaw& rotation) {
+    return std::to_string(rotation.roll_angle()) + "," + std::to_string(rotation.pitch_angle()) + "," +
+           std::to_string(rotation.yaw_angle());
   }
 
   // Converts an OpenScenarioRoadPosition to a string using the format: "<xodr_road_id>,<xodr_s>,<xodr_t>"
@@ -731,6 +748,16 @@ const Lane* RoadGeometry::ApplyOffsetToLane(const Lane* initial_lane, int lane_o
     }
   }
   return target_lane;
+}
+
+maliput::math::RollPitchYaw RoadGeometry::GetRoadOrientationAtOpenScenarioRoadPosition(
+    const OpenScenarioRoadPosition& xodr_road_position) const {
+  MALIDRIVE_THROW_UNLESS(xodr_road_position.road_id >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_road_position.s >= 0.);
+  const Segment* target_segment{this->FindSegmentByOpenScenarioRoadPosition(xodr_road_position)};
+  MALIPUT_THROW_UNLESS(target_segment != nullptr);
+  const double p = target_segment->road_curve()->PFromP(xodr_road_position.s);
+  return target_segment->road_curve()->Orientation(p);
 }
 
 std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) const {
