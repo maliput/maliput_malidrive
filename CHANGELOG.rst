@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.4 (2025-04-22)
+------------------
+* Bazel: Bump to use latest maliput and eigen release. (`#303 <https://github.com/maliput/maliput_malidrive/issues/303>`_)
+* Contributors: Franco Cipollone
+
 0.4.3 (2025-04-10)
 ------------------
 * Provide method to obtain the road orientation from a OS RoadPosition. (`#297 <https://github.com/maliput/maliput_malidrive/issues/297>`_)
