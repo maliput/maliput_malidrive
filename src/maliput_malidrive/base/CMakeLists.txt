@@ -22,13 +22,12 @@ target_link_libraries(
   base
     maliput::api
     maliput::base
+    maliput::drake_common
+    maliput::drake_common_trajectories
+    maliput::drake_systems_analysis
+    maliput::drake_systems_framework
     maliput::geometry_base
     maliput::math
-    maliput_drake::analysis
-    maliput_drake::common
-    maliput_drake::framework
-    maliput_drake::math
-    maliput_drake::trajectories
     maliput_malidrive::common
     maliput_malidrive::road_curve
     maliput_malidrive::xodr

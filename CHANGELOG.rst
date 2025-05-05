@@ -2,6 +2,85 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.4.4 (2025-04-22)
+------------------
+* Bazel: Bump to use latest maliput and eigen release. (`#303 <https://github.com/maliput/maliput_malidrive/issues/303>`_)
+* Contributors: Franco Cipollone
+
+0.4.3 (2025-04-10)
+------------------
+* Provide method to obtain the road orientation from a OS RoadPosition. (`#297 <https://github.com/maliput/maliput_malidrive/issues/297>`_)
+* Provides OpenScenarioRelativeLanePositionToMaliputRoadPosition conversion method. (`#296 <https://github.com/maliput/maliput_malidrive/issues/296>`_)
+* Contributors: Santiago Lopez
+
+0.4.2 (2025-03-25)
+------------------
+* Provides OpenScenarioRelativeRoadPositionToMaliputRoadPosition conversion method. (`#294 <https://github.com/maliput/maliput_malidrive/issues/294>`_)
+* Contributors: Franco Cipollone
+
+0.4.1 (2025-03-18)
+------------------
+* Useful conversions from Maliput to OpenScenario Position types. (`#292 <https://github.com/maliput/maliput_malidrive/issues/292>`_)
+* Contributors: Santiago Lopez
+
+0.4.0 (2025-03-07)
+------------------
+* Implements DoBackendCustomCommand method. (`#289 <https://github.com/maliput/maliput_malidrive/issues/289>`_)
+* Provide some useful conversions for OpenScenario users (`#288 <https://github.com/maliput/maliput_malidrive/issues/288>`_)
+* Updates to presubmit file. (`#286 <https://github.com/maliput/maliput_malidrive/issues/286>`_)
+* Contributors: Franco Cipollone
+
+0.3.1 (2024-11-01)
+------------------
+* Minor changes to presubmit.yml file. (`#284 <https://github.com/maliput/maliput_malidrive/issues/284>`_)
+* Bazel: Bumps maliput to 1.3.1. (`#283 <https://github.com/maliput/maliput_malidrive/issues/283>`_)
+* Update wheel_generation.yml (`#282 <https://github.com/maliput/maliput_malidrive/issues/282>`_)
+* Update github action versions. (`#281 <https://github.com/maliput/maliput_malidrive/issues/281>`_)
+  ---------
+* Contributors: Agustin Alba Chicar, Franco Cipollone
+
+0.3.0 (2024-04-29)
+------------------
+* Flags spiral support. (`#279 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/279>`_)
+* Spiral Lane integration (`#277 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/277>`_)
+* Adds bazel version information to presubmit.yml file. (`#275 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/275>`_)
+* Add curbs to the builder. (`#274 <https://github.com/ToyotaResearchInstitute/maliput_malidrive/issues/274>`_)
+
+  ---------
+* Contributors: Agustin Alba Chicar, Franco Cipollone
+
+0.2.1 (2024-02-02)
+------------------
+* [bazel] Guarantee shared library creation for the plugin (`#269 <https://github.com/maliput/maliput_malidrive/issues/269>`_)
+* Enables regression testing in bazel. (`#246 <https://github.com/maliput/maliput_malidrive/issues/246>`_)
+
+0.2.0 (2024-01-05)
+------------------
+* [xodr] SmallTownRoads.xodr (`#266 <https://github.com/maliput/maliput_malidrive/issues/266>`_)
+* [applications] xodr_to_obj (`#259 <https://github.com/maliput/maliput_malidrive/issues/259>`_)
+* [infra] commented instructions for development with local maliput/registries (`#263 <https://github.com/maliput/maliput_malidrive/issues/263>`_)
+* [infra] use the REAL bazel central registry (`#264 <https://github.com/maliput/maliput_malidrive/issues/264>`_)
+* Adds spiral geometry parsing capabilities (`#261 <https://github.com/maliput/maliput_malidrive/issues/261>`_)
+* Updates ros-tooling version to avoid error with dependency. (`#256 <https://github.com/maliput/maliput_malidrive/issues/256>`_)
+* Replaces drake API by maliput new API. (`#244 <https://github.com/maliput/maliput_malidrive/issues/244>`_)
+* Uses try_vcs_checkout for the branching scheme in bazel build. (`#253 <https://github.com/maliput/maliput_malidrive/issues/253>`_)
+* Adds vcstool and pip to bazel-zen docker image. (`#254 <https://github.com/maliput/maliput_malidrive/issues/254>`_)
+* Adds try_vcs_checkout to wheel_generation workflow. (`#252 <https://github.com/maliput/maliput_malidrive/issues/252>`_)
+* Adds -O2 flag to bazel build. (`#255 <https://github.com/maliput/maliput_malidrive/issues/255>`_)
+* Adds periodic wheel generation.(once a week) (`#251 <https://github.com/maliput/maliput_malidrive/issues/251>`_)
+* Fixes bazel version not being correctly set. (`#249 <https://github.com/maliput/maliput_malidrive/issues/249>`_)
+* Adds workflow for manylinux wheel creation. (`#248 <https://github.com/maliput/maliput_malidrive/issues/248>`_)
+* Use compare methods instead of test_utilities' . (`#243 <https://github.com/maliput/maliput_malidrive/issues/243>`_)
+* Removes maliput_drake dependency (`#240 <https://github.com/maliput/maliput_malidrive/issues/240>`_)
+* Decompose bazel superlibrary (`#241 <https://github.com/maliput/maliput_malidrive/issues/241>`_)
+* Bazel integration and utility tests (`#238 <https://github.com/maliput/maliput_malidrive/issues/238>`_)
+* Removes fmt dependency (`#239 <https://github.com/maliput/maliput_malidrive/issues/239>`_)
+* Bazel module (`#237 <https://github.com/maliput/maliput_malidrive/issues/237>`_)
+* Containers for local devcontainer and CI workflows (`#235 <https://github.com/maliput/maliput_malidrive/issues/235>`_)
+* Matches with change in logger format. (`#232 <https://github.com/maliput/maliput_malidrive/issues/232>`_)
+* Adds missing gflags dependency to package. (`#233 <https://github.com/maliput/maliput_malidrive/issues/233>`_)
+* Contributors: Agustin Alba Chicar, Daniel Stonier, Franco Cipollone
+
 0.1.4 (2022-12-13)
 ------------------
 * Provides default parameters for the RoadNetworkLoader. (`#231 <https://github.com/maliput/maliput_malidrive/issues/231>`_)

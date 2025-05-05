@@ -65,9 +65,9 @@ RoadRuleBookBuilderOldRules::RoadRuleBookBuilderOldRules(
 
 std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilderOldRules::operator()() {
   // TODO(francocipollone): Removes the load method that doesn't use the rule registry.
-  maliput::log()->trace("{}", road_rulebook_file_path_.has_value()
-                                  ? "RoadRulebook file provided: " + road_rulebook_file_path_.value()
-                                  : "No RoadRulebook file provided");
+  maliput::log()->trace(road_rulebook_file_path_.has_value()
+                            ? "RoadRulebook file provided: " + road_rulebook_file_path_.value()
+                            : "No RoadRulebook file provided");
 
   auto rulebook = road_rulebook_file_path_.has_value()
                       ? maliput::LoadRoadRulebookFromFile(rg_, road_rulebook_file_path_.value())

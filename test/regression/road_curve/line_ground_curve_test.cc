@@ -31,15 +31,18 @@
 
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
+#include <maliput/math/compare.h>
+
+#include "assert_compare.h"
 
 namespace malidrive {
 namespace road_curve {
 namespace test {
 namespace {
 
+using malidrive::test::AssertCompare;
+using maliput::math::CompareVectors;
 using maliput::math::Vector2;
-using maliput::math::test::CompareVectors;
 
 class LineGroundCurveConstructorTest : public ::testing::Test {
  protected:
@@ -153,18 +156,18 @@ TEST_F(LineGroundCurveTest, IsG1Contiguous) {
 
 TEST_F(LineGroundCurveTest, G) {
   // check values at p0, p1, and midpoint
-  EXPECT_TRUE(CompareVectors(/* kTrivialXY_p0 */ {0., 0.}, trivial_dut_->G(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kTrivialXY_p1 */ {1., 0.}, trivial_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* 0.5*(kTrivialXY_p0 + kTrivialXY_p1) */ {0.5, 0.}, trivial_dut_->G(/* kPMidpoint */ 15.),
-                             kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant1XY_p0 */ {1., 0.}, quadrant1_dut_->G(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant1XY_p1 */ {4., 4.}, quadrant1_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* 0.5*(kQuadrant1XY_p0 + kQuadrant1XY_p1) */ {2.5, 2.0},
-                             quadrant1_dut_->G(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant3XY_p0 */ {10., 9.}, quadrant3_dut_->G(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant3XY_p1 */ {6., 6.}, quadrant3_dut_->G(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* 0.5*(kQuadrant3XY_p0 + kQuadrant3XY_p1) */ {8.0, 7.5},
-                             quadrant3_dut_->G(/* kPMidpoint */ 15.), kTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kTrivialXY_p0 */ {0., 0.}, trivial_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kTrivialXY_p1 */ {1., 0.}, trivial_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* 0.5*(kTrivialXY_p0 + kTrivialXY_p1) */ {0.5, 0.},
+                                           trivial_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant1XY_p0 */ {1., 0.}, quadrant1_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant1XY_p1 */ {4., 4.}, quadrant1_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* 0.5*(kQuadrant1XY_p0 + kQuadrant1XY_p1) */ {2.5, 2.0},
+                                           quadrant1_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant3XY_p0 */ {10., 9.}, quadrant3_dut_->G(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant3XY_p1 */ {6., 6.}, quadrant3_dut_->G(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* 0.5*(kQuadrant3XY_p0 + kQuadrant3XY_p1) */ {8.0, 7.5},
+                                           quadrant3_dut_->G(/* kPMidpoint */ 15.), kTolerance)));
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.
@@ -178,16 +181,18 @@ TEST_F(LineGroundCurveTest, G) {
 
 TEST_F(LineGroundCurveTest, GDot) {
   // check values at p0, p1, and midpoint
-  EXPECT_TRUE(CompareVectors(/* kTrivialGDot */ {0.1, 0.}, trivial_dut_->GDot(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kTrivialGDot */ {0.1, 0.}, trivial_dut_->GDot(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kTrivialGDot */ {0.1, 0.}, trivial_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant1GDot */ {0.3, 0.4}, quadrant1_dut_->GDot(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant1GDot */ {0.3, 0.4}, quadrant1_dut_->GDot(kP1), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant1GDot */ {0.3, 0.4}, quadrant1_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant3GDot */ {-0.4, -0.3}, quadrant3_dut_->GDot(kP0), kTolerance));
-  EXPECT_TRUE(CompareVectors(/* kQuadrant3GDot */ {-0.4, -0.3}, quadrant3_dut_->GDot(kP1), kTolerance));
-  EXPECT_TRUE(
-      CompareVectors(/* kQuadrant3GDot */ {-0.4, -0.3}, quadrant3_dut_->GDot(/* kPMidpoint */ 15.), kTolerance));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kTrivialGDot */ {0.1, 0.}, trivial_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kTrivialGDot */ {0.1, 0.}, trivial_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(/* kTrivialGDot */ {0.1, 0.}, trivial_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant1GDot */ {0.3, 0.4}, quadrant1_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant1GDot */ {0.3, 0.4}, quadrant1_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(/* kQuadrant1GDot */ {0.3, 0.4}, quadrant1_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant3GDot */ {-0.4, -0.3}, quadrant3_dut_->GDot(kP0), kTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(/* kQuadrant3GDot */ {-0.4, -0.3}, quadrant3_dut_->GDot(kP1), kTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      CompareVectors(/* kQuadrant3GDot */ {-0.4, -0.3}, quadrant3_dut_->GDot(/* kPMidpoint */ 15.), kTolerance)));
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.

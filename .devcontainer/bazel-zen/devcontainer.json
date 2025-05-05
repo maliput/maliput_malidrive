@@ -1,0 +1,46 @@
+{
+    "name": "Bazel Zen",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "remoteUser": "zen",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bazelbuild.vscode-bazel",
+                "bierner.github-markdown-preview",
+                "bierner.markdown-preview-github-styles",
+                "github.vscode-github-actions",
+                "ms-vscode.cpptools-extension-pack",
+                "pbkit.vscode-pbkit",
+                "streetsidesoftware.code-spell-checker",
+                "yzhang.markdown-all-in-one"
+            ]
+        }
+    },
+    // Mounts for local co-development
+    "mounts": [
+        //*************************************************
+        // With maliput
+        //*************************************************
+        // 1. Add the following to MODULE.bazel
+        //    local_path_override(module_name="maliput", path="../maliput")
+        // 2. Patch the path below and uncomment
+		// {
+        //     "source": "/path/to/maliput",
+        //     "target": "/workspaces/maliput",
+        //     "type": "bind"
+        // },
+        //*************************************************
+        // With a registry fork
+        //*************************************************
+        // 1. Uncomment the local registry argument in .bazelrc
+        // 2. Patch the path below and uncomment
+		// {
+        //     "source": "/path/to/bazel-central-registry",
+        //     "target": "/workspaces/bazel-central-registry",
+        //     "type": "bind"
+        // }
+	]
+}

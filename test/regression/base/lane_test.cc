@@ -34,14 +34,15 @@
 #include <utility>
 
 #include <gtest/gtest.h>
+#include <maliput/api/compare.h>
 #include <maliput/api/lane.h>
 #include <maliput/api/lane_data.h>
 #include <maliput/common/assertion_error.h>
 #include <maliput/geometry_base/junction.h>
 #include <maliput/geometry_base/road_geometry.h>
 #include <maliput/math/roll_pitch_yaw.h>
-#include <maliput/test_utilities/maliput_types_compare.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/base/segment.h"
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
@@ -58,25 +59,26 @@ namespace malidrive {
 namespace test {
 namespace {
 
+using malidrive::test::AssertCompare;
 using maliput::api::InertialPosition;
+using maliput::api::IsHBoundsClose;
+using maliput::api::IsInertialPositionClose;
+using maliput::api::IsLanePositionClose;
+using maliput::api::IsRBoundsClose;
+using maliput::api::IsRotationClose;
 using maliput::api::LanePosition;
 using maliput::api::LanePositionResult;
 using maliput::api::Rotation;
-using maliput::api::test::IsHBoundsClose;
-using maliput::api::test::IsInertialPositionClose;
-using maliput::api::test::IsLanePositionClose;
-using maliput::api::test::IsRBoundsClose;
-using maliput::api::test::IsRotationClose;
 using maliput::geometry_base::Junction;
 using maliput::math::Quaternion;
 using maliput::math::Vector2;
 using maliput::math::Vector3;
 
-#define IsLanePositionResultClose(lpr_a, lpr_b, tolerance)                                           \
-  do {                                                                                               \
-    EXPECT_TRUE(IsLanePositionClose(lpr_a.lane_position, lpr_b.lane_position, tolerance));           \
-    EXPECT_TRUE(IsInertialPositionClose(lpr_a.nearest_position, lpr_b.nearest_position, tolerance)); \
-    EXPECT_NEAR(lpr_a.distance, lpr_b.distance, tolerance);                                          \
+#define IsLanePositionResultClose(lpr_a, lpr_b, tolerance)                                                          \
+  do {                                                                                                              \
+    EXPECT_TRUE(AssertCompare(IsLanePositionClose(lpr_a.lane_position, lpr_b.lane_position, tolerance)));           \
+    EXPECT_TRUE(AssertCompare(IsInertialPositionClose(lpr_a.nearest_position, lpr_b.nearest_position, tolerance))); \
+    EXPECT_NEAR(lpr_a.distance, lpr_b.distance, tolerance);                                                         \
   } while (0);
 
 std::unique_ptr<road_curve::Function> MakeCubicPolynomial(double a, double b, double c, double d, double p0, double p1,
@@ -330,44 +332,53 @@ TEST_F(MalidriveFlatLineLaneFullyInitializedTest, LaneSFromTrackS) {
 
 TEST_F(MalidriveFlatLineLaneFullyInitializedTest, Bounds) {
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance)));
 }
 
 TEST_F(MalidriveFlatLineLaneFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(2.9289321881345254, 19.071067811865476, 0.),
-                                      dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(38.2842712474619, 54.426406871192846, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(73.63961030678928, 89.78174593052022, 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(2.9289321881345254, 19.071067811865476, 0.),
+                                            dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(38.2842712474619, 54.426406871192846, 0.),
+                                            dut_->ToInertialPosition({kSHalf, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(73.63961030678928, 89.78174593052022, 0.),
+                                            dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(2.2218254069479784, 19.77817459305202, 0.),
-                                      dut_->ToInertialPosition({kSStart, kRLeft, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(37.577164466275356, 55.13351365237939, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRLeft, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(72.93250352560273, 90.48885271170676, 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRLeft, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(2.2218254069479784, 19.77817459305202, 0.),
+                                            dut_->ToInertialPosition({kSStart, kRLeft, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(37.577164466275356, 55.13351365237939, 0.),
+                                                    dut_->ToInertialPosition({kSHalf, kRLeft, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(72.93250352560273, 90.48885271170676, 0.),
+                                                    dut_->ToInertialPosition({kSEnd, kRLeft, kH}), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(4.34314575050762, 17.65685424949238, 0.),
-                                      dut_->ToInertialPosition({kSStart, kRRight, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(39.698484809834994, 53.01219330881975, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRRight, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(75.05382386916237, 88.36753236814712, 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRRight, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(4.34314575050762, 17.65685424949238, 0.),
+                                            dut_->ToInertialPosition({kSStart, kRRight, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(39.698484809834994, 53.01219330881975, 0.),
+                                            dut_->ToInertialPosition({kSHalf, kRRight, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(75.05382386916237, 88.36753236814712, 0.),
+                                                    dut_->ToInertialPosition({kSEnd, kRRight, kH}), kLinearTolerance)));
   //@}
 }
 
@@ -490,23 +501,32 @@ TEST_F(MalidriveFlatLineLaneFullyInitializedTest, GetOrientation) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSStart, kRCenterline, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSHalf, kRCenterline, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSEnd, kRCenterline, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSStart, kRCenterline, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSHalf, kRCenterline, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSEnd, kRCenterline, kH}), kAngularTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSStart, kRLeft, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSHalf, kRLeft, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSEnd, kRLeft, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSStart, kRLeft, kH}), kAngularTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSHalf, kRLeft, kH}), kAngularTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSEnd, kRLeft, kH}), kAngularTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSStart, kRRight, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSHalf, kRRight, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSEnd, kRRight, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSStart, kRRight, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSHalf, kRRight, kH}), kAngularTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsRotationClose(kExpectedRotation, dut_->GetOrientation({kSEnd, kRRight, kH}), kAngularTolerance)));
   //@}
 }
 
@@ -516,32 +536,32 @@ TEST_F(MalidriveFlatLineLaneFullyInitializedTest, EvalMotionDerivatives) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSStart, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSHalf, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSEnd, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSStart, kRCenterline, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSHalf, kRCenterline, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSEnd, kRCenterline, kH}, kVelocity), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSStart, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSHalf, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSEnd, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSStart, kRLeft, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSHalf, kRLeft, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSEnd, kRLeft, kH}, kVelocity), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSStart, kRRight, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSHalf, kRRight, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult, dut_->EvalMotionDerivatives({kSEnd, kRRight, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSStart, kRRight, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSHalf, kRRight, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({kSEnd, kRRight, kH}, kVelocity), kLinearTolerance)));
   //@}
 }
 
@@ -590,10 +610,12 @@ class MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslation
 TEST_F(MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslationTest, ToInertialPosition) {
   // At centerline.
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(3.9289321881345254, 21.071067811865476, 0.5),
-                                      dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(74.63961030678928, 91.78174593052022, 0.5),
-                                      dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(3.9289321881345254, 21.071067811865476, 0.5),
+                                            dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(74.63961030678928, 91.78174593052022, 0.5),
+                                            dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance)));
   //@}
 }
 
@@ -676,44 +698,53 @@ TEST_F(MalidriveFlatArcLaneFullyInitializedTest, LaneSFromTrackS) {
 
 TEST_F(MalidriveFlatArcLaneFullyInitializedTest, Bounds) {
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance)));
 }
 
 TEST_F(MalidriveFlatArcLaneFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(1.3397459621556127, 17.0, 0.),
-                                      dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(54.711772824485934, 40.97529846801386, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(94.29335591114437, -2.113986376104993, 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(1.3397459621556127, 17.0, 0.),
+                                            dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(54.711772824485934, 40.97529846801386, 0.),
+                                            dut_->ToInertialPosition({kSHalf, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(94.29335591114437, -2.113986376104993, 0.),
+                                            dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(0.47372055837117344, 17.5, 0.),
-                                      dut_->ToInertialPosition({kSStart, kRLeft, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(54.913187957948104, 41.95480443737414, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRLeft, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(95.28640270633971, -1.9962661036270921, 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRLeft, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(0.47372055837117344, 17.5, 0.),
+                                            dut_->ToInertialPosition({kSStart, kRLeft, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(54.913187957948104, 41.95480443737414, 0.),
+                                                    dut_->ToInertialPosition({kSHalf, kRLeft, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(95.28640270633971, -1.9962661036270921, 0.),
+                                                    dut_->ToInertialPosition({kSEnd, kRLeft, kH}), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(3.0717967697244903, 16.0, 0.),
-                                      dut_->ToInertialPosition({kSStart, kRRight, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(54.3089425575616, 39.01628652929331, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRRight, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(92.3072623207537, -2.349426921060793, 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRRight, kH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(3.0717967697244903, 16.0, 0.),
+                                            dut_->ToInertialPosition({kSStart, kRRight, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(54.3089425575616, 39.01628652929331, 0.),
+                                            dut_->ToInertialPosition({kSHalf, kRRight, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(92.3072623207537, -2.349426921060793, 0.),
+                                                    dut_->ToInertialPosition({kSEnd, kRRight, kH}), kLinearTolerance)));
   //@}
 }
 
@@ -784,27 +815,32 @@ TEST_F(MalidriveFlatArcLaneFullyInitializedTest, GetOrientation) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRCenterline, kH}), kAngularTolerance));
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRCenterline, kH}), kAngularTolerance));
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRCenterline, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRCenterline, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRCenterline, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRCenterline, kH}), kAngularTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRLeft, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRLeft, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRLeft, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRLeft, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRLeft, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRLeft, kH}), kAngularTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRRight, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRRight, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRRight, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRRight, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRRight, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRRight, kH}), kAngularTolerance)));
   //@}
 }
 
@@ -816,34 +852,35 @@ TEST_F(MalidriveFlatArcLaneFullyInitializedTest, EvalMotionDerivatives) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtCenterline,
-                                  dut_->EvalMotionDerivatives({kSStart, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtCenterline,
-                                  dut_->EvalMotionDerivatives({kSHalf, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtCenterline,
-                                  dut_->EvalMotionDerivatives({kSEnd, kRCenterline, kH}, kVelocity), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(kExpectedResultAtCenterline,
+                                                dut_->EvalMotionDerivatives({kSStart, kRCenterline, kH}, kVelocity),
+                                                kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(kExpectedResultAtCenterline,
+                                                dut_->EvalMotionDerivatives({kSHalf, kRCenterline, kH}, kVelocity),
+                                                kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(kExpectedResultAtCenterline,
+                                                dut_->EvalMotionDerivatives({kSEnd, kRCenterline, kH}, kVelocity),
+                                                kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSStart, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSHalf, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSEnd, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSStart, kRLeft, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSHalf, kRLeft, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSEnd, kRLeft, kH}, kVelocity), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtRight,
-                                  dut_->EvalMotionDerivatives({kSStart, kRRight, kH}, kVelocity), kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtRight, dut_->EvalMotionDerivatives({kSHalf, kRRight, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtRight, dut_->EvalMotionDerivatives({kSEnd, kRRight, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResultAtRight, dut_->EvalMotionDerivatives({kSStart, kRRight, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResultAtRight, dut_->EvalMotionDerivatives({kSHalf, kRRight, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResultAtRight, dut_->EvalMotionDerivatives({kSEnd, kRRight, kH}, kVelocity), kLinearTolerance)));
   //@}
 }
 
@@ -960,44 +997,49 @@ TEST_F(MalidriveFlatSLaneFullyInitializedTest, LaneSFromTrackS) {
 
 TEST_F(MalidriveFlatSLaneFullyInitializedTest, Bounds) {
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->lane_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRBoundsClose({-kWidth / 2., kWidth / 2.}, dut_->segment_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance)));
 }
 
 TEST_F(MalidriveFlatSLaneFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(5., -90., 0.),
-                                      dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(-30.5707765633, -4.27831414064, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRCenterline, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(-5., 110., 0.),
-                                      dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(5., -90., 0.), dut_->ToInertialPosition({kSStart, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(-30.5707765633, -4.27831414064, 0.),
+                                            dut_->ToInertialPosition({kSHalf, kRCenterline, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(-5., 110., 0.), dut_->ToInertialPosition({kSEnd, kRCenterline, kH}), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(5., -89., 0.), dut_->ToInertialPosition({kSStart, kRLeft, kH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(-30.9969561727, -5.18295270965, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRLeft, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(-5., 111., 0.), dut_->ToInertialPosition({kSEnd, kRLeft, kH}),
-                                      kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(5., -89., 0.), dut_->ToInertialPosition({kSStart, kRLeft, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(-30.9969561727, -5.18295270965, 0.),
+                                                    dut_->ToInertialPosition({kSHalf, kRLeft, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(-5., 111., 0.),
+                                                    dut_->ToInertialPosition({kSEnd, kRLeft, kH}), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(5., -92., 0.), dut_->ToInertialPosition({kSStart, kRRight, kH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(-29.7184173445, -2.46903700262, 0.),
-                                      dut_->ToInertialPosition({kSHalf, kRRight, kH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(-5., 108., 0.), dut_->ToInertialPosition({kSEnd, kRRight, kH}),
-                                      kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(5., -92., 0.), dut_->ToInertialPosition({kSStart, kRRight, kH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(-29.7184173445, -2.46903700262, 0.),
+                                            dut_->ToInertialPosition({kSHalf, kRRight, kH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(InertialPosition(-5., 108., 0.),
+                                                    dut_->ToInertialPosition({kSEnd, kRRight, kH}), kLinearTolerance)));
   //@}
 }
 
@@ -1071,27 +1113,32 @@ TEST_F(MalidriveFlatSLaneFullyInitializedTest, GetOrientation) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRCenterline, kH}), kAngularTolerance));
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRCenterline, kH}), kAngularTolerance));
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRCenterline, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRCenterline, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRCenterline, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRCenterline, kH}), kAngularTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRLeft, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRLeft, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRLeft, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRLeft, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRLeft, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRLeft, kH}), kAngularTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(
-      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRRight, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRRight, kH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRRight, kH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSStart, dut_->GetOrientation({kSStart, kRRight, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSHalf, dut_->GetOrientation({kSHalf, kRRight, kH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(kExpectedRotationSEnd, dut_->GetOrientation({kSEnd, kRRight, kH}), kAngularTolerance)));
   //@}
 }
 
@@ -1105,34 +1152,35 @@ TEST_F(MalidriveFlatSLaneFullyInitializedTest, EvalMotionDerivatives) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtCenterline,
-                                  dut_->EvalMotionDerivatives({kSStart, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtCenterline,
-                                  dut_->EvalMotionDerivatives({kSHalf, kRCenterline, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResultAtCenterline,
-                                  dut_->EvalMotionDerivatives({kSEnd, kRCenterline, kH}, kVelocity), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(kExpectedResultAtCenterline,
+                                                dut_->EvalMotionDerivatives({kSStart, kRCenterline, kH}, kVelocity),
+                                                kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(kExpectedResultAtCenterline,
+                                                dut_->EvalMotionDerivatives({kSHalf, kRCenterline, kH}, kVelocity),
+                                                kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(kExpectedResultAtCenterline,
+                                                dut_->EvalMotionDerivatives({kSEnd, kRCenterline, kH}, kVelocity),
+                                                kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kAExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSStart, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kCExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSHalf, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kCExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSEnd, kRLeft, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kAExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSStart, kRLeft, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kCExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSHalf, kRLeft, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kCExpectedResultAtLeft, dut_->EvalMotionDerivatives({kSEnd, kRLeft, kH}, kVelocity), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kAExpectedResultAtRight,
-                                  dut_->EvalMotionDerivatives({kSStart, kRRight, kH}, kVelocity), kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kCExpectedResultAtRight,
-                                  dut_->EvalMotionDerivatives({kSHalf, kRRight, kH}, kVelocity), kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kCExpectedResultAtRight, dut_->EvalMotionDerivatives({kSEnd, kRRight, kH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kAExpectedResultAtRight, dut_->EvalMotionDerivatives({kSStart, kRRight, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kCExpectedResultAtRight, dut_->EvalMotionDerivatives({kSHalf, kRRight, kH}, kVelocity), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kCExpectedResultAtRight, dut_->EvalMotionDerivatives({kSEnd, kRRight, kH}, kVelocity), kLinearTolerance)));
   //@}
 }
 
@@ -1268,53 +1316,54 @@ TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, SFromP) {
 TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, Bounds) {
   const maliput::api::RBounds kExpectedRBounds{-kWidth / 2., kWidth / 2.};
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance)));
 }
 
 TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
       InertialPosition(2.9289321881345254, 19.071067811865476, params_.expected_z_start),
-      dut_->ToInertialPosition({params_.expected_s_start, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(38.2842712474619, 54.426406871192846, params_.expected_z_half),
-                                      dut_->ToInertialPosition({params_.expected_s_half, kRCenterline, kZeroH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(73.63961030678928, 89.78174593052022, params_.expected_z_end),
-                                      dut_->ToInertialPosition({params_.expected_s_end, kRCenterline, kZeroH}),
-                                      kLinearTolerance));
+      dut_->ToInertialPosition({params_.expected_s_start, kRCenterline, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(38.2842712474619, 54.426406871192846, params_.expected_z_half),
+      dut_->ToInertialPosition({params_.expected_s_half, kRCenterline, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(73.63961030678928, 89.78174593052022, params_.expected_z_end),
+      dut_->ToInertialPosition({params_.expected_s_end, kRCenterline, kZeroH}), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(2.2218254069479784, 19.77817459305202, params_.expected_z_start),
-                                      dut_->ToInertialPosition({params_.expected_s_start, kRLeft, kZeroH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(37.577164466275356, 55.13351365237939, params_.expected_z_half),
-                                      dut_->ToInertialPosition({params_.expected_s_half, kRLeft, kZeroH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(72.93250352560273, 90.48885271170676, params_.expected_z_end),
-                                      dut_->ToInertialPosition({params_.expected_s_end, kRLeft, kZeroH}),
-                                      kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(2.2218254069479784, 19.77817459305202, params_.expected_z_start),
+                              dut_->ToInertialPosition({params_.expected_s_start, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(37.577164466275356, 55.13351365237939, params_.expected_z_half),
+                              dut_->ToInertialPosition({params_.expected_s_half, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(72.93250352560273, 90.48885271170676, params_.expected_z_end),
+                              dut_->ToInertialPosition({params_.expected_s_end, kRLeft, kZeroH}), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(4.34314575050762, 17.65685424949238, params_.expected_z_start),
-                                      dut_->ToInertialPosition({params_.expected_s_start, kRRight, kZeroH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(39.698484809834994, 53.01219330881975, params_.expected_z_half),
-                                      dut_->ToInertialPosition({params_.expected_s_half, kRRight, kZeroH}),
-                                      kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(75.05382386916237, 88.36753236814712, params_.expected_z_end),
-                                      dut_->ToInertialPosition({params_.expected_s_end, kRRight, kZeroH}),
-                                      kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      InertialPosition(4.34314575050762, 17.65685424949238, params_.expected_z_start),
+      dut_->ToInertialPosition({params_.expected_s_start, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(39.698484809834994, 53.01219330881975, params_.expected_z_half),
+                              dut_->ToInertialPosition({params_.expected_s_half, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(75.05382386916237, 88.36753236814712, params_.expected_z_end),
+                              dut_->ToInertialPosition({params_.expected_s_end, kRRight, kZeroH}), kLinearTolerance)));
   //@}
 }
 
@@ -1386,33 +1435,34 @@ TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, GetOrientation) {
 
   // At centerline.
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationStart,
-                              dut_->GetOrientation({params_.expected_s_start, kRCenterline, kZeroH}),
-                              kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(
-      kExpectedRotationHalf, dut_->GetOrientation({params_.expected_s_half, kRCenterline, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationEnd,
-                              dut_->GetOrientation({params_.expected_s_end, kRCenterline, kZeroH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(kExpectedRotationStart,
+                                            dut_->GetOrientation({params_.expected_s_start, kRCenterline, kZeroH}),
+                                            kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(kExpectedRotationHalf,
+                                            dut_->GetOrientation({params_.expected_s_half, kRCenterline, kZeroH}),
+                                            kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationEnd, dut_->GetOrientation({params_.expected_s_end, kRCenterline, kZeroH}), kAngularTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationStart, dut_->GetOrientation({params_.expected_s_start, kRLeft, kZeroH}),
-                              kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationHalf, dut_->GetOrientation({params_.expected_s_half, kRLeft, kZeroH}),
-                              kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationEnd, dut_->GetOrientation({params_.expected_s_end, kRLeft, kZeroH}),
-                              kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationStart, dut_->GetOrientation({params_.expected_s_start, kRLeft, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationHalf, dut_->GetOrientation({params_.expected_s_half, kRLeft, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationEnd, dut_->GetOrientation({params_.expected_s_end, kRLeft, kZeroH}), kAngularTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationStart, dut_->GetOrientation({params_.expected_s_start, kRRight, kZeroH}),
-                              kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationHalf, dut_->GetOrientation({params_.expected_s_half, kRRight, kZeroH}),
-                              kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(kExpectedRotationEnd, dut_->GetOrientation({params_.expected_s_end, kRRight, kZeroH}),
-                              kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationStart, dut_->GetOrientation({params_.expected_s_start, kRRight, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationHalf, dut_->GetOrientation({params_.expected_s_half, kRRight, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRotationClose(
+      kExpectedRotationEnd, dut_->GetOrientation({params_.expected_s_end, kRRight, kZeroH}), kAngularTolerance)));
   //@}
 }
 
@@ -1422,41 +1472,41 @@ TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, EvalMotionDerivatives
 
   // At centerline.
   //@{
-  EXPECT_TRUE(IsLanePositionClose(
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
       kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_start, kRCenterline, kZeroH}, kVelocity),
-      kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
       kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_half, kRCenterline, kZeroH}, kVelocity),
-      kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
       kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_end, kRCenterline, kZeroH}, kVelocity),
-      kLinearTolerance));
+      kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult,
-                                  dut_->EvalMotionDerivatives({params_.expected_s_start, kRLeft, kZeroH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult,
-                                  dut_->EvalMotionDerivatives({params_.expected_s_half, kRLeft, kZeroH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult,
-                                  dut_->EvalMotionDerivatives({params_.expected_s_end, kRLeft, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_start, kRLeft, kZeroH}, kVelocity),
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_half, kRLeft, kZeroH}, kVelocity),
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_end, kRLeft, kZeroH}, kVelocity),
+      kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult,
-                                  dut_->EvalMotionDerivatives({params_.expected_s_start, kRRight, kZeroH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult,
-                                  dut_->EvalMotionDerivatives({params_.expected_s_half, kRRight, kZeroH}, kVelocity),
-                                  kLinearTolerance));
-  EXPECT_TRUE(IsLanePositionClose(kExpectedResult,
-                                  dut_->EvalMotionDerivatives({params_.expected_s_end, kRRight, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_start, kRRight, kZeroH}, kVelocity),
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_half, kRRight, kZeroH}, kVelocity),
+      kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      kExpectedResult, dut_->EvalMotionDerivatives({params_.expected_s_end, kRRight, kZeroH}, kVelocity),
+      kLinearTolerance)));
   //@}
 }
 
@@ -1602,44 +1652,54 @@ TEST_P(MalidriveArcLaneWithElevationFullyInitializedTest, SFromP) {
 TEST_P(MalidriveArcLaneWithElevationFullyInitializedTest, Bounds) {
   const maliput::api::RBounds kExpectedRBounds{-kWidth / 2., kWidth / 2.};
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance)));
 }
 
 TEST_P(MalidriveArcLaneWithElevationFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(1.3397459621556127, 17.0, params_.expected_z_start),
-                                      dut_->ToInertialPosition({kSStart, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(54.711772824485934, 40.97529846801386, params_.expected_z_half),
-                                      dut_->ToInertialPosition({kSHalf, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(94.29335591114437, -2.113986376104993, params_.expected_z_end),
-                                      dut_->ToInertialPosition({kSEnd, kRCenterline, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(1.3397459621556127, 17.0, params_.expected_z_start),
+                              dut_->ToInertialPosition({kSStart, kRCenterline, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(54.711772824485934, 40.97529846801386, params_.expected_z_half),
+                              dut_->ToInertialPosition({kSHalf, kRCenterline, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(94.29335591114437, -2.113986376104993, params_.expected_z_end),
+                              dut_->ToInertialPosition({kSEnd, kRCenterline, kZeroH}), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(0.47372055837117344, 17.5, params_.expected_z_start),
-                                      dut_->ToInertialPosition({kSStart, kRLeft, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(54.913187957948104, 41.95480443737414, params_.expected_z_half),
-                                      dut_->ToInertialPosition({kSHalf, kRLeft, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(95.28640270633971, -1.9962661036270921, params_.expected_z_end),
-                                      dut_->ToInertialPosition({kSEnd, kRLeft, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(0.47372055837117344, 17.5, params_.expected_z_start),
+                                            dut_->ToInertialPosition({kSStart, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(54.913187957948104, 41.95480443737414, params_.expected_z_half),
+                              dut_->ToInertialPosition({kSHalf, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(95.28640270633971, -1.9962661036270921, params_.expected_z_end),
+                              dut_->ToInertialPosition({kSEnd, kRLeft, kZeroH}), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(3.0717967697244903, 16.0, params_.expected_z_start),
-                                      dut_->ToInertialPosition({kSStart, kRRight, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(54.3089425575616, 39.01628652929331, params_.expected_z_half),
-                                      dut_->ToInertialPosition({kSHalf, kRRight, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(InertialPosition(92.3072623207537, -2.349426921060793, params_.expected_z_end),
-                                      dut_->ToInertialPosition({kSEnd, kRRight, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(InertialPosition(3.0717967697244903, 16.0, params_.expected_z_start),
+                                            dut_->ToInertialPosition({kSStart, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(54.3089425575616, 39.01628652929331, params_.expected_z_half),
+                              dut_->ToInertialPosition({kSHalf, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(InertialPosition(92.3072623207537, -2.349426921060793, params_.expected_z_end),
+                              dut_->ToInertialPosition({kSEnd, kRRight, kZeroH}), kLinearTolerance)));
   //@}
 }
 
@@ -1886,44 +1946,53 @@ TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, SFromP) {
 TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, Bounds) {
   const maliput::api::RBounds kExpectedRBounds{-kWidth / 2., kWidth / 2.};
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(0.), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(0.), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(0., 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(dut_->length()), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->lane_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBounds, dut_->segment_bounds(dut_->length()), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(dut_->length(), 0.), kLinearTolerance)));
 }
 
 TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   // @{
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtCenterLine][AtStart],
-                                      dut_->ToInertialPosition({s_start, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtCenterLine][AtHalf],
-                                      dut_->ToInertialPosition({s_half, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtCenterLine][AtEnd],
-                                      dut_->ToInertialPosition({s_end, kRCenterline, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtCenterLine][AtStart],
+                                                    dut_->ToInertialPosition({s_start, kRCenterline, kZeroH}),
+                                                    kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtCenterLine][AtHalf],
+                                                    dut_->ToInertialPosition({s_half, kRCenterline, kZeroH}),
+                                                    kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtCenterLine][AtEnd],
+                                                    dut_->ToInertialPosition({s_end, kRCenterline, kZeroH}),
+                                                    kLinearTolerance)));
   // @}
 
   // To the left
   // @{
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtLeft][AtStart],
-                                      dut_->ToInertialPosition({s_start, kRLeft, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtLeft][AtHalf],
-                                      dut_->ToInertialPosition({s_half, kRLeft, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtLeft][AtEnd],
-                                      dut_->ToInertialPosition({s_end, kRLeft, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtLeft][AtStart],
+                                            dut_->ToInertialPosition({s_start, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtLeft][AtHalf],
+                                            dut_->ToInertialPosition({s_half, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose(
+      kExpectedInertialPositions[AtLeft][AtEnd], dut_->ToInertialPosition({s_end, kRLeft, kZeroH}), kLinearTolerance)));
   // @}
 
   // To the right
   // @{
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtRight][AtStart],
-                                      dut_->ToInertialPosition({s_start, kRRight, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtRight][AtHalf],
-                                      dut_->ToInertialPosition({s_half, kRRight, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose(kExpectedInertialPositions[AtRight][AtEnd],
-                                      dut_->ToInertialPosition({s_end, kRRight, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtRight][AtStart],
+                                            dut_->ToInertialPosition({s_start, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtRight][AtHalf],
+                                            dut_->ToInertialPosition({s_half, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose(kExpectedInertialPositions[AtRight][AtEnd],
+                                            dut_->ToInertialPosition({s_end, kRRight, kZeroH}), kLinearTolerance)));
   // @}
 }
 
@@ -2010,36 +2079,41 @@ TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, GetOrientation) 
 
   // At centerline.
   //@{
-  EXPECT_TRUE(
+  EXPECT_TRUE(AssertCompare(
       IsRotationClose(Rotation::FromRpy(get_rpy({kP0, kRCenterline + kLaneOffset, kZeroH}, superelevation_.get())),
-                      dut_->GetOrientation({s_start, kRCenterline, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(
+                      dut_->GetOrientation({s_start, kRCenterline, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
       IsRotationClose(Rotation::FromRpy(get_rpy({kPHalf, kRCenterline + kLaneOffset, kZeroH}, superelevation_.get())),
-                      dut_->GetOrientation({s_half, kRCenterline, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(
+                      dut_->GetOrientation({s_half, kRCenterline, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
       IsRotationClose(Rotation::FromRpy(get_rpy({kP1, kRCenterline + kLaneOffset, kZeroH}, superelevation_.get())),
-                      dut_->GetOrientation({s_end, kRCenterline, kZeroH}), kAngularTolerance));
+                      dut_->GetOrientation({s_end, kRCenterline, kZeroH}), kAngularTolerance)));
   //@}
 
   // To the left
   //@{
-  EXPECT_TRUE(IsRotationClose(Rotation::FromRpy(get_rpy({kP0, kRLeft + kLaneOffset, kZeroH}, superelevation_.get())),
-                              dut_->GetOrientation({s_start, kRLeft, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(Rotation::FromRpy(get_rpy({kPHalf, kRLeft + kLaneOffset, kZeroH}, superelevation_.get())),
-                              dut_->GetOrientation({s_half, kRLeft, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(Rotation::FromRpy(get_rpy({kP1, kRLeft + kLaneOffset, kZeroH}, superelevation_.get())),
-                              dut_->GetOrientation({s_end, kRLeft, kZeroH}), kAngularTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(Rotation::FromRpy(get_rpy({kP0, kRLeft + kLaneOffset, kZeroH}, superelevation_.get())),
+                      dut_->GetOrientation({s_start, kRLeft, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(Rotation::FromRpy(get_rpy({kPHalf, kRLeft + kLaneOffset, kZeroH}, superelevation_.get())),
+                      dut_->GetOrientation({s_half, kRLeft, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(Rotation::FromRpy(get_rpy({kP1, kRLeft + kLaneOffset, kZeroH}, superelevation_.get())),
+                      dut_->GetOrientation({s_end, kRLeft, kZeroH}), kAngularTolerance)));
   //@}
 
   // To the right
   //@{
-  EXPECT_TRUE(IsRotationClose(Rotation::FromRpy(get_rpy({kP0, kRRight + kLaneOffset, kZeroH}, superelevation_.get())),
-                              dut_->GetOrientation({s_start, kRRight, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(Rotation::FromRpy(get_rpy({kP0, kRRight + kLaneOffset, kZeroH}, superelevation_.get())),
+                      dut_->GetOrientation({s_start, kRRight, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
       IsRotationClose(Rotation::FromRpy(get_rpy({kPHalf, kRRight + kLaneOffset, kZeroH}, superelevation_.get())),
-                      dut_->GetOrientation({s_half, kRRight, kZeroH}), kAngularTolerance));
-  EXPECT_TRUE(IsRotationClose(Rotation::FromRpy(get_rpy({kP1, kRRight + kLaneOffset, kZeroH}, superelevation_.get())),
-                              dut_->GetOrientation({s_end, kRRight, kZeroH}), kAngularTolerance));
+                      dut_->GetOrientation({s_half, kRRight, kZeroH}), kAngularTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRotationClose(Rotation::FromRpy(get_rpy({kP1, kRRight + kLaneOffset, kZeroH}, superelevation_.get())),
+                      dut_->GetOrientation({s_end, kRRight, kZeroH}), kAngularTolerance)));
   //@}
 }
 
@@ -2058,48 +2132,48 @@ TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, EvalMotionDeriva
   //@{
   double scale_factor = get_scale_factor(Vector3{kP0, kRCenterline + kLaneOffset, kZeroH});
   LanePosition expected_result{3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(
-      expected_result, dut_->EvalMotionDerivatives({s_start, kRCenterline, kZeroH}, kVelocity), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_start, kRCenterline, kZeroH}, kVelocity), kLinearTolerance)));
   scale_factor = get_scale_factor(Vector3{kPHalf, kRCenterline + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(
-      expected_result, dut_->EvalMotionDerivatives({s_half, kRCenterline, kZeroH}, kVelocity), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_half, kRCenterline, kZeroH}, kVelocity), kLinearTolerance)));
   scale_factor = get_scale_factor(Vector3{kP1, kRCenterline + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(
-      expected_result, dut_->EvalMotionDerivatives({s_end, kRCenterline, kZeroH}, kVelocity), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_end, kRCenterline, kZeroH}, kVelocity), kLinearTolerance)));
   //@}
 
   // To the left
   //@{
   scale_factor = get_scale_factor(Vector3{kP0, kRLeft + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(expected_result, dut_->EvalMotionDerivatives({s_start, kRLeft, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_start, kRLeft, kZeroH}, kVelocity), kLinearTolerance)));
   scale_factor = get_scale_factor(Vector3{kPHalf, kRLeft + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(expected_result, dut_->EvalMotionDerivatives({s_half, kRLeft, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_half, kRLeft, kZeroH}, kVelocity), kLinearTolerance)));
   scale_factor = get_scale_factor(Vector3{kP1, kRLeft + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(expected_result, dut_->EvalMotionDerivatives({s_end, kRLeft, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_end, kRLeft, kZeroH}, kVelocity), kLinearTolerance)));
   //@}
 
   // To the right
   //@{
   scale_factor = get_scale_factor(Vector3{kP0, kRRight + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(expected_result, dut_->EvalMotionDerivatives({s_start, kRRight, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_start, kRRight, kZeroH}, kVelocity), kLinearTolerance)));
   scale_factor = get_scale_factor(Vector3{kPHalf, kRRight + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(expected_result, dut_->EvalMotionDerivatives({s_half, kRRight, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_half, kRRight, kZeroH}, kVelocity), kLinearTolerance)));
   scale_factor = get_scale_factor(Vector3{kP1, kRRight + kLaneOffset, kZeroH});
   expected_result = {3. * scale_factor, 2., 1.};
-  EXPECT_TRUE(IsLanePositionClose(expected_result, dut_->EvalMotionDerivatives({s_end, kRRight, kZeroH}, kVelocity),
-                                  kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(
+      expected_result, dut_->EvalMotionDerivatives({s_end, kRRight, kZeroH}, kVelocity), kLinearTolerance)));
   //@}
 }
 
@@ -2211,43 +2285,50 @@ TEST_F(MalidriveFlatLineVariableWidthLaneFullyInitializedTest, Bounds) {
   const maliput::api::RBounds kExpectedRBoundsAtEnd{0., 0.};
 
   // At the beginning of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBoundsAtStart, dut_->lane_bounds(s_start), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBoundsAtStart, dut_->segment_bounds(s_start), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(s_start, 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBoundsAtStart, dut_->lane_bounds(s_start), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBoundsAtStart, dut_->segment_bounds(s_start), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(s_start, 0.), kLinearTolerance)));
   // At the half of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBoundsAtHalf, dut_->lane_bounds(s_half), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBoundsAtHalf, dut_->segment_bounds(s_half), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(s_half, 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBoundsAtHalf, dut_->lane_bounds(s_half), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBoundsAtHalf, dut_->segment_bounds(s_half), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(s_half, 0.), kLinearTolerance)));
   // At the end of the lane.
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBoundsAtEnd, dut_->lane_bounds(s_end), kLinearTolerance));
-  EXPECT_TRUE(IsRBoundsClose(kExpectedRBoundsAtEnd, dut_->segment_bounds(s_end), kLinearTolerance));
-  EXPECT_TRUE(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(s_end, 0.), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBoundsAtEnd, dut_->lane_bounds(s_end), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(kExpectedRBoundsAtEnd, dut_->segment_bounds(s_end), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsHBoundsClose(kElevationBounds, dut_->elevation_bounds(s_end, 0.), kLinearTolerance)));
 }
 
 TEST_F(MalidriveFlatLineVariableWidthLaneFullyInitializedTest, ToInertialPosition) {
   // At centerline.
   // @{
-  EXPECT_TRUE(IsInertialPositionClose({-1.1213203435592888901, 3.1213203435599963242, 0.},
-                                      dut_->ToInertialPosition({s_start, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose({34.58757210636101, 38.123106012293746, 0.},
-                                      dut_->ToInertialPosition({s_half, kRCenterline, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose({70.296464556281, 73.124891681027, 0.},
-                                      dut_->ToInertialPosition({s_end, kRCenterline, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose({-1.1213203435592888901, 3.1213203435599963242, 0.},
+                                                    dut_->ToInertialPosition({s_start, kRCenterline, kZeroH}),
+                                                    kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose({34.58757210636101, 38.123106012293746, 0.},
+                                                    dut_->ToInertialPosition({s_half, kRCenterline, kZeroH}),
+                                                    kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsInertialPositionClose({70.296464556281, 73.124891681027, 0.},
+                                                    dut_->ToInertialPosition({s_end, kRCenterline, kZeroH}),
+                                                    kLinearTolerance)));
   // @}
 
   // At Left.
   // @{
-  EXPECT_TRUE(IsInertialPositionClose({-1.474873734152916, 3.474873734152916, 0.},
-                                      dut_->ToInertialPosition({s_start, kRLeft, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose({34.23401871576773, 38.47665940288702, 0.},
-                                      dut_->ToInertialPosition({s_half, kRLeft, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose({-1.474873734152916, 3.474873734152916, 0.},
+                                            dut_->ToInertialPosition({s_start, kRLeft, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose({34.23401871576773, 38.47665940288702, 0.},
+                                            dut_->ToInertialPosition({s_half, kRLeft, kZeroH}), kLinearTolerance)));
 
   // At Right.
   // @{
-  EXPECT_TRUE(IsInertialPositionClose({-0.7677669529663687, 2.767766952966369, 0.},
-                                      dut_->ToInertialPosition({s_start, kRRight, kZeroH}), kLinearTolerance));
-  EXPECT_TRUE(IsInertialPositionClose({34.941125496954285, 37.76955262170047, 0.},
-                                      dut_->ToInertialPosition({s_half, kRRight, kZeroH}), kLinearTolerance));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose({-0.7677669529663687, 2.767766952966369, 0.},
+                                            dut_->ToInertialPosition({s_start, kRRight, kZeroH}), kLinearTolerance)));
+  EXPECT_TRUE(
+      AssertCompare(IsInertialPositionClose({34.941125496954285, 37.76955262170047, 0.},
+                                            dut_->ToInertialPosition({s_half, kRRight, kZeroH}), kLinearTolerance)));
   // @}
 }
 

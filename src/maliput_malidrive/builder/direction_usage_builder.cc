@@ -52,8 +52,8 @@ std::vector<DirectionUsageRule> DirectionUsageBuilder::operator()() {
   std::vector<DirectionUsageRule> direction_usage_rules;
   for (const auto lane_id_lane : sorted_lanes) {
     direction_usage_rules.push_back(BuildDirectionUsageRuleFor(lane_id_lane.second));
-    maliput::log()->trace("Built DirectionUsageRule {} for Lane {}.", direction_usage_rules.back().id().string(),
-                          lane_id_lane.first.string());
+    maliput::log()->trace("Built DirectionUsageRule ", direction_usage_rules.back().id().string(), " for Lane ",
+                          lane_id_lane.first.string(), ".");
   }
 
   maliput::log()->trace("All DirectionUsageRules are built.");

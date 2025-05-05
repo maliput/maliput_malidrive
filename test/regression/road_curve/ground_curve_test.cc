@@ -30,8 +30,9 @@
 #include "maliput_malidrive/road_curve/ground_curve.h"
 
 #include <gtest/gtest.h>
-#include <maliput/test_utilities/maliput_math_compare.h>
+#include <maliput/math/compare.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/test_utilities/ground_curve_stub.h"
 
 namespace malidrive {
@@ -39,7 +40,8 @@ namespace road_curve {
 namespace test {
 namespace {
 
-using maliput::math::test::CompareVectors;
+using malidrive::test::AssertCompare;
+using maliput::math::CompareVectors;
 
 // Exercises the interface.
 GTEST_TEST(GrounCurveTest, InterfaceTest) {
@@ -57,8 +59,8 @@ GTEST_TEST(GrounCurveTest, InterfaceTest) {
   const GroundCurveStub dut(kG, kGDot, kHeading, kHeadingDot, kGInverse, kArcLength, kLinearTolerance, kP0, kP1,
                             kIsG1Contiguous);
 
-  EXPECT_TRUE(CompareVectors(dut.G(kP0), kG));
-  EXPECT_TRUE(CompareVectors(dut.GDot(kP0), kGDot));
+  EXPECT_TRUE(AssertCompare(CompareVectors(dut.G(kP0), kG)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(dut.GDot(kP0), kGDot)));
   EXPECT_EQ(dut.Heading(kP0), kHeading);
   EXPECT_EQ(dut.HeadingDot(kP0), kHeadingDot);
   EXPECT_EQ(dut.GInverse(kG), kGInverse);

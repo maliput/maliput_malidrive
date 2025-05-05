@@ -30,8 +30,8 @@
 #include "maliput_malidrive/xodr/db_manager.h"
 
 #include <array>
+#include <sstream>
 
-#include <fmt/format.h>
 #include <gtest/gtest.h>
 #include <maliput/common/assertion_error.h>
 
@@ -47,16 +47,35 @@ namespace {
 // Resource folder path defined via compile definition.
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 
-// Template of a XODR description that contains only the xodr header.
-constexpr const char* kXODRHeaderTemplate = R"R(
+// Get a XODR description that contains only the xodr header.
+// @param revMajor: The XODR description's revMajor.
+// @param revMinor: The XODR description's revMinor.
+// @param name: The XODR description's name.
+// @param version: The XODR description's version.
+// @param date: The XODR description's date.
+// @param north: The XODR description's north.
+// @param south: The XODR description's south.
+// @param east: The XODR description's east.
+// @param west: The XODR description's west.
+// @param vendor: The XODR description's vendor.
+// @return The XODR description.
+std::string GetXodrHeader(double revMajor, double revMinor, const std::string& name, double version,
+                          const std::string& date, double north, double south, double east, double west,
+                          const std::string& vendor) {
+  std::stringstream ss;
+  ss << R"R(
 <?xml version='1.0' standalone='yes'?>
 <OpenDRIVE>
-  <header revMajor='{}' revMinor='{}' name='{}' version='{}' date='{}'
-    north='{}' south='{}' east='{}' west='{}' vendor='{}' >
+  <header revMajor=')R"
+     << revMajor << R"R(' revMinor=')R" << revMinor << R"R(' name=')R" << name << R"R(' version=')R" << version
+     << R"R(' date=')R" << date << R"R('
+    north=')R"
+     << north << R"R(' south=')R" << south << R"R(' east=')R" << east << R"R(' west=')R" << west << R"R(' vendor=')R"
+     << vendor << R"R(' >
   </header>
-  <road name="Road 0" length="1.4005927435591335e+2" id="0" junction="-1" rule="RHT">
+  <road name='Road 0' length='1.4005927435591335e+2' id='0' junction='-1' rule='RHT'>
     <planView>
-      <geometry s="0.0" x="0.0" y="0.0" hdg="1.3" length="2.">
+      <geometry s='0.0' x='0.0' y='0.0' hdg='1.3' length='2.'>
         <line/>
       </geometry>
     </planView>
@@ -76,6 +95,8 @@ constexpr const char* kXODRHeaderTemplate = R"R(
   </road>
 </OpenDRIVE>
 )R";
+  return ss.str();
+}
 
 // Holds the tolerance used to check contiguity when parsing.
 constexpr std::optional<double> kStrictParserSTolerance{malidrive::constants::kStrictLinearTolerance};
@@ -94,9 +115,9 @@ GTEST_TEST(DBManager, LoadFromFile) {
 // Tests the loading of a XODR description from a string.
 GTEST_TEST(DBManagerTest, LoadFromString) {
   const std::string xodr_description =
-      fmt::format(kXODRHeaderTemplate, 1. /* revMajor */, 1. /* revMinor */, "TestHeader" /* name */,
-                  1.21 /* version */, "Wed Sep 19 12:00:00 2018" /* date */, 0. /* north */, 0. /* south */,
-                  0. /* east */, 0. /* west */, "TestVendor" /* vendor */);
+      GetXodrHeader(1. /* revMajor */, 1. /* revMinor */, "TestHeader" /* name */, 1.21 /* version */,
+                    "Wed Sep 19 12:00:00 2018" /* date */, 0. /* north */, 0. /* south */, 0. /* east */, 0. /* west */,
+                    "TestVendor" /* vendor */);
   EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description,
                                       {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
@@ -114,26 +135,44 @@ GTEST_TEST(DBManagerTest, GetXodrHeader) {
                                4.4 /* west */,
                                "TestVendor" /* vendor */};
   const std::string xodr_description =
-      fmt::format(kXODRHeaderTemplate, kExpectedHeader.rev_major, kExpectedHeader.rev_minor,
-                  kExpectedHeader.name.value(), kExpectedHeader.version.value(), kExpectedHeader.date.value(),
-                  kExpectedHeader.north.value(), kExpectedHeader.south.value(), kExpectedHeader.east.value(),
-                  kExpectedHeader.west.value(), kExpectedHeader.vendor.value());
+      GetXodrHeader(kExpectedHeader.rev_major, kExpectedHeader.rev_minor, kExpectedHeader.name.value(),
+                    kExpectedHeader.version.value(), kExpectedHeader.date.value(), kExpectedHeader.north.value(),
+                    kExpectedHeader.south.value(), kExpectedHeader.east.value(), kExpectedHeader.west.value(),
+                    kExpectedHeader.vendor.value());
   const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
       xodr_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   Header header = dut->GetXodrHeader();
   EXPECT_EQ(kExpectedHeader, header);
 }
 
-// Template of a XODR description in which road link values can be changed.
-const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
+// Get a XODR description in which road link values can be changed.
+// @param road_junction_a The road junction of the first road.
+// @param road_link_a The road link of the first road.
+// @param lane_link_a_left The lane link of the first road's left lane.
+// @param lane_link_a_right The lane link of the first road's right lane.
+// @param road_junction_b The road junction of the second road.
+// @param road_link_b The road link of the second road.
+// @param lane_link_b_left The lane link of the second road's left lane.
+// @param lane_link_b_right The lane link of the second road's right lane.
+// @param junction_description The junction description.
+// @return The XODR description.
+std::string GetXodrRoadHeaderLinks(const std::string& road_junction_a, const std::string& road_link_a,
+                                   const std::string& lane_link_a_left, const std::string& lane_link_a_right,
+                                   const std::string& road_junction_b, const std::string& road_link_b,
+                                   const std::string& lane_link_b_left, const std::string& lane_link_b_right,
+                                   const std::string& junction_description) {
+  std::stringstream ss;
+  ss << R"R(
 <?xml version='1.0' standalone='yes'?>
 <OpenDRIVE>
   <header revMajor='1.' revMinor='1.' name='TestHeader' version='1.21' date='Wed Sep 19 12:00:00 2018'
     north='0.' south='0.' east='0.' west='0.' vendor='TestVendor' >
   </header>
-  <road name='TestRoadHeader1' length='10.' id='15' junction='{}' rule='RHT'>"
+  <road name='TestRoadHeader1' length='10.' id='15' junction=')R"
+     << road_junction_a << R"R(' rule='RHT'>"
     <link>
-        {}
+        )R"
+     << road_link_a << R"R(
     </link>
     <planView>
       <geometry s='0.0' x='500.0' y='80.0' hdg='0.' length='10.'>
@@ -146,7 +185,8 @@ const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
           <left>
               <lane id='1' type='driving' level= '0'>
                   <link>
-                      {}
+                      )R"
+     << lane_link_a_left << R"R(
                   </link>
                   <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
               </lane>
@@ -158,7 +198,8 @@ const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
           <right>
               <lane id='-1' type='driving' level= '0'>
                   <link>
-                      {}
+                      )R"
+     << lane_link_a_right << R"R(
                   </link>
                   <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
               </lane>
@@ -166,9 +207,11 @@ const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
       </laneSection>
     </lanes>
   </road>
-  <road name='TestRoadHeader2' length='10.' id='16' junction='{}' rule='RHT'>"
+  <road name='TestRoadHeader2' length='10.' id='16' junction=')R"
+     << road_junction_b << R"R(' rule='RHT'>"
     <link>
-        {}
+        )R"
+     << road_link_b << R"R(
     </link>
     <planView>
       <geometry s='0.0' x='510.0' y='80.0' hdg='0.' length='10.'>
@@ -181,7 +224,8 @@ const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
           <left>
               <lane id='1' type='driving' level= '0'>
                   <link>
-                      {}
+                      )R"
+     << lane_link_b_left << R"R(
                   </link>
                   <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
               </lane>
@@ -193,7 +237,8 @@ const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
           <right>
               <lane id='-1' type='driving' level= '0'>
                   <link>
-                      {}
+                      )R"
+     << lane_link_b_right << R"R(
                   </link>
                   <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
               </lane>
@@ -201,27 +246,73 @@ const std::string kXODRRoadHeaderLinksVariableTemplate = R"R(
       </laneSection>
     </lanes>
   </road>
-  {}
+  )R" << junction_description
+     << R"R(
 </OpenDRIVE>
 )R";
+  return ss.str();
+}
 
 class DBManagerLinksTests : public ::testing::Test {
  protected:
-  const std::string kRoadLinkRoadTemplate = "<{} elementType='{}' elementId='{}' contactPoint='{}'/>";
-  const std::string kRoadLinkJunctionTemplate = "<{} elementType='{}' elementId='{}'/>";
-  const std::string kRoadLaneLinkTemplate = "<{} id='{}'/>";
-  const std::string kJunctionLaneLinkTemplate = "<laneLink from='{}' to='{}'/>";
-  const std::string kConnectionTemplate = R"R(
-    <connection id='{}' incomingRoad='{}' connectingRoad='{}' contactPoint='{}'>
-      {}
-      {}
-    </connection>
-)R";
-  const std::string kJunctionTemplate = R"R(
-  <junction id='{}' name=''>
-    {}
-  </junction>
-)R";
+  // Get a XODR road link.
+  // @param road_link_type_tag: The road link type tag.
+  // @param element_type: The element type.
+  // @param element_id: The element id.
+  // @param contact_point: The contact point.
+  // @return The XODR road link.
+  static std::string GetXodrRoadLink(const std::string& road_link_type_tag, const std::string& element_type,
+                                     const std::string& element_id, const std::string& contact_point) {
+    return "<" + road_link_type_tag + " elementType='" + element_type + "' elementId='" + element_id +
+           "' contactPoint='" + contact_point + "'/>";
+  }
+  // Get a XODR road lane link when it is connected to a junction.
+  // @param road_link_type_tag: The road link type tag.
+  // @param element_type: The element type.
+  // @param element_id: The element id.
+  static std::string GetXodrRoadLinkToJunction(const std::string& road_link_type_tag, const std::string& element_type,
+                                               const std::string& element_id) {
+    return "<" + road_link_type_tag + " elementType='" + element_type + "' elementId='" + element_id + "'/>";
+  }
+  // Get a XODR road lane link.
+  // @param lane_link_type_tag: The lane link type tag.
+  // @param lane_link_id: The lane link id.
+  // @return The XODR road lane link.
+  static std::string GetXodrRoadLaneLink(const std::string& lane_link_type_tag, const std::string& lane_link_id) {
+    return "<" + lane_link_type_tag + " id='" + lane_link_id + "'/>";
+  }
+  // Get a XODR junction lane link.
+  // @param junction_lane_link_from: The junction lane link from.
+  // @param junction_lane_link_to: The junction lane link to.
+  // @return The XODR junction lane link.
+  static std::string GetXodrJunctionLaneLink(const std::string& junction_lane_link_from,
+                                             const std::string& junction_lane_link_to) {
+    return "<laneLink from='" + junction_lane_link_from + "' to='" + junction_lane_link_to + "'/>";
+  }
+  // Get a XODR junction connection.
+  // @param connection_id: The connection id.
+  // @param connection_incoming_road: The connection incoming road.
+  // @param connection_connecting_road: The connection connecting road.
+  // @param connection_contact_point: The connection contact point.
+  // @param connection_lane_link_a: The first XODR connection lane link.
+  // @param connection_lane_link_b: The second XODR connection lane link.
+  // @return The XODR junction connection.
+  static std::string GetXodrConnection(const std::string& connection_id, const std::string& connection_incoming_road,
+                                       const std::string& connection_connecting_road,
+                                       const std::string& connection_contact_point,
+                                       const std::string& connection_lane_link_a,
+                                       const std::string& connection_lane_link_b) {
+    return "<connection id='" + connection_id + "' incomingRoad='" + connection_incoming_road + "' connectingRoad='" +
+           connection_connecting_road + "' contactPoint='" + connection_contact_point + "'>" + connection_lane_link_a +
+           connection_lane_link_b + "</connection>";
+  }
+  // Get a XODR junction.
+  // @param junction_id: The junction id.
+  // @param junction_connection: The XODR connection description of the junction.
+  // @return The XODR junction.
+  static std::string GetXodrJunction(const std::string& junction_id, const std::string& junction_connection) {
+    return "<junction id='" + junction_id + "' name=''>" + junction_connection + "</junction>";
+  }
   const std::string road_non_junction_id = "-1";
   const std::string road_junction_id = "160";
 };
@@ -236,34 +327,30 @@ TEST_F(DBManagerLinksTests, ConsistentsLinks) {
   const LaneLink::LinkAttributes kLaneLinkLeft{LaneLink::LinkAttributes::Id("1")};
   const LaneLink::LinkAttributes kLaneLinkRight{LaneLink::LinkAttributes::Id("-1")};
   // Road 1.
-  const std::string road_link_string_a = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
+  const std::string road_link_string_a = GetXodrRoadLink(
+      RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
       kRoadSuccessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadSuccessor.contact_point));
-  const std::string lane_link_string_a_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kSuccessorTag, kLaneLinkLeft.id.string());
-  const std::string lane_link_string_a_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kSuccessorTag, kLaneLinkRight.id.string());
+  const std::string lane_link_string_a_left = GetXodrRoadLaneLink(LaneLink::kSuccessorTag, kLaneLinkLeft.id.string());
+  const std::string lane_link_string_a_right = GetXodrRoadLaneLink(LaneLink::kSuccessorTag, kLaneLinkRight.id.string());
   // Road 2.
-  const std::string road_link_string_b = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
+  const std::string road_link_string_b = GetXodrRoadLink(
+      RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
       kRoadPredecessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadPredecessor.contact_point));
-  const std::string lane_link_string_b_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kLaneLinkLeft.id.string());
+  const std::string lane_link_string_b_left = GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kLaneLinkLeft.id.string());
   const std::string lane_link_string_b_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kLaneLinkRight.id.string());
+      GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kLaneLinkRight.id.string());
 
-  const std::string xodr_description =
-      fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
-                  lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id, road_link_string_b,
-                  lane_link_string_b_left, lane_link_string_b_right, "");
+  const std::string xodr_description = GetXodrRoadHeaderLinks(
+      road_non_junction_id, road_link_string_a, lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id,
+      road_link_string_b, lane_link_string_b_left, lane_link_string_b_right, "");
   EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description,
                                       {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
 
 TEST_F(DBManagerLinksTests, EmptyLinks) {
   // No connections.
-  const std::string xodr_description = fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, "", "",
-                                                   "", road_non_junction_id, "", "", "", "");
+  const std::string xodr_description =
+      GetXodrRoadHeaderLinks(road_non_junction_id, "", "", "", road_non_junction_id, "", "", "", "");
   EXPECT_NO_THROW(LoadDataBaseFromStr(xodr_description,
                                       {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}));
 }
@@ -272,12 +359,12 @@ TEST_F(DBManagerLinksTests, UnknownPredecessorRoadLink) {
   const RoadLink::LinkAttributes kRoadPredecessor{RoadLink::ElementType::kRoad /* elementType */,
                                                   RoadLink::LinkAttributes::Id("22") /* elementId*/,
                                                   RoadLink::ContactPoint::kEnd /* contactPoint*/};
-  const std::string road_link_string_b = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
+  const std::string road_link_string_b = GetXodrRoadLink(
+      RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
       kRoadPredecessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadPredecessor.contact_point));
 
-  const std::string xodr_description = fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, "", "",
-                                                   "", road_non_junction_id, road_link_string_b, "", "", "");
+  const std::string xodr_description =
+      GetXodrRoadHeaderLinks(road_non_junction_id, "", "", "", road_non_junction_id, road_link_string_b, "", "", "");
   EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
                                    {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
@@ -287,12 +374,12 @@ TEST_F(DBManagerLinksTests, UnknownSuccessorRoadLink) {
   const RoadLink::LinkAttributes kRoadSuccessor{RoadLink::ElementType::kRoad /* elementType */,
                                                 RoadLink::LinkAttributes::Id("22") /* elementId*/,
                                                 RoadLink::ContactPoint::kStart /* contactPoint*/};
-  const std::string road_link_string_a = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
+  const std::string road_link_string_a = GetXodrRoadLink(
+      RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
       kRoadSuccessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadSuccessor.contact_point));
 
-  const std::string xodr_description = fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id,
-                                                   road_link_string_a, "", "", road_non_junction_id, "", "", "", "");
+  const std::string xodr_description =
+      GetXodrRoadHeaderLinks(road_non_junction_id, road_link_string_a, "", "", road_non_junction_id, "", "", "", "");
   EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
                                    {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
@@ -309,26 +396,23 @@ TEST_F(DBManagerLinksTests, UnknownPredecessorLaneLink) {
   const LaneLink::LinkAttributes kLaneLinkRight{LaneLink::LinkAttributes::Id("-1")};
   const LaneLink::LinkAttributes kWrongLaneLinkLeft{LaneLink::LinkAttributes::Id("45")};
   // Road 1.
-  const std::string road_link_string_a = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
+  const std::string road_link_string_a = GetXodrRoadLink(
+      RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
       kRoadSuccessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadSuccessor.contact_point));
-  const std::string lane_link_string_a_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kSuccessorTag, kLaneLinkLeft.id.string());
-  const std::string lane_link_string_a_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kSuccessorTag, kLaneLinkRight.id.string());
+  const std::string lane_link_string_a_left = GetXodrRoadLaneLink(LaneLink::kSuccessorTag, kLaneLinkLeft.id.string());
+  const std::string lane_link_string_a_right = GetXodrRoadLaneLink(LaneLink::kSuccessorTag, kLaneLinkRight.id.string());
   // Road 2.
-  const std::string road_link_string_b = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
+  const std::string road_link_string_b = GetXodrRoadLink(
+      RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
       kRoadPredecessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadPredecessor.contact_point));
   const std::string lane_link_string_b_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kWrongLaneLinkLeft.id.string());
+      GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kWrongLaneLinkLeft.id.string());
   const std::string lane_link_string_b_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kLaneLinkRight.id.string());
+      GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kLaneLinkRight.id.string());
 
-  const std::string xodr_description =
-      fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
-                  lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id, road_link_string_b,
-                  lane_link_string_b_left, lane_link_string_b_right, "");
+  const std::string xodr_description = GetXodrRoadHeaderLinks(
+      road_non_junction_id, road_link_string_a, lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id,
+      road_link_string_b, lane_link_string_b_left, lane_link_string_b_right, "");
   EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
                                    {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
@@ -345,26 +429,22 @@ TEST_F(DBManagerLinksTests, UnknownSuccessorLaneLink) {
   const LaneLink::LinkAttributes kLaneLinkRight{LaneLink::LinkAttributes::Id("-1")};
   const LaneLink::LinkAttributes kWrongLaneLinkRight{LaneLink::LinkAttributes::Id("-45")};
   // Road 1.
-  const std::string road_link_string_a = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
+  const std::string road_link_string_a = GetXodrRoadLink(
+      RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
       kRoadSuccessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadSuccessor.contact_point));
-  const std::string lane_link_string_a_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kSuccessorTag, kLaneLinkLeft.id.string());
-  const std::string lane_link_string_a_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kSuccessorTag, kLaneLinkRight.id.string());
+  const std::string lane_link_string_a_left = GetXodrRoadLaneLink(LaneLink::kSuccessorTag, kLaneLinkLeft.id.string());
+  const std::string lane_link_string_a_right = GetXodrRoadLaneLink(LaneLink::kSuccessorTag, kLaneLinkRight.id.string());
   // Road 2.
-  const std::string road_link_string_b = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
+  const std::string road_link_string_b = GetXodrRoadLink(
+      RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
       kRoadPredecessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadPredecessor.contact_point));
-  const std::string lane_link_string_b_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kLaneLinkLeft.id.string());
+  const std::string lane_link_string_b_left = GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kLaneLinkLeft.id.string());
   const std::string lane_link_string_b_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kWrongLaneLinkRight.id.string());
+      GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kWrongLaneLinkRight.id.string());
 
-  const std::string xodr_description =
-      fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
-                  lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id, road_link_string_b,
-                  lane_link_string_b_left, lane_link_string_b_right, "");
+  const std::string xodr_description = GetXodrRoadHeaderLinks(
+      road_non_junction_id, road_link_string_a, lane_link_string_a_left, lane_link_string_a_right, road_non_junction_id,
+      road_link_string_b, lane_link_string_b_left, lane_link_string_b_right, "");
   EXPECT_THROW(LoadDataBaseFromStr(xodr_description,
                                    {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors}),
                maliput::common::assertion_error);
@@ -383,42 +463,41 @@ class DBManagerJunctionLinksTests : public DBManagerLinksTests {
   const LaneLink::LinkAttributes kLaneLinkRight{LaneLink::LinkAttributes::Id("-1")};
   // Road 1.
   const std::string road_link_string_a =
-      fmt::format(kRoadLinkJunctionTemplate, RoadLink::kSuccessorTag,
-                  RoadLink::element_type_to_str(kRoadSuccessor.element_type), kRoadSuccessor.element_id.string(), "");
+      GetXodrRoadLinkToJunction(RoadLink::kSuccessorTag, RoadLink::element_type_to_str(kRoadSuccessor.element_type),
+                                kRoadSuccessor.element_id.string());
   const std::string lane_link_string_a_left = "";
   const std::string lane_link_string_a_right = "";
   // Road 2.
-  const std::string road_link_string_b = fmt::format(
-      kRoadLinkRoadTemplate, RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
+  const std::string road_link_string_b = GetXodrRoadLink(
+      RoadLink::kPredecessorTag, RoadLink::element_type_to_str(kRoadPredecessor.element_type),
       kRoadPredecessor.element_id.string(), RoadLink::contact_point_to_str(*kRoadPredecessor.contact_point));
-  const std::string lane_link_string_b_left =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kLaneLinkLeft.id.string());
+  const std::string lane_link_string_b_left = GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kLaneLinkLeft.id.string());
   const std::string lane_link_string_b_right =
-      fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, kLaneLinkRight.id.string());
+      GetXodrRoadLaneLink(LaneLink::kPredecessorTag, kLaneLinkRight.id.string());
 
   std::string BuildXMLDescriptionFromJunction(const Junction& junction) {
     // JunctionLaneLink
     const std::string junction_lane_link_string_a =
         static_cast<int>(junction.connections.begin()->second.lane_links.size()) == 0
             ? std::string("")
-            : fmt::format(kJunctionLaneLinkTemplate, junction.connections.begin()->second.lane_links[0].from.string(),
-                          junction.connections.begin()->second.lane_links[0].to.string());
+            : GetXodrJunctionLaneLink(junction.connections.begin()->second.lane_links[0].from.string(),
+                                      junction.connections.begin()->second.lane_links[0].to.string());
     const std::string junction_lane_link_string_b =
         static_cast<int>(junction.connections.begin()->second.lane_links.size()) == 0
             ? std::string("")
-            : fmt::format(kJunctionLaneLinkTemplate, junction.connections.begin()->second.lane_links[1].from.string(),
-                          junction.connections.begin()->second.lane_links[1].to.string());
+            : GetXodrJunctionLaneLink(junction.connections.begin()->second.lane_links[1].from.string(),
+                                      junction.connections.begin()->second.lane_links[1].to.string());
     // Connection.
-    const std::string connection_string = fmt::format(
-        kConnectionTemplate, junction.connections.begin()->second.id.string(),
-        junction.connections.begin()->second.incoming_road, junction.connections.begin()->second.connecting_road,
+    const std::string connection_string = GetXodrConnection(
+        junction.connections.begin()->second.id.string(), junction.connections.begin()->second.incoming_road,
+        junction.connections.begin()->second.connecting_road,
         Connection::contact_point_to_str(junction.connections.begin()->second.contact_point),
         junction_lane_link_string_a, junction_lane_link_string_b);
     // Junction.
-    const std::string junction_string = fmt::format(kJunctionTemplate, junction.id.string(), connection_string);
-    return fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
-                       lane_link_string_a_left, lane_link_string_a_right, road_junction_id, road_link_string_b,
-                       lane_link_string_b_left, lane_link_string_b_right, junction_string);
+    const std::string junction_string = GetXodrJunction(junction.id.string(), connection_string);
+    return GetXodrRoadHeaderLinks(road_non_junction_id, road_link_string_a, lane_link_string_a_left,
+                                  lane_link_string_a_right, road_junction_id, road_link_string_b,
+                                  lane_link_string_b_left, lane_link_string_b_right, junction_string);
   }
 };
 
@@ -589,39 +668,36 @@ class DBManagerJunctionLinksTestsB : public DBManagerLinksTests {
                            {{kConnectionA.id, kConnectionA}} /* connections */};
 
   // JunctionLaneLink
-  const std::string junction_lane_link_string_a = fmt::format(
-      kJunctionLaneLinkTemplate, kConnectionA.lane_links[0].from.string(), kConnectionA.lane_links[0].to.string());
-  const std::string junction_lane_link_string_b = fmt::format(
-      kJunctionLaneLinkTemplate, kConnectionA.lane_links[1].from.string(), kConnectionA.lane_links[1].to.string());
+  const std::string junction_lane_link_string_a =
+      GetXodrJunctionLaneLink(kConnectionA.lane_links[0].from.string(), kConnectionA.lane_links[0].to.string());
+  const std::string junction_lane_link_string_b =
+      GetXodrJunctionLaneLink(kConnectionA.lane_links[1].from.string(), kConnectionA.lane_links[1].to.string());
   // Connection.
   const std::string connection_string =
-      fmt::format(kConnectionTemplate, kConnectionA.id.string(), kConnectionA.incoming_road,
-                  kConnectionA.connecting_road, Connection::contact_point_to_str(kConnectionA.contact_point),
-                  junction_lane_link_string_a, junction_lane_link_string_b);
+      GetXodrConnection(kConnectionA.id.string(), kConnectionA.incoming_road, kConnectionA.connecting_road,
+                        Connection::contact_point_to_str(kConnectionA.contact_point), junction_lane_link_string_a,
+                        junction_lane_link_string_b);
   // Junction.
-  const std::string junction_string = fmt::format(kJunctionTemplate, kJunction.id.string(), connection_string);
+  const std::string junction_string = GetXodrJunction(kJunction.id.string(), connection_string);
 
   std::string BuildXMLDescriptionFromRoadLinks(const RoadLink::LinkAttributes& predecessor,
                                                const RoadLink::LinkAttributes& successor,
                                                const LaneLink::LinkAttributes& left,
                                                const LaneLink::LinkAttributes& right) {
     // Road 1.
-    const std::string road_link_string_a =
-        fmt::format(kRoadLinkJunctionTemplate, RoadLink::kSuccessorTag,
-                    RoadLink::element_type_to_str(successor.element_type), successor.element_id.string(), "");
+    const std::string road_link_string_a = GetXodrRoadLinkToJunction(
+        RoadLink::kSuccessorTag, RoadLink::element_type_to_str(successor.element_type), successor.element_id.string());
     const std::string lane_link_string_a_left = "";
     const std::string lane_link_string_a_right = "";
     // Road 2.
-    const std::string road_link_string_b = fmt::format(
-        kRoadLinkRoadTemplate, RoadLink::kPredecessorTag, RoadLink::element_type_to_str(predecessor.element_type),
-        predecessor.element_id.string(), RoadLink::contact_point_to_str(*predecessor.contact_point));
-    const std::string lane_link_string_b_left =
-        fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, left.id.string());
-    const std::string lane_link_string_b_right =
-        fmt::format(kRoadLaneLinkTemplate, LaneLink::kPredecessorTag, right.id.string());
-    return fmt::format(kXODRRoadHeaderLinksVariableTemplate, road_non_junction_id, road_link_string_a,
-                       lane_link_string_a_left, lane_link_string_a_right, road_junction_id, road_link_string_b,
-                       lane_link_string_b_left, lane_link_string_b_right, junction_string);
+    const std::string road_link_string_b =
+        GetXodrRoadLink(RoadLink::kPredecessorTag, RoadLink::element_type_to_str(predecessor.element_type),
+                        predecessor.element_id.string(), RoadLink::contact_point_to_str(*predecessor.contact_point));
+    const std::string lane_link_string_b_left = GetXodrRoadLaneLink(LaneLink::kPredecessorTag, left.id.string());
+    const std::string lane_link_string_b_right = GetXodrRoadLaneLink(LaneLink::kPredecessorTag, right.id.string());
+    return GetXodrRoadHeaderLinks(road_non_junction_id, road_link_string_a, lane_link_string_a_left,
+                                  lane_link_string_a_right, road_junction_id, road_link_string_b,
+                                  lane_link_string_b_left, lane_link_string_b_right, junction_string);
   }
 };
 
@@ -676,8 +752,29 @@ TEST_F(DBManagerJunctionLinksTestsB, UnknownLaneLink) {
       maliput::common::assertion_error);
 }
 
-// Template of a XODR description describing a multiple LaneSections Road in which lane links can be changed.
-const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
+// Get a XODR description describing a multiple LaneSections Road in which lane links can be changed.
+// The lane links are described by the input strings.
+// @param lane_link_0_0_left_0: The first lane link of the left lanes of the first LaneSection.
+// @param lane_link_0_0_left_1: The second lane link of the left lanes of the first LaneSection.
+// @param lane_link_0_0_right_0: The first lane link of the right lanes of the first LaneSection.
+// @param lane_link_0_0_right_1: The second lane link of the right lanes of the first LaneSection.
+// @param lane_link_0_1_left_0: The first lane link of the left lanes of the second LaneSection.
+// @param lane_link_0_1_left_1: The second lane link of the left lanes of the second LaneSection.
+// @param lane_link_0_1_right_0: The first lane link of the right lanes of the second LaneSection.
+// @param lane_link_0_1_right_1: The second lane link of the right lanes of the second LaneSection.
+// @param lane_link_0_2_left_0: The first lane link of the left lanes of the third LaneSection.
+// @param lane_link_0_2_left_1: The second lane link of the left lanes of the third LaneSection.
+// @param lane_link_0_2_right_0: The first lane link of the right lanes of the third LaneSection.
+// @param lane_link_0_2_right_1: The second lane link of the right lanes of the third LaneSection.
+// @return A XODR description describing a multiple LaneSections Road in which lane links can be changed.
+std::string GetXodrRoadHeaderMultipleLaneSectionLinks(
+    const std::string& lane_link_0_0_left_0, const std::string& lane_link_0_0_left_1,
+    const std::string& lane_link_0_0_right_0, const std::string& lane_link_0_0_right_1,
+    const std::string& lane_link_0_1_left_0, const std::string& lane_link_0_1_left_1,
+    const std::string& lane_link_0_1_right_0, const std::string& lane_link_0_1_right_1,
+    const std::string& lane_link_0_2_left_0, const std::string& lane_link_0_2_left_1,
+    const std::string& lane_link_0_2_right_0, const std::string& lane_link_0_2_right_1) {
+  return R"R(
 <?xml version='1.0' standalone='yes'?>
 <OpenDRIVE>
   <header revMajor='1.' revMinor='1.' name='TestHeader' version='1.21' date='Wed Sep 19 12:00:00 2018'
@@ -697,8 +794,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
           <left>
               <lane id='1' type='driving' level= '0'>
                   <link>
-                      {}
-                      {}
+                    )R" +
+         lane_link_0_0_left_0 + lane_link_0_0_left_1 +
+         R"R(
                   </link>
                   <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
               </lane>
@@ -710,8 +808,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
           <right>
               <lane id='-1' type='driving' level= '0'>
                   <link>
-                      {}
-                      {}
+                    )R" +
+         lane_link_0_0_right_0 + lane_link_0_0_right_1 +
+         R"R(
                   </link>
                   <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
               </lane>
@@ -721,8 +820,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
           <left>
               <lane id='1' type='driving' level= '0'>
                   <link>
-                      {}
-                      {}
+                    )R" +
+         lane_link_0_1_left_0 + lane_link_0_1_left_1 +
+         R"R(
                   </link>
                   <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
               </lane>
@@ -734,8 +834,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
           <right>
               <lane id='-1' type='driving' level= '0'>
                   <link>
-                      {}
-                      {}
+                    )R" +
+         lane_link_0_1_right_0 + lane_link_0_1_right_1 +
+         R"R(
                   </link>
                   <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
               </lane>
@@ -745,8 +846,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
           <left>
               <lane id='1' type='driving' level= '0'>
                   <link>
-                      {}
-                      {}
+                    )R" +
+         lane_link_0_2_left_0 + lane_link_0_2_left_1 +
+         R"R(
                   </link>
                   <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
               </lane>
@@ -758,8 +860,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
           <right>
               <lane id='-1' type='driving' level= '0'>
                   <link>
-                      {}
-                      {}
+                    )R" +
+         lane_link_0_2_right_0 + lane_link_0_2_right_1 +
+         R"R(
                   </link>
                   <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
               </lane>
@@ -768,7 +871,9 @@ const std::string kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate = R"R(
     </lanes>
   </road>
 </OpenDRIVE>
+
 )R";
+}
 
 // Tests LaneLinks connection within a Road with multiples LaneSections.
 class DBManagerLaneLinksWithinARoad : public DBManagerLinksTests {
@@ -778,14 +883,15 @@ class DBManagerLaneLinksWithinARoad : public DBManagerLinksTests {
       const std::array<std::pair<OptLaneLink, std::string>, 12>& lane_links_direction) {
     std::array<std::string, 12> lane_links_str;
     for (int i = 0; i < 12; i++) {
-      lane_links_str[i] = lane_links_direction[i].first.has_value()
-                              ? fmt::format(kRoadLaneLinkTemplate, lane_links_direction[i].second,
-                                            lane_links_direction[i].first->id.string())
-                              : "";
+      lane_links_str[i] =
+          lane_links_direction[i].first.has_value()
+              ? GetXodrRoadLaneLink(lane_links_direction[i].second, lane_links_direction[i].first->id.string())
+              : "";
     }
-    return fmt::format(kXODRRoadHeaderMultipleLaneSectionLinksVariableTemplate, lane_links_str[0], lane_links_str[1],
-                       lane_links_str[2], lane_links_str[3], lane_links_str[4], lane_links_str[5], lane_links_str[6],
-                       lane_links_str[7], lane_links_str[8], lane_links_str[9], lane_links_str[10], lane_links_str[11]);
+    return GetXodrRoadHeaderMultipleLaneSectionLinks(lane_links_str[0], lane_links_str[1], lane_links_str[2],
+                                                     lane_links_str[3], lane_links_str[4], lane_links_str[5],
+                                                     lane_links_str[6], lane_links_str[7], lane_links_str[8],
+                                                     lane_links_str[9], lane_links_str[10], lane_links_str[11]);
   }
 };
 
@@ -1287,12 +1393,12 @@ GTEST_TEST(DBManagerTest, GetJunctions) {
 
 // Returns a travelDir-userData node with the directive provided by `travel_dir`.
 std::string LaneUserDataTravelDirTemplate(const std::string& travel_dir) {
-  return fmt::format(
+  return
       R"R(<userData>
-    <vectorLane travelDir="{}"/>
+    <vectorLane travelDir=")R" +
+      travel_dir + R"R("/>
 </userData>
-)R",
-      travel_dir);
+)R";
 }
 
 // Loads Highway map.

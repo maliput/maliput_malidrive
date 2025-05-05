@@ -10,6 +10,7 @@ add_library(road_curve
   piecewise_ground_curve.cc
   road_curve.cc
   road_curve_offset.cc
+  spiral_ground_curve.cc
 )
 add_library(maliput_malidrive::road_curve ALIAS road_curve)
 set_target_properties(road_curve
@@ -27,13 +28,9 @@ target_include_directories(
 target_link_libraries(
   road_curve
     maliput::common
+    maliput::drake
     maliput::math
     maliput_malidrive::common
-    maliput_drake::analysis
-    maliput_drake::common
-    maliput_drake::framework
-    maliput_drake::math
-    maliput_drake::trajectories
 )
 
 install(TARGETS road_curve

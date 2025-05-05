@@ -3,7 +3,7 @@
 ##############################################################################
 
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
-project(maliput_malidrive LANGUAGES C CXX VERSION 1.0.0)
+project(maliput_malidrive LANGUAGES C CXX VERSION 0.4.4)
 
 ##############################################################################
 # CMake Support
@@ -19,10 +19,8 @@ include(GNUInstallDirs)
 message(STATUS "\n\n====== Finding 3rd Party Packages ======\n")
 
 find_package(ament_cmake REQUIRED)
-find_package(fmt 6.1.2 EXACT REQUIRED)
 
 find_package(maliput REQUIRED)
-find_package(maliput_drake REQUIRED)
 
 ##############################################################################
 # Project Configuration
@@ -77,6 +75,43 @@ else()
   message(STATUS "Doxygen generation - Disabled")
 endif()
 
+
+##############################################################################
+# Wheel
+##############################################################################
+
+if (WHEEL_GENERATION)
+  include(FetchContent)
+  message(STATUS "Wheel generation - Enabled")
+  FetchContent_Declare(python-cmake-wheel
+  GIT_REPOSITORY "https://github.com/maliput/python-cmake-wheel"
+  GIT_TAG        "main"
+  GIT_SHALLOW    ON)
+
+  FetchContent_GetProperties(python-cmake-wheel)
+  FetchContent_MakeAvailable(python-cmake-wheel)
+  list(APPEND CMAKE_MODULE_PATH "${python-cmake-wheel_SOURCE_DIR}")
+  include(python-wheel)
+  set(WHEEL_DEPLOY_DIRECTORY "${CMAKE_BINARY_DIR}/wheel")
+
+  set (DEPLOY_FILES "")
+  list(APPEND DEPLOY_FILES "${PROJECT_SOURCE_DIR}/maliput_malidrive/__init__.py")
+  # TODO(francocipollone): Deploy the resources folder as well
+
+  add_wheel(road_network
+    NAME maliput_malidrive
+    AUTHOR "Franco Cipollone"
+    URL "https://github.com/maliput/maliput_malidrive"
+    VERSION "${PROJECT_VERSION}"
+    DESCRIPTION "OpenDRIVE-based maliput backend."
+    LICENSE_PATH "${PROJECT_SOURCE_DIR}/LICENSE"
+    DEPLOY_FILES ${DEPLOY_FILES}
+    MALIPUT_PLUGIN_ENTRY_POINT "maliput_malidrive = maliput_malidrive:get_plugin_path"
+  )
+else()
+  message(STATUS "Wheel generation - Disabled")
+endif()
+
 ##############################################################################
 # Export
 ##############################################################################
@@ -84,6 +119,8 @@ endif()
 set(MALIPUT_MALIDRIVE_RESOURCES_PATH share/maliput_malidrive/resources)
 set(OPENDRIVE_SAMPLES_PATH ${MALIPUT_MALIDRIVE_RESOURCES_PATH}/odr)
 install (FILES resources/ArcLane.xodr
+               resources/ArcLaneRolled.xodr
+               resources/ArcLaneRolledAndOffset.xodr
                resources/ArcElevatedRoad.xodr
                resources/BikingLineLane.xodr
                resources/ComplexLaneSection.xodr
@@ -122,8 +159,10 @@ install (FILES resources/ArcLane.xodr
                resources/SingleRoadNegativeWidth.xodr
                resources/SingleRoadPedestrianCrosswalk.xodr
                resources/SingleRoadPedestrianCrosswalk.yaml
+               resources/SingleRoadSDirectionChange.xodr
                resources/SingleRoadTinyGeometry.xodr
                resources/SingleRoadTwoGeometries.xodr
+               resources/SmallTownRoads.xodr
                resources/SpiralRoad.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr
@@ -175,9 +214,7 @@ ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.d
 ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/env-hooks/${PROJECT_NAME}.sh.in")
 
 ament_export_dependencies(ament_cmake)
-ament_export_dependencies(fmt)
 ament_export_dependencies(maliput)
-ament_export_dependencies(maliput_drake)
 ament_export_targets(${PROJECT_NAME}-targets HAS_LIBRARY_TARGET)
 
 ament_package()

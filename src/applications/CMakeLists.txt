@@ -1,3 +1,5 @@
+find_package(gflags REQUIRED)
+
 add_library(log_level_flag INTERFACE)
 target_sources(
   log_level_flag
@@ -62,6 +64,28 @@ target_link_libraries(
 install(
   TARGETS
      xodr_extract
+  DESTINATION
+    ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}/applications
+)
+
+add_executable(xodr_to_obj xodr_to_obj.cc)
+target_link_libraries(
+  xodr_to_obj
+  PRIVATE
+    gflags
+    maliput::common
+    maliput::utility
+    maliput_malidrive::builder
+    maliput_malidrive::common
+    maliput_malidrive::loader
+    maliput_malidrive::xodr
+    tinyxml2
+  INTERFACE
+    log_level_flag
+)
+install(
+  TARGETS
+     xodr_to_obj
   DESTINATION
     ${CMAKE_INSTALL_BINDIR}/${PROJECT_NAME}/applications
 )

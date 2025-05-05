@@ -74,7 +74,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   MALIDRIVE_VALIDATE(!rg_config.opendrive_file.empty(), std::runtime_error, "opendrive_file cannot be empty");
 
   const xodr::ParserConfiguration parser_config = XodrParserConfigurationFromRoadGeometryConfiguration(rg_config);
-  maliput::log()->trace("Loading database from file: {} ...", rg_config.opendrive_file);
+  maliput::log()->trace("Loading database from file: ", rg_config.opendrive_file, " ...");
   auto db_manager = xodr::LoadDataBaseFromFile(rg_config.opendrive_file, parser_config);
   maliput::log()->trace("Building RoadGeometry...");
   std::unique_ptr<const maliput::api::RoadGeometry> rg =
@@ -95,7 +95,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   auto rule_registry = RuleRegistryBuilder(rg.get(), rn_config.rule_registry)();
   maliput::log()->trace("Built RuleRegistry...");
 
-  maliput::log()->trace("Building RuleRoadBook...\n\t|_ {}",
+  maliput::log()->trace("Building RuleRoadBook...\n\t|_ ",
                         rn_config.rule_registry.has_value() ? "Based on new rule API" : "Based on old rule API");
 
   auto rule_book = rn_config.rule_registry.has_value()
@@ -105,7 +105,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::log()->trace("Built RuleRoadBook.");
 
   maliput::log()->trace("Building PhaseRingBook...");
-  maliput::log()->trace("Building PhaseRingBook...\n\t|_ {}",
+  maliput::log()->trace("Building PhaseRingBook...\n\t|_ ",
                         rn_config.rule_registry.has_value() ? "Based on new rule API" : "Based on old rule API");
   auto phase_ring_book = !rn_config.phase_ring_book.has_value()
                              ? std::make_unique<maliput::ManualPhaseRingBook>()

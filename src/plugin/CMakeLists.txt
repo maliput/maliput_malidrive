@@ -11,9 +11,7 @@ set_target_properties(road_network
 )
 
 target_link_libraries(road_network
-  maliput::api
-  maliput::common
-  maliput::base
+  maliput::plugin
   maliput_malidrive::builder
 )
 

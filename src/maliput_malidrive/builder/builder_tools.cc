@@ -71,6 +71,7 @@ const std::map<xodr::Lane::Type, XodrLaneProperties> kXodrLaneTypesToMaliputProp
     {xodr::Lane::Type::kBorder, {false, "NonVehicles", {}}},
     {xodr::Lane::Type::kRestricted, {false, "NonVehicles", {}}},
     {xodr::Lane::Type::kParking, {false, "Unrestricted", {}}},
+    {xodr::Lane::Type::kCurb, {false, "NonVehicles", {}}},
     {xodr::Lane::Type::kMwyEntry, {true, "NonPedestrians", {"MotorizedVehicleOnly"}}},
     {xodr::Lane::Type::kMwyExit, {true, "NonPedestrians", {"MotorizedVehicleOnly"}}},
     {xodr::Lane::Type::kSpecial1, {true, "NonPedestrians", {}}},
@@ -218,10 +219,11 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
       connection_type == XodrConnectionType::kSuccessor ? xodr_lane_properties.road_header->road_link.successor
                                                         : xodr_lane_properties.road_header->road_link.predecessor;
   if (road_link == std::nullopt) {
-    maliput::log()->debug("Trying to connect xodr Road: {}, lane: {} {} endpoint but it lacks of a {}.",
-                          xodr_lane_properties.road_header->id.string(), xodr_lane_properties.lane->id.string(),
+    maliput::log()->debug("Trying to connect xodr Road: ", xodr_lane_properties.road_header->id.string(),
+                          ", lane: ", xodr_lane_properties.lane->id.string(), " ",
                           connection_type == XodrConnectionType::kSuccessor ? "end" : "start",
-                          connection_type == XodrConnectionType::kSuccessor ? "successor" : "predecessor");
+                          " endpoint but it lacks of a ",
+                          connection_type == XodrConnectionType::kSuccessor ? "successor" : "predecessor", ".");
     return {};
   }
   if (road_link->element_type == xodr::RoadLink::ElementType::kJunction) {

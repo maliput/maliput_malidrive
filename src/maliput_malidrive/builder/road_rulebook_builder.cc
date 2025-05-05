@@ -54,9 +54,9 @@ RoadRuleBookBuilder::RoadRuleBookBuilder(const maliput::api::RoadGeometry* rg,
 }
 
 std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::operator()() {
-  maliput::log()->trace("{}", road_rulebook_file_path_.has_value()
-                                  ? "RoadRulebook file provided: " + road_rulebook_file_path_.value()
-                                  : "No RoadRulebook file provided");
+  maliput::log()->trace(road_rulebook_file_path_.has_value()
+                            ? "RoadRulebook file provided: " + road_rulebook_file_path_.value()
+                            : "No RoadRulebook file provided");
   ;
 
   auto rulebook = road_rulebook_file_path_.has_value()

@@ -1,4 +1,4 @@
-[![gcc](https://github.com/maliput/maliput_malidrive/actions/workflows/build.yml/badge.svg)](https://github.com/maliput/maliput_malidrive/actions/workflows/build.yml)
+[![gcc](https://github.com/maliput/maliput_malidrive/actions/workflows/build.yml/badge.svg)](https://github.com/maliput/maliput_malidrive/actions/workflows/build.yml) [![Wheel Generation](https://github.com/maliput/maliput_malidrive/actions/workflows/wheel_generation.yml/badge.svg?branch=main)](https://github.com/maliput/maliput_malidrive/actions/workflows/wheel_generation.yml)
 
 # maliput_malidrive
 

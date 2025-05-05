@@ -33,10 +33,11 @@
 #include <map>
 
 #include <gtest/gtest.h>
+#include <maliput/api/compare.h>
 #include <maliput/api/lane_data.h>
 #include <maliput/common/assertion_error.h>
-#include <maliput/test_utilities/maliput_types_compare.h>
 
+#include "assert_compare.h"
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/id_providers.h"
 #include "maliput_malidrive/constants.h"
@@ -48,14 +49,15 @@ namespace builder {
 namespace test {
 namespace {
 
+using malidrive::test::AssertCompare;
+using malidrive::test::GetRoadGeometryConfigurationFor;
+using maliput::api::IsInertialPositionClose;
+using maliput::api::IsRBoundsClose;
 using maliput::api::JunctionId;
 using maliput::api::LaneEnd;
 using maliput::api::LaneId;
 using maliput::api::RBounds;
 using maliput::api::SegmentId;
-using maliput::api::test::IsRBoundsClose;
-
-using malidrive::test::GetRoadGeometryConfigurationFor;
 
 // Resource folder path defined via compile definition.
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
@@ -204,6 +206,20 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
       */
       {"ArcLane",
        "ArcLane.xodr",
+       {{1 /* road_id */, 0.0 /* heading */}},
+       {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 100.}, {{1, 0, -1}, {1, 0, 1}}}}}}},
+      /*
+        SpiralRoad map has the following structure (it is an spiral, but the ASCII art
+        does not allow to get the right curvature in it):
+                          (0.,0.,0.)         (10.2160688068, -85.2892703626,0.)
+        Driving   | L: 1  |-------->---------| Width: 2.0m
+        Track lane| L: 0  |========>=========| Width: 0m
+        Driving   | L: -1 |-------->---------| Width: 2.0m
+                          Road 1
+                          Section 0
+      */
+      {"SpiralRoad",
+       "SpiralRoad.xodr",
        {{1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("1_0"), {{{SegmentId("1_0"), 0, 100.}, {{1, 0, -1}, {1, 0, 1}}}}}}},
       /*
@@ -1020,15 +1036,17 @@ TEST_P(RoadGeometryBuilderSurfaceBoundariesTest, LaneBoundaries) {
 
   const auto* lane_right = dut_->ById().GetLane(LaneId("1_0_-1"));
   ASSERT_NE(lane_right, nullptr);
-  EXPECT_TRUE(IsRBoundsClose(RBounds(-width / 2., width / 2.), lane_right->lane_bounds(kSStart), kLinearTolerance));
-  EXPECT_TRUE(
-      IsRBoundsClose(RBounds(-width / 2., width / 2. + width), lane_right->segment_bounds(kSStart), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRBoundsClose(RBounds(-width / 2., width / 2.), lane_right->lane_bounds(kSStart), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(
+      IsRBoundsClose(RBounds(-width / 2., width / 2. + width), lane_right->segment_bounds(kSStart), kLinearTolerance)));
 
   const auto* lane_left = dut_->ById().GetLane(LaneId("1_0_1"));
   ASSERT_NE(lane_left, nullptr);
-  EXPECT_TRUE(IsRBoundsClose(RBounds(-width / 2., width / 2.), lane_left->lane_bounds(kSStart), kLinearTolerance));
-  EXPECT_TRUE(
-      IsRBoundsClose(RBounds(-(width / 2. + width), width / 2.), lane_left->segment_bounds(kSStart), kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsRBoundsClose(RBounds(-width / 2., width / 2.), lane_left->lane_bounds(kSStart), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(IsRBoundsClose(RBounds(-(width / 2. + width), width / 2.),
+                                           lane_left->segment_bounds(kSStart), kLinearTolerance)));
 }
 
 INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderSurfaceBoundariesTestGroup, RoadGeometryBuilderSurfaceBoundariesTest,
@@ -1158,14 +1176,14 @@ TEST_P(RoadGeometryOmittingNonDrivableLanesTest, LanesToRight) {
 TEST_P(RoadGeometryOmittingNonDrivableLanesTest, InertialPositionAndRoundTripPosition) {
   // Inertial position
   const auto inertial_position = lane_->ToInertialPosition(GetParam().lane_position);
-  EXPECT_TRUE(maliput::api::test::IsInertialPositionClose(GetParam().inertial_position, inertial_position,
-                                                          constants::kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsInertialPositionClose(GetParam().inertial_position, inertial_position, constants::kLinearTolerance)));
 
   // Round trip
   auto result = dut_->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_->id(), result.road_position.lane->id());
-  EXPECT_TRUE(maliput::api::test::IsLanePositionClose(GetParam().lane_position, result.road_position.pos,
-                                                      constants::kLinearTolerance));
+  EXPECT_TRUE(AssertCompare(
+      IsLanePositionClose(GetParam().lane_position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
 INSTANTIATE_TEST_CASE_P(RoadGeometryOmittingNonDrivableLanesTestGroup, RoadGeometryOmittingNonDrivableLanesTest,

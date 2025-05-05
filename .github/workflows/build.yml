@@ -1,7 +1,6 @@
-name: gcc
+name: Build
 
 on:
-  push:
   pull_request:
     branches:
       - main
@@ -10,17 +9,54 @@ on:
 env:
   PACKAGE_NAME: maliput_malidrive
   ROS_DISTRO: foxy
+  BAZEL_WS: bazel_ws
+
+# Cancel previously running PR jobs
+concurrency:
+  group: '${{ github.workflow }} @ ${{ github.event.pull_request.head.label || github.head_ref || github.ref }}'
+  cancel-in-progress: true
 
 jobs:
-  compile_and_test:
-    name: Compile and test
+  bazel:
+    name: Compile and Test (Bazel)
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}-bazel-ci:latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        path: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME }}
+    # clone public dependencies
+    - name: vcs import
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}
+      run: vcs import . < ${{ env.PACKAGE_NAME }}/.github/dependencies.repos
+    - name: Check if dependencies have a matching branch
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}
+      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+    - name: Update the dependent modules to use the local checkouts instead of branch
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME }}
+      run: |
+        echo 'local_path_override(module_name="maliput", path="../maliput")' >> ./MODULE.bazel
+    - name: Build
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}/${{ env.PACKAGE_NAME}}
+      run: |
+        bazel build //...
+        bazel test //...
+
+  cmake:
+    name: Compile and Test (CMake)
     runs-on: ubuntu-latest
     container:
       image: ubuntu:20.04
     steps:
-    - uses: actions/checkout@v3
-    - uses: ros-tooling/setup-ros@v0.3
-    - uses: ros-tooling/action-ros-ci@v0.2
+    - uses: actions/checkout@v4
+    - uses: ros-tooling/setup-ros@v0.6
+    - uses: ros-tooling/action-ros-ci@v0.3
       id: action_ros_ci_step
       with:
         package-name: ${{ env.PACKAGE_NAME }}

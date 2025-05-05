@@ -33,3 +33,6 @@
 
 # Python caches
 __pycache__
+
+# Bazel
+bazel-*

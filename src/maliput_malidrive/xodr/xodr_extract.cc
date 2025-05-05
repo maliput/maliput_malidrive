@@ -64,7 +64,7 @@ std::string XodrExtract(tinyxml2::XMLDocument* xodr_doc, const std::vector<std::
       road_header_node = road_header_node->NextSiblingElement(kRoad.c_str());
       continue;
     }
-    maliput::log()->debug("RoadId {} has been found.", *road_id_it);
+    maliput::log()->debug("RoadId ", *road_id_it, " has been found.");
     if (update_linkage) {
       // Update junction id to not match any junction.
       road_header_node->SetAttribute("junction", "-1");
@@ -79,7 +79,7 @@ std::string XodrExtract(tinyxml2::XMLDocument* xodr_doc, const std::vector<std::
   }
 
   for (const auto& road_id : road_ids_left) {
-    maliput::log()->error("RoadId {} wasn't found. Skipping road.", road_id);
+    maliput::log()->error("RoadId ", road_id, " wasn't found. Skipping road.");
   }
 
   // Generate new xodr description.

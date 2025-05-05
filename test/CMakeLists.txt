@@ -27,6 +27,7 @@ macro(maliput_malidrive_plugin_tests)
       PRIVATE
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/test
         ${PYTHON_INCLUDE_DIRS}
     )
 
@@ -70,6 +71,7 @@ macro(maliput_malidrive_build_tests)
       PRIVATE
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/test
         ${PYTHON_INCLUDE_DIRS}
     )
 
@@ -116,6 +118,7 @@ macro(maliput_malidrive_utility_tests)
       PRIVATE
         ${PROJECT_SOURCE_DIR}/src
         ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/test
         ${PYTHON_INCLUDE_DIRS}
     )
 
@@ -145,6 +148,9 @@ endmacro()
 # This macro generates a test target per each map on the list.
 # Map file will be set using a CLI argument and it's the test responsibility
 # to parse it.
+#
+# !!! KEEP SYNC'D WITH resources/BUILD.bazel !!!
+#
 macro(malidrive_build_integration_based_tests)
   set(XODR_FILE_PREFIX ${PROJECT_SOURCE_DIR}/resources/)
   set(XODR_FILE_PATHS
@@ -166,6 +172,8 @@ macro(malidrive_build_integration_based_tests)
     SingleRoadNegativeWidth.xodr
     SingleRoadTinyGeometry.xodr
     SingleRoadTwoGeometries.xodr
+    SpiralRoad.xodr
+    SmallTownRoads.xodr
     SShapeRoad.xodr
     SShapeSuperelevatedRoad.xodr
     StraightForward.xodr

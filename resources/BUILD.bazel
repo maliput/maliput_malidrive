@@ -1,0 +1,18 @@
+###############################################################################
+# Resources
+###############################################################################
+
+# TODO(stonier): Consider creating individual targets, especially for
+# targets that consist of more than just the .xodr file.
+
+filegroup(
+    name = "all",
+    srcs = glob(["**/*"]),
+    visibility = ["//visibility:public"]
+)
+
+filegroup(
+    name = "carla",
+    srcs = glob(["Town*.xodr"]),
+    visibility = ["//visibility:public"]
+)

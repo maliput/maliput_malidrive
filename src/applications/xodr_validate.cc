@@ -72,8 +72,8 @@ int Main(int argc, char** argv) {
     maliput::log()->error("No input file specified.");
     return 1;
   }
-  maliput::log()->info("Parser: Allow schema errors: {}", (FLAGS_allow_schema_errors ? "enabled" : "disabled"));
-  maliput::log()->info("Parser: Allow semantic errors: {}", (FLAGS_allow_semantic_errors ? "enabled" : "disabled"));
+  maliput::log()->info("Parser: Allow schema errors: ", (FLAGS_allow_schema_errors ? "enabled" : "disabled"));
+  maliput::log()->info("Parser: Allow semantic errors: ", (FLAGS_allow_semantic_errors ? "enabled" : "disabled"));
 
   // Tries to load the XODR map and logs the result.
   try {
@@ -84,7 +84,7 @@ int Main(int argc, char** argv) {
     std::cerr << e.what() << std::endl;
     std::cerr << "The map could not be loaded." << std::endl;
   }
-  return 1;
+  return 0;
 }
 
 }  // namespace

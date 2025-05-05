@@ -1,0 +1,20 @@
+{
+    "homepage": "https://github.com/maliput/maliput_malidrive",
+    "maintainers": [
+      {
+        "name": "Daniel Stonier",
+        "email": "d.stonier@gmail.com",
+        "github": "stonier"
+      },
+      {
+        "name": "Franco Cipollone",
+        "email": "francocipollone1@gmail.com",
+        "github": "francocipollone"
+      }
+    ],
+    "repository": [
+      "github:maliput/maliput_malidrive"
+    ],
+    "versions": [],
+    "yanked_versions": {}
+  }
