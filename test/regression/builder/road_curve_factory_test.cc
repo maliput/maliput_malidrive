@@ -394,6 +394,7 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
   const double kP0_33{(kP1 + kP0) / 3};
   const double kP0_50{(kP1 + kP0) / 2};
   const double kP0_66{(kP1 + kP0) * 2 / 3};
+  const double kLinearOffset{0.01};
   const bool kEnsureContiguity{true};
   const bool kDontEnsureContiguity{false};
   const bool kDontAdaptLaneWidths{false};
@@ -401,6 +402,11 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
       {0. /* offset */, 0. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
       {10. /* offset */, 2. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
       {20. /* offset */, 4. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
+  }};
+  const std::vector<xodr::LaneWidth> kLaneWidthsToAdapt{{
+      {0. /* offset */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
+      {10. /* offset */, 2. + kLinearOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
+      {20. /* offset */, 4. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
   }};
   void SetUp() override {
     road_curve_factory_ = std::make_unique<RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
