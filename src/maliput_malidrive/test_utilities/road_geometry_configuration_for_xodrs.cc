@@ -520,6 +520,17 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                           kSimplificationPolicy,
                                           kStandardStrictnessPolicy,
                                           kOmitNondrivableLanes}},
+      {"GapInLaneWidthDrivableLane.xodr",
+       builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"GapInLaneWidthDrivableLane"},
+                                          {"GapInLaneWidthDrivableLane.xodr"},
+                                          builder::RoadGeometryConfiguration::BuildTolerance{
+                                              5e-2 /* linear_tolerance */, 1e-3 /* angular_tolerance */},
+                                          constants::kScaleLength,
+                                          kZeroVector,
+                                          kBuildPolicy,
+                                          kSimplificationPolicy,
+                                          kStandardStrictnessPolicy,
+                                          kOmitNondrivableLanes}},
   };
   return kXodrConfigurations.find(xodr_file_name) != kXodrConfigurations.end()
              ? std::make_optional<builder::RoadGeometryConfiguration>(kXodrConfigurations.at(xodr_file_name))

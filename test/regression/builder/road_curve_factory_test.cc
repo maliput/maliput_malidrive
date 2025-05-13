@@ -40,6 +40,7 @@
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
 #include "maliput_malidrive/road_curve/spiral_ground_curve.h"
+#include "maliput_malidrive/xodr/lane_width.h"
 
 namespace malidrive {
 namespace builder {
@@ -395,6 +396,7 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
   const double kP0_66{(kP1 + kP0) * 2 / 3};
   const bool kEnsureContiguity{true};
   const bool kDontEnsureContiguity{false};
+  const bool kDontAdaptLaneWidths{false};
   const std::vector<xodr::LaneWidth> kLaneWidths{{
       {0. /* offset */, 0. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
       {10. /* offset */, 2. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
@@ -408,31 +410,35 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
 
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, Throws) {
   // Negative p0.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, -2, kP1, kEnsureContiguity),
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, -2, kP1, kEnsureContiguity, kDontAdaptLaneWidths),
                maliput::common::assertion_error);
   // p1 equal to p0.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP0, kEnsureContiguity),
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP0, kEnsureContiguity, kDontAdaptLaneWidths),
                maliput::common::assertion_error);
   // Zero number of polynomials.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({}, kP0, kP0, kEnsureContiguity), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({}, kP0, kP0, kEnsureContiguity, kDontAdaptLaneWidths),
+               maliput::common::assertion_error);
   // First width's offset different than zero.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity),
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity,
+                                                  kDontAdaptLaneWidths),
                maliput::common::assertion_error);
   // Share same offset value.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}, {1. /* offset */, 2., 3., 4, 5.}},
-                                                  kP0, kP1, kEnsureContiguity),
+                                                  kP0, kP1, kEnsureContiguity, kDontAdaptLaneWidths),
                maliput::common::assertion_error);
   // Function length is zero.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{kP1 /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity),
+  EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{kP1 /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity,
+                                                  kDontAdaptLaneWidths),
                maliput::common::assertion_error);
   // It doesn't meet C1 continuity between both functions.
-  EXPECT_THROW(road_curve_factory_->MakeLaneWidth(
-                   {{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0, kP1, kEnsureContiguity),
+  EXPECT_THROW(
+      road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
+                                         kP1, kEnsureContiguity, kDontAdaptLaneWidths),
                maliput::common::assertion_error);
   // It doesn't meet C1 continuity between both functions however continuity isn't ensured.
   EXPECT_THROW(
       road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
-                                         kP1, kDontEnsureContiguity),
+                                         kP1, kDontEnsureContiguity, kDontAdaptLaneWidths),
       maliput::common::assertion_error);
 }
 
@@ -448,7 +454,7 @@ TEST_F(RoadCurveFactoryMakeLaneWidthTest, MultipleLaneWidth) {
   const double kWidthDotAtP0_66{00.26666666666666};
   const double kWidthDotAtP1{0.};
   const std::unique_ptr<road_curve::Function> dut =
-      road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP1, kEnsureContiguity);
+      road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP1, kEnsureContiguity, kDontAdaptLaneWidths);
 
   EXPECT_NEAR(kWidthAtP0, dut->f(kP0), kLinearTolerance);
   EXPECT_NEAR(kWidthAtP0_33, dut->f(kP0_33), kLinearTolerance);
@@ -460,6 +466,54 @@ TEST_F(RoadCurveFactoryMakeLaneWidthTest, MultipleLaneWidth) {
   EXPECT_NEAR(kWidthDotAtP0_50, dut->f_dot(kP0_50), kLinearTolerance);
   EXPECT_NEAR(kWidthDotAtP0_66, dut->f_dot(kP0_66), kLinearTolerance);
   EXPECT_NEAR(kWidthDotAtP1, dut->f_dot(kP1), kLinearTolerance);
+}
+
+TEST_F(RoadCurveFactoryMakeLaneWidthTest, EnsureContiguityNoAdaptThrows) {
+  EXPECT_THROW(
+      road_curve_factory_->MakeLaneWidth(kLaneWidthsToAdapt, kP0, kP1, kEnsureContiguity, kDontAdaptLaneWidths),
+      maliput::common::assertion_error);
+}
+
+class RoadCurveFactoryAdaptLaneWidthTest : public ::testing::Test {
+ protected:
+  const double kAngularTolerance{1e-10};
+  const double kLinearTolerance{1e-10};
+  const double kScaleLength{1.};
+  const double kAdaptedCubicPolyLength{1e-1};
+  void SetUp() override {
+    road_curve_factory_ = std::make_unique<RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
+  }
+  std::unique_ptr<RoadCurveFactory> road_curve_factory_;
+};
+
+TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptConstantLaneWidths) {
+  xodr::LaneWidth a{0. /* offset */, .002 /* a */, 0. /* b */, 0. /* c */, 0. /* d */};
+  xodr::LaneWidth b{2. /* offset */, .001 /* a */, 0. /* b */, 0. /* c */, 0. /* d */};
+  xodr::LaneWidth adapted = road_curve_factory_->AdaptCubicPolynomial(a, b);
+  EXPECT_NEAR(adapted.s_0, b.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
+  EXPECT_NEAR(adapted.a, .002, kLinearTolerance);
+  EXPECT_NEAR(adapted.b, 0., kLinearTolerance);
+  EXPECT_NEAR(adapted.c, -.30, kLinearTolerance);
+  EXPECT_NEAR(adapted.d, 2.0, kLinearTolerance);
+}
+
+TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptLinearLaneWidthToConstantLaneWidth) {
+  xodr::LaneWidth a{1. /* offset */, 0. /* a */, .001 /* b */, 0. /* c */, 0. /* d */};
+  xodr::LaneWidth b{3. /* offset */, .001 /* a */, 0. /* b */, 0. /* c */, 0. /* d */};
+  xodr::LaneWidth adapted = road_curve_factory_->AdaptCubicPolynomial(a, b);
+  EXPECT_NEAR(adapted.s_0, b.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
+  EXPECT_NEAR(adapted.a, .002, kLinearTolerance);
+  EXPECT_NEAR(adapted.b, .001, kLinearTolerance);
+  EXPECT_NEAR(adapted.c, -.32, kLinearTolerance);
+  EXPECT_NEAR(adapted.d, 2.1, kLinearTolerance);
+}
+
+TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptLinearLaneWidthToLinearLaneWidth) {
+  constexpr double kLinearOffset{0.01};
+  xodr::LaneWidth a{10. /* offset */, 2. + kLinearOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  xodr::LaneWidth b{20. /* offset */, 4. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  xodr::LaneWidth adapted = road_curve_factory_->AdaptCubicPolynomial(a, b);
+  EXPECT_NEAR(adapted.s_0, b.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
 }
 
 }  // namespace

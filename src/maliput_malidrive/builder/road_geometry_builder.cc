@@ -283,9 +283,11 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
                              allow_semantic_errors /* allow_negative_width */);
   // When semantic errors aren't allowed G1 contiguity must be enforced for all lanes.
   // Otherwise, only drivable lanes are enforced.
-  const bool enforce_contiguity = !allow_semantic_errors || is_driveable_lane(*lane);
+  const bool enforce_contiguity_non_driveable_lanes = !allow_semantic_errors || is_driveable_lane(*lane);
+  const bool adapt_lane_widths = allow_semantic_errors && is_driveable_lane(*lane);
   std::unique_ptr<road_curve::Function> lane_width = std::make_unique<road_curve::ScaledDomainFunction>(
-      factory->MakeLaneWidth(lane->width_description, xodr_p_0_lane, xodr_p_1_lane, enforce_contiguity),
+      factory->MakeLaneWidth(lane->width_description, xodr_p_0_lane, xodr_p_1_lane,
+                             enforce_contiguity_non_driveable_lanes, adapt_lane_widths),
       road_curve_p_0_lane, road_curve_p_1_lane, factory->linear_tolerance());
 
   maliput::log()->trace("Creating LaneOffset for lane id ", lane_id.string());
