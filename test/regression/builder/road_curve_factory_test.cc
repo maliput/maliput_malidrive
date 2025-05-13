@@ -440,7 +440,7 @@ TEST_F(RoadCurveFactoryMakeLaneWidthTest, Throws) {
   EXPECT_THROW(
       road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
                                          kP1, kEnsureContiguity, kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+      maliput::common::assertion_error);
   // It doesn't meet C1 continuity between both functions however continuity isn't ensured.
   EXPECT_THROW(
       road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
