@@ -137,17 +137,18 @@ std::unique_ptr<road_curve::Function> RoadCurveFactory::MakeCubicPolynomial(doub
 }
 
 xodr::LaneWidth RoadCurveFactory::AdaptCubicPolynomial(const xodr::LaneWidth& a, const xodr::LaneWidth& b) const {
-  constexpr double kMinLength = 1e-1;  // 10cm
-  double x1 = kMinLength;
-  const double a_s1 = b.s_0 - a.s_0;
-  while (a_s1 <= x1) {
-    x1 /= 2;
+  double adapted_poly_length = constants::kMinLaneLengthToAdaptWidthDiscontinuity;
+  const double a_lane_width_length = b.s_0 - a.s_0;
+  if (a_lane_width_length <= adapted_poly_length) {
+    adapted_poly_length = a_lane_width_length / 2.;
   }
-  double alpha = a.a + a.b * a_s1 + a.c * a_s1 * a_s1 + a.d * a_s1 * a_s1 * a_s1;
-  double beta = a.b + 2 * a.c * a_s1 + 3 * a.d * a_s1 * a_s1;
-  double delta = (beta + b.b) / (x1 * x1) - (b.a - alpha) * 2 / (x1 * x1 * x1);
-  double gamma = (b.b - beta) / (2 * x1) - 1.5 * delta * x1;
-  return xodr::LaneWidth{b.s_0 - x1, alpha, beta, gamma, delta};
+  const double alpha = a.a + a.b * a_lane_width_length + a.c * a_lane_width_length * a_lane_width_length +
+                       a.d * a_lane_width_length * a_lane_width_length * a_lane_width_length;
+  const double beta = a.b + 2 * a.c * a_lane_width_length + 3 * a.d * a_lane_width_length * a_lane_width_length;
+  const double delta = (beta + b.b) / (adapted_poly_length * adapted_poly_length) -
+                       (b.a - alpha) * 2 / (adapted_poly_length * adapted_poly_length * adapted_poly_length);
+  const double gamma = (b.b - beta) / (2 * adapted_poly_length) - 1.5 * delta * adapted_poly_length;
+  return xodr::LaneWidth{b.s_0 - adapted_poly_length, alpha, beta, gamma, delta};
 }
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeArcGroundCurve(
@@ -241,7 +242,7 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeSuperelev
                                                                  FromBoolToContiguityCheck(assert_continuity));
 }
 
-std::vector<std::unique_ptr<malidrive::road_curve::Function>> RoadCurveFactory::MakeCubicPolynomialsLaneWidths(
+std::vector<std::unique_ptr<malidrive::road_curve::Function>> RoadCurveFactory::MakeCubicPolynomialsFromLaneWidths(
     const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1) const {
   const int num_polynomials = static_cast<int>(lane_widths.size());
   std::vector<std::unique_ptr<road_curve::Function>> polynomials;
@@ -288,10 +289,10 @@ std::vector<std::unique_ptr<malidrive::road_curve::Function>> RoadCurveFactory::
 }
 
 bool RoadCurveFactory::AreLaneWidthsContinuous(const xodr::LaneWidth& a, const xodr::LaneWidth& b, double b_end) const {
-  const auto left = MakeCubicPolynomial(a.d, a.c, a.b, a.a, 0., b.s_0 - a.s_0);
-  const auto right = MakeCubicPolynomial(b.d, b.c, b.b, b.a, 0., b_end);
-  const double f_distance = std::abs(left->f(left->p1()) - right->f(right->p0()));
-  const double f_dot_distance = std::abs(left->f_dot(left->p1()) - right->f_dot(right->p0()));
+  const auto start_poly = MakeCubicPolynomial(a.d, a.c, a.b, a.a, 0., b.s_0 - a.s_0);
+  const auto end_poly = MakeCubicPolynomial(b.d, b.c, b.b, b.a, 0., b_end);
+  const double f_distance = std::abs(start_poly->f(start_poly->p1()) - end_poly->f(end_poly->p0()));
+  const double f_dot_distance = std::abs(start_poly->f_dot(start_poly->p1()) - end_poly->f_dot(end_poly->p0()));
   return f_distance < linear_tolerance() && f_dot_distance < linear_tolerance();
 }
 
@@ -312,15 +313,18 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
       const double p1_i{end ? p1 - lane_widths[i].s_0 : lane_widths[i + 1].s_0 - lane_widths[i].s_0};
       adapted_lane_widths.emplace_back(lane_widths[i - 1]);
       if (!AreLaneWidthsContinuous(lane_widths[i - 1], lane_widths[i], p1_i)) {
-        // TODO: Consider logging when adapting width.
+        maliput::log()->trace("Adding an adapted cubic polynomial to make ", lane_widths[i - 1].a, "+",
+                              lane_widths[i - 1].b, "*p+", lane_widths[i - 1].c, "*p^2+", lane_widths[i - 1].d, "*p^3",
+                              " and ", lane_widths[i].a, "+", lane_widths[i].b, "*p+", lane_widths[i].c, "*p^2+",
+                              lane_widths[i].d, "*p^3", " C1 continuous.");
         xodr::LaneWidth adapted_lane_width = AdaptCubicPolynomial(lane_widths[i - 1], lane_widths[i]);
         adapted_lane_widths.emplace_back(adapted_lane_width);
       }
     }
     adapted_lane_widths.emplace_back(lane_widths[num_polynomials - 1]);
-    polynomials = MakeCubicPolynomialsLaneWidths(adapted_lane_widths, p0, p1);
+    polynomials = MakeCubicPolynomialsFromLaneWidths(adapted_lane_widths, p0, p1);
   } else {
-    polynomials = MakeCubicPolynomialsLaneWidths(lane_widths, p0, p1);
+    polynomials = MakeCubicPolynomialsFromLaneWidths(lane_widths, p0, p1);
   }
   return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(),
                                                          FromBoolToContiguityCheck(assert_continuity));

@@ -44,6 +44,8 @@ static constexpr double kScaleLength{1.};         // [m]
 static constexpr double kBaseLinearTolerance{1e-6};  // [m]
 /// Multiplier used to increase the tolerance by the Builder.
 static constexpr double kToleranceStepMultiplier{1.1};
+/// Minimum length a lane should have so it can be shortened to add a new lane width.
+static constexpr double kMinLaneLengthToAdaptWidthDiscontinuity{1e-1};  // [m]
 
 /// Stricter tolerances.
 static constexpr double kStrictLinearTolerance{1e-12};   // [m]

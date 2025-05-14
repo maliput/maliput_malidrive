@@ -113,8 +113,14 @@ class RoadCurveFactoryBase {
   virtual std::unique_ptr<road_curve::Function> MakeCubicPolynomial(double p0, double p1, double y,
                                                                     double dy) const = 0;
 
-  /// Creates a cubic polynomial:
-  /// TODO(@Santoi): Add docstring.
+  /// Creates a lane width by adapting 2 other lane widths so there is C1 continuity between the 3 of them.
+  ///
+  /// @p a and @p b should not be C1 continuous. The new lane width (let's call it `c`) makes sure that @p a and @p c
+  /// are C1 continuous, and @p c and @p b are C1 continuous.
+  ///
+  /// @param a Starting lane width.
+  /// @param b Lane width which is desired to splice into @p a.
+  /// @return Adapting lane width that splices into @p a and @p b.
   virtual xodr::LaneWidth AdaptCubicPolynomial(const xodr::LaneWidth& a, const xodr::LaneWidth& b) const = 0;
 
   /// Makes a road_curve::ArcGroundCurve.
@@ -231,7 +237,7 @@ class RoadCurveFactoryBase {
   ///        than @p p0.
   /// @param assert_continuity If true, C1 continuity is assert when function describing the lane width is built.
   ///                          Otherwise only warning messages are printed.
-  /// @param adapt_lane_widths If true, lane widths that don't comply with G1 continuity are adapted so they do.
+  /// @param adapt_lane_widths If true, lane widths that don't comply with C1 continuity are adapted so they do.
   /// @returns A function that describes the width of the Lane.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
@@ -354,10 +360,24 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
       const std::vector<T>& xodr_data, double p0, double p1, FillingGapPolicy policy,
       road_curve::PiecewiseFunction::ContinuityCheck continuity_check) const;
 
-  // Constructs CubicPolynomials out of @p lane_widths.
-  // TODO(@Santoi): Add docstring.
-  std::vector<std::unique_ptr<malidrive::road_curve::Function>> MakeCubicPolynomialsLaneWidths(
+  /// Constructs CubicPolynomials out of @p lane_widths.
+  ///
+  /// @param lane_widths Contains the lane widths to construct the CubicPolynomials from.
+  /// @param p0 Lower bound extreme of the parameter range. It must not be
+  ///        negative and must be less than @p p1.
+  /// @param p1 Upper bound extreme of the parameter range. It must be greater
+  ///        than @p p0.
+  /// @returns A vector of cubic polynomial functions.
+  ///
+  /// @throws maliput::common::assertion_error When any of @p lane_width's offset is less than one of the priors.
+  std::vector<std::unique_ptr<malidrive::road_curve::Function>> MakeCubicPolynomialsFromLaneWidths(
       const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1) const;
+
+  /// Informs whether the input lane widths are C1 continuous.
+  /// @param a Starting lane width.
+  /// @param b Ending lane width.
+  /// @param b_end @p b's end horizontal coordinate.
+  /// @return True if lane widths are C1 continuous, false otherwise.
   bool AreLaneWidthsContinuous(const xodr::LaneWidth& a, const xodr::LaneWidth& b, double b_end) const;
 };
 
