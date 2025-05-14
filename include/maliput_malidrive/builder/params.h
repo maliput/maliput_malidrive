@@ -162,6 +162,8 @@ static constexpr char const* kSimplificationPolicy{"simplification_policy"};
 ///      - 1. At a XODR level it allows having non reciprocal Road-linkage and Lane-linkage within a Road.
 ///      - 2. Allows having lane width descriptions that are negative in certain range.
 ///      - 3. Disables G1 contiguity checks for non-drivable lanes. (G1 contiguity check on drivable lanes can't be
+///      disabled, except for the case described below.)
+///      - 4. Allows non C1 continuous lane widths in driveable lanes by adapting them with short newly created tracks.
 ///      disabled.)
 ///    - 4. @e "permissive": Allow all previous violations.
 ///   - Default: @e "permissive"
