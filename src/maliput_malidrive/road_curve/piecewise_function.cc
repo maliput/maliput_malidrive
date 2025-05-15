@@ -30,6 +30,7 @@
 #include "maliput_malidrive/road_curve/piecewise_function.h"
 
 #include <cmath>
+#include <iostream>
 
 #include <maliput/common/logger.h>
 #include <maliput/common/range_validator.h>
@@ -56,6 +57,8 @@ struct ContinuityChecker {
   // @throws maliput::common::assertion_error When `lhs` is not C1 continuous with `rhs` and continuity_check is
   // PiecewiseFunction::ContinuityCheck::kThrow.
   bool operator()(const Function* lhs, const Function* rhs) const {
+    std::cout << "lhs->p1: " << lhs->p1() << "; rhs->p0: " << rhs->p0() << std::endl;
+    std::cout << "lhs->f(p1: " << lhs->f(lhs->p1()) << "; rhs->f(p0: " << rhs->f(rhs->p0()) << std::endl;
     const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
     if (f_distance > tolerance) {
       const std::string f_msg{"Error when constructing piecewise function. Endpoint distance is <" +

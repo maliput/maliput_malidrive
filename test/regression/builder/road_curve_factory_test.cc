@@ -394,9 +394,10 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
   const double kP0_33{(kP1 + kP0) / 3};
   const double kP0_50{(kP1 + kP0) / 2};
   const double kP0_66{(kP1 + kP0) * 2 / 3};
-  const double kLinearOffset{0.01};
+  const double kConstantOffset{0.01};
   const bool kEnsureContiguity{true};
   const bool kDontEnsureContiguity{false};
+  const bool kAdaptLaneWidths{true};
   const bool kDontAdaptLaneWidths{false};
   const std::vector<xodr::LaneWidth> kLaneWidths{{
       {0. /* offset */, 0. /* a */, 0. /* b */, 0.06 /* c */, -0.004 /* d */},
@@ -405,8 +406,8 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
   }};
   const std::vector<xodr::LaneWidth> kLaneWidthsToAdapt{{
       {0. /* offset */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
-      {10. /* offset */, 2. + kLinearOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
-      {20. /* offset */, 4. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
+      {10. /* offset */, 2. + kConstantOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
+      {20. /* offset */, 4. /* a */, 0. /* b */, 0. /* c */, 0. /* d */},
   }};
   void SetUp() override {
     road_curve_factory_ = std::make_unique<RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
@@ -480,12 +481,39 @@ TEST_F(RoadCurveFactoryMakeLaneWidthTest, EnsureContiguityNoAdaptThrows) {
       maliput::common::assertion_error);
 }
 
+TEST_F(RoadCurveFactoryMakeLaneWidthTest, AdaptMultipleLaneWidth) {
+  const double kWidthAtP0{0.};
+  const double kWidthAtP0_33{2. + kConstantOffset};
+  const double kWidthAtP0_50{3. + kConstantOffset};
+  const double kWidthAtP0_66{4.};
+  const double kWidthAtP1{4.};
+  const double kWidthDotAtP0{0.2};
+  const double kWidthDotAtP0_33{0.2};
+  const double kWidthDotAtP0_50{0.2};
+  const double kWidthDotAtP0_66{0.};
+  const double kWidthDotAtP1{0.};
+  const std::unique_ptr<road_curve::Function> dut =
+      road_curve_factory_->MakeLaneWidth(kLaneWidthsToAdapt, kP0, kP1, kEnsureContiguity, kAdaptLaneWidths);
+  EXPECT_NEAR(kWidthAtP0, dut->f(kP0), kLinearTolerance);
+  EXPECT_NEAR(kWidthAtP0_33, dut->f(20.), kLinearTolerance);
+  EXPECT_NEAR(kWidthAtP0_50, dut->f(25.), kLinearTolerance);
+  EXPECT_NEAR(kWidthAtP0_66, dut->f(30.), kLinearTolerance);
+  EXPECT_NEAR(kWidthAtP1, dut->f(kP1), kLinearTolerance);
+  EXPECT_NEAR(kWidthDotAtP0, dut->f_dot(kP0), kLinearTolerance);
+  EXPECT_NEAR(kWidthDotAtP0_33, dut->f_dot(20.), kLinearTolerance);
+  EXPECT_NEAR(kWidthDotAtP0_50, dut->f_dot(25.), kLinearTolerance);
+  EXPECT_NEAR(kWidthDotAtP0_66, dut->f_dot(30.), kLinearTolerance);
+  EXPECT_NEAR(kWidthDotAtP1, dut->f_dot(kP1), kLinearTolerance);
+}
+
 class RoadCurveFactoryAdaptLaneWidthTest : public ::testing::Test {
  protected:
   const double kAngularTolerance{1e-10};
   const double kLinearTolerance{1e-10};
   const double kScaleLength{1.};
   const double kAdaptedCubicPolyLength{1e-1};
+  const double kConstantOffset{0.01};
+  const double kP1{30.};
   void SetUp() override {
     road_curve_factory_ = std::make_unique<RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
   }
@@ -508,18 +536,51 @@ TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptLinearLaneWidthToConstantLaneWid
   xodr::LaneWidth b{3. /* offset */, .001 /* a */, 0. /* b */, 0. /* c */, 0. /* d */};
   xodr::LaneWidth adapted = road_curve_factory_->AdaptCubicPolynomial(a, b);
   EXPECT_NEAR(adapted.s_0, b.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
-  EXPECT_NEAR(adapted.a, .002, kLinearTolerance);
+  EXPECT_NEAR(adapted.a, .0019, kLinearTolerance);
   EXPECT_NEAR(adapted.b, .001, kLinearTolerance);
-  EXPECT_NEAR(adapted.c, -.32, kLinearTolerance);
-  EXPECT_NEAR(adapted.d, 2.1, kLinearTolerance);
+  EXPECT_NEAR(adapted.c, -.29, kLinearTolerance);
+  EXPECT_NEAR(adapted.d, 1.9, kLinearTolerance);
 }
 
 TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptLinearLaneWidthToLinearLaneWidth) {
-  constexpr double kLinearOffset{0.01};
-  xodr::LaneWidth a{10. /* offset */, 2. + kLinearOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
-  xodr::LaneWidth b{20. /* offset */, 4. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
-  xodr::LaneWidth adapted = road_curve_factory_->AdaptCubicPolynomial(a, b);
-  EXPECT_NEAR(adapted.s_0, b.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
+  const xodr::LaneWidth a{0. /* offset */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  const xodr::LaneWidth b{10. /* offset */, 2. + kConstantOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  const xodr::LaneWidth c{20. /* offset */, 4. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  const xodr::LaneWidth adapted_1 = road_curve_factory_->AdaptCubicPolynomial(a, b);
+  const xodr::LaneWidth adapted_2 = road_curve_factory_->AdaptCubicPolynomial(b, c);
+  EXPECT_NEAR(adapted_1.s_0, b.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
+  EXPECT_NEAR(adapted_1.a, 1.98, kLinearTolerance);
+  EXPECT_NEAR(adapted_1.b, 0.2, kLinearTolerance);
+  EXPECT_NEAR(adapted_1.c, 3., kLinearTolerance);
+  EXPECT_NEAR(adapted_1.d, -20., kLinearTolerance);
+  EXPECT_NEAR(adapted_2.s_0, c.s_0 - kAdaptedCubicPolyLength, kLinearTolerance);
+  EXPECT_NEAR(adapted_2.a, 3.99, kLinearTolerance);
+  EXPECT_NEAR(adapted_2.b, 0.2, kLinearTolerance);
+  EXPECT_NEAR(adapted_2.c, -3., kLinearTolerance);
+  EXPECT_NEAR(adapted_2.d, 20., kLinearTolerance);
+}
+
+TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptedCubicPolynomialsAreC1Continuous) {
+  const xodr::LaneWidth a{0. /* offset */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  const xodr::LaneWidth b{10. /* offset */, 2. + kConstantOffset /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  const xodr::LaneWidth c{20. /* offset */, 4. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */};
+  const xodr::LaneWidth adapted_1 = road_curve_factory_->AdaptCubicPolynomial(a, b);
+  const xodr::LaneWidth adapted_2 = road_curve_factory_->AdaptCubicPolynomial(b, c);
+  const auto poly_a = road_curve_factory_->MakeCubicPolynomial(a.d, a.c, a.b, a.a, 0., adapted_1.s_0 - a.s_0);
+  const auto poly_b = road_curve_factory_->MakeCubicPolynomial(b.d, b.c, b.b, b.a, 0., adapted_2.s_0 - b.s_0);
+  const auto poly_c = road_curve_factory_->MakeCubicPolynomial(c.d, c.c, c.b, c.a, 0., kP1 - c.s_0);
+  const auto poly_adapted_1 = road_curve_factory_->MakeCubicPolynomial(adapted_1.d, adapted_1.c, adapted_1.b,
+                                                                       adapted_1.a, 0., b.s_0 - adapted_1.s_0);
+  const auto poly_adapted_2 = road_curve_factory_->MakeCubicPolynomial(adapted_2.d, adapted_2.c, adapted_2.b,
+                                                                       adapted_2.a, 0., c.s_0 - adapted_2.s_0);
+  EXPECT_NEAR(poly_a->f(poly_a->p1()), poly_adapted_1->f(poly_adapted_1->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_a->f_dot(poly_a->p1()), poly_adapted_1->f_dot(poly_adapted_1->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_adapted_1->f(poly_adapted_1->p1()), poly_b->f(poly_b->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_adapted_1->f_dot(poly_adapted_1->p1()), poly_b->f_dot(poly_b->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_b->f(poly_b->p1()), poly_adapted_2->f(poly_adapted_2->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_b->f_dot(poly_b->p1()), poly_adapted_2->f_dot(poly_adapted_2->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_adapted_2->f(poly_adapted_2->p1()), poly_c->f(poly_c->p0()), kLinearTolerance);
+  EXPECT_NEAR(poly_adapted_2->f_dot(poly_adapted_2->p1()), poly_c->f_dot(poly_c->p0()), kLinearTolerance);
 }
 
 }  // namespace

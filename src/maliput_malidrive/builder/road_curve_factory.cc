@@ -137,11 +137,12 @@ std::unique_ptr<road_curve::Function> RoadCurveFactory::MakeCubicPolynomial(doub
 }
 
 xodr::LaneWidth RoadCurveFactory::AdaptCubicPolynomial(const xodr::LaneWidth& a, const xodr::LaneWidth& b) const {
-  double adapted_poly_length = constants::kMinLaneLengthToAdaptWidthDiscontinuity;
-  const double a_lane_width_length = b.s_0 - a.s_0;
+  double adapted_poly_length = constants::kDefaultAdaptingFunctionLength;
+  double a_lane_width_length = b.s_0 - a.s_0;
   if (a_lane_width_length <= adapted_poly_length) {
     adapted_poly_length = a_lane_width_length / 2.;
   }
+  a_lane_width_length -= adapted_poly_length;
   const double alpha = a.a + a.b * a_lane_width_length + a.c * a_lane_width_length * a_lane_width_length +
                        a.d * a_lane_width_length * a_lane_width_length * a_lane_width_length;
   const double beta = a.b + 2 * a.c * a_lane_width_length + 3 * a.d * a_lane_width_length * a_lane_width_length;
@@ -288,9 +289,9 @@ std::vector<std::unique_ptr<malidrive::road_curve::Function>> RoadCurveFactory::
   return polynomials;
 }
 
-bool RoadCurveFactory::AreLaneWidthsContinuous(const xodr::LaneWidth& a, const xodr::LaneWidth& b, double b_end) const {
+bool RoadCurveFactory::AreLaneWidthsContinuous(const xodr::LaneWidth& a, const xodr::LaneWidth& b) const {
   const auto start_poly = MakeCubicPolynomial(a.d, a.c, a.b, a.a, 0., b.s_0 - a.s_0);
-  const auto end_poly = MakeCubicPolynomial(b.d, b.c, b.b, b.a, 0., b_end);
+  const auto end_poly = MakeCubicPolynomial(b.d, b.c, b.b, b.a, 0., b.s_0);
   const double f_distance = std::abs(start_poly->f(start_poly->p1()) - end_poly->f(end_poly->p0()));
   const double f_dot_distance = std::abs(start_poly->f_dot(start_poly->p1()) - end_poly->f_dot(end_poly->p0()));
   return f_distance < linear_tolerance() && f_dot_distance < linear_tolerance();
@@ -309,10 +310,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
   std::vector<xodr::LaneWidth> adapted_lane_widths;
   if (adapt_lane_widths) {
     for (int i = 1; i < num_polynomials; ++i) {
-      const bool end{i == num_polynomials - 1};
-      const double p1_i{end ? p1 - lane_widths[i].s_0 : lane_widths[i + 1].s_0 - lane_widths[i].s_0};
       adapted_lane_widths.emplace_back(lane_widths[i - 1]);
-      if (!AreLaneWidthsContinuous(lane_widths[i - 1], lane_widths[i], p1_i)) {
+      if (!AreLaneWidthsContinuous(lane_widths[i - 1], lane_widths[i])) {
         maliput::log()->trace("Adding an adapted cubic polynomial to make ", lane_widths[i - 1].a, "+",
                               lane_widths[i - 1].b, "*p+", lane_widths[i - 1].c, "*p^2+", lane_widths[i - 1].d, "*p^3",
                               " and ", lane_widths[i].a, "+", lane_widths[i].b, "*p+", lane_widths[i].c, "*p^2+",
