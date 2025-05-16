@@ -139,7 +139,7 @@ std::unique_ptr<road_curve::Function> RoadCurveFactory::MakeCubicPolynomial(doub
 xodr::LaneWidth RoadCurveFactory::AdaptCubicPolynomial(const xodr::LaneWidth& a, const xodr::LaneWidth& b) const {
   double adapted_poly_length = constants::kDefaultAdaptingFunctionLength;
   double a_lane_width_length = b.s_0 - a.s_0;
-  if (a_lane_width_length <= adapted_poly_length) {
+  if (a_lane_width_length < adapted_poly_length || std::abs(a_lane_width_length - adapted_poly_length) < constants::kStrictLinearTolerance) {
     adapted_poly_length = a_lane_width_length / 2.;
   }
   a_lane_width_length -= adapted_poly_length;
