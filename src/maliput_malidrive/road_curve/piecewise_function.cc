@@ -97,11 +97,9 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
   double p = p0_;
   Function* previous_function{nullptr};
   const ContinuityChecker checker(linear_tolerance_, continuity_check);
-  int index{};
   for (const auto& function : functions_) {
     MALIDRIVE_THROW_UNLESS(function.get() != nullptr);
     MALIDRIVE_THROW_UNLESS(function->IsG1Contiguous());
-    maliput::log()->trace("Function ", index, " has p0: ", function->p0()," and p1: ", function->p1());
     if (previous_function != nullptr) {
       if (!checker(previous_function, function.get())) {
         is_g1_contiguous = false;
@@ -111,7 +109,6 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
     interval_function_[FunctionInterval(p, p + delta_p)] = function.get();
     p += delta_p;
     previous_function = function.get();
-    ++index;
   }
   p1_ = p;
 }

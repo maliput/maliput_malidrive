@@ -585,11 +585,16 @@ TEST_F(RoadCurveFactoryAdaptLaneWidthTest, AdaptedCubicPolynomialsAreC1Continuou
 
 TEST_F(RoadCurveFactoryAdaptLaneWidthTest, MinimumLengthWidthOffsetSectionIsAdapted) {
   // These values were extracted from a conflicting xodr map.
-  const xodr::LaneWidth a{2.5030000000000001e+01 /* offset */, 2.7534566770561795e+00 /* a */, -3.2240478136444685e-02 /* b */, 2.7401488555972488e-04 /* c */, 4.5938817539498253e-04 /* d */};
-  const xodr::LaneWidth b{2.5130000000000003e+01 /* offset */, 2.7502358287795658e+00 /* a */, 1.8688423472523141e-02 /* b */, -4.7894664810435041e-05 /* c */, 4.3769066042179511e-05 /* d */};
+  const xodr::LaneWidth a{2.5030000000000001e+01 /* offset */, 2.7534566770561795e+00 /* a */,
+                          -3.2240478136444685e-02 /* b */, 2.7401488555972488e-04 /* c */,
+                          4.5938817539498253e-04 /* d */};
+  const xodr::LaneWidth b{2.5130000000000003e+01 /* offset */, 2.7502358287795658e+00 /* a */,
+                          1.8688423472523141e-02 /* b */, -4.7894664810435041e-05 /* c */,
+                          4.3769066042179511e-05 /* d */};
   const xodr::LaneWidth adapted = road_curve_factory_->AdaptCubicPolynomial(a, b);
   const auto poly_a = road_curve_factory_->MakeCubicPolynomial(a.d, a.c, a.b, a.a, 0., adapted.s_0 - a.s_0);
-  const auto poly_adapted = road_curve_factory_->MakeCubicPolynomial(adapted.d, adapted.c, adapted.b, adapted.a, 0., b.s_0 - adapted.s_0);
+  const auto poly_adapted =
+      road_curve_factory_->MakeCubicPolynomial(adapted.d, adapted.c, adapted.b, adapted.a, 0., b.s_0 - adapted.s_0);
   EXPECT_LT(poly_a->p0(), poly_a->p1());
   EXPECT_LT(poly_adapted->p0(), poly_adapted->p1());
 }
