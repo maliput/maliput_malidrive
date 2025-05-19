@@ -382,6 +382,23 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderParameters() {
        {{0 /* road_id */, 0.0 /* heading */}, {1 /* road_id */, 0.0 /* heading */}},
        {{JunctionId("0_0"), {{{SegmentId("0_0"), 0., 50.}, {{0, 0, 1}}}}},
         {JunctionId("2"), {{{SegmentId("1_0"), 0., 50.}, {{1, 0, 1}}}}}}},
+      /*
+        GapInWidthDrivableLane map has the following structure:
+          - 1 Road:
+            - 1 Lane section
+              - 2 Lanes: {0 <Center, Track>, 1 <Left, Driving>}
+              - Width: 2m in the first half, 2.2m in the second half.
+                - Width gap is a step, there is no progressive growth.
+                                    (0.,0.,0.)          (50.,0.,0.)               (100.,0.,0.)
+                                         _____________________--------------------|
+          Driving   |Width: 2.0 m| L: 1 |_____________________ Width: 2.2m        |
+                                                              --------------------|
+          Track lane|Width: 0.0 m| L: 0 |====================>====================|
+      */
+      {"GapInLaneWidthDrivableLane",
+       "GapInLaneWidthDrivableLane.xodr",
+       {{1 /* road_id */, 0.0 /* heading */}},
+       {{JunctionId("1_0"), {{{SegmentId("1_0"), 0., 100.0}, {{1, 0, 1}}}}}}},
   };
 }
 
