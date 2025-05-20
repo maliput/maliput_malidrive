@@ -514,7 +514,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     auto road_curve = BuildRoadCurve(
         road_header.second, FilterGeometriesToSimplifyByRoadHeaderId(geometries_to_simplify, road_header.first));
     maliput::log()->trace("Creating ReferenceLineOffset for road id ", road_header.first.string());
-    // This enforces reference lane offset C1 continuity unless semantic errors are allowed.  
+    // This enforces reference lane offset C1 continuity unless semantic errors are allowed.
     const bool enforce_contiguity = !allow_semantic_errors;
     auto reference_line_offset = std::make_unique<road_curve::ScaledDomainFunction>(
         factory_->MakeReferenceLineOffset(road_header.second.lanes.lanes_offset, road_header.second.s0(),
