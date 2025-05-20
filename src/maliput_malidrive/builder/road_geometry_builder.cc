@@ -522,14 +522,19 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
                                      rg_config_.inertial_to_backend_frame_translation);
 
   maliput::log()->trace("Visiting XODR Roads...");
+  const bool allow_semantic_errors{(rg_config_.standard_strictness_policy &
+                                    RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
+                                   RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors};
   for (const auto& road_header : road_headers) {
     maliput::log()->trace("Visiting XODR Road ID: ", road_header.first);
     auto road_curve = BuildRoadCurve(
         road_header.second, FilterGeometriesToSimplifyByRoadHeaderId(geometries_to_simplify, road_header.first));
     maliput::log()->trace("Creating ReferenceLineOffset for road id ", road_header.first.string());
+    // This enforces reference lane offset C1 continuity unless semantic errors are allowed.
+    const bool enforce_contiguity = !allow_semantic_errors;
     auto reference_line_offset = std::make_unique<road_curve::ScaledDomainFunction>(
         factory_->MakeReferenceLineOffset(road_header.second.lanes.lanes_offset, road_header.second.s0(),
-                                          road_header.second.s1()),
+                                          road_header.second.s1(), enforce_contiguity),
         road_curve->p0(), road_curve->p1(), rg_config_.tolerances.linear_tolerance.value());
     // Add RoadCurve and the reference-line-offset function to the RoadGeometry.
     rg->AddRoadCharacteristics(road_header.first, std::move(road_curve), std::move(reference_line_offset));

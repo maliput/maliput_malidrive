@@ -330,11 +330,11 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeReferenceLineOffset(
-    const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const {
+    const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1, bool assert_continuity) const {
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p1 > p0);
   return MakeCubicFromXodr<xodr::LaneOffset>(reference_offsets, p0, p1, FillingGapPolicy::kZero,
-                                             road_curve::PiecewiseFunction::ContinuityCheck::kLog);
+                                             FromBoolToContiguityCheck(assert_continuity));
 }
 
 std::unique_ptr<road_curve::RoadCurve> RoadCurveFactory::MakeMalidriveRoadCurve(

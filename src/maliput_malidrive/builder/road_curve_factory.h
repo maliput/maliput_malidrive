@@ -267,12 +267,15 @@ class RoadCurveFactoryBase {
   ///        negative and must be less than @p p1.
   /// @param p1 Upper bound extreme of the parameter range. It must be greater
   ///        than @p p0.
+  /// @param assert_continuity If true, C1 continuity is assert when function describing the reference lane offset is
+  /// built.
+  ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the lateral shift of the road reference line.
   ///
   /// @throws maliput::common::assertion_error When @p p0 is negative.
   /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeReferenceLineOffset(
-      const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const = 0;
+      const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1, bool assert_continuity) const = 0;
 
   /// Makes a road_curve::MalidriveGroundCurve.
   ///
@@ -326,7 +329,8 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
                                                                  double p0, double p1, bool assert_continuity,
                                                                  bool adapt_lane_widths) const override;
   std::unique_ptr<malidrive::road_curve::Function> MakeReferenceLineOffset(
-      const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1) const override;
+      const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1,
+      bool assert_continuity) const override;
 
   std::unique_ptr<road_curve::RoadCurve> MakeMalidriveRoadCurve(std::unique_ptr<road_curve::GroundCurve> ground_curve,
                                                                 std::unique_ptr<road_curve::Function> elevation,
