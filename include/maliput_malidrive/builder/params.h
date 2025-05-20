@@ -167,7 +167,7 @@ static constexpr char const* kSimplificationPolicy{"simplification_policy"};
 ///      continuity constraints.
 ///      - 5. Allows C1 discontinuities on piecewise-defined lane offset descriptions. In some scenarios,
 ///      xodr lane offsets definitions are discontinuous, and yet the final road surface is continuous: This is not
-///      forbidden       ///      by the OpenDRIVE specification. It is up to the user to ensure that the connecting
+///      forbidden by the OpenDRIVE specification. It is up to the user to ensure that the connecting
 ///      roads form a contiguous surface. See `maliput::API::RoadGeometry::CheckInvariants` method.
 ///    - 4. @e "permissive": Allow all previous violations.
 ///   - Default: @e "permissive"
