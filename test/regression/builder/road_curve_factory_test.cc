@@ -256,7 +256,7 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, ZeroF
   const std::array<std::unique_ptr<road_curve::Function>, 3> duts{
       road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
       road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity),
-      road_curve_factory_->MakeReferenceLineOffset({}, kP0, kP1)};
+      road_curve_factory_->MakeReferenceLineOffset({}, kP0, kP1, kEnsureContiguity)};
 
   for (const auto& dut : duts) {
     EXPECT_NEAR(kZAtP0, dut->f(kP0), kLinearTolerance);
@@ -285,7 +285,7 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, OneFu
   const std::array<std::unique_ptr<road_curve::Function>, 3> duts{
       road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
       road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity),
-      road_curve_factory_->MakeReferenceLineOffset({kLaneOffset}, kP0, kP1)};
+      road_curve_factory_->MakeReferenceLineOffset({kLaneOffset}, kP0, kP1, kEnsureContiguity)};
 
   for (const auto& dut : duts) {
     EXPECT_NEAR(kZAtP0, dut->f(kP0), kLinearTolerance);
@@ -320,7 +320,7 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Multi
   const std::array<std::unique_ptr<road_curve::Function>, 3> duts{
       road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP1, kEnsureContiguity),
       road_curve_factory_->MakeSuperelevation(kLateralProfile, kP0, kP1, kEnsureContiguity),
-      road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1)};
+      road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1, kEnsureContiguity)};
 
   for (const auto& dut : duts) {
     EXPECT_NEAR(kZAtP0, dut->f(kP0), kLinearTolerance);
@@ -372,13 +372,71 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Refer
   const double kZDotAtP0_66{0.};
   const double kZDotAtP1{-0.201600000000000};
 
-  const auto dut = road_curve_factory_->MakeReferenceLineOffset({kLaneOffset}, kP0, kP1);
+  const auto dut = road_curve_factory_->MakeReferenceLineOffset({kLaneOffset}, kP0, kP1, kEnsureContiguity);
   EXPECT_NEAR(kZAtP0, dut->f(kP0), kLinearTolerance);
   EXPECT_NEAR(kZAtP0_33, dut->f(kP0_33), kLinearTolerance);
   EXPECT_NEAR(kZAtP0_66, dut->f(kP0_66), kLinearTolerance);
   EXPECT_NEAR(kZAtP1, dut->f(kP1), kLinearTolerance);
   EXPECT_NEAR(kZDotAtP0, dut->f_dot(kP0), kLinearTolerance);
   EXPECT_NEAR(kZDotAtP0_33, dut->f_dot(kP0_33), kLinearTolerance);
+  EXPECT_NEAR(kZDotAtP0_66, dut->f_dot(kP0_66), kLinearTolerance);
+  EXPECT_NEAR(kZDotAtP1, dut->f_dot(kP1), kLinearTolerance);
+}
+
+class RoadCurveFactoryMakeReferenceLineOffsetTest : public ::testing::Test {
+ protected:
+  const double kAngularTolerance{1e-10};
+  const double kLinearTolerance{1e-10};
+  const double kScaleLength{1.};
+  const double kP0{10.};
+  const double kP1{40.};
+  const double kP0_10{(kP1 - kP0) / 10 + kP0};
+  const double kP0_33{(kP1 - kP0) / 3 + kP0};
+  const double kP0_50{(kP1 - kP0) / 2 + kP0};
+  const double kP0_66{(kP1 - kP0) * 2 / 3 + kP0};
+  const bool kEnsureContiguity{true};
+  const bool kDontEnsureContiguity{false};
+  void SetUp() override {
+    road_curve_factory_ = std::make_unique<RoadCurveFactory>(kLinearTolerance, kScaleLength, kAngularTolerance);
+  }
+  std::unique_ptr<RoadCurveFactoryBase> road_curve_factory_;
+};
+
+TEST_F(RoadCurveFactoryMakeReferenceLineOffsetTest, DiscontinuousReferenceLineOffsetThrows) {
+  const std::vector<xodr::LaneOffset> kLaneOffsets{{0. /* s_0 */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
+                                                   {10. /* s_0 */, 4. /* a */, 0. /* b */, 0. /* c */, 0. /* d */}};
+
+  EXPECT_THROW(road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1, kEnsureContiguity),
+               maliput::common::assertion_error);
+}
+
+TEST_F(RoadCurveFactoryMakeReferenceLineOffsetTest, DiscontinuousReferenceLineOffset) {
+  const std::vector<xodr::LaneOffset> kLaneOffsets{{10. /* s_0 */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
+                                                   {20. /* s_0 */, 4. /* a */, 0. /* b */, 0. /* c */, 0. /* d */}};
+  const double kZAtP0{0.};
+  const double kZAtP0_10{.6};
+  const double kZAtP0_33{4.};
+  const double kZAtP0_50{4.};
+  const double kZAtP0_66{4.};
+  const double kZAtP1{4.};
+  const double kZDotAtP0{0.2};
+  const double kZDotAtP0_10{.2};
+  const double kZDotAtP0_33{0.};
+  const double kZDotAtP0_50{0.};
+  const double kZDotAtP0_66{0.};
+  const double kZDotAtP1{0.};
+
+  const auto dut = road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1, kDontEnsureContiguity);
+  EXPECT_NEAR(kZAtP0, dut->f(kP0), kLinearTolerance);
+  EXPECT_NEAR(kZAtP0_10, dut->f(kP0_10), kLinearTolerance);
+  EXPECT_NEAR(kZAtP0_33, dut->f(kP0_33), kLinearTolerance);
+  EXPECT_NEAR(kZAtP0_50, dut->f(kP0_50), kLinearTolerance);
+  EXPECT_NEAR(kZAtP0_66, dut->f(kP0_66), kLinearTolerance);
+  EXPECT_NEAR(kZAtP1, dut->f(kP1), kLinearTolerance);
+  EXPECT_NEAR(kZDotAtP0, dut->f_dot(kP0), kLinearTolerance);
+  EXPECT_NEAR(kZDotAtP0_10, dut->f_dot(kP0_10), kLinearTolerance);
+  EXPECT_NEAR(kZDotAtP0_33, dut->f_dot(kP0_33), kLinearTolerance);
+  EXPECT_NEAR(kZDotAtP0_50, dut->f_dot(kP0_50), kLinearTolerance);
   EXPECT_NEAR(kZDotAtP0_66, dut->f_dot(kP0_66), kLinearTolerance);
   EXPECT_NEAR(kZDotAtP1, dut->f_dot(kP1), kLinearTolerance);
 }
