@@ -5,6 +5,7 @@ Changelog for package maliput_malidrive
 0.5.0 (2025-05-20)
 ------------------
 * Allow offset discontinuities when allowing semantic errors in XODRs. (`#306 https://github.com/maliput/maliput_malidrive/issues/306`)
+* Adapt driveable lane's widths so they are C1 continuous. (`#305 https://github.com/maliput/maliput_malidrive/issues/305`)
 * Contributors: Santiago Lopez
 
 0.4.4 (2025-04-22)
