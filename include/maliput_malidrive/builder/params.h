@@ -165,6 +165,9 @@ static constexpr char const* kSimplificationPolicy{"simplification_policy"};
 ///      disabled, except for the case described below.)
 ///      - 4. Adapts C1 discontinuities on piecewise-defined lane widths (only applying to driveable lanes) to meet the
 ///      continuity constraints.
+///      - 5. Allows lane offset discontinuities. This allows the user to create lane sections with discontiuous lane
+///      offsets, so that a lane ID N can continue as a lane ID M. It is up to them to ensure that the connecting roads
+///      form a contiguous surface.
 ///    - 4. @e "permissive": Allow all previous violations.
 ///   - Default: @e "permissive"
 static constexpr char const* kStandardStrictnessPolicy{"standard_strictness_policy"};
