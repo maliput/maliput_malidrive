@@ -2,10 +2,15 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.0 (2025-05-21)
+------------------
+* Use KDTree strategy in malidrive for improving query times (`#226 <https://github.com/maliput/maliput_malidrive/issues/226>`_)
+* Contributors: Eloy Briceno, Franco Cipollone
+
 0.5.0 (2025-05-20)
 ------------------
-* Allow offset discontinuities when allowing semantic errors in XODRs. (`#306 https://github.com/maliput/maliput_malidrive/issues/306`)
-* Adapt driveable lane's widths so they are C1 continuous. (`#305 https://github.com/maliput/maliput_malidrive/issues/305`)
+* Allow offset discontinuities when allowing semantic errors in XODRs. (`#306 https://github.com/maliput/maliput_malidrive/issues/306`_)
+* Adapt driveable lane's widths so they are C1 continuous. (`#305 https://github.com/maliput/maliput_malidrive/issues/305`_)
 * Contributors: Santiago Lopez
 
 0.4.4 (2025-04-22)
