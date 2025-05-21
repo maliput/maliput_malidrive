@@ -85,6 +85,22 @@ std::size_t GetEffectiveNumberOfThreads(const malidrive::builder::BuildPolicy& b
   ;
 }
 
+// Computes the kd-tree sampling step for the given road geometry.
+//
+// The kd-tree sampling step is set to the average length of the lanes in the road geometry.
+// This is an heuristic value that helps to balance the kd-tree construction.
+double ComputeKdTreeSamplingStep(const maliput::api::RoadGeometry* rg) {
+  static constexpr double kFactor = 0.1;  // Factor to reduce the average length of the lanes.
+  // Calculate average lane's length to set the kd-tree strategy's tolerance.
+  const auto lanes = rg->ById().GetLanes();
+  double total_length = 0.0;
+  for (const auto& lane : lanes) {
+    total_length += lane.second->length();
+  }
+  const double average_length = total_length / static_cast<double>(lanes.size());
+  return average_length * kFactor;
+}
+
 }  // namespace
 
 RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manager,
@@ -568,6 +584,13 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     rg->AddBranchPoint(std::move(bps_[i]));
   }
 
+  const double kd_tree_sampling_step_heuristic = ComputeKdTreeSamplingStep(rg.get());
+  maliput::log()->trace(
+      "Initializing maliput::geometry_base::KDTreeStrategy for improving RoadGeometry::ToRoadPosition and "
+      "RoadGeometry::FindRoadPosition query times. Sampling step is configured to: ",
+      kd_tree_sampling_step_heuristic);
+
+  rg->InitializeStrategy<maliput::geometry_base::KDTreeStrategy>(kd_tree_sampling_step_heuristic);
   maliput::log()->trace("RoadGeometry is built.");
   return rg;
 }
