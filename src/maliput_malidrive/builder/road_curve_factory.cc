@@ -202,7 +202,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
   std::vector<std::unique_ptr<road_curve::GroundCurve>> ground_curves;
   for (const xodr::Geometry& geometry : geometries) {
     if (geometry.length < road_curve::GroundCurve::kEpsilon) {
-      maliput::log()->warn("A geometry description is discarded because its length is: ", geometry.length);
+      maliput::log()->debug("A geometry description is discarded because its length is: ", geometry.length);
       continue;
     }
     switch (geometry.type) {
@@ -268,7 +268,7 @@ std::vector<std::unique_ptr<malidrive::road_curve::Function>> RoadCurveFactory::
           MALIDRIVE_THROW_MESSAGE("Last laneWidth's function has invalid length: p0_i: " + std::to_string(p0_i) +
                                   " | p1_i: " + std::to_string(p1_i));
         } else {
-          maliput::log()->warn("Last laneWidth's function has null length: p0_i = p1_1 = ", p1_i);
+          maliput::log()->debug("Last laneWidth's function has null length: p0_i = p1_1 = ", p1_i);
           continue;
         }
       }
@@ -378,8 +378,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
           MALIDRIVE_THROW_MESSAGE("Last " + xodr_data_type + "'s function has invalid length: p0_i: " +
                                   std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
         } else {
-          maliput::log()->warn("Last function that compounds ", xodr_data_type,
-                               " has null length: p0_i = p1_1 = ", p1_i);
+          maliput::log()->debug("Last function that compounds ", xodr_data_type,
+                                " has null length: p0_i = p1_1 = ", p1_i);
           continue;
         }
       }

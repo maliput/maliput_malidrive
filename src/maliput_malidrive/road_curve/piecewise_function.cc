@@ -61,7 +61,7 @@ struct ContinuityChecker {
       const std::string f_msg{"Error when constructing piecewise function. Endpoint distance is <" +
                               std::to_string(f_distance) +
                               "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
-      maliput::log()->warn(f_msg);
+      maliput::log()->debug(f_msg);
       MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
                          maliput::common::assertion_error, f_msg);
       return false;
@@ -72,7 +72,7 @@ struct ContinuityChecker {
       const std::string f_dot_msg{"Error when constructing piecewise function. Endpoint derivative distance is <" +
                                   std::to_string(f_dot_distance) +
                                   "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
-      maliput::log()->warn(f_dot_msg);
+      maliput::log()->debug(f_dot_msg);
       MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
                          maliput::common::assertion_error, f_dot_msg);
       return false;

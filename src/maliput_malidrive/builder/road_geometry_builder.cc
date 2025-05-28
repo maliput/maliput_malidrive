@@ -212,7 +212,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                             "] is negative at the beginning of the range, at [lane_width_s = " + std::to_string(p0) +
                             " | lane_s = " + std::to_string(lane_widths[i].s_0 + p0) +
                             "] with a width value of: " + std::to_string(f_p0)};
-      maliput::log()->warn(msg);
+      maliput::log()->debug(msg);
       if (!allow_negative_width) {
         MALIPUT_THROW_MESSAGE(msg);
       }
@@ -224,7 +224,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                             "] is negative at the end of the range, at [lane_width_s = " + std::to_string(p1) +
                             " | lane_s = " + std::to_string(lane_widths[i].s_0 + p1) +
                             "] with a width value of: " + std::to_string(f_p1)};
-      maliput::log()->warn(msg);
+      maliput::log()->debug(msg);
       if (!allow_negative_width) {
         MALIPUT_THROW_MESSAGE(msg);
       }
@@ -245,7 +245,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                                 "] presents negative values with a minimum value of [ " + std::to_string(min_width) +
                                 "] located at [lane_width_s = " + std::to_string(p_local_min.value()) +
                                 " | lane_s = " + std::to_string(p_local_min.value() + lane_widths[i].s_0) + "]"};
-          maliput::log()->warn(msg);
+          maliput::log()->debug(msg);
           if (!allow_negative_width) {
             MALIPUT_THROW_MESSAGE(msg);
           }
@@ -459,7 +459,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
                            rg_config_.tolerances.angular_tolerance, "\n\t|__ scale_length = ", rg_config_.scale_length);
       return rg;
     } catch (maliput::common::assertion_error& e) {
-      maliput::log()->warn(
+      maliput::log()->debug(
           "Iteration [", i, "] failed with : (linear_tolerance: ", rg_config_.tolerances.linear_tolerance.value(),
           ", angular_tolerance: ", rg_config_.tolerances.angular_tolerance, ", scale_length: ", rg_config_.scale_length,
           "). "
