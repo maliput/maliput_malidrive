@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.6.1 (2025-05-29)
+------------------
+* Change all warn level logging to debug level. (`#309 <https://github.com/maliput/maliput_malidrive/issues/309>`_)
+* Contributors: Santiago Lopez
+
 0.6.0 (2025-05-21)
 ------------------
 * Use KDTree strategy in malidrive for improving query times (`#226 <https://github.com/maliput/maliput_malidrive/issues/226>`_)

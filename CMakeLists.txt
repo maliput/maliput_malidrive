@@ -3,7 +3,7 @@
 ##############################################################################
 
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
-project(maliput_malidrive LANGUAGES C CXX VERSION 0.6.0)
+project(maliput_malidrive LANGUAGES C CXX VERSION 0.6.1)
 
 ##############################################################################
 # CMake Support
