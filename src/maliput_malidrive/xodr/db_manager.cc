@@ -465,7 +465,7 @@ class DBManager::Impl {
                                    : ") but its predecessor is not reciprocal. It points to RoadHeader(") +
                               link_s_road_link->element_id.string() + ")"};
         if (parser_configuration_.allow_semantic_errors) {
-          maliput::log()->warn(msg);
+          maliput::log()->debug(msg);
         } else {
           MALIDRIVE_THROW_MESSAGE(msg);
         }
@@ -480,7 +480,7 @@ class DBManager::Impl {
                               link_s_road_link->element_id.string() + ") and RoadHeader(" + road_header.id.string() +
                               ") has JunctionId(" + road_header.junction + ")"};
         if (parser_configuration_.allow_semantic_errors) {
-          maliput::log()->warn(msg);
+          maliput::log()->debug(msg);
         } else {
           MALIDRIVE_THROW_MESSAGE(msg);
         }
@@ -680,7 +680,7 @@ class DBManager::Impl {
           const std::string msg = std::string("Unknown successor lane ") + lane_link_a->id.string() +
                                   std::string(" for lane id ") + lane_id_lane_a.first.string();
           if (parser_configuration_.allow_semantic_errors) {
-            maliput::log()->warn(msg);
+            maliput::log()->debug(msg);
             continue;
           } else {
             MALIDRIVE_THROW_MESSAGE(msg);
@@ -692,7 +692,7 @@ class DBManager::Impl {
                                   " from one segment doesn't match successor/predecessor values with Lane id " +
                                   lane_id_lane_b->first.string() + " of the next segment.";
           if (parser_configuration_.allow_semantic_errors) {
-            maliput::log()->warn(msg);
+            maliput::log()->debug(msg);
             continue;
           } else {
             MALIDRIVE_THROW_MESSAGE(msg);
@@ -709,7 +709,7 @@ class DBManager::Impl {
           const std::string msg = std::string("Unknown predecessor lane ") + lane_link_b->id.string() +
                                   std::string(" for lane id ") + lane_id_lane_b.first.string();
           if (parser_configuration_.allow_semantic_errors) {
-            maliput::log()->warn(msg);
+            maliput::log()->debug(msg);
             continue;
           } else {
             MALIDRIVE_THROW_MESSAGE(msg);
@@ -721,7 +721,7 @@ class DBManager::Impl {
                                   " from one segment doesn't match successor/predecessor values with Lane id " +
                                   lane_id_lane_a->first.string() + " of the next segment.";
           if (parser_configuration_.allow_semantic_errors) {
-            maliput::log()->warn(msg);
+            maliput::log()->debug(msg);
             continue;
           } else {
             MALIDRIVE_THROW_MESSAGE(msg);

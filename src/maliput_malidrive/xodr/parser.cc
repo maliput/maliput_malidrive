@@ -125,7 +125,7 @@ void AddPolynomialDescriptionToCollection(const T& new_function, const std::stri
       if (!allow_schema_errors) {
         MALIDRIVE_THROW_MESSAGE(msg);
       }
-      maliput::log()->warn(msg + "Discarding the first description starting at s = ", new_function.s_0);
+      maliput::log()->debug(msg + "Discarding the first description starting at s = ", new_function.s_0);
       functions->pop_back();
     }
   }
@@ -174,7 +174,7 @@ std::optional<double> AttributeParser::As(const std::string& attribute_name) con
   }
   if (std::isnan(value)) {
     std::string msg{"Attributes with NaN values has been found. " + ConvertXMLNodeToText(element_)};
-    maliput::log()->warn(msg);
+    maliput::log()->debug(msg);
     if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
@@ -987,7 +987,7 @@ Junction NodeParser::As() const {
     if (!parser_configuration_.allow_schema_errors) {
       MALIDRIVE_THROW_MESSAGE(msg);
     }
-    maliput::log()->warn(msg);
+    maliput::log()->debug(msg);
   }
   std::unordered_map<Connection::Id, Connection> connections;
   while (connection_element) {
