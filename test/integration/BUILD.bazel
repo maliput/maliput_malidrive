@@ -19,6 +19,7 @@ generate_integration_tests(
         "LineMultipleSections.xodr",
         "LineVariableWidth.xodr",
         "LineVariableOffset.xodr",
+        "LongRoad.xodr",
         "ParkingGarageRamp.xodr",
         "RRFigure8.xodr",
         "RRLongRoad.xodr",

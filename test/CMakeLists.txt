@@ -161,6 +161,7 @@ macro(malidrive_build_integration_based_tests)
     LineMultipleSections.xodr
     LineVariableWidth.xodr
     LineVariableOffset.xodr
+    LongRoad.xodr
     ParkingGarageRamp.xodr
     RRFigure8.xodr
     RRLongRoad.xodr

@@ -193,7 +193,7 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
         // constants (considering p0_ <= p <= p1_) work well as a heuristic
         // approximation to appropriate step sizes.
         road_curve_->scale_length() * 0.1, /* initial_step_size_target */
-        road_curve_->scale_length(),       /* maximum_step_size */
+        road_curve_->scale_length() / 2.,  /* maximum_step_size */
         integrator_accuracy                /* target_accuracy */
   };
 

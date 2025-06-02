@@ -217,6 +217,18 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
            kOmitNondrivableLanes}},
+      {"LongRoad.xodr",
+       builder::RoadGeometryConfiguration{
+           maliput::api::RoadGeometryId{"LongRoad"},
+           {"LongRoad.xodr"},
+           builder::RoadGeometryConfiguration::BuildTolerance{
+               5e-2 /* linear_tolerance */, 5e-2 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
+           constants::kScaleLength,
+           kZeroVector,
+           kBuildPolicy,
+           kSimplificationPolicy,
+           kStandardStrictnessPolicy,
+           kOmitNondrivableLanes}},
       {"ParkingGarageRamp.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"ParkingGarageRamp"},
