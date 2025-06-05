@@ -39,6 +39,17 @@ namespace malidrive {
 namespace road_curve {
 namespace {
 
+// Computes the maximum heading dot in the range [p0, p1] for a given road curve.
+// Uses the underlying ground curve's HeadingDot method to evaluate the heading dot at various points
+// within the specified range.
+double GetMaximumHeadingDot(const RoadCurve& road_curve, double p0, double p1) {
+  double max_heading_dot = 0.0;
+  for (double p = p0; p < p1; p += road_curve.scale_length()) {
+    max_heading_dot = std::max(max_heading_dot, std::abs(road_curve.ground_curve()->HeadingDot(p)));
+  }
+  return max_heading_dot;
+}
+
 // Arc length derivative function @f$ ds/dp = f(p; [r, h]) @f$ for
 // numerical resolution of the @f$ s(p) @f$ mapping as an antiderivative
 // computation (i.e. quadrature).
@@ -156,6 +167,8 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p0 <= p1);
 
+  maliput::log()->trace("Creating RoadCurveOffset with p0: ", p0, " and p1: ", p1);
+
   // Sets default parameter value at the beginning of the curve to p0() by
   // default.
   const double initial_p_value = p0_;
@@ -180,6 +193,25 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   // elsewhere.
   const double integrator_accuracy{relative_tolerance_ * kAccuracyMultiplier};
 
+  // Compute a step_multiplier to scale the initial step size and maximum step size
+  // of the integrators. Use the maximum heading dot of the road curve
+  // to determine the step_multiplier. This is a heuristic to ensure that the
+  // integrators can handle the curvature of the road curve effectively.
+  const double max_heading_dot = GetMaximumHeadingDot(*road_curve_, p0_, p1_);
+  maliput::log()->trace("Maximum heading dot of the road curve: ", max_heading_dot);
+  double step_multiplier = 1.;
+  if (max_heading_dot > kCurvatureThresholdToOptimizeStep) {
+    // When the maximum heading dot is greater than kCurvatureThresholdToOptimizeStep, we scale the
+    // step sizes to ensure that the integrators can handle the curvature
+    // effectively. This magic value (kCurvatureThresholdToOptimizeStep) is chosen based on empirical
+    // observations and may need adjustment based on the specific road curve
+    // characteristics. kCurvatureThresholdToOptimizeStep corresponds to a arc length with curvature of
+    // kCurvatureThresholdToOptimizeStep.
+    step_multiplier = std::min(max_heading_dot / kCurvatureThresholdToOptimizeStep, kMaxStepMultiplier);
+    maliput::log()->trace("RoadCurve with high curvature detected.");
+  }
+  maliput::log()->trace("Integrator Config: Step multiplier for integrator step sizes: ", step_multiplier);
+
   const struct maliput::drake::IntegratorConfiguration arc_length_integrator_config {
     initial_p_value,        /* parameter_lower_bound */
         initial_s_value,    /* image_lower_bound */
@@ -192,9 +224,9 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
         // accuracy balance). However, for the time being, the following
         // constants (considering p0_ <= p <= p1_) work well as a heuristic
         // approximation to appropriate step sizes.
-        road_curve_->scale_length() * 0.1, /* initial_step_size_target */
-        road_curve_->scale_length(),       /* maximum_step_size */
-        integrator_accuracy                /* target_accuracy */
+        road_curve_->scale_length() * 0.1 / step_multiplier, /* initial_step_size_target */
+        road_curve_->scale_length() * 0.5 / step_multiplier, /* maximum_step_size */
+        integrator_accuracy                                  /* target_accuracy */
   };
 
   const struct maliput::drake::IntegratorConfiguration inverse_arc_length_integrator_config {
@@ -208,9 +240,9 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
         // optimal step sizes (in terms of their efficiency vs. accuracy balance).
         // However, for the time being, the following proportions of the scale
         // length work well as a heuristic approximation to appropriate step sizes.
-        road_curve_->scale_length() * 0.1, /* initial_step_size_target */
-        road_curve_->scale_length() / 2.,  /* maximum_step_size */
-        integrator_accuracy                /* target_accuracy */
+        road_curve_->scale_length() * 0.1 / step_multiplier, /* initial_step_size_target */
+        road_curve_->scale_length() * 0.5 / step_multiplier, /* maximum_step_size */
+        integrator_accuracy                                  /* target_accuracy */
   };
 
   // Instantiates s(p) and p(s) mappings with default values.

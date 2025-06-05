@@ -30,8 +30,8 @@ def generate_integration_tests(sources, xodr_files):
         native.cc_test(
             name="integration_test_" + name,
             srcs = sources,
-            size = "medium",
-            timeout = "long",
+            size = "large",
+            timeout = "eternal",
             copts = COPTS,
             defines = [
                 "XODR_FILE=\\\"resources/" + xodr_file + "\\\""

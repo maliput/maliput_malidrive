@@ -117,6 +117,13 @@ class RoadCurveOffset {
   // this package provides.
   static constexpr double kAccuracyMultiplier{1e-4};
 
+  // The curvature threshold to optimize the step size.
+  // If the curvature is above this threshold, the step size of the integrator will be reduced to avoid
+  // numerical errors.
+  static constexpr double kCurvatureThresholdToOptimizeStep{0.05};
+  // The maximum step size multiplier to use in the integrator.
+  static constexpr double kMaxStepMultiplier{4.0};
+
   // Holds the RoadCurve.
   const RoadCurve* road_curve_{};
 

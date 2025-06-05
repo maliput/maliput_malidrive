@@ -459,7 +459,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
                            rg_config_.tolerances.angular_tolerance, "\n\t|__ scale_length = ", rg_config_.scale_length);
       return rg;
     } catch (maliput::common::assertion_error& e) {
-      maliput::log()->debug(
+      maliput::log()->warn(
           "Iteration [", i, "] failed with : (linear_tolerance: ", rg_config_.tolerances.linear_tolerance.value(),
           ", angular_tolerance: ", rg_config_.tolerances.angular_tolerance, ", scale_length: ", rg_config_.scale_length,
           "). "
