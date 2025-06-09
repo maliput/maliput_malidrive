@@ -166,6 +166,11 @@ RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
   if (it != road_geometry_configuration.end()) {
     rg_config.omit_nondrivable_lanes = ParseBoolean(it->second);
   }
+
+  it = road_geometry_configuration.find(params::kIntegratorAccuracyMultiplier);
+  if (it != road_geometry_configuration.end()) {
+    rg_config.integrator_accuracy_multiplier = std::stod(it->second);
+  }
   return rg_config;
 }
 
@@ -189,6 +194,7 @@ std::map<std::string, std::string> RoadGeometryConfiguration::ToStringMap() cons
   if (build_policy.num_threads.has_value()) {
     config_map.emplace(params::kNumThreads, std::to_string(build_policy.num_threads.value()));
   }
+  config_map.emplace(params::kIntegratorAccuracyMultiplier, std::to_string(integrator_accuracy_multiplier));
   return config_map;
 }
 

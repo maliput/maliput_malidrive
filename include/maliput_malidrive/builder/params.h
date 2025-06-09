@@ -180,6 +180,16 @@ static constexpr char const* kStandardStrictnessPolicy{"standard_strictness_poli
 ///   - Default: @e "true"
 static constexpr char const* kOmitNonDrivableLanes{"omit_nondrivable_lanes"};
 
+/// Modifier for the accuracy of the integrator used to build each RoadCurve in the maliput::api::RoadGeometry.
+/// This multiplier is expected to be used to increase the accuracy of the integrator in maps where its highly
+/// curved or has a lot of detail just in case the underlying heuristics of the integrator are not enough.
+/// It should be used with care, as it can lead to performance issues if set too high.
+///
+/// The closer to zero, the more accurate the integrator will be.
+/// The default value is 1.0, which means that the integrator will use its default accuracy.
+///   - Default: @e "1.0"
+static constexpr char const* kIntegratorAccuracyMultiplier{"integrator_accuracy_multiplier"};
+
 /// @}
 
 }  // namespace params

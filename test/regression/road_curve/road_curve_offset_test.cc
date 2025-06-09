@@ -52,6 +52,8 @@ std::unique_ptr<road_curve::Function> MakeConstantCubicPolynomial(double d, doub
 
 using maliput::math::Vector2;
 
+static constexpr double kRoadCurveOffsetIntegratorAccuracyMultiplier{1.};
+
 class RoadCurveOffsetTest : public ::testing::Test {
  public:
   const double kLinearTolerance{1e-12};
@@ -75,8 +77,12 @@ class RoadCurveOffsetTest : public ::testing::Test {
 };
 
 TEST_F(RoadCurveOffsetTest, ConstructorAssertionRoadCurve) {
-  EXPECT_THROW(RoadCurveOffset(nullptr, lane_offset_0.get(), kP0, kP1), maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1), maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurveOffset(nullptr, lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+               maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+               maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, 0.), maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, -1.), maliput::common::assertion_error);
 }
 
 // Flat, non-elevated and non-superelevated line road curve. Offsets are not
@@ -101,12 +107,14 @@ class FlatLineRoadCurveTest : public RoadCurveOffsetTest {
 TEST_F(FlatLineRoadCurveTest, ConstructorAssertionRange) {
   const double kWrongP0{5.};
   const double kWrongP1{3.};
-  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), lane_offset_0.get(), kWrongP0, kWrongP1),
+  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), lane_offset_0.get(), kWrongP0, kWrongP1,
+                               kRoadCurveOffsetIntegratorAccuracyMultiplier),
                maliput::common::assertion_error);
 }
 
 TEST_F(FlatLineRoadCurveTest, RoadCurve) {
-  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1,
+                            kRoadCurveOffsetIntegratorAccuracyMultiplier);
 
   EXPECT_EQ(road_curve_.get(), dut.road_curve());
 }
@@ -118,21 +126,26 @@ TEST_F(FlatLineRoadCurveTest, RelativeTolerance) {
   auto superelevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kTolerance);
   road_curve_ = std::make_unique<RoadCurve>(kTolerance, kScaleLength, std::move(ground_curve), std::move(elevation),
                                             std::move(superelevation), kAssertContiguity);
-  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1,
+                            kRoadCurveOffsetIntegratorAccuracyMultiplier);
 
   EXPECT_DOUBLE_EQ(kTolerance / kDXy.norm(), dut.relative_tolerance());
 }
 
 TEST_F(FlatLineRoadCurveTest, RelativeToleranceClamped) {
-  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1,
+                            kRoadCurveOffsetIntegratorAccuracyMultiplier);
 
   EXPECT_DOUBLE_EQ(/* Minimum allowed value */ 1e-8, dut.relative_tolerance());
 }
 
 TEST_F(FlatLineRoadCurveTest, CalcSFromP) {
-  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
+  const std::array<RoadCurveOffset, 3> duts{
+      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (const auto& dut : duts) {
     for (std::size_t i = 0; i < kPs.size(); ++i) {
@@ -142,9 +155,12 @@ TEST_F(FlatLineRoadCurveTest, CalcSFromP) {
 }
 
 TEST_F(FlatLineRoadCurveTest, PFromS) {
-  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
+  const std::array<RoadCurveOffset, 3> duts{
+      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier}};
   for (const auto& dut : duts) {
     auto p_from_s = dut.PFromS();
     for (std::size_t i = 0; i < kSs.size(); ++i) {
@@ -154,9 +170,12 @@ TEST_F(FlatLineRoadCurveTest, PFromS) {
 }
 
 TEST_F(FlatLineRoadCurveTest, SFromP) {
-  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
+  const std::array<RoadCurveOffset, 3> duts{
+      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (const auto& dut : duts) {
     auto s_from_p = dut.SFromP();
@@ -180,10 +199,12 @@ class FlatLineRoadCurveSubRangeTest : public FlatLineRoadCurveTest {
 };
 
 TEST_F(FlatLineRoadCurveSubRangeTest, CalcSFromP) {
-  const std::array<RoadCurveOffset, 3> duts{
-      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
+  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier}};
   for (const auto& dut : duts) {
     for (std::size_t i = 0; i < kPsSub.size(); ++i) {
       EXPECT_NEAR(kSsSub[i], dut.CalcSFromP(kPsSub[i]), kLinearTolerance);
@@ -192,10 +213,12 @@ TEST_F(FlatLineRoadCurveSubRangeTest, CalcSFromP) {
 }
 
 TEST_F(FlatLineRoadCurveSubRangeTest, SFromP) {
-  const std::array<RoadCurveOffset, 3> duts{
-      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
+  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier}};
   for (const auto& dut : duts) {
     auto s_from_p = dut.SFromP();
     for (std::size_t i = 0; i < kPsSub.size(); ++i) {
@@ -205,10 +228,12 @@ TEST_F(FlatLineRoadCurveSubRangeTest, SFromP) {
 }
 
 TEST_F(FlatLineRoadCurveSubRangeTest, PFromS) {
-  const std::array<RoadCurveOffset, 3> duts{
-      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
+  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier}};
   for (const auto& dut : duts) {
     auto p_from_s = dut.PFromS();
     for (std::size_t i = 0; i < kSsSub.size(); ++i) {
@@ -254,7 +279,8 @@ class FlatArcRoadCurveTest : public RoadCurveOffsetTest {
 };
 
 TEST_F(FlatArcRoadCurveTest, RoadCurve) {
-  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1,
+                            kRoadCurveOffsetIntegratorAccuracyMultiplier);
 
   EXPECT_EQ(road_curve_.get(), dut.road_curve());
 }
@@ -267,21 +293,26 @@ TEST_F(FlatArcRoadCurveTest, RelativeTolerance) {
   auto superelevation = std::make_unique<CubicPolynomial>(kZero, kZero, kZero, kZero, kP0, kP1, kTolerance);
   road_curve_ = std::make_unique<RoadCurve>(kTolerance, kScaleLength, std::move(ground_curve), std::move(elevation),
                                             std::move(superelevation), kAssertContiguity);
-  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1,
+                            kRoadCurveOffsetIntegratorAccuracyMultiplier);
 
   EXPECT_DOUBLE_EQ(kTolerance / kArcLength, dut.relative_tolerance());
 }
 
 TEST_F(FlatArcRoadCurveTest, RelativeToleranceClamped) {
-  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1);
+  const RoadCurveOffset dut(road_curve_.get(), lane_offset_0.get(), kP0, kP1,
+                            kRoadCurveOffsetIntegratorAccuracyMultiplier);
 
   EXPECT_DOUBLE_EQ(/* Minimum allowed value */ 1e-8, dut.relative_tolerance());
 }
 
 TEST_F(FlatArcRoadCurveTest, CalcSFromP) {
-  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
+  const std::array<RoadCurveOffset, 3> duts{
+      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier}};
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     for (std::size_t i = 0; i < kPs.size(); ++i) {
       EXPECT_NEAR(kSs[j][i], duts[j].CalcSFromP(kPs[i]), kLinearTolerance);
@@ -290,9 +321,12 @@ TEST_F(FlatArcRoadCurveTest, CalcSFromP) {
 }
 
 TEST_F(FlatArcRoadCurveTest, PFromS) {
-  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
+  const std::array<RoadCurveOffset, 3> duts{
+      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto p_from_s = duts[j].PFromS();
@@ -303,9 +337,12 @@ TEST_F(FlatArcRoadCurveTest, PFromS) {
 }
 
 TEST_F(FlatArcRoadCurveTest, SFromP) {
-  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1},
-                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1}};
+  const std::array<RoadCurveOffset, 3> duts{
+      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier},
+      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0, kP1,
+                      kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto s_from_p = duts[j].SFromP();
@@ -343,10 +380,12 @@ class FlatArcRoadCurveSubRangeTest : public FlatArcRoadCurveTest {
 };
 
 TEST_F(FlatArcRoadCurveSubRangeTest, CalcSFromP) {
-  const std::array<RoadCurveOffset, 3> duts{
-      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
+  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     for (int i = 0; i < static_cast<int>(kPsSub.size()); ++i) {
@@ -356,10 +395,12 @@ TEST_F(FlatArcRoadCurveSubRangeTest, CalcSFromP) {
 }
 
 TEST_F(FlatArcRoadCurveSubRangeTest, PFromS) {
-  const std::array<RoadCurveOffset, 3> duts{
-      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
+  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto p_from_s = duts[j].PFromS();
@@ -370,10 +411,12 @@ TEST_F(FlatArcRoadCurveSubRangeTest, PFromS) {
 }
 
 TEST_F(FlatArcRoadCurveSubRangeTest, SFromP) {
-  const std::array<RoadCurveOffset, 3> duts{
-      RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub},
-      RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub}};
+  const std::array<RoadCurveOffset, 3> duts{RoadCurveOffset{road_curve_.get(), lane_offset_0.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_left.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier},
+                                            RoadCurveOffset{road_curve_.get(), lane_offset_right.get(), kP0Sub, kP1Sub,
+                                                            kRoadCurveOffsetIntegratorAccuracyMultiplier}};
 
   for (int j = 0; j < static_cast<int>(duts.size()); ++j) {
     auto s_from_p = duts[j].SFromP();

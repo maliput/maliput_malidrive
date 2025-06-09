@@ -160,12 +160,14 @@ struct InverseArcLengthODEFunction {
 
 }  // namespace
 
-RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1)
+RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1,
+                                 double integrator_accuracy_multiplier)
     : road_curve_(road_curve), lane_offset_(lane_offset), p0_(p0), p1_(p1) {
   MALIDRIVE_THROW_UNLESS(road_curve_ != nullptr);
   MALIDRIVE_THROW_UNLESS(lane_offset_ != nullptr);
   MALIDRIVE_THROW_UNLESS(p0 >= 0.);
   MALIDRIVE_THROW_UNLESS(p0 <= p1);
+  MALIDRIVE_THROW_UNLESS(integrator_accuracy_multiplier > 0.);
 
   maliput::log()->trace("Creating RoadCurveOffset with p0: ", p0, " and p1: ", p1);
 
@@ -185,7 +187,10 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   // bounded by 4e/L.
   // Relative tolerance is clamped to kMinRelativeTolerance to avoid setting
   // accuracy of the integrator that goes beyond the limit of the integrator.
-  relative_tolerance_ = std::max(road_curve_->linear_tolerance() / road_curve_->LMax(), kMinRelativeTolerance);
+  // The integrator_accuracy_multiplier is used to scale the relative tolerance based on the
+  // desired accuracy of the integrator.
+  relative_tolerance_ = std::max(integrator_accuracy_multiplier * road_curve_->linear_tolerance() / road_curve_->LMax(),
+                                 kMinRelativeTolerance);
 
   // Note: Setting this tolerance is necessary to satisfy the
   // road geometry invariants (i.e., CheckInvariants()) in Builder::Build().
@@ -258,16 +263,14 @@ double RoadCurveOffset::CalcSFromP(double p) const {
 }
 
 std::function<double(double)> RoadCurveOffset::SFromP() const {
-  const double absolute_tolerance = relative_tolerance_ * road_curve_->LMax();
   // Populates parameter vector with (r, h) coordinate values.
-  return s_from_p_func_->IntegralFunction(p0_, p1_, maliput::math::Vector2(0.0, 0.0), absolute_tolerance);
+  return s_from_p_func_->IntegralFunction(p0_, p1_, maliput::math::Vector2(0.0, 0.0), road_curve_->linear_tolerance());
 }
 
 std::function<double(double)> RoadCurveOffset::PFromS() const {
   const double full_length = CalcSFromP(p1_);
-  const double absolute_tolerance = relative_tolerance_ * full_length;
-  return p_from_s_ivp_->InverseFunction(0.0, full_length, maliput::math::Vector2(0.0, 0.0), absolute_tolerance,
-                                        GroundCurve::kEpsilon);
+  return p_from_s_ivp_->InverseFunction(0.0, full_length, maliput::math::Vector2(0.0, 0.0),
+                                        road_curve_->linear_tolerance(), GroundCurve::kEpsilon);
 }
 
 }  // namespace road_curve
