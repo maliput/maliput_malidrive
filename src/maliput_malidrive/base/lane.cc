@@ -92,10 +92,10 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
     // go beyond the strict range of [p0, p1] and [0, length_]. Consequently, we
     // use maliput::common::RangeValidator() to a) validate that s arguments in
     // functions of this class are in range with linear_tolerance and b) values
-    // are adjusted to be in the open range (0, length_) with a quarter of
+    // are adjusted to be in the open range (0, length_) with one-tenth of
     // linear_tolerance as the distance between closed and open range extrema.
     s_range_validation_ = maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(
-        0., length_, road_curve_->linear_tolerance(), road_curve_->linear_tolerance() / 4.);
+        0., length_, road_curve_->linear_tolerance(), road_curve_->linear_tolerance() / 10.);
   } else {
     maliput::log()->trace("Lane ", id.string(),
                           " is shorter than linear tolerance. Will not construct the RoadCurveOffset for it.");
