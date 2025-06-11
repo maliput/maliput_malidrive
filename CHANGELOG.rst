@@ -2,6 +2,14 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.0 (2025-06-11)
+------------------
+* Bug fix for OpenScenarioLanePos to maliput lane conversion. (`#314 <https://github.com/maliput/maliput_malidrive/issues/314>`_)
+* Add builder param to tune integrator accuracy. (`#313 <https://github.com/maliput/maliput_malidrive/issues/313>`_)
+* Adjusts lane's range validation for the queries. (`#312 <https://github.com/maliput/maliput_malidrive/issues/312>`_)
+* Modify heuristic to optimize maximum step size for the integrator configs. (`#311 <https://github.com/maliput/maliput_malidrive/issues/311>`_)
+* Contributors: Franco Cipollone
+
 0.6.1 (2025-05-29)
 ------------------
 * Change all warn level logging to debug level. (`#309 <https://github.com/maliput/maliput_malidrive/issues/309>`_)
