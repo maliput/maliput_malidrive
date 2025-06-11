@@ -182,6 +182,7 @@ struct RoadGeometryConfiguration {
   // Lane 1 will not be considered but lane 2 yes. However, because of omitting
   // lane 1, the lane 2 will have an incorrect lane offset function.
   bool omit_nondrivable_lanes{true};
+  double integrator_accuracy_multiplier{1.0};
   /// @}
 };
 

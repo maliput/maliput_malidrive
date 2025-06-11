@@ -53,6 +53,7 @@ class RoadGeometryConfigurationTest : public ::testing::Test {
   const double kMaxLinearTolerance{1e-4};
   const double kAngularTolerance{5e-5};
   const double kScaleLength{2.};
+  const double kIntegratorAccuracyMultiplier{0.1};
 
   void ExpectEqual(const RoadGeometryConfiguration& lhs, const RoadGeometryConfiguration& rhs) {
     EXPECT_EQ(lhs.id, rhs.id);
@@ -67,6 +68,7 @@ class RoadGeometryConfigurationTest : public ::testing::Test {
     EXPECT_EQ(lhs.simplification_policy, rhs.simplification_policy);
     EXPECT_EQ(lhs.standard_strictness_policy, rhs.standard_strictness_policy);
     EXPECT_EQ(lhs.omit_nondrivable_lanes, rhs.omit_nondrivable_lanes);
+    EXPECT_EQ(lhs.integrator_accuracy_multiplier, rhs.integrator_accuracy_multiplier);
   }
 };
 
@@ -80,7 +82,8 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
       kBuildPolicy,
       kSimplificationPolicy,
       kStandardStrictnessPolicy,
-      kOmitNondrivableLanes};
+      kOmitNondrivableLanes,
+      kIntegratorAccuracyMultiplier};
 
   const std::map<std::string, std::string> rg_config_map{
       {params::kRoadGeometryId, kRgId},
@@ -96,6 +99,7 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
       {params::kStandardStrictnessPolicy,
        RoadGeometryConfiguration::FromStandardStrictnessPolicyToStr(kStandardStrictnessPolicy)},
       {params::kOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
+      {params::kIntegratorAccuracyMultiplier, std::to_string(kIntegratorAccuracyMultiplier)},
   };
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(rg_config_map)};
@@ -113,7 +117,8 @@ TEST_F(RoadGeometryConfigurationTest, ToStringMapUsingMaxLinearTolerance) {
       kBuildPolicy,
       kSimplificationPolicy,
       kStandardStrictnessPolicy,
-      kOmitNondrivableLanes};
+      kOmitNondrivableLanes,
+      kIntegratorAccuracyMultiplier};
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);
@@ -129,7 +134,8 @@ TEST_F(RoadGeometryConfigurationTest, ToStringMapNotUsingMaxLinearTolerance) {
       kBuildPolicy,
       kSimplificationPolicy,
       kStandardStrictnessPolicy,
-      kOmitNondrivableLanes};
+      kOmitNondrivableLanes,
+      kIntegratorAccuracyMultiplier};
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);

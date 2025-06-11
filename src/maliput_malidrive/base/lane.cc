@@ -54,7 +54,7 @@ using maliput::math::Vector3;
 Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
            const maliput::api::HBounds& elevation_bounds, const road_curve::RoadCurve* road_curve,
            std::unique_ptr<road_curve::Function> lane_width, std::unique_ptr<road_curve::Function> lane_offset,
-           double p0, double p1)
+           double p0, double p1, double integrator_accuracy_multiplier)
     : maliput::geometry_base::Lane(id),
       xodr_track_(xodr_track),
       xodr_lane_id_(xodr_lane_id),
@@ -62,7 +62,7 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
       road_curve_(road_curve),
       p0_(p0),
       p1_(p1),
-      road_curve_offset_(road_curve_, lane_offset.get(), p0, p1),
+      road_curve_offset_(road_curve_, lane_offset.get(), p0, p1, integrator_accuracy_multiplier),
       lane_width_(std::move(lane_width)),
       lane_offset_(std::move(lane_offset)) {
   MALIDRIVE_THROW_UNLESS(xodr_track >= 0);

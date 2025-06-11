@@ -64,11 +64,15 @@ class RoadCurveOffset {
   ///        be nullptr.
   /// @param p0 Initial @f$ p @f$ parameter value of the curve.
   /// @param p1 Final @f$ p @f$ parameter value of the curve.
+  /// @param integrator_accuracy_multiplier A multiplier to tune the accuracy of the integrator. Using 1.0 is expected
+  ///        for most cases, but it can be adjusted to increase or decrease the accuracy of the integrator.
   /// @throws maliput::common::assertion_error When @p road_curve is nullptr.
   /// @throws maliput::common::assertion_error When @p lane_offset is nullptr.
   /// @throws maliput::common::assertion_error When @p p0 is negative.
   /// @throws maliput::common::assertion_error When @p p0 is greater than @p p1.
-  RoadCurveOffset(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1);
+  /// @throws maliput::common::assertion_error When @p integrator_accuracy_multiplier is equal to or less than zero.
+  RoadCurveOffset(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1,
+                  double integrator_accuracy_multiplier);
 
   /// Returns the constructor RoadCurve argument.
   const RoadCurve* road_curve() const { return road_curve_; }
