@@ -225,6 +225,12 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   maliput::math::RollPitchYaw GetRoadOrientationAtOpenScenarioRoadPosition(
       const OpenScenarioRoadPosition& xodr_road_position) const;
 
+  /// Finds the maliput lane that corresponds to the given OpenScenario LanePosition.
+  ///
+  /// @param xodr_lane_position The OpenScenario LanePosition to find the corresponding maliput lane.
+  /// @returns A pointer to the corresponding maliput Lane, or nullptr if not found.
+  const Lane* GetMaliputLaneFromOpenScenarioLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {
@@ -317,9 +323,6 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
 
   // Finds the maliput segment that corresponds to the given OpenScenario RoadPosition.
   const Segment* FindSegmentByOpenScenarioRoadPosition(const OpenScenarioRoadPosition& xodr_road_position) const;
-
-  // Finds the maliput lane that corresponds to the given OpenScenario LanePosition.
-  const Lane* GetMaliputLaneFromOpenScenarioLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const;
 
   // Finds the maliput lane that corresponds to the offset from the intial_lane.
   const Lane* ApplyOffsetToLane(const Lane* initial_lane, int lane_offset) const;

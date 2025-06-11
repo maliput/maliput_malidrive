@@ -318,8 +318,11 @@ const Lane* RoadGeometry::GetMaliputLaneFromOpenScenarioLanePosition(
     const Lane* mali_lane = dynamic_cast<const Lane*>(lane.second);
     if (mali_lane->get_track() == xodr_lane_position.road_id &&
         mali_lane->get_lane_id() == xodr_lane_position.lane_id) {
-      if (is_greater_than_or_close(xodr_lane_position.s, mali_lane->get_track_s_start()) &&
-          is_less_than_or_close(xodr_lane_position.s, mali_lane->get_track_s_end())) {
+      const auto segment = dynamic_cast<const Segment*>(mali_lane->segment());
+      MALIPUT_THROW_UNLESS(segment != nullptr);
+      const double xodr_lane_position_s_constrained = segment->road_curve()->PFromP(xodr_lane_position.s);
+      if (is_greater_than_or_close(xodr_lane_position_s_constrained, mali_lane->get_track_s_start()) &&
+          is_less_than_or_close(xodr_lane_position_s_constrained, mali_lane->get_track_s_end())) {
         if (target_lane != nullptr) {
           target_lane = target_lane->get_track_s_start() > mali_lane->get_track_s_start() ? target_lane : mali_lane;
         } else {
