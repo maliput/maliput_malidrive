@@ -895,6 +895,86 @@ TEST_F(ParsingTests, NodeParserLaneSection) {
   EXPECT_EQ(kExpectedLaneSection, lane_section);
 }
 
+// XML description that contains a XODR LaneSection node with a wrong center lane.
+constexpr const char* kLaneSectionWrongCenterLaneWidth = R"R(
+<root>
+  <laneSection s='0'>
+      <left>
+          <lane id='1' type='driving' level= '0'>
+              <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
+          </lane>
+      </left>
+      <center>
+          <lane id='0' type='driving' level= '0'>
+              <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
+          </lane>
+      </center>
+      <right>
+          <lane id='-1' type='driving' level= '0'>
+              <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
+          </lane>
+      </right>
+  </laneSection>
+</root>
+)R";
+
+// Tests `LaneSection` parsing.
+TEST_F(ParsingTests, NodeParserLaneSectionWrongCenterLaneWidth) {
+  const Lane left_lane{Lane::Id("1"), Lane::Type::kDriving, false, {}, std::vector<LaneWidth>{{0., 1., 2., 3., 4.}}};
+  const Lane center_lane{Lane::Id("0"), Lane::Type::kDriving, false, {}, {}};
+  const Lane right_lane{Lane::Id("-1"), Lane::Type::kDriving, false, {}, std::vector<LaneWidth>{{5., 6., 7., 8., 9.}}};
+  const LaneSection kExpectedLaneSection{1.58 /* s_0 */,
+                                         std::nullopt /* single_side */,
+                                         {left_lane} /* left_lanes */,
+                                         center_lane /* center_lane */,
+                                         {right_lane} /* right_lanes */};
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(kLaneSectionWrongCenterLaneWidth, LaneSection::kLaneSectionTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(LaneSection::kLaneSectionTag, dut.GetName());
+  EXPECT_THROW(dut.As<LaneSection>(), maliput::common::assertion_error);
+}
+
+// XML description that contains a XODR LaneSection node with a wrong center lane.
+constexpr const char* kLaneSectionWrongCenterLaneSpeed = R"R(
+  <root>
+    <laneSection s='0'>
+        <left>
+            <lane id='1' type='driving' level= '0'>
+                <width sOffset='0.' a='1.' b='2.' c='3.' d='4.'/>
+            </lane>
+        </left>
+        <center>
+            <lane id='0' type='driving' level= '0'>
+                <speed sOffset='0.' max='45.' unit='mph'/>
+            </lane>
+        </center>
+        <right>
+            <lane id='-1' type='driving' level= '0'>
+                <width sOffset='5.' a='6.' b='7.' c='8.' d='9.'/>
+            </lane>
+        </right>
+    </laneSection>
+  </root>
+  )R";
+
+// Tests `LaneSection` parsing.
+TEST_F(ParsingTests, NodeParserLaneSectionWrongCenterLaneSpeed) {
+  const Lane left_lane{Lane::Id("1"), Lane::Type::kDriving, false, {}, std::vector<LaneWidth>{{0., 1., 2., 3., 4.}}};
+  const Lane center_lane{Lane::Id("0"), Lane::Type::kDriving, false, {}, {}};
+  const Lane right_lane{Lane::Id("-1"), Lane::Type::kDriving, false, {}, std::vector<LaneWidth>{{5., 6., 7., 8., 9.}}};
+  const LaneSection kExpectedLaneSection{1.58 /* s_0 */,
+                                         std::nullopt /* single_side */,
+                                         {left_lane} /* left_lanes */,
+                                         center_lane /* center_lane */,
+                                         {right_lane} /* right_lanes */};
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(kLaneSectionWrongCenterLaneSpeed, LaneSection::kLaneSectionTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(LaneSection::kLaneSectionTag, dut.GetName());
+  EXPECT_THROW(dut.As<LaneSection>(), maliput::common::assertion_error);
+}
+
 // Template of a XML description that contains a XODR Lanes node.
 constexpr const char* kLanesTemplate = R"R(
 <root>
