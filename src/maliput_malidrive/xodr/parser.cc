@@ -585,11 +585,25 @@ std::vector<Lane> GetAllLanesFromNode(tinyxml2::XMLElement* element, bool is_cen
   while (lane_element_ptr != nullptr) {
     const NodeParser node_parser(lane_element_ptr, parse_configuration);
     const Lane lane = node_parser.As<Lane>();
-    // Center lanes must not have `widths` description.
-    // While right and left lanes need at least one width entry.
-    MALIDRIVE_THROW_UNLESS(is_center_node ? lane.width_description.size() == 0 : lane.width_description.size() > 0);
-    // Center lanes must not have `speed` records.
-    MALIDRIVE_THROW_UNLESS(is_center_node ? lane.speed.size() == 0 : true);
+    if (is_center_node) {
+      // Center lanes must not have `widths` description.
+      // While right and left lanes need at least one width entry.
+      // Center lanes must not have `speed` records.
+      if (lane.width_description.size() > 0 || !lane.speed.empty()) {
+        // Invalid center lane.
+        const std::string msg{std::string(Lane::kLaneTag) +
+                              " node describes a center lane with widths or speeds description:\n" +
+                              ConvertXMLNodeToText(lane_element_ptr)};
+        if (!parse_configuration.allow_schema_errors) {
+          MALIDRIVE_THROW_MESSAGE(msg);
+        }
+        maliput::log()->warn(msg + "\nDiscarding the center lane's width and speeds descriptions.");
+      }
+    } else {
+      // Right and left lanes must have at least one width entry.
+      MALIDRIVE_THROW_UNLESS(lane.width_description.size() > 0);
+    }
+
     MALIDRIVE_TRACE("Lane id: '" + lane.id.string() + "' parsed.");
     lanes.insert(lanes.begin(), lane);
     lane_element_ptr = lane_element_ptr->NextSiblingElement(Lane::kLaneTag);
