@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.7.1 (2025-06-17)
+------------------
+* xodr parser: Log instead of throw in some center lane rule checks. (`#318 <https://github.com/maliput/maliput_malidrive/issues/318>`_)
+* Contributors: Franco Cipollone
+
 0.7.0 (2025-06-11)
 ------------------
 * Bug fix for OpenScenarioLanePos to maliput lane conversion. (`#314 <https://github.com/maliput/maliput_malidrive/issues/314>`_)
