@@ -817,9 +817,10 @@ std::string GetLane(const std::string& id, const std::string& type, const std::s
                     const std::string& road_works) {
   std::stringstream ss;
   ss << "<root>";
-  ss << "<lane id='" << id << "' type='" << type << "' level='" << level << "' advisory='" << advisory
-     << "' direction='" << direction << "' dynamic_lane_direction='" << dynamic_lane_direction
-     << "' dynamic_lane_type='" << dynamic_lane_type << "' road_works='" << road_works << "'>";
+  ss << "<lane " << Lane::kId << "='" << id << "' " << Lane::kType << "='" << type << "' " << Lane::kLevel << "='"
+     << level << "' " << Lane::kAdvisory << "='" << advisory << "' " << Lane::kDirection << "='" << direction << "' "
+     << Lane::kDynamicLaneDirection << "='" << dynamic_lane_direction << "' " << Lane::kDynamicLaneType << "='"
+     << dynamic_lane_type << "' " << Lane::kRoadWorks << "='" << road_works << "'>";
   ss << "<link>";
   ss << "<predecessor id='50'/>";
   ss << "<successor id='80'/>";
@@ -865,12 +866,11 @@ TEST_F(ParsingTests, NodeParserLane) {
       kRoadWorks /* road_works */
   };
   const std::string xml_description = GetLane(
-      kExpectedLane.id.string(), Lane::type_to_str(kExpectedLane.type), kExpectedLane.level.value() ? "true" :
-      "false", kUserData.value(), Lane::advisory_to_str(kExpectedLane.advisory.value()),
+      kExpectedLane.id.string(), Lane::type_to_str(kExpectedLane.type), kExpectedLane.level.value() ? "true" : "false",
+      kUserData.value(), Lane::advisory_to_str(kExpectedLane.advisory.value()),
       Lane::direction_to_str(kExpectedLane.direction.value()),
       kExpectedLane.dynamic_lane_direction.value() ? "true" : "false",
-      kExpectedLane.dynamic_lane_type.value() ? "true" : "false", kExpectedLane.road_works.value() ? "true" :
-      "false");
+      kExpectedLane.dynamic_lane_type.value() ? "true" : "false", kExpectedLane.road_works.value() ? "true" : "false");
   std::cout << "XML description: " << xml_description << std::endl;
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
