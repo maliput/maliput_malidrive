@@ -804,6 +804,12 @@ TEST_F(ParsingTests, NodeParserLaneLink) {
 // @param id The id value.
 // @param type The type value.
 // @param level The level value.
+// @param user_data The userData XODR node value.
+// @param advisory The advisory value.
+// @param direction The direction value.
+// @param dynamic_lane_direction The dynamicLaneDirection value.
+// @param dynamic_lane_type The dynamicLaneType value.
+// @param road_works The roadWorks value.
 // @returns A string that contains a XML description of a XODR Lane node.
 std::string GetLane(const std::string& id, const std::string& type, const std::string& level,
                     const std::string& user_data, const std::string& advisory, const std::string& direction,
@@ -813,7 +819,7 @@ std::string GetLane(const std::string& id, const std::string& type, const std::s
   ss << "<root>";
   ss << "<lane id='" << id << "' type='" << type << "' level='" << level << "' advisory='" << advisory
      << "' direction='" << direction << "' dynamic_lane_direction='" << dynamic_lane_direction
-     << "' dynamic_lane_type='" << dynamic_lane_type << "' road_works='" << road_works << "' >";
+     << "' dynamic_lane_type='" << dynamic_lane_type << "' road_works='" << road_works << "'>";
   ss << "<link>";
   ss << "<predecessor id='50'/>";
   ss << "<successor id='80'/>";
@@ -838,37 +844,49 @@ TEST_F(ParsingTests, NodeParserLane) {
       {6.6 /* sOffset */, 7.7 /* a */, 8.8 /* b */, 9.9 /* c */, 10.1 /* d */}};
   const std::vector<Lane::Speed> kSpeed{{0.1 /* sOffset */, 45. /* max */, Unit::kMph /* unit */},
                                         {0.5 /* sOffset */, 3. /* max */, Unit::kMs /* unit */}};
-  const std::optional<std::string> kUserData{"<userData/>"};
+  const std::optional<std::string> kUserData{"<userData/>\n"};
   const std::optional<Lane::Advisory> kAdvisory{Lane::Advisory::kInner};
   const std::optional<Lane::Direction> kDirection{Lane::Direction::kStandard};
-  const std::optional<bool> kDynamicLaneDirection{false};
+  const std::optional<bool> kDynamicLaneDirection{true};
   const std::optional<bool> kDynamicLaneType{false};
   const std::optional<bool> kRoadWorks{false};
-  const Lane kExpectedLane{Lane::Id("test_id") /* id */,
-                           Lane::Type::kDriving /* type */,
-                           false /* level */,
-                           lane_link /* lane_link */,
-                           kWidthDescription /* widths */,
-                           kSpeed /* speed */,
-                           kUserData /* user_data */,
-                           kAdvisory /* advisory */,
-                           kDirection /* direction */,
-                           kDynamicLaneDirection /* dynamic_lane_direction */,
-                           kDynamicLaneType /* dynamic_lane_type */,
-                           kRoadWorks /* road_works */};
-
+  const Lane kExpectedLane{
+      Lane::Id("test_id") /* id */,
+      Lane::Type::kDriving /* type */,
+      false /* level */,
+      lane_link /* lane_link */,
+      kWidthDescription /* widths */,
+      kSpeed /*speed*/,
+      kUserData /* user_data */,
+      kAdvisory /* advisory */,
+      kDirection /* direction */,
+      kDynamicLaneDirection /* dynamic_lane_direction */,
+      kDynamicLaneType /* dynamic_lane_type */,
+      kRoadWorks /* road_works */
+  };
   const std::string xml_description = GetLane(
-      kExpectedLane.id.string(), Lane::type_to_str(kExpectedLane.type), kExpectedLane.level.value() ? "true" : "false",
-      kUserData.value(), Lane::advisory_to_str(kExpectedLane.advisory.value()),
+      kExpectedLane.id.string(), Lane::type_to_str(kExpectedLane.type), kExpectedLane.level.value() ? "true" :
+      "false", kUserData.value(), Lane::advisory_to_str(kExpectedLane.advisory.value()),
       Lane::direction_to_str(kExpectedLane.direction.value()),
       kExpectedLane.dynamic_lane_direction.value() ? "true" : "false",
-      kExpectedLane.dynamic_lane_type.value() ? "true" : "false", kExpectedLane.road_works.value() ? "true" : "false");
+      kExpectedLane.dynamic_lane_type.value() ? "true" : "false", kExpectedLane.road_works.value() ? "true" :
+      "false");
   std::cout << "XML description: " << xml_description << std::endl;
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(Lane::kLaneTag, dut.GetName());
   const Lane lane = dut.As<Lane>();
+  EXPECT_EQ(kExpectedLane.id, lane.id);
+  EXPECT_EQ(kExpectedLane.type, lane.type);
+  EXPECT_EQ(kExpectedLane.level, lane.level);
+  EXPECT_EQ(kExpectedLane.speed, lane.speed);
+  EXPECT_EQ(kExpectedLane.advisory, lane.advisory);
+  EXPECT_EQ(kExpectedLane.direction, lane.direction);
+  EXPECT_EQ(kExpectedLane.dynamic_lane_direction, lane.dynamic_lane_direction);
+  EXPECT_EQ(kExpectedLane.dynamic_lane_type, lane.dynamic_lane_type);
+  EXPECT_EQ(kExpectedLane.road_works, lane.road_works);
+  EXPECT_EQ(kExpectedLane.user_data.value(), lane.user_data.value());
   EXPECT_EQ(kExpectedLane, lane);
 }
 

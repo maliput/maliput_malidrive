@@ -152,7 +152,10 @@ Lane::Direction Lane::str_to_direction(const std::string& direction) {
 
 bool Lane::operator==(const Lane& other) const {
   return id == other.id && type == other.type && level == other.level && lane_link == other.lane_link &&
-         width_description == other.width_description && speed == other.speed && user_data == other.user_data;
+         width_description == other.width_description && speed == other.speed && user_data == other.user_data &&
+         advisory == other.advisory && direction == other.direction &&
+         dynamic_lane_direction == other.dynamic_lane_direction && dynamic_lane_type == other.dynamic_lane_type &&
+         road_works == other.road_works;
 }
 
 bool Lane::operator!=(const Lane& other) const { return !(*this == other); }
