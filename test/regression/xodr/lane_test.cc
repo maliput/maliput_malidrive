@@ -113,6 +113,73 @@ GTEST_TEST(LaneTypeTest, StrToTypeThrowsWithUnknownToken) {
 INSTANTIATE_TEST_CASE_P(GroupTypeStringConversionTest, TypeStringConversionTest,
                         ::testing::ValuesIn(GetTestingLaneTypeAndStringTypes()));
 
+// Holds the Lane::Advisory and its string representation.
+struct LaneAdvisoryAndStrAdvisory {
+  Lane::Advisory advisory{};
+  std::string str_advisory{};
+};
+
+std::vector<LaneAdvisoryAndStrAdvisory> GetTestingLaneAdvisoryAndStringAdvisories() {
+  return std::vector<LaneAdvisoryAndStrAdvisory>{
+      {Lane::Advisory::kNone, "none"},
+      {Lane::Advisory::kInner, "inner"},
+      {Lane::Advisory::kOuter, "outer"},
+      {Lane::Advisory::kBoth, "both"},
+  };
+}
+
+// Tests Lane::Advisory to and from string conversion.
+class AdvisoryStringConversionTest : public ::testing::TestWithParam<LaneAdvisoryAndStrAdvisory> {
+ public:
+  const Lane::Advisory advisory_{GetParam().advisory};
+  const std::string str_advisory_{GetParam().str_advisory};
+};
+
+TEST_P(AdvisoryStringConversionTest, AdvisoryToStr) { ASSERT_EQ(str_advisory_, Lane::advisory_to_str(advisory_)); }
+
+TEST_P(AdvisoryStringConversionTest, StrToAdvisory) { ASSERT_EQ(advisory_, Lane::str_to_advisory(str_advisory_)); }
+
+GTEST_TEST(LaneAdvisoryTest, StrToAdvisoryThrowsWithUnknownToken) {
+  const std::string kWrongValue{"WrongValue"};
+  EXPECT_THROW(Lane::str_to_advisory(kWrongValue), maliput::common::assertion_error);
+}
+
+INSTANTIATE_TEST_CASE_P(GroupAdvisoryStringConversionTest, AdvisoryStringConversionTest,
+                        ::testing::ValuesIn(GetTestingLaneAdvisoryAndStringAdvisories()));
+
+// Holds the Lane::Direction and its string representation.
+struct LaneDirectionAndStrDirection {
+  Lane::Direction direction{};
+  std::string str_direction{};
+};
+
+std::vector<LaneDirectionAndStrDirection> GetTestingLaneDirectionAndStringDirections() {
+  return std::vector<LaneDirectionAndStrDirection>{
+      {Lane::Direction::kStandard, "standard"},
+      {Lane::Direction::kReversed, "reversed"},
+      {Lane::Direction::kBoth, "both"},
+  };
+}
+
+// Tests Lane::Direction to and from string conversion.
+class DirectionStringConversionTest : public ::testing::TestWithParam<LaneDirectionAndStrDirection> {
+ public:
+  const Lane::Direction direction_{GetParam().direction};
+  const std::string str_direction_{GetParam().str_direction};
+};
+
+TEST_P(DirectionStringConversionTest, DirectionToStr) { ASSERT_EQ(str_direction_, Lane::direction_to_str(direction_)); }
+
+TEST_P(DirectionStringConversionTest, StrToDirection) { ASSERT_EQ(direction_, Lane::str_to_direction(str_direction_)); }
+
+GTEST_TEST(LaneDirectionTest, StrToDirectionThrowsWithUnknownToken) {
+  const std::string kWrongValue{"WrongValue"};
+  EXPECT_THROW(Lane::str_to_direction(kWrongValue), maliput::common::assertion_error);
+}
+
+INSTANTIATE_TEST_CASE_P(GroupDirectionStringConversionTest, DirectionStringConversionTest,
+                        ::testing::ValuesIn(GetTestingLaneDirectionAndStringDirections()));
+
 GTEST_TEST(Lane, EqualityOperator) {
   const LaneLink lane_link{LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id("35")},
                            LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id("70")}};
@@ -123,7 +190,12 @@ GTEST_TEST(Lane, EqualityOperator) {
       lane_link /* lane_link */,
       {{1.1 /* sOffset */, 2.2 /* a */}, {6.6 /* sOffset */, 7.7 /* a */}} /* widths */,
       {{0. /* sOffset */, 15. /* max */, Unit::kMph /* unit */}} /* speed */,
-      std::nullopt /* userData */
+      std::nullopt /* userData */,
+      Lane::Advisory::kOuter /* advisory */,
+      Lane::Direction::kStandard /* direction */,
+      false /* dynamic_lane_direction */,
+      false /* dynamic_lane_type */,
+      true /* road_works */
   };
   Lane lane = kLane;
 
@@ -149,6 +221,26 @@ GTEST_TEST(Lane, EqualityOperator) {
   lane.user_data = std::make_optional<std::string>("<root></root>");
   EXPECT_NE(kLane, lane);
   lane.user_data = std::nullopt;
+  EXPECT_EQ(kLane, lane);
+  lane.advisory = Lane::Advisory::kInner;
+  EXPECT_NE(kLane, lane);
+  lane.advisory = Lane::Advisory::kOuter;
+  EXPECT_EQ(kLane, lane);
+  lane.direction = Lane::Direction::kReversed;
+  EXPECT_NE(kLane, lane);
+  lane.direction = Lane::Direction::kStandard;
+  EXPECT_EQ(kLane, lane);
+  lane.dynamic_lane_direction = std::make_optional<bool>(true);
+  EXPECT_NE(kLane, lane);
+  lane.dynamic_lane_direction = std::make_optional<bool>(false);
+  EXPECT_EQ(kLane, lane);
+  lane.dynamic_lane_type = std::make_optional<bool>(true);
+  EXPECT_NE(kLane, lane);
+  lane.dynamic_lane_type = std::make_optional<bool>(false);
+  EXPECT_EQ(kLane, lane);
+  lane.road_works = std::make_optional<bool>(false);
+  EXPECT_NE(kLane, lane);
+  lane.road_works = std::make_optional<bool>(true);
   EXPECT_EQ(kLane, lane);
 }
 

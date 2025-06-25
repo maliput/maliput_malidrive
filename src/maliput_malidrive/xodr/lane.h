@@ -92,6 +92,11 @@ struct Lane {
   static constexpr const char* kId = "id";
   static constexpr const char* kType = "type";
   static constexpr const char* kLevel = "level";
+  static constexpr const char* kAdvisory = "advisory";
+  static constexpr const char* kDirection = "direction";
+  static constexpr const char* kDynamicLaneDirection = "dynamicLaneDirection";
+  static constexpr const char* kDynamicLaneType = "dynamicLaneType";
+  static constexpr const char* kRoadWorks = "roadWorks";
   static constexpr const char* kUserData = "userData";
 
   /// Holds types of lanes.
@@ -127,6 +132,25 @@ struct Lane {
     kHOV,
     kMwyEntry,
     kMwyExit,
+  };
+
+  /// Holds advisory attributes of the lane.
+  enum class Advisory {
+    kNone,
+    kInner,
+    kOuter,
+    kBoth,
+  };
+
+  /// Lane traffic direction.
+  enum class Direction {
+    /// Direction is determined by the combination of <left> or <right> lane grouping and the values LHT or RHT of the
+    /// @rule attribute of a road.
+    kStandard,
+    /// Directly opposite to the standard direction.
+    kReversed,
+    /// Bidirectional, both directions are valid.
+    kBoth,
   };
 
   /// Speed description.
@@ -166,6 +190,28 @@ struct Lane {
   /// @throw maliput::common::assertion_error When `type` doesn't match with a Type.
   static Type str_to_type(const std::string& type);
 
+  /// Matches string with an Advisory.
+  /// @param advisory Is an Advisory.
+  /// @returns A string that matches with `advisory`.
+  static std::string advisory_to_str(Advisory advisory);
+
+  /// Matches Advisory with a string.
+  /// @param advisory Is a string.
+  /// @returns An Advisory that matches with `advisory`.
+  /// @throw maliput::common::assertion_error When `advisory` doesn't match with an Advisory.
+  static Advisory str_to_advisory(const std::string& advisory);
+
+  /// Matches string with a Direction.
+  /// @param direction Is a Direction.
+  /// @returns A string that matches with `direction`.
+  static std::string direction_to_str(Direction direction);
+
+  /// Matches Direction with a string.
+  /// @param direction Is a string.
+  /// @returns A Direction that matches with `direction`.
+  /// @throw maliput::common::assertion_error When `direction` doesn't match with a Direction.
+  static Direction str_to_direction(const std::string& direction);
+
   /// Equality operator.
   bool operator==(const Lane& other) const;
 
@@ -188,6 +234,16 @@ struct Lane {
   std::vector<Speed> speed{};
   /// Contains ancillary data in XML format. It holds the entire userData node.
   std::optional<std::string> user_data{std::nullopt};
+  /// Indicates which of the adjacent lanes can be used as an advisory lane.
+  std::optional<Advisory> advisory{std::nullopt};
+  /// Traffic direction of the lane.
+  std::optional<Direction> direction{std::nullopt};
+  /// Indicates whether the lane direction can change dynamically by the scenario during the simulation.
+  std::optional<bool> dynamic_lane_direction{std::nullopt};
+  /// Indicates whether the lane type can change dynamically by the scenario during the simulation.
+  std::optional<bool> dynamic_lane_type{std::nullopt};
+  /// Indicates if the lane is under construction.
+  std::optional<bool> road_works{std::nullopt};
 };
 
 }  // namespace xodr

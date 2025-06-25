@@ -95,6 +95,32 @@ const std::map<Lane::Type, std::string> type_to_str_map{
     {Lane::Type::kMwyExit, "mwyExit"},
 };
 
+const std::map<std::string, Lane::Advisory> str_to_advisory_map{
+    {"none", Lane::Advisory::kNone},
+    {"inner", Lane::Advisory::kInner},
+    {"outer", Lane::Advisory::kOuter},
+    {"both", Lane::Advisory::kBoth},
+};
+
+const std::map<Lane::Advisory, std::string> advisory_to_str_map{
+    {Lane::Advisory::kNone, "none"},
+    {Lane::Advisory::kInner, "inner"},
+    {Lane::Advisory::kOuter, "outer"},
+    {Lane::Advisory::kBoth, "both"},
+};
+
+const std::map<std::string, Lane::Direction> str_to_direction_map{
+    {"standard", Lane::Direction::kStandard},
+    {"reversed", Lane::Direction::kReversed},
+    {"both", Lane::Direction::kBoth},
+};
+
+const std::map<Lane::Direction, std::string> direction_to_str_map{
+    {Lane::Direction::kStandard, "standard"},
+    {Lane::Direction::kReversed, "reversed"},
+    {Lane::Direction::kBoth, "both"},
+};
+
 }  // namespace
 
 std::string Lane::type_to_str(Type type) { return type_to_str_map.at(type); }
@@ -106,9 +132,30 @@ Lane::Type Lane::str_to_type(const std::string& type) {
   return str_to_type_map.at(type);
 }
 
+std::string Lane::advisory_to_str(Advisory advisory) { return advisory_to_str_map.at(advisory); }
+
+Lane::Advisory Lane::str_to_advisory(const std::string& advisory) {
+  if (str_to_advisory_map.find(advisory) == str_to_advisory_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(advisory + " advisory is not available.");
+  }
+  return str_to_advisory_map.at(advisory);
+}
+
+std::string Lane::direction_to_str(Direction direction) { return direction_to_str_map.at(direction); }
+
+Lane::Direction Lane::str_to_direction(const std::string& direction) {
+  if (str_to_direction_map.find(direction) == str_to_direction_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(direction + " direction is not available.");
+  }
+  return str_to_direction_map.at(direction);
+}
+
 bool Lane::operator==(const Lane& other) const {
   return id == other.id && type == other.type && level == other.level && lane_link == other.lane_link &&
-         width_description == other.width_description && speed == other.speed && user_data == other.user_data;
+         width_description == other.width_description && speed == other.speed && user_data == other.user_data &&
+         advisory == other.advisory && direction == other.direction &&
+         dynamic_lane_direction == other.dynamic_lane_direction && dynamic_lane_type == other.dynamic_lane_type &&
+         road_works == other.road_works;
 }
 
 bool Lane::operator!=(const Lane& other) const { return !(*this == other); }

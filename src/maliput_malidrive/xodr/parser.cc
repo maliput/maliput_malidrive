@@ -216,6 +216,28 @@ std::optional<Lane::Type> AttributeParser::As(const std::string& attribute_name)
   }
 }
 
+// Specialization to parse as `Lane::Advisory` the attribute's value.
+template <>
+std::optional<Lane::Advisory> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> advisory = As<std::string>(attribute_name);
+  if (advisory.has_value()) {
+    return Lane::str_to_advisory(advisory.value());
+  } else {
+    return std::nullopt;
+  }
+}
+
+// Specialization to parse as `Lane::Direction` the attribute's value.
+template <>
+std::optional<Lane::Direction> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> direction = As<std::string>(attribute_name);
+  if (direction.has_value()) {
+    return Lane::str_to_direction(direction.value());
+  } else {
+    return std::nullopt;
+  }
+}
+
 // Specialization to parse as `RoadLink::ElementType` the attribute's value.
 template <>
 std::optional<RoadLink::ElementType> AttributeParser::As(const std::string& attribute_name) const {
@@ -530,6 +552,11 @@ Lane NodeParser::As() const {
   // Optional attributes.
   // @{
   const auto level = attribute_parser.As<bool>(Lane::kLevel);
+  const auto advisory = attribute_parser.As<Lane::Advisory>(Lane::kAdvisory);
+  const auto direction = attribute_parser.As<Lane::Direction>(Lane::kDirection);
+  const auto dynamic_lane_direction = attribute_parser.As<bool>(Lane::kDynamicLaneDirection);
+  const auto dynamic_lane_type = attribute_parser.As<bool>(Lane::kDynamicLaneType);
+  const auto road_works = attribute_parser.As<bool>(Lane::kRoadWorks);
   // @}
 
   // Elements.
@@ -571,7 +598,18 @@ Lane NodeParser::As() const {
   if (user_data_element != nullptr) {
     user_data = ConvertXMLNodeToText(user_data_element);
   }
-  return {Lane::Id(id.value()), type.value(), level, lane_link, width_description, speeds, user_data};
+  return {Lane::Id(id.value()),
+          type.value(),
+          level,
+          lane_link,
+          width_description,
+          speeds,
+          user_data,
+          advisory,
+          direction,
+          dynamic_lane_direction,
+          dynamic_lane_type,
+          road_works};
 }
 
 namespace {
