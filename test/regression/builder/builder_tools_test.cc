@@ -37,6 +37,11 @@
 #include <maliput/test_utilities/mock.h>
 
 #include "maliput_malidrive/constants.h"
+#include "maliput_malidrive/road_curve/cubic_polynomial.h"
+#include "maliput_malidrive/road_curve/function.h"
+#include "maliput_malidrive/road_curve/line_ground_curve.h"
+#include "maliput_malidrive/road_curve/road_curve.h"
+#include "maliput_malidrive/test_utilities/ground_curve_stub.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "utility/resources.h"
 
@@ -189,29 +194,117 @@ TEST_F(SolveLaneEndsInnerLaneSectionTest, TestMethod) {
 
 GTEST_TEST(LaneTravelDirection, NonCompleteXmlNode) {
   // Empty string.
-  EXPECT_EQ(LaneTravelDirection("").GetXodrTravelDir(), LaneTravelDirection::Direction::kUndefined);
+  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("").GetXodrTravelDir(), LaneTravelDirection::Direction::kUndefined);
   // XML formatting error.
-  EXPECT_EQ(LaneTravelDirection("Lorem Ipsum").GetXodrTravelDir(), LaneTravelDirection::Direction::kUndefined);
+  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("Lorem Ipsum").GetXodrTravelDir(),
+            LaneTravelDirection::Direction::kUndefined);
   // Missing vectorLane node.
-  EXPECT_EQ(LaneTravelDirection("<userData> <wrong node='true'/> </userData>").GetXodrTravelDir(),
+  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("<userData> <wrong node='true'/> </userData>").GetXodrTravelDir(),
             LaneTravelDirection::Direction::kUndefined);
   // Missing travelDir node.
-  EXPECT_EQ(LaneTravelDirection("<userData> <vectorLane wrongAttribute='true'/> </userData>").GetXodrTravelDir(),
+  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("<userData> <vectorLane wrongAttribute='true'/> </userData>")
+                .GetXodrTravelDir(),
             LaneTravelDirection::Direction::kUndefined);
   // Direction value error.
-  EXPECT_THROW(LaneTravelDirection("<userData> <vectorLane travelDir='wrongValue'/> </userData>"),
+  EXPECT_THROW(LaneTravelDirection::CreateFromUserData("<userData> <vectorLane travelDir='wrongValue'/> </userData>"),
                maliput::common::assertion_error);
 }
 
-GTEST_TEST(LaneTravelDirection, TravelDir) {
+GTEST_TEST(LaneTravelDirection, UserDataTravelDir) {
   const char* kUserDataNode = R"R(
     <userData>
         <vectorLane travelDir="backward"/>
     </userData>
   )R";
-  EXPECT_EQ(LaneTravelDirection::Direction::kBackward, LaneTravelDirection(kUserDataNode).GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromUserData(kUserDataNode).GetXodrTravelDir());
   const std::string kExpectedMaliputValue{"AgainstS"};
-  EXPECT_EQ(kExpectedMaliputValue, LaneTravelDirection(kUserDataNode).GetMaliputTravelDir());
+  EXPECT_EQ(kExpectedMaliputValue, LaneTravelDirection::CreateFromUserData(kUserDataNode).GetMaliputTravelDir());
+}
+
+GTEST_TEST(LaneTravelDirection, LaneGroupTravelDir) {
+  EXPECT_EQ(
+      LaneTravelDirection::Direction::kForward,
+      LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kForward).GetXodrTravelDir());
+  EXPECT_EQ(
+      LaneTravelDirection::Direction::kBackward,
+      LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kBackward).GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBidirectional,
+            LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kBidirectional)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kUndirected,
+            LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kUndirected)
+                .GetXodrTravelDir());
+  EXPECT_EQ(
+      LaneTravelDirection::Direction::kUndefined,
+      LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kUndefined).GetXodrTravelDir());
+}
+
+class HandTrafficRuleTravelDirTest : public ::testing::Test {
+ protected:
+  std::unique_ptr<road_curve::Function> MakeZeroCubicPolynomial(double p0, double p1, double linear_tolerance) {
+    return std::make_unique<road_curve::CubicPolynomial>(0., 0., 0., 0., p0, p1, linear_tolerance);
+  }
+  std::unique_ptr<road_curve::Function> MakeConstantCubicPolynomial(double d, double p0, double p1,
+                                                                    double linear_tolerance) {
+    return std::make_unique<road_curve::CubicPolynomial>(0., 0., 0., d, p0, p1, linear_tolerance);
+  }
+  void SetUp() override {
+    road_curve_ = std::make_unique<road_curve::RoadCurve>(
+        kLinearTolerance, kScaleLength,
+        std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
+        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
+        kAssertContiguity);
+  }
+  std::unique_ptr<road_curve::RoadCurve> road_curve_;
+  const maliput::api::LaneId kId{"dut"};
+  const double kLinearTolerance{0.1};
+  const int kXordTrack{1};
+  const int kXordTrackInvalid{-1};
+  const int kXodrLanePositiveId{5};
+  const int kXodrLaneNegativeId{-1};
+  const maliput::api::HBounds kElevationBounds{0., 5.};
+  const double kP0{0.};
+  const double kP1{1.};
+  const double kScaleLength{1.};
+  const maliput::math::Vector2 kXy0{10., 12.};
+  const maliput::math::Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
+  const double kWidth{5.};
+  const double kLaneOffset{10.};
+  const bool kAssertContiguity{false};
+  const double kRoadCurveOffsetIntegratorAccuracyMultiplier{1.};
+};
+
+TEST_F(HandTrafficRuleTravelDirTest, HandTrafficRuleTravelDir) {
+  const Lane kLanePositiveId = Lane(kId, kXordTrack, kXodrLanePositiveId, kElevationBounds, road_curve_.get(),
+                                    MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
+                                    MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
+                                    kRoadCurveOffsetIntegratorAccuracyMultiplier);
+  const Lane kLaneNegativeId = Lane(kId, kXordTrackInvalid, kXodrLaneNegativeId, kElevationBounds, road_curve_.get(),
+                                    MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
+                                    MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
+                                    kRoadCurveOffsetIntegratorAccuracyMultiplier);
+  // No rule.
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromHandTrafficRule(std::nullopt, &kLaneNegativeId).GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromHandTrafficRule(std::nullopt, &kLanePositiveId).GetXodrTravelDir());
+
+  // RHT.
+  const std::optional<xodr::RoadHeader::HandTrafficRule> kRHT =
+      std::make_optional<xodr::RoadHeader::HandTrafficRule>(xodr::RoadHeader::HandTrafficRule::kRHT);
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromHandTrafficRule(kRHT, &kLaneNegativeId).GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromHandTrafficRule(kRHT, &kLanePositiveId).GetXodrTravelDir());
+
+  // LHT.
+  const std::optional<xodr::RoadHeader::HandTrafficRule> kLHT =
+      std::make_optional<xodr::RoadHeader::HandTrafficRule>(xodr::RoadHeader::HandTrafficRule::kLHT);
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromHandTrafficRule(kLHT, &kLaneNegativeId).GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromHandTrafficRule(kLHT, &kLanePositiveId).GetXodrTravelDir());
 }
 
 /*
