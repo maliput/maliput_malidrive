@@ -149,6 +149,7 @@ struct Lane {
     kStandard,
     /// Directly opposite to the standard direction.
     kReversed,
+    /// Bidirectional, both directions are valid.
     kBoth,
   };
 
