@@ -149,29 +149,49 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForInnerLaneSection(
     const maliput::api::RoadGeometry* rg, const maliput::api::LaneEnd& lane_end,
     const MalidriveXodrLaneProperties& xodr_lane_properties);
 
-/// Hold the travel direction of a lane obtained from parsing a userData XML node.
-/// An userData node example:
-/// @code{.xml}
-///  <userData>
-///      <vectorLane travelDir="undirected"/>
-///  </userData>
-/// @endcode
+/// Hold the travel direction of a lane from parsing an XML node.
 class LaneTravelDirection {
  public:
   MALIDRIVE_DEFAULT_COPY_AND_MOVE_AND_ASSIGN(LaneTravelDirection)
   LaneTravelDirection() = delete;
-
-  /// Constructs a LaneTravelDirection.
-  /// @param user_data Contains a UserData XMLNode that holds information
-  ///                  about the direction of the lane.
-  /// @throw maliput::common::assertion_error When the travel direction information is not compatible.
-  explicit LaneTravelDirection(const std::optional<std::string>& user_data);
-
   /// Possible directions obtained from the XODR.
   /// Note: "Undefined" refer to when travel direction information is omitted or node isn't well formed.
   enum class Direction { kUndirected = 0, kForward, kBackward, kBidirectional, kUndefined };
 
-  /// @returns The direction of the lane describend in the userData XML node.
+  explicit LaneTravelDirection(Direction direction) : travel_dir_(direction) {}
+
+  /// Constructs a LaneTravelDirection from userData.
+  /// @param user_data Contains a UserData XMLNode that holds information
+  ///                  about the direction of the lane.
+  /// An userData node example:
+  /// @code{.xml}
+  ///  <userData>
+  ///      <vectorLane travelDir="undirected"/>
+  ///  </userData>
+  /// @endcode
+  /// @returns A LaneTravelDirection.
+  /// @throw maliput::common::assertion_error When the travel direction information is not compatible.
+  static LaneTravelDirection CreateFromUserData(const std::optional<std::string>& user_data);
+
+  /// Constructs a LaneTravelDirection from a specific lane direction.
+  /// @param direction Direction for the lane.
+  /// @returns A LaneTravelDirection.
+  static LaneTravelDirection CreateFromLaneGroupDirection(Direction direction);
+
+  /// Constructs a LaneTravelDirection from a hand traffic rule.
+  /// @param hand_traffic_rule Contains a rule parameter that holds information about the direction of lanes in a road.
+  /// @param lane Contains the lane to obtain the direction from @p hand_traffic_rule.
+  /// A road node example:
+  /// @code{.xml}
+  ///  <road name="Road 0" id="0" rule="RHT|LHT">
+  ///      <lanes/>
+  ///  </road>
+  /// @endcode
+  /// @returns A LaneTravelDirection.
+  static LaneTravelDirection CreateFromHandTrafficRule(
+      const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule, const Lane* lane);
+
+  /// @returns The direction of the lane describend in the XML node.
   Direction GetXodrTravelDir() const { return travel_dir_; };
 
   /// Matches the travel direction with Maliput's standard.
