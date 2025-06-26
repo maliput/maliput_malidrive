@@ -260,7 +260,6 @@ class HandTrafficRuleTravelDirTest : public ::testing::Test {
   const maliput::api::LaneId kId{"dut"};
   const double kLinearTolerance{0.1};
   const int kXordTrack{1};
-  const int kXordTrackInvalid{-1};
   const int kXodrLanePositiveId{5};
   const int kXodrLaneNegativeId{-1};
   const maliput::api::HBounds kElevationBounds{0., 5.};
@@ -280,7 +279,7 @@ TEST_F(HandTrafficRuleTravelDirTest, HandTrafficRuleTravelDir) {
                                     MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                     MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
                                     kRoadCurveOffsetIntegratorAccuracyMultiplier);
-  const Lane kLaneNegativeId = Lane(kId, kXordTrackInvalid, kXodrLaneNegativeId, kElevationBounds, road_curve_.get(),
+  const Lane kLaneNegativeId = Lane(kId, kXordTrack, kXodrLaneNegativeId, kElevationBounds, road_curve_.get(),
                                     MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                     MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
                                     kRoadCurveOffsetIntegratorAccuracyMultiplier);
