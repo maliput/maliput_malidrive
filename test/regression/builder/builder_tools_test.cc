@@ -222,88 +222,306 @@ GTEST_TEST(LaneTravelDirection, UserDataTravelDir) {
   EXPECT_EQ(kExpectedMaliputValue, LaneTravelDirection::CreateFromUserData(kUserDataNode).GetMaliputTravelDir());
 }
 
-GTEST_TEST(LaneTravelDirection, LaneGroupTravelDir) {
-  EXPECT_EQ(
-      LaneTravelDirection::Direction::kForward,
-      LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kForward).GetXodrTravelDir());
-  EXPECT_EQ(
-      LaneTravelDirection::Direction::kBackward,
-      LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kBackward).GetXodrTravelDir());
-  EXPECT_EQ(LaneTravelDirection::Direction::kBidirectional,
-            LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kBidirectional)
-                .GetXodrTravelDir());
-  EXPECT_EQ(LaneTravelDirection::Direction::kUndirected,
-            LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kUndirected)
-                .GetXodrTravelDir());
-  EXPECT_EQ(
-      LaneTravelDirection::Direction::kUndefined,
-      LaneTravelDirection::CreateFromLaneGroupDirection(LaneTravelDirection::Direction::kUndefined).GetXodrTravelDir());
+// Get a XML description that contains a XODR with 2 Lane nodes.
+// @param road_rule The road rule value indicating traffic hand.
+// @param left_lane_user_data The userData XODR node value.
+// @param left_lane_direction The direction value for the left lane.
+// @param right_lane_user_data The userData XODR node value.
+// @param right_lane_direction The direction value for the right lane.
+// @returns A string that contains a XML description of a XODR Lane node.
+std::string GetXodrWithDirectingLanes(const std::string& road_rule = "RHT", const std::string& left_lane_user_data = "",
+                                      const std::string& left_lane_direction = "standard",
+                                      const std::string& right_lane_user_data = "",
+                                      const std::string& right_lane_direction = "standard") {
+  std::stringstream ss;
+  ss << "<?xml version='1.0' standalone='yes'?>" << std::endl;
+  ss << "<OpenDRIVE>" << std::endl;
+  ss << " <header revMajor='1' revMinor='1' name='Test' version='1.21' date='Tue Jul 1 12:00:00 2025' "
+     << "north='0' south='0' east='0' west='0' vendor='Toyota Research Institute' >" << std::endl;
+  ss << " </header>" << std::endl;
+  ss << " <road name='Road 0' length='1.0e+2' id='0' junction='-1' rule='" << road_rule << "'>" << std::endl;
+  ss << "   <planView>" << std::endl;
+  ss << "     <geometry s='0.0' x='0.0' y='0.0' hdg='1.' length='1.0e+2'>" << std::endl;
+  ss << "       <line/>" << std::endl;
+  ss << "     </geometry>" << std::endl;
+  ss << "   </planView>" << std::endl;
+  ss << "   <lanes>" << std::endl;
+  ss << "     <laneSection s='0.'>" << std::endl;
+  ss << "         <left>" << std::endl;
+  ss << "           <lane id='1' type='driving' direction='"
+     << (left_lane_direction.empty() ? "standard" : left_lane_direction) << "'>" << std::endl;
+  ss << "             <width sOffset='0.' a='2.0' b='0.' c='0.' d='0.'/>" << std::endl;
+  ss << "             <speed sOffset='0.1' max='45.' unit='mph'/>" << std::endl;
+  ss << "             " << left_lane_user_data << std::endl;
+  ss << "           </lane>" << std::endl;
+  ss << "         </left>" << std::endl;
+  ss << "         <center>" << std::endl;
+  ss << "           <lane id='0' type='none' />" << std::endl;
+  ss << "         </center>" << std::endl;
+  ss << "         <right>" << std::endl;
+  ss << "           <lane id='-1' type='driving' direction='"
+     << (right_lane_direction.empty() ? "standard" : left_lane_direction) << "'>" << std::endl;
+  ss << "             <width sOffset='0.' a='2.0' b='0.' c='0.' d='0.'/>" << std::endl;
+  ss << "             <speed sOffset='0.1' max='45.' unit='mph'/>" << std::endl;
+  ss << "             " << right_lane_user_data << std::endl;
+  ss << "           </lane>" << std::endl;
+  ss << "         </right>" << std::endl;
+  ss << "       </laneSection>" << std::endl;
+  ss << "     </lanes>" << std::endl;
+  ss << "   </road>" << std::endl;
+  ss << "</OpenDRIVE>" << std::endl;
+  return ss.str();
 }
 
-class HandTrafficRuleTravelDirTest : public ::testing::Test {
+class LaneTravelDirTest : public ::testing::Test {
  protected:
-  std::unique_ptr<road_curve::Function> MakeZeroCubicPolynomial(double p0, double p1, double linear_tolerance) {
-    return std::make_unique<road_curve::CubicPolynomial>(0., 0., 0., 0., p0, p1, linear_tolerance);
-  }
-  std::unique_ptr<road_curve::Function> MakeConstantCubicPolynomial(double d, double p0, double p1,
-                                                                    double linear_tolerance) {
-    return std::make_unique<road_curve::CubicPolynomial>(0., 0., 0., d, p0, p1, linear_tolerance);
-  }
-  void SetUp() override {
-    road_curve_ = std::make_unique<road_curve::RoadCurve>(
-        kLinearTolerance, kScaleLength,
-        std::make_unique<road_curve::LineGroundCurve>(kLinearTolerance, kXy0, kDXy, kP0, kP1),
-        MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
-        kAssertContiguity);
-  }
-  std::unique_ptr<road_curve::RoadCurve> road_curve_;
-  const maliput::api::LaneId kId{"dut"};
-  const double kLinearTolerance{0.1};
-  const int kXordTrack{1};
-  const int kXodrLanePositiveId{5};
-  const int kXodrLaneNegativeId{-1};
-  const maliput::api::HBounds kElevationBounds{0., 5.};
-  const double kP0{0.};
-  const double kP1{1.};
-  const double kScaleLength{1.};
-  const maliput::math::Vector2 kXy0{10., 12.};
-  const maliput::math::Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
-  const double kWidth{5.};
-  const double kLaneOffset{10.};
-  const bool kAssertContiguity{false};
-  const double kRoadCurveOffsetIntegratorAccuracyMultiplier{1.};
+  const std::string kRhtRoadRule = "RHT";
+  const std::string kLhtRoadRule = "LHT";
+  const std::string kForwardDirUserData = "<userData><vectorLane travelDir='forward'/></userData>";
+  const std::string kBackwardDirUserData = "<userData><vectorLane travelDir='backward'/></userData>";
+  const std::string kStandardDirection = "standard";
+  const std::string kReversedDirection = "reversed";
+  const std::string kBidirectionalDirection = "both";
+  const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
+  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
 };
 
-TEST_F(HandTrafficRuleTravelDirTest, HandTrafficRuleTravelDir) {
-  const Lane kLanePositiveId = Lane(kId, kXordTrack, kXodrLanePositiveId, kElevationBounds, road_curve_.get(),
-                                    MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
-                                    MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                    kRoadCurveOffsetIntegratorAccuracyMultiplier);
-  const Lane kLaneNegativeId = Lane(kId, kXordTrack, kXodrLaneNegativeId, kElevationBounds, road_curve_.get(),
-                                    MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
-                                    MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                    kRoadCurveOffsetIntegratorAccuracyMultiplier);
+TEST_F(LaneTravelDirTest, GetDirectionFromUserDataWithS) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kRhtRoadRule,
+                                                    /* left_lane_user_data= */ kForwardDirUserData,
+                                                    /* left_lane_direction= */ "",
+                                                    /* right_lane_user_data= */ kForwardDirUserData,
+                                                    /* right_lane_direction= */ ""),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionFromUserDataAgainstS) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kRhtRoadRule,
+                                                    /* left_lane_user_data= */ kBackwardDirUserData,
+                                                    /* left_lane_direction= */ "",
+                                                    /* right_lane_user_data= */ kBackwardDirUserData,
+                                                    /* right_lane_direction= */ ""),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("AgainstS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("AgainstS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionFromUserDataPrecedesLaneDirection) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kRhtRoadRule,
+                                                    /* left_lane_user_data= */ kForwardDirUserData,
+                                                    /* left_lane_direction= */ kReversedDirection,
+                                                    /* right_lane_user_data= */ kForwardDirUserData,
+                                                    /* right_lane_direction= */ kReversedDirection),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionRhtLaneGroupStandardTraffic) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kRhtRoadRule,
+                                                    /* left_lane_user_data= */ "",
+                                                    /* left_lane_direction= */ kStandardDirection,
+                                                    /* right_lane_user_data= */ "",
+                                                    /* right_lane_direction= */ kStandardDirection),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("AgainstS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionRhtLaneGroupReversedTraffic) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kRhtRoadRule,
+                                                    /* left_lane_user_data= */ "",
+                                                    /* left_lane_direction= */ kReversedDirection,
+                                                    /* right_lane_user_data= */ "",
+                                                    /* right_lane_direction= */ kReversedDirection),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("AgainstS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionLhtLaneGroupStandardTraffic) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kLhtRoadRule,
+                                                    /* left_lane_user_data= */ "",
+                                                    /* left_lane_direction= */ kStandardDirection,
+                                                    /* right_lane_user_data= */ "",
+                                                    /* right_lane_direction= */ kStandardDirection),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("AgainstS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionLhtLaneGroupReversedTraffic) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kLhtRoadRule,
+                                                    /* left_lane_user_data= */ "",
+                                                    /* left_lane_direction= */ kReversedDirection,
+                                                    /* right_lane_user_data= */ "",
+                                                    /* right_lane_direction= */ kReversedDirection),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("AgainstS", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("WithS", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, GetDirectionRhtLaneGroupBidirectionalTraffic) {
+  auto road_headers = xodr::LoadDataBaseFromStr(GetXodrWithDirectingLanes(
+                                                    /* road_rule= */ kLhtRoadRule,
+                                                    /* left_lane_user_data= */ "",
+                                                    /* left_lane_direction= */ kBidirectionalDirection,
+                                                    /* right_lane_user_data= */ "",
+                                                    /* right_lane_direction= */ kBidirectionalDirection),
+                                                kParserConfiguration)
+                          ->GetRoadHeaders();
+  xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
+  xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
+  xodr::Lane right_lane = road_header.lanes.lanes_section[0].right_lanes[0];
+
+  EXPECT_EQ("Bidirectional", GetDirectionUsageRuleStateType(road_header, left_lane));
+  EXPECT_EQ("Bidirectional", GetDirectionUsageRuleStateType(road_header, right_lane));
+}
+
+TEST_F(LaneTravelDirTest, CreateFromLaneGroupDirectionTravelDir) {
+  // Undefined direction.
+  EXPECT_EQ(LaneTravelDirection::Direction::kUndefined,
+            LaneTravelDirection::CreateFromLaneGroupDirection(-1, std::nullopt, std::nullopt).GetXodrTravelDir());
+
+  // kStandard direction and no lane rule defaults in standard lane::rule behavior.
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kStandard), std::nullopt)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kStandard), std::nullopt)
+                .GetXodrTravelDir());
+  // kReversed direction and no lane rule defaults in the opposite lane::rule behavior.
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kReversed), std::nullopt)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kReversed), std::nullopt)
+                .GetXodrTravelDir());
+  // kBoth directions and no lane rule results in bidirectional direction.
+  EXPECT_EQ(LaneTravelDirection::Direction::kBidirectional,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kBoth), std::nullopt)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBidirectional,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kBoth), std::nullopt)
+                .GetXodrTravelDir());
+
+  // RHT.
+  const std::optional<xodr::RoadHeader::HandTrafficRule> kRHT =
+      std::make_optional<xodr::RoadHeader::HandTrafficRule>(xodr::RoadHeader::HandTrafficRule::kRHT);
+  // kStandard direction and RHT lane rule defaults in standard lane::rule behavior.
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kStandard), kRHT)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kStandard), kRHT)
+                .GetXodrTravelDir());
+  // kReversed direction and RHT lane rule defaults in opposite lane::rule behavior.
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kReversed), kRHT)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kReversed), kRHT)
+                .GetXodrTravelDir());
+
+  // LHT.
+  const std::optional<xodr::RoadHeader::HandTrafficRule> kLHT =
+      std::make_optional<xodr::RoadHeader::HandTrafficRule>(xodr::RoadHeader::HandTrafficRule::kLHT);
+  // kStandard direction and LHT lane rule defaults in standard lane::rule behavior.
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kStandard), kLHT)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kStandard), kLHT)
+                .GetXodrTravelDir());
+  // kReversed direction and LHT lane rule defaults in opposite lane::rule behavior.
+  EXPECT_EQ(LaneTravelDirection::Direction::kForward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                -1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kReversed), kLHT)
+                .GetXodrTravelDir());
+  EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
+            LaneTravelDirection::CreateFromLaneGroupDirection(
+                1, std::make_optional<xodr::Lane::Direction>(xodr::Lane::Direction::kReversed), kLHT)
+                .GetXodrTravelDir());
+}
+
+TEST_F(LaneTravelDirTest, CreateFromHandTrafficRuleTravelDir) {
   // No rule.
   EXPECT_EQ(LaneTravelDirection::Direction::kForward,
-            LaneTravelDirection::CreateFromHandTrafficRule(std::nullopt, &kLaneNegativeId).GetXodrTravelDir());
+            LaneTravelDirection::CreateFromHandTrafficRule(-1, std::nullopt).GetXodrTravelDir());
   EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
-            LaneTravelDirection::CreateFromHandTrafficRule(std::nullopt, &kLanePositiveId).GetXodrTravelDir());
+            LaneTravelDirection::CreateFromHandTrafficRule(1, std::nullopt).GetXodrTravelDir());
 
   // RHT.
   const std::optional<xodr::RoadHeader::HandTrafficRule> kRHT =
       std::make_optional<xodr::RoadHeader::HandTrafficRule>(xodr::RoadHeader::HandTrafficRule::kRHT);
   EXPECT_EQ(LaneTravelDirection::Direction::kForward,
-            LaneTravelDirection::CreateFromHandTrafficRule(kRHT, &kLaneNegativeId).GetXodrTravelDir());
+            LaneTravelDirection::CreateFromHandTrafficRule(-1, kRHT).GetXodrTravelDir());
   EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
-            LaneTravelDirection::CreateFromHandTrafficRule(kRHT, &kLanePositiveId).GetXodrTravelDir());
+            LaneTravelDirection::CreateFromHandTrafficRule(1, kRHT).GetXodrTravelDir());
 
   // LHT.
   const std::optional<xodr::RoadHeader::HandTrafficRule> kLHT =
       std::make_optional<xodr::RoadHeader::HandTrafficRule>(xodr::RoadHeader::HandTrafficRule::kLHT);
   EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
-            LaneTravelDirection::CreateFromHandTrafficRule(kLHT, &kLaneNegativeId).GetXodrTravelDir());
+            LaneTravelDirection::CreateFromHandTrafficRule(-1, kLHT).GetXodrTravelDir());
   EXPECT_EQ(LaneTravelDirection::Direction::kForward,
-            LaneTravelDirection::CreateFromHandTrafficRule(kLHT, &kLanePositiveId).GetXodrTravelDir());
+            LaneTravelDirection::CreateFromHandTrafficRule(1, kLHT).GetXodrTravelDir());
 }
 
 /*

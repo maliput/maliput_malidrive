@@ -174,13 +174,23 @@ class LaneTravelDirection {
   static LaneTravelDirection CreateFromUserData(const std::optional<std::string>& user_data);
 
   /// Constructs a LaneTravelDirection from a specific lane direction.
-  /// @param direction Direction for the lane.
+  /// @param lane_id The ID of the lane to obtain the direction from.
+  /// @param hand_traffic_rule_direction Direction for the lane.
+  /// @param hand_traffic_rule Contains a rule parameter that holds information about the direction of lanes in a road.
+  /// A lane node example:
+  /// @code{.xml}
+  ///  <lane id="1" type="driving" level="false" direction="standard|reversed|both">
+  ///    <width/>
+  ///  </lane>
+  /// @endcode
   /// @returns A LaneTravelDirection.
-  static LaneTravelDirection CreateFromLaneGroupDirection(Direction direction);
+  static LaneTravelDirection CreateFromLaneGroupDirection(
+      int lane_id, const std::optional<xodr::Lane::Direction>& hand_rule_traffic_direction,
+      const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule);
 
   /// Constructs a LaneTravelDirection from a hand traffic rule.
+  /// @param lane_id The ID of the lane to obtain the direction from.
   /// @param hand_traffic_rule Contains a rule parameter that holds information about the direction of lanes in a road.
-  /// @param lane Contains the lane to obtain the direction from @p hand_traffic_rule.
   /// A road node example:
   /// @code{.xml}
   ///  <road name="Road 0" id="0" rule="RHT|LHT">
@@ -189,7 +199,7 @@ class LaneTravelDirection {
   /// @endcode
   /// @returns A LaneTravelDirection.
   static LaneTravelDirection CreateFromHandTrafficRule(
-      const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule, const Lane* lane);
+      int lane_id, const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule);
 
   /// @returns The direction of the lane describend in the XML node.
   Direction GetXodrTravelDir() const { return travel_dir_; };
@@ -331,13 +341,17 @@ const xodr::RoadHeader& GetXodrRoadFromMalidriveLane(const Lane* lane);
 /// @throws maliput::common::assertion_error When the correspondant xodr::Lane cannot be found.
 const xodr::Lane& GetXodrLaneFromMalidriveLane(const Lane* lane);
 
-/// @returns The direction usage value of `lane`. It is one in the string set
+/// @returns The direction usage value of the target lane. It is one in the string set
 /// `{"AgainstS", "WithS", "Bidirectional", "Undefined"}`.
+/// This method obtains the direction based on 3 different sources, in the priority detailed below:
+/// 1 - If the userData is set as part of the lane description, it takes precedence.
+/// 2 - If the lane has a direction attribute, the road::rule is used with the lane direction modifier.
+/// 3 - The road::rule determines the direction based on the lane ID.
+/// 4 - If road::rule is not set, the direction is set to "WithS".
 ///
-/// @param lane The Lane to retrieve its direction usage. It must not be nullptr.
-///
-/// @throws maliput::common::assertion_error When lane is nullptr.
-std::string GetDirectionUsageRuleStateType(const Lane* lane);
+/// @param xodr_road The XODR RoadHeader that contains the lane.
+/// @param xodr_lane The XODR Lane to obtain the direction usage value from.
+std::string GetDirectionUsageRuleStateType(const xodr::RoadHeader& xodr_road, const xodr::Lane& xodr_lane);
 
 /// @returns A vector of XodrSpeedProperties which contains the speed limits information of a `lane`.
 /// This method attempts to obtain the speed records for the entire `lane`'s range.

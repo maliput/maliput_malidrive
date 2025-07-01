@@ -76,7 +76,8 @@ DirectionUsageRule::State DirectionUsageBuilder::BuildDirectionUsageRuleStateFor
                                                                                  const Lane* lane) {
   MALIDRIVE_THROW_UNLESS(lane != nullptr);
   const DirectionUsageRule::State::Id state_id = GetDirectionUsageRuleStateId(rule_id);
-  const DirectionUsageRule::State::Type state_type = ParseStateType(GetDirectionUsageRuleStateType(lane));
+  const DirectionUsageRule::State::Type state_type = ParseStateType(
+      GetDirectionUsageRuleStateType(GetXodrRoadFromMalidriveLane(lane), GetXodrLaneFromMalidriveLane(lane)));
   return DirectionUsageRule::State(state_id, state_type, DirectionUsageRule::State::Severity::kStrict);
 }
 
