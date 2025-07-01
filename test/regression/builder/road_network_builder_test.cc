@@ -587,7 +587,7 @@ std::vector<DirectionUsageTruthTable> InstantiateDirectionUsageBuilderParameters
            {LaneId("1_2_3"), SRange(0., 33.4), "Bidirectional", strict_severity},
            {LaneId("1_2_2"), SRange(0., 33.4), "Bidirectional", strict_severity},
            {LaneId("1_2_1"), SRange(0., 33.4), "AgainstS", strict_severity},
-           {LaneId("1_2_-1"), SRange(0., 33.4), "Undefined", strict_severity},
+           {LaneId("1_2_-1"), SRange(0., 33.4), "WithS", strict_severity},
            {LaneId("1_2_-2"), SRange(0., 33.4), "Bidirectional", strict_severity},
            {LaneId("1_2_-3"), SRange(0., 33.4), "Bidirectional", strict_severity},
            {LaneId("1_2_-4"), SRange(0., 33.4), "Bidirectional", strict_severity},
