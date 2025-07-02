@@ -168,7 +168,6 @@ class LaneTravelDirection {
   ///  </userData>
   /// @endcode
   /// @returns A LaneTravelDirection.
-  /// @throw maliput::common::assertion_error When the travel direction information is not compatible.
   static LaneTravelDirection CreateFromUserData(const std::optional<std::string>& user_data);
 
   /// Constructs a LaneTravelDirection from a specific lane direction.
