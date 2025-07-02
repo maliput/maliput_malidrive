@@ -268,15 +268,13 @@ const std::map<std::string, LaneTravelDirection::Direction> str_to_direction_map
     {"undirected", LaneTravelDirection::Direction::kUndirected},
     {"forward", LaneTravelDirection::Direction::kForward},
     {"backward", LaneTravelDirection::Direction::kBackward},
-    {"bidirectional", LaneTravelDirection::Direction::kBidirectional},
-    {"undefined", LaneTravelDirection::Direction::kUndefined}};
+    {"bidirectional", LaneTravelDirection::Direction::kBidirectional}};
 
 const std::map<LaneTravelDirection::Direction, std::string> xodr_to_maliput_direction{
     {LaneTravelDirection::Direction::kUndirected, "Bidirectional"},
     {LaneTravelDirection::Direction::kForward, "WithS"},
     {LaneTravelDirection::Direction::kBackward, "AgainstS"},
-    {LaneTravelDirection::Direction::kBidirectional, "Bidirectional"},
-    {LaneTravelDirection::Direction::kUndefined, "Undefined"}};
+    {LaneTravelDirection::Direction::kBidirectional, "Bidirectional"}};
 
 }  // namespace
 
@@ -333,36 +331,9 @@ LaneTravelDirection LaneTravelDirection::CreateFromLaneGroupDirection(
 LaneTravelDirection LaneTravelDirection::CreateFromHandTrafficRule(
     int lane_id, const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule) {
   LaneTravelDirection travel_direction(LaneTravelDirection::Direction::kUndefined);
-  if (!hand_traffic_rule.has_value()) {
-    // No rule is treated as RHT.
-    if (lane_id < 0) {
-      travel_direction = LaneTravelDirection(LaneTravelDirection::Direction::kForward);
-    } else {
-      travel_direction = LaneTravelDirection(LaneTravelDirection::Direction::kBackward);
-    }
-    return travel_direction;
-  }
-  switch (hand_traffic_rule.value()) {
-    case xodr::RoadHeader::HandTrafficRule::kLHT: {
-      if (lane_id > 0) {
-        travel_direction = LaneTravelDirection(LaneTravelDirection::Direction::kForward);
-      } else {
-        travel_direction = LaneTravelDirection(LaneTravelDirection::Direction::kBackward);
-      }
-      break;
-    }
-    case xodr::RoadHeader::HandTrafficRule::kRHT:
-      [[fallthrough]];
-    // Default is treated as RHT.
-    default: {
-      if (lane_id < 0) {
-        travel_direction = LaneTravelDirection(LaneTravelDirection::Direction::kForward);
-      } else {
-        travel_direction = LaneTravelDirection(LaneTravelDirection::Direction::kBackward);
-      }
-    }
-  }
-  return travel_direction;
+  const auto rule = hand_traffic_rule.value_or(xodr::RoadHeader::HandTrafficRule::kRHT);
+  const bool is_forward = (rule == xodr::RoadHeader::HandTrafficRule::kLHT) ? (lane_id > 0) : (lane_id < 0);
+  return LaneTravelDirection(is_forward ? Direction::kForward : Direction::kBackward);
 }
 
 std::string LaneTravelDirection::GetMaliputTravelDir() const { return xodr_to_maliput_direction.at(travel_dir_); }
@@ -493,10 +464,7 @@ std::string GetDirectionUsageRuleStateType(const xodr::RoadHeader& xodr_road, co
 
   const LaneTravelDirection hand_traffic_rule_travel_dir =
       LaneTravelDirection::CreateFromHandTrafficRule(lane_id, xodr_road.rule);
-  if (hand_traffic_rule_travel_dir.GetXodrTravelDir() != LaneTravelDirection::Direction::kUndefined) {
-    return hand_traffic_rule_travel_dir.GetMaliputTravelDir();
-  }
-  return LaneTravelDirection(LaneTravelDirection::Direction::kUndefined).GetMaliputTravelDir();
+  return hand_traffic_rule_travel_dir.GetMaliputTravelDir();
 }
 
 std::vector<rules::XodrSpeedProperties> GetMaxSpeedLimitFor(const Lane* lane) {

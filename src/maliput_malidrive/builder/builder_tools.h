@@ -158,8 +158,6 @@ class LaneTravelDirection {
   /// Note: "Undefined" refer to when travel direction information is omitted or node isn't well formed.
   enum class Direction { kUndirected = 0, kForward, kBackward, kBidirectional, kUndefined };
 
-  explicit LaneTravelDirection(Direction direction) : travel_dir_(direction) {}
-
   /// Constructs a LaneTravelDirection from userData.
   /// @param user_data Contains a UserData XMLNode that holds information
   ///                  about the direction of the lane.
@@ -210,6 +208,8 @@ class LaneTravelDirection {
   std::string GetMaliputTravelDir() const;
 
  private:
+  LaneTravelDirection(const Direction& direction) : travel_dir_(direction) {}
+
   // Matches Direction with a string.
   // @param direction Is a string.
   // @returns A Direction that matches with `direction`.
@@ -344,10 +344,16 @@ const xodr::Lane& GetXodrLaneFromMalidriveLane(const Lane* lane);
 /// @returns The direction usage value of the target lane. It is one in the string set
 /// `{"AgainstS", "WithS", "Bidirectional", "Undefined"}`.
 /// This method obtains the direction based on 3 different sources, in the priority detailed below:
-/// 1 - If the userData is set as part of the lane description, it takes precedence.
-/// 2 - If the lane has a direction attribute, the road::rule is used with the lane direction modifier.
-/// 3 - The road::rule determines the direction based on the lane ID.
-/// 4 - If road::rule is not set, the direction is set to "WithS".
+/// 1. If the userData is set as part of the lane description, it takes precedence.
+/// 2. If the lane has a direction attribute, the road::rule is used with the lane direction modifier.
+/// 3. The road::rule determines the direction based on the lane ID and wheter it is set as RHT or LHT.
+/// 4. If road::rule is not set, it is assumed as it was RHT.
+///
+/// See:
+///   * [UserData](https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/latest/specification/07_additional_data/07_00_additional_data.html#_additional_user_data)
+///   * [LaneGroups](https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/latest/specification/11_lanes/11_02_lane_groups.html)
+///   * [LaneDirection](https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/latest/specification/16_annexes/enumerations/map_uml_enumerations.html#top-EAID_BDEEA32B_3F22_4f2c_A327_04437D41CC3D)
+///   * [RoadRule](https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/latest/specification/10_roads/10_01_introduction.html)
 ///
 /// @param xodr_road The XODR RoadHeader that contains the lane.
 /// @param xodr_lane The XODR Lane to obtain the direction usage value from.
