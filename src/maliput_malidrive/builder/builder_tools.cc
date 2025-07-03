@@ -280,7 +280,7 @@ const std::map<LaneTravelDirection::Direction, std::string> xodr_to_maliput_dire
 
 LaneTravelDirection::LaneTravelDirection(const Direction& direction) : travel_dir_(direction) {}
 
-LaneTravelDirection LaneTravelDirection::CreateFromUserData(const std::optional<std::string>& user_data) {
+LaneTravelDirection LaneTravelDirection::FromUserData(const std::optional<std::string>& user_data) {
   LaneTravelDirection travel_direction(LaneTravelDirection::Direction::kUndefined);
   if (!user_data.has_value()) {
     return travel_direction;
@@ -306,13 +306,13 @@ LaneTravelDirection LaneTravelDirection::CreateFromUserData(const std::optional<
   return travel_direction;
 }
 
-LaneTravelDirection LaneTravelDirection::CreateFromLaneGroupDirection(
+LaneTravelDirection LaneTravelDirection::FromLaneGroupDirection(
     int lane_id, const xodr::Lane::Direction& hand_traffic_rule_direction,
     const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule) {
   if (hand_traffic_rule_direction == xodr::Lane::Direction::kBoth) {
     return LaneTravelDirection(LaneTravelDirection::Direction::kBidirectional);
   }
-  LaneTravelDirection travel_direction = CreateFromHandTrafficRule(lane_id, hand_traffic_rule);
+  LaneTravelDirection travel_direction = FromHandTrafficRule(lane_id, hand_traffic_rule);
   if (hand_traffic_rule_direction == xodr::Lane::Direction::kStandard) {
     return travel_direction;
   }
@@ -326,7 +326,7 @@ LaneTravelDirection LaneTravelDirection::CreateFromLaneGroupDirection(
   return travel_direction;
 }
 
-LaneTravelDirection LaneTravelDirection::CreateFromHandTrafficRule(
+LaneTravelDirection LaneTravelDirection::FromHandTrafficRule(
     int lane_id, const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule) {
   LaneTravelDirection travel_direction(LaneTravelDirection::Direction::kUndefined);
   const auto rule = hand_traffic_rule.value_or(xodr::RoadHeader::HandTrafficRule::kRHT);
@@ -448,19 +448,19 @@ const xodr::Lane& GetXodrLaneFromMalidriveLane(const Lane* lane) {
 }
 
 std::string GetDirectionUsageRuleStateType(const xodr::RoadHeader& xodr_road, const xodr::Lane& xodr_lane) {
-  const LaneTravelDirection user_data_travel_dir = LaneTravelDirection::CreateFromUserData(xodr_lane.user_data);
+  const LaneTravelDirection user_data_travel_dir = LaneTravelDirection::FromUserData(xodr_lane.user_data);
   if (user_data_travel_dir.GetXodrTravelDir() != LaneTravelDirection::Direction::kUndefined) {
     return user_data_travel_dir.GetMaliputTravelDir();
   }
 
   int lane_id = std::stoi(xodr_lane.id.string());
   if (xodr_lane.direction.has_value()) {
-    return LaneTravelDirection::CreateFromLaneGroupDirection(lane_id, xodr_lane.direction.value(), xodr_road.rule)
+    return LaneTravelDirection::FromLaneGroupDirection(lane_id, xodr_lane.direction.value(), xodr_road.rule)
         .GetMaliputTravelDir();
   }
 
   const LaneTravelDirection hand_traffic_rule_travel_dir =
-      LaneTravelDirection::CreateFromHandTrafficRule(lane_id, xodr_road.rule);
+      LaneTravelDirection::FromHandTrafficRule(lane_id, xodr_road.rule);
   return hand_traffic_rule_travel_dir.GetMaliputTravelDir();
 }
 

@@ -194,19 +194,19 @@ TEST_F(SolveLaneEndsInnerLaneSectionTest, TestMethod) {
 
 GTEST_TEST(LaneTravelDirection, NonCompleteXmlNode) {
   // Empty string.
-  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("").GetXodrTravelDir(), LaneTravelDirection::Direction::kUndefined);
+  EXPECT_EQ(LaneTravelDirection::FromUserData("").GetXodrTravelDir(), LaneTravelDirection::Direction::kUndefined);
   // XML formatting error.
-  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("Lorem Ipsum").GetXodrTravelDir(),
+  EXPECT_EQ(LaneTravelDirection::FromUserData("Lorem Ipsum").GetXodrTravelDir(),
             LaneTravelDirection::Direction::kUndefined);
   // Missing vectorLane node.
-  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("<userData> <wrong node='true'/> </userData>").GetXodrTravelDir(),
+  EXPECT_EQ(LaneTravelDirection::FromUserData("<userData> <wrong node='true'/> </userData>").GetXodrTravelDir(),
             LaneTravelDirection::Direction::kUndefined);
   // Missing travelDir node.
-  EXPECT_EQ(LaneTravelDirection::CreateFromUserData("<userData> <vectorLane wrongAttribute='true'/> </userData>")
+  EXPECT_EQ(LaneTravelDirection::FromUserData("<userData> <vectorLane wrongAttribute='true'/> </userData>")
                 .GetXodrTravelDir(),
             LaneTravelDirection::Direction::kUndefined);
   // Direction value error.
-  EXPECT_THROW(LaneTravelDirection::CreateFromUserData("<userData> <vectorLane travelDir='wrongValue'/> </userData>"),
+  EXPECT_THROW(LaneTravelDirection::FromUserData("<userData> <vectorLane travelDir='wrongValue'/> </userData>"),
                maliput::common::assertion_error);
 }
 
@@ -217,9 +217,9 @@ GTEST_TEST(LaneTravelDirection, UserDataTravelDir) {
     </userData>
   )R";
   EXPECT_EQ(LaneTravelDirection::Direction::kBackward,
-            LaneTravelDirection::CreateFromUserData(kUserDataNode).GetXodrTravelDir());
+            LaneTravelDirection::FromUserData(kUserDataNode).GetXodrTravelDir());
   const std::string kExpectedMaliputValue{"AgainstS"};
-  EXPECT_EQ(kExpectedMaliputValue, LaneTravelDirection::CreateFromUserData(kUserDataNode).GetMaliputTravelDir());
+  EXPECT_EQ(kExpectedMaliputValue, LaneTravelDirection::FromUserData(kUserDataNode).GetMaliputTravelDir());
 }
 
 // Get a XML description that contains a XODR with 2 Lane nodes.
@@ -369,7 +369,7 @@ class LaneGroupDirectionTest : public ::testing::TestWithParam<LaneGroupDirectio
 TEST_P(LaneGroupDirectionTest, CreateDirectionTravelDirFromLaneGroup) {
   EXPECT_EQ(
       reference_value_.expected_direction,
-      LaneTravelDirection::CreateFromLaneGroupDirection(
+      LaneTravelDirection::FromLaneGroupDirection(
           reference_value_.lane_id, reference_value_.hand_traffic_rule_direction, reference_value_.hand_traffic_rule)
           .GetXodrTravelDir());
 }
@@ -406,7 +406,7 @@ class HandTrafficRuleTest : public ::testing::TestWithParam<HandTrafficRuleRefer
 
 TEST_P(HandTrafficRuleTest, CreateDirectionTravelDirFromHandTrafficRule) {
   EXPECT_EQ(reference_value_.expected_direction,
-            LaneTravelDirection::CreateFromHandTrafficRule(reference_value_.lane_id, reference_value_.hand_traffic_rule)
+            LaneTravelDirection::FromHandTrafficRule(reference_value_.lane_id, reference_value_.hand_traffic_rule)
                 .GetXodrTravelDir());
 }
 

@@ -168,7 +168,7 @@ class LaneTravelDirection {
   ///  </userData>
   /// @endcode
   /// @returns A LaneTravelDirection.
-  static LaneTravelDirection CreateFromUserData(const std::optional<std::string>& user_data);
+  static LaneTravelDirection FromUserData(const std::optional<std::string>& user_data);
 
   /// Constructs a LaneTravelDirection from a specific lane direction.
   /// @param lane_id The ID of the lane to obtain the direction from.
@@ -181,7 +181,7 @@ class LaneTravelDirection {
   ///  </lane>
   /// @endcode
   /// @returns A LaneTravelDirection.
-  static LaneTravelDirection CreateFromLaneGroupDirection(
+  static LaneTravelDirection FromLaneGroupDirection(
       int lane_id, const xodr::Lane::Direction& hand_traffic_rule_direction,
       const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule);
 
@@ -195,7 +195,7 @@ class LaneTravelDirection {
   ///  </road>
   /// @endcode
   /// @returns A LaneTravelDirection.
-  static LaneTravelDirection CreateFromHandTrafficRule(
+  static LaneTravelDirection FromHandTrafficRule(
       int lane_id, const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule);
 
   /// @returns The direction of the lane describend in the XML node.
