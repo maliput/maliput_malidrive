@@ -207,7 +207,7 @@ class LaneTravelDirection {
   std::string GetMaliputTravelDir() const;
 
  private:
-  LaneTravelDirection(const Direction& direction) : travel_dir_(direction) {}
+  LaneTravelDirection(const Direction& direction);
 
   // Matches Direction with a string.
   // @param direction Is a string.

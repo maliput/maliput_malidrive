@@ -278,6 +278,8 @@ const std::map<LaneTravelDirection::Direction, std::string> xodr_to_maliput_dire
 
 }  // namespace
 
+LaneTravelDirection::LaneTravelDirection(const Direction& direction) : travel_dir_(direction) {}
+
 LaneTravelDirection LaneTravelDirection::CreateFromUserData(const std::optional<std::string>& user_data) {
   LaneTravelDirection travel_direction(LaneTravelDirection::Direction::kUndefined);
   if (!user_data.has_value()) {
