@@ -208,6 +208,27 @@ TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheEnd) {
   EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
+// Tests a RoadGeometry with a particular geometry definition:
+// - Short spiral geometry with a non perfect match in curvature.
+// - Several inner lanes, and the last one presents a "RoadCurveOffset" hard to handle.
+class RoadGeometryTestInnerLaneHighCurvature : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("TestInnerLaneHighCurvature");
+    road_geometry_configuration_.tolerances = builder::RoadGeometryConfiguration::BuildTolerance(0.05, 0.01);
+    road_geometry_configuration_.omit_nondrivable_lanes = false;
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("TestInnerLaneHighCurvature.xodr", kMalidriveResourceFolder);
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_F(RoadGeometryTestInnerLaneHighCurvature, RoadNetworkBuilder) {
+  EXPECT_NO_THROW(road_network_ = ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(
+                      road_geometry_configuration_.ToStringMap()));
+}
+
 struct OpenScenarioLanePositionMaliputLane {
   std::string xodr_name;
   RoadGeometry::OpenScenarioLanePosition xodr_lane_position;

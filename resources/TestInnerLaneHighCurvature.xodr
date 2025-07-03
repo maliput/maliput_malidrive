@@ -1,0 +1,74 @@
+<?xml version="1.0" standalone="yes"?>
+<OpenDRIVE>
+  <header revMajor="1" revMinor="6" name="TestInnerLaneHighCurvature" version="v0.0.1" date="Thu Jul 3 12:00:00 2025" north="0.0000000000000000e+00" south="0.0000000000000000e+00" east="0.0000000000000000e+00" west="0.0000000000000000e+00">
+  </header>
+  <road rule="LHT" length="181.799999088" id="0" junction="-1">
+    <link>
+    </link>
+    <type s="0.0000000000000000e+00" type="rural" country="JP"/>
+    <planView>
+      <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="181.2">
+        <line/>
+      </geometry>
+      <geometry s="181.2" x="181.2" y="0.0" hdg="0.0" length="0.3000021955999314">
+        <spiral curvStart="-0.041276512382569686" curvEnd="-0.11745253926578061"/>
+      </geometry>
+      <geometry s="181.5" x="181.49998" y="-0.0029999999999290594" hdg="-0.023809532" length="0.29999689196358403">
+        <spiral curvStart="-0.09355087439581944" curvEnd="-0.0969273523150641"/>
+      </geometry>
+    </planView>
+    <lateralProfile>
+    </lateralProfile>
+    <lanes>
+      <laneOffset s="0.0" a="-1.7500000000000002" b="0.0" c="0.0" d="0.0"/>
+      <laneSection s="0.0000000000000000e+00">
+        <left>
+        </left>
+        <center>
+          <lane id="0" type="none" level="false">
+            <link>
+            </link>
+            <roadMark sOffset="0.0" type="none" color="standard" width="0.15" laneChange="none">
+              <type name="none" width="0.15">
+                <line length="12" space="8" tOffset="0.0" sOffset="0.0" rule="no passing" width="0.15"/>
+              </type>
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <link>
+            </link>
+            <width sOffset="0.0000000000000000e+00" a="3.5000000000000004" b="0.0000000000000000e+00" c="0.0000000000000000e+00" d="0.0000000000000000e+00"/>
+            <roadMark sOffset="0.0" type="none" color="standard" width="0.15" laneChange="none">
+              <type name="none" width="0.15">
+                <line length="12" space="8" tOffset="0.0" sOffset="0.0" rule="no passing" width="0.15"/>
+              </type>
+            </roadMark>
+          </lane>
+          <lane id="-2" type="driving" level="false">
+            <link>
+            </link>
+            <width sOffset="0.0000000000000000e+00" a="3.5000000000000004" b="0.0000000000000000e+00" c="0.0000000000000000e+00" d="0.0000000000000000e+00"/>
+            <roadMark sOffset="0.0" type="none" color="standard" width="0.15" laneChange="none">
+              <type name="none" width="0.15">
+                <line length="12" space="8" tOffset="0.0" sOffset="0.0" rule="no passing" width="0.15"/>
+              </type>
+            </roadMark>
+          </lane>
+          <lane id="-3" type="stop" level="false">
+            <link>
+            </link>
+            <width sOffset="0.0000000000000000e+00" a="1.0" b="0.0000000000000000e+00" c="0.0000000000000000e+00" d="0.0000000000000000e+00"/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+    <objects>
+    </objects>
+    <signals>
+    </signals>
+    <surface>
+    </surface>
+  </road>
+</OpenDRIVE>
