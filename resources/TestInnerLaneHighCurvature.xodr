@@ -2,6 +2,7 @@
 <OpenDRIVE>
   <header revMajor="1" revMinor="6" name="TestInnerLaneHighCurvature" version="v0.0.1" date="Thu Jul 3 12:00:00 2025" north="0.0000000000000000e+00" south="0.0000000000000000e+00" east="0.0000000000000000e+00" west="0.0000000000000000e+00">
   </header>
+  <!-- <road rule="LHT" length="1.599999088" id="0" junction="-1"> -->
   <road rule="LHT" length="181.799999088" id="0" junction="-1">
     <link>
     </link>
@@ -16,6 +17,15 @@
       <geometry s="181.5" x="181.49998" y="-0.0029999999999290594" hdg="-0.023809532" length="0.29999689196358403">
         <spiral curvStart="-0.09355087439581944" curvEnd="-0.0969273523150641"/>
       </geometry>
+      <!-- <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="1.">
+        <line/>
+      </geometry>
+      <geometry s="1.0" x="1.0" y="0.0" hdg="0.0" length="0.3000021955999314">
+        <spiral curvStart="-0.041276512382569686" curvEnd="-0.11745253926578061"/>
+      </geometry>
+      <geometry s="1.3" x="1.29998" y="-0.0029999999999290594" hdg="-0.023809532" length="0.29999689196358403">
+        <spiral curvStart="-0.09355087439581944" curvEnd="-0.0969273523150641"/>
+      </geometry> -->
     </planView>
     <lateralProfile>
     </lateralProfile>
