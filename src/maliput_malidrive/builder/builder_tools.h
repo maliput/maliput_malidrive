@@ -341,7 +341,7 @@ const xodr::RoadHeader& GetXodrRoadFromMalidriveLane(const Lane* lane);
 const xodr::Lane& GetXodrLaneFromMalidriveLane(const Lane* lane);
 
 /// @returns The direction usage value of the target lane. It is one in the string set
-/// `{"AgainstS", "WithS", "Bidirectional", "Undefined"}`.
+/// `{"AgainstS", "WithS", "Bidirectional"}`.
 /// This method obtains the direction based on 3 different sources, in the priority detailed below:
 /// 1. If the userData is set as part of the lane description, it takes precedence.
 /// 2. If the lane has a direction attribute, the road::rule is used with the lane direction modifier.
