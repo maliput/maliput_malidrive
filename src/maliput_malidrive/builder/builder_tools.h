@@ -182,7 +182,7 @@ class LaneTravelDirection {
   /// @endcode
   /// @returns A LaneTravelDirection.
   static LaneTravelDirection CreateFromLaneGroupDirection(
-      int lane_id, const std::optional<xodr::Lane::Direction>& hand_rule_traffic_direction,
+      int lane_id, const xodr::Lane::Direction& hand_traffic_rule_direction,
       const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule);
 
   /// Constructs a LaneTravelDirection from a hand traffic rule.

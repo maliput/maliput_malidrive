@@ -305,20 +305,16 @@ LaneTravelDirection LaneTravelDirection::CreateFromUserData(const std::optional<
 }
 
 LaneTravelDirection LaneTravelDirection::CreateFromLaneGroupDirection(
-    int lane_id, const std::optional<xodr::Lane::Direction>& hand_traffic_rule_direction,
+    int lane_id, const xodr::Lane::Direction& hand_traffic_rule_direction,
     const std::optional<xodr::RoadHeader::HandTrafficRule>& hand_traffic_rule) {
-  if (!hand_traffic_rule_direction.has_value()) {
-    return LaneTravelDirection(LaneTravelDirection::Direction::kUndefined);
-  }
-  auto lane_direction = hand_traffic_rule_direction.value();
-  if (lane_direction == xodr::Lane::Direction::kBoth) {
+  if (hand_traffic_rule_direction == xodr::Lane::Direction::kBoth) {
     return LaneTravelDirection(LaneTravelDirection::Direction::kBidirectional);
   }
   LaneTravelDirection travel_direction = CreateFromHandTrafficRule(lane_id, hand_traffic_rule);
-  if (lane_direction == xodr::Lane::Direction::kStandard) {
+  if (hand_traffic_rule_direction == xodr::Lane::Direction::kStandard) {
     return travel_direction;
   }
-  if (lane_direction == xodr::Lane::Direction::kReversed) {
+  if (hand_traffic_rule_direction == xodr::Lane::Direction::kReversed) {
     if (travel_direction.travel_dir_ == LaneTravelDirection::Direction::kForward) {
       travel_direction.travel_dir_ = LaneTravelDirection::Direction::kBackward;
     } else if (travel_direction.travel_dir_ == LaneTravelDirection::Direction::kBackward) {
@@ -456,10 +452,9 @@ std::string GetDirectionUsageRuleStateType(const xodr::RoadHeader& xodr_road, co
   }
 
   int lane_id = std::stoi(xodr_lane.id.string());
-  const LaneTravelDirection lane_group_travel_dir =
-      LaneTravelDirection::CreateFromLaneGroupDirection(lane_id, xodr_lane.direction, xodr_road.rule);
-  if (lane_group_travel_dir.GetXodrTravelDir() != LaneTravelDirection::Direction::kUndefined) {
-    return lane_group_travel_dir.GetMaliputTravelDir();
+  if (xodr_lane.direction.has_value()) {
+    return LaneTravelDirection::CreateFromLaneGroupDirection(lane_id, xodr_lane.direction.value(), xodr_road.rule)
+        .GetMaliputTravelDir();
   }
 
   const LaneTravelDirection hand_traffic_rule_travel_dir =
