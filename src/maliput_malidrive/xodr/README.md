@@ -2,7 +2,7 @@
 
 ## OpenDRIVE format specification coverage
 
-The following table keeps track on the capabilities of the `maliput_malidrive`'s XODR parser according to the 1.5 version of OpenDRIVE format specification.
+The following table keeps track on the capabilities of the `maliput_malidrive`'s XODR parser according to the 1.8 version of OpenDRIVE format specification.
 
 Group | SubGroup | OpenDRIVE Record | Status
 :-:|:-:|:-:|:-:
