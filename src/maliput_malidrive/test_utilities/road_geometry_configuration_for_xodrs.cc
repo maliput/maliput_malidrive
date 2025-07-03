@@ -325,6 +325,18 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
            kOmitNondrivableLanes}},
+      {"StraightRoadMultipleLaneDirections.xodr",
+       builder::RoadGeometryConfiguration{
+           maliput::api::RoadGeometryId{"StraightRoadMultipleLaneDirections"},
+           {"StraightRoadMultipleLaneDirections.xodr"},
+           builder::RoadGeometryConfiguration::BuildTolerance{
+               1e-3 /* linear_tolerance */, 1e-3 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
+           constants::kScaleLength,
+           kZeroVector,
+           kBuildPolicy,
+           kSimplificationPolicy,
+           kStandardStrictnessPolicy,
+           kOmitNondrivableLanes}},
       {"SingleRoadComplexDescription.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadComplexDescription"},

@@ -193,8 +193,9 @@ void RoadRuleBookBuilder::AddsDirectionUsageRulesToRulebook(const maliput::api::
     rulebook->AddRule(rule_registry->BuildDiscreteValueRule(
         GetRuleIdFrom(maliput::DirectionUsageRuleTypeId(), lane->id()), maliput::DirectionUsageRuleTypeId(),
         CreateLaneSRouteFor(lane),
-        {DiscreteValueRule::DiscreteValue{severity, empty_related_rules, empty_related_unique_ids,
-                                          GetDirectionUsageRuleStateType(lane)}}));
+        {DiscreteValueRule::DiscreteValue{
+            severity, empty_related_rules, empty_related_unique_ids,
+            GetDirectionUsageRuleStateType(GetXodrRoadFromMalidriveLane(lane), GetXodrLaneFromMalidriveLane(lane))}}));
   }
 }
 

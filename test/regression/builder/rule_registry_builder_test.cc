@@ -164,7 +164,6 @@ class RuleRegistryBuilderTest : public ::testing::Test {
     TestRuleTypeDiscreteValue(direction_usage_states, "BidirectionalTurnOnly");
     TestRuleTypeDiscreteValue(direction_usage_states, "NoUse");
     TestRuleTypeDiscreteValue(direction_usage_states, "Parking");
-    TestRuleTypeDiscreteValue(direction_usage_states, "Undefined");
   }
 
   // Verifies possible states of Speed-Limit Rule Type which is registered by the RuleRegistryBuilder.

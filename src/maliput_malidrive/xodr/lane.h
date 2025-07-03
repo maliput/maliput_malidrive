@@ -142,7 +142,9 @@ struct Lane {
     kBoth,
   };
 
-  /// Lane traffic direction.
+  /// Lane traffic direction modifier. This acts by modifying a specific lane direcion based on the containing road's
+  /// direction rule. See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/latest/specification/16_annexes/enumerations/map_uml_enumerations.html#top-EAID_BDEEA32B_3F22_4f2c_A327_04437D41CC3D
   enum class Direction {
     /// Direction is determined by the combination of <left> or <right> lane grouping and the values LHT or RHT of the
     /// @rule attribute of a road.
