@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.8.0 (2025-07-04)
+-----------
+* Use road::rule XODR attribute to convert to a traffic direction rule. (`#321 <https://github.com/maliput/maliput_malidrive/issues/321>`_)
+* Fixes CI. (`#322 <https://github.com/maliput/maliput_malidrive/issues/322>`_)
+* Parse Lane Groups attributes added in OpenDRIVE 1.8 (`#320 <https://github.com/maliput/maliput_malidrive/issues/320>`_)
+* Contributors: Franco Cipollone, Santiago Lopez
+
 0.7.1 (2025-06-17)
 ------------------
 * xodr parser: Log instead of throw in some center lane rule checks. (`#318 <https://github.com/maliput/maliput_malidrive/issues/318>`_)
