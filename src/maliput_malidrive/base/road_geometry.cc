@@ -353,19 +353,6 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioLanePositionToMaliputRoadPo
   const double p = road_curve->PFromP(xodr_lane_position.s);
   const double roll_at_p = road_curve->superelevation()->f(p);
   const double r = xodr_lane_position.offset / std::cos(roll_at_p);
-  const double r_max = target_lane->lane_bounds(mali_lane_s).max();
-  const double r_min = target_lane->lane_bounds(mali_lane_s).min();
-  if (r_min > r || r_max < r) {
-    MALIDRIVE_THROW_MESSAGE(
-        "The lane offset is out of bounds for the given OpenSCENARIO lane position: "
-        "RoadID: " +
-        std::to_string(xodr_lane_position.road_id) + ", s: " + std::to_string(xodr_lane_position.s) +
-        ", LaneID: " + std::to_string(xodr_lane_position.lane_id) +
-        ", offset: " + std::to_string(xodr_lane_position.offset) + " | Maliput LaneID: " + target_lane->id().string() +
-        ", Maliput Lane's s-coordinate: " + std::to_string(mali_lane_s) + ", Maliput Lane's r-coordinate: " +
-        std::to_string(r) + ", Maliput Lane's r-coordinate bounds: [" + std::to_string(r_min) + ", " +
-        std::to_string(r_max) + "]" + ", Superelevation at s: " + std::to_string(roll_at_p));
-  }
   return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
 }
 
