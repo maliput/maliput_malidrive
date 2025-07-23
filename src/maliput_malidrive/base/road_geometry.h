@@ -124,7 +124,8 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   const road_curve::Function* GetReferenceLineOffset(const xodr::RoadHeader::Id& road_id) const;
 
   /// Converts an OpenScenario LanePosition to a maliput RoadPosition.
-  /// See
+  /// OS LanePosition's s-coordinate must be within the lane's length, but its offset can extend beyond the lane's
+  /// surface. See
   /// https://publications.pages.asam.net/standards/ASAM_OpenSCENARIO/ASAM_OpenSCENARIO_XML/latest/generated/content/LanePosition.html
   ///
   /// @param xodr_lane_position The lane position to get the maliput road position from.
@@ -192,7 +193,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// @param d_lane The lane offset relative to the lane the reference.
   /// @param ds_lane The offset along the center line of the lane, where the reference entity is located.
   /// @param offset The lateral offset to the center line of the target lane (along the t-axis of the target lane center
-  /// line).
+  /// line). Offset may extend beyond the lane's surface.
   ///
   /// @returns A maliput RoadPosition.
   maliput::api::RoadPosition OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(
