@@ -310,7 +310,8 @@ TEST_F(RoadGeometryOpenScenarioConversionsArcLane, RoundTripOpenScenarioLanePosi
   EXPECT_TRUE(std::abs(input_xodr_lane_position.offset - xodr_lane_pos.offset) < constants::kLinearTolerance);
 }
 
-TEST_F(RoadGeometryOpenScenarioConversionsArcLane, RoundTripOpenScenarioLanePositionToMaliputRoadPositionWithOffsetOffLane) {
+TEST_F(RoadGeometryOpenScenarioConversionsArcLane,
+       RoundTripOpenScenarioLanePositionToMaliputRoadPositionWithOffsetOffLane) {
   // OpenScenario/OpenDrive parameters.
   const double offset = 2.;  // 1 meter off the lane.
   const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{1, 50., -1, offset};
