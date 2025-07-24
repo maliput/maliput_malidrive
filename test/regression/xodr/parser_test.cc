@@ -312,7 +312,8 @@ std::string GetXODRGeoReference() {
 
 // Tests `GeoReference` parsing.
 TEST_F(ParsingTests, NodeParserGeoReference) {
-  const GeoReference kExpectedGeoRef{"+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" /* projection_data */};
+  const GeoReference kExpectedGeoRef{
+      "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" /* projection_data */};
   const std::string xml_description = GetXODRGeoReference();
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, GeoReference::kGeoReferenceTag),
@@ -334,10 +335,10 @@ std::string GetXODROffset(double x, double y, double z, double hdg) {
 // Tests `GeoReference` parsing.
 TEST_F(ParsingTests, NodeParserOffset) {
   const Offset kExpectedOffset{
-    10 /* x */,
-    20 /* y */,
-    5 /* z */,
-    3.14 /* hdg */,
+      10 /* x */,
+      20 /* y */,
+      5 /* z */,
+      3.14 /* hdg */,
   };
   const std::string xml_description =
       GetXODROffset(kExpectedOffset.x, kExpectedOffset.y, kExpectedOffset.z, kExpectedOffset.hdg);
