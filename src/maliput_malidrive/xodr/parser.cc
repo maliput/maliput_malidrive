@@ -47,6 +47,7 @@
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/lanes.h"
 #include "maliput_malidrive/xodr/lateral_profile.h"
+#include "maliput_malidrive/xodr/offset.h"
 #include "maliput_malidrive/xodr/plan_view.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
@@ -357,6 +358,28 @@ GeoReference NodeParser::As() const {
   MALIDRIVE_THROW_UNLESS(projection_data != nullptr);
   georef.projection_data = projection_data;
   return georef;
+}
+
+// Specialization to parse `Offset`'s node.
+template <>
+Offset NodeParser::As() const {
+  Offset offset{};
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+  MALIDRIVE_TRACE("Parsing offset.");
+
+  // Non-optional attributes.
+  // @{
+  const auto x = attribute_parser.As<double>(Offset::kX);
+  offset.x = ValidateDouble(x, kDontAllowNan);
+  const auto y = attribute_parser.As<double>(Offset::kY);
+  offset.y = ValidateDouble(y, kDontAllowNan);
+  const auto z = attribute_parser.As<double>(Offset::kZ);
+  offset.z = ValidateDouble(z, kDontAllowNan);
+  const auto hdg = attribute_parser.As<double>(Offset::kHeading);
+  offset.hdg = ValidateDouble(hdg, kDontAllowNan);
+  // @}
+
+  return offset;
 }
 
 // Specialization to parse `RoadLink::LinkAttributes`'s node.

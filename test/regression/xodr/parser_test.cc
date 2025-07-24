@@ -49,6 +49,7 @@
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/lanes.h"
 #include "maliput_malidrive/xodr/lateral_profile.h"
+#include "maliput_malidrive/xodr/offset.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
@@ -318,6 +319,33 @@ TEST_F(ParsingTests, NodeParserGeoReference) {
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(GeoReference::kGeoReferenceTag, dut.GetName());
   EXPECT_EQ(kExpectedGeoRef, dut.As<GeoReference>());
+}
+
+/// Get XODR Offset
+std::string GetXODROffset(double x, double y, double z, double hdg) {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<offset x='" << x << "' y='" << y << "' z='" << z << "' hdg='" << hdg << "'>";
+  ss << "</offset>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `GeoReference` parsing.
+TEST_F(ParsingTests, NodeParserOffset) {
+  const Offset kExpectedOffset{
+    10 /* x */,
+    20 /* y */,
+    5 /* z */,
+    3.14 /* hdg */,
+  };
+  const std::string xml_description =
+      GetXODROffset(kExpectedOffset.x, kExpectedOffset.y, kExpectedOffset.z, kExpectedOffset.hdg);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Offset::kOffsetTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Offset::kOffsetTag, dut.GetName());
+  EXPECT_EQ(kExpectedOffset, dut.As<Offset>());
 }
 
 // Get a XML description of a XODR RoadLink.
