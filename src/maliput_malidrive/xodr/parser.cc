@@ -36,6 +36,7 @@
 
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
+#include "maliput_malidrive/xodr/geo_reference.h"
 #include "maliput_malidrive/xodr/geometry.h"
 #include "maliput_malidrive/xodr/header.h"
 #include "maliput_malidrive/xodr/junction.h"
@@ -344,6 +345,18 @@ Header NodeParser::As() const {
   // @}
 
   return header;
+}
+
+// Specialization to parse `GeoReference`'s node.
+template <>
+GeoReference NodeParser::As() const {
+  GeoReference georef{};
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+  MALIDRIVE_TRACE("Parsing geoReference.");
+  const char* projection_data = element_->GetText();
+  MALIDRIVE_THROW_UNLESS(projection_data != nullptr);
+  georef.projection_data = projection_data;
+  return georef;
 }
 
 // Specialization to parse `RoadLink::LinkAttributes`'s node.

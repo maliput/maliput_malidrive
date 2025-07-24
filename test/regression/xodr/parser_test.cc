@@ -38,6 +38,7 @@
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
+#include "maliput_malidrive/xodr/geo_reference.h"
 #include "maliput_malidrive/xodr/geometry.h"
 #include "maliput_malidrive/xodr/header.h"
 #include "maliput_malidrive/xodr/junction.h"
@@ -295,6 +296,28 @@ TEST_F(ParsingTests, NodeParserHeader) {
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(Header::kHeaderTag, dut.GetName());
   EXPECT_EQ(kExpectedHeader, dut.As<Header>());
+}
+
+/// Get XODR GeoReference
+std::string GetXODRGeoReference() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<geoReference>";
+  ss << "<![CDATA[+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs]]>";
+  ss << "</geoReference>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `GeoReference` parsing.
+TEST_F(ParsingTests, NodeParserGeoReference) {
+  const GeoReference kExpectedGeoRef{"+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" /* projection_data */};
+  const std::string xml_description = GetXODRGeoReference();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, GeoReference::kGeoReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(GeoReference::kGeoReferenceTag, dut.GetName());
+  EXPECT_EQ(kExpectedGeoRef, dut.As<GeoReference>());
 }
 
 // Get a XML description of a XODR RoadLink.

@@ -5,6 +5,7 @@ add_library(xodr
   connection.cc
   db_manager.cc
   elevation_profile.cc
+  geo_reference.cc
   geometry.cc
   header.cc
   junction.cc
