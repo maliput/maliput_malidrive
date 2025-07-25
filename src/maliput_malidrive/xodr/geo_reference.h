@@ -29,6 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <ostream>
 #include <string>
 
 namespace malidrive {
@@ -59,6 +60,11 @@ struct GeoReference {
   /// Holds all the projection data fields.
   std::string projection_data;
 };
+
+/// Streams a string representation of @p geo_reference into @p out. Returns
+/// @p out. This method is provided for the purposes of debugging or
+/// text-logging. It is not intended for serialization.
+std::ostream& operator<<(std::ostream& out, const GeoReference& geo_reference);
 
 }  // namespace xodr
 }  // namespace malidrive

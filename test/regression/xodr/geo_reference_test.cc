@@ -27,24 +27,25 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/offset.h"
+#include "maliput_malidrive/xodr/geo_reference.h"
 
-#include <ostream>
+#include <gtest/gtest.h>
 
 namespace malidrive {
 namespace xodr {
+namespace test {
+namespace {
 
-bool Offset::operator==(const Offset& other) const {
-  return x == other.x && y == other.y && z == other.z && hdg == other.hdg;
+GTEST_TEST(GeoReference, EqualityOperator) {
+  const GeoReference kGeoReference{"Test data"};
+  GeoReference geo_reference = kGeoReference;
+
+  EXPECT_EQ(kGeoReference, geo_reference);
+  geo_reference.projection_data = "Other data";
+  EXPECT_NE(kGeoReference, geo_reference);
 }
 
-bool Offset::operator!=(const Offset& other) const { return !(*this == other); }
-
-std::ostream& operator<<(std::ostream& out, const Offset& offset) {
-  out << "{ \"x\": " << offset.x << ", \"y\": " << offset.y << ", \"z\": " << offset.z << ", \"hdg\": " << offset.hdg
-      << " }";
-  return out;
-}
-
+}  // namespace
+}  // namespace test
 }  // namespace xodr
 }  // namespace malidrive

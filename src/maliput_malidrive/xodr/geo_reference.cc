@@ -29,12 +29,19 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/geo_reference.h"
 
+#include <ostream>
+
 namespace malidrive {
 namespace xodr {
 
 bool GeoReference::operator==(const GeoReference& other) const { return projection_data == other.projection_data; }
 
 bool GeoReference::operator!=(const GeoReference& other) const { return !(*this == other); }
+
+std::ostream& operator<<(std::ostream& out, const GeoReference& geo_reference) {
+  out << "{ \"projection_data\": " /*<< geo_reference.projection_data*/ << " }";
+  return out;
+}
 
 }  // namespace xodr
 }  // namespace malidrive

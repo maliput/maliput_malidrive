@@ -13,6 +13,7 @@ set(UNIT_TEST_XODR_SOURCES
   connection_test.cc
   db_manager_test.cc
   elevation_profile_test.cc
+  geo_reference_test.cc
   geometry_test.cc
   header_test.cc
   junction_test.cc
@@ -23,6 +24,7 @@ set(UNIT_TEST_XODR_SOURCES
   lane_test.cc
   lane_width_test.cc
   lateral_profile_test.cc
+  offset_test.cc
   parser_test.cc
   plan_view_test.cc
   reference_geometry_test.cc

@@ -33,7 +33,9 @@
 #include <ostream>
 #include <string>
 
+#include "geo_reference.h"
 #include "maliput_malidrive/common/macros.h"
+#include "offset.h"
 
 namespace malidrive {
 namespace xodr {
@@ -91,6 +93,10 @@ struct Header {
   std::optional<double> west{std::nullopt};
   /// Vendor name.
   std::optional<std::string> vendor{std::nullopt};
+  /// GeoReference element.
+  std::optional<GeoReference> geo_reference{std::nullopt};
+  /// Offset element.
+  std::optional<Offset> offset{std::nullopt};
 };
 
 /// Streams a string representation of @p header into @p out. Returns

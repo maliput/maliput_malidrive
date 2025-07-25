@@ -37,6 +37,9 @@ namespace test {
 namespace {
 
 GTEST_TEST(Header, EqualityOperator) {
+  const std::optional<GeoReference> geo_ref{
+      {"+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"}};
+  const std::optional<Offset> offset{{1, 2, 3, 3.14}};
   const Header kHeader{1. /* revMajor */,
                        1. /* revMinor */,
                        "TestHeader" /* name */,
@@ -46,7 +49,9 @@ GTEST_TEST(Header, EqualityOperator) {
                        2.2 /* south */,
                        3.3 /* east */,
                        4.4 /* west */,
-                       "TestVendor" /* vendor */};
+                       "TestVendor" /* vendor */,
+                       geo_ref,
+                       offset};
   Header header = kHeader;
 
   EXPECT_EQ(kHeader, header);
@@ -79,6 +84,13 @@ GTEST_TEST(Header, EqualityOperator) {
   header.west = 4.4;
   header.vendor = "DifferentVendor";
   EXPECT_NE(kHeader, header);
+  header.vendor = "TestVendor";
+  header.geo_reference = std::nullopt;
+  EXPECT_NE(kHeader, header);
+  header.geo_reference = geo_ref;
+  header.offset = std::nullopt;
+  EXPECT_NE(kHeader, header);
+  header.offset = offset;
 }
 
 }  // namespace

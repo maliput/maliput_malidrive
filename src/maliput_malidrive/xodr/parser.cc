@@ -318,36 +318,6 @@ std::optional<Unit> AttributeParser::As(const std::string& attribute_name) const
   return unit.has_value() ? std::make_optional<Unit>(str_to_unit(unit.value())) : std::nullopt;
 }
 
-// Specialization to parse `Header`'s node.
-template <>
-Header NodeParser::As() const {
-  Header header{};
-  const AttributeParser attribute_parser(element_, parser_configuration_);
-
-  // Non-optional attributes.
-  // @{
-  const auto rev_major = attribute_parser.As<double>(Header::kXodrRevMajor);
-  header.rev_major = ValidateDouble(rev_major, kDontAllowNan);
-
-  const auto rev_minor = attribute_parser.As<double>(Header::kXodrRevMinor);
-  header.rev_minor = ValidateDouble(rev_minor, kDontAllowNan);
-  // @}
-
-  // Optional attributes.
-  // @{
-  header.name = attribute_parser.As<std::string>(Header::kXodrName);
-  header.date = attribute_parser.As<std::string>(Header::kXodrDate);
-  header.version = attribute_parser.As<double>(Header::kXodrVersion);
-  header.north = attribute_parser.As<double>(Header::kXodrNorth);
-  header.south = attribute_parser.As<double>(Header::kXodrSouth);
-  header.east = attribute_parser.As<double>(Header::kXodrEast);
-  header.west = attribute_parser.As<double>(Header::kXodrWest);
-  header.vendor = attribute_parser.As<std::string>(Header::kXodrVendor);
-  // @}
-
-  return header;
-}
-
 // Specialization to parse `GeoReference`'s node.
 template <>
 GeoReference NodeParser::As() const {
@@ -380,6 +350,44 @@ Offset NodeParser::As() const {
   // @}
 
   return offset;
+}
+
+// Specialization to parse `Header`'s node.
+template <>
+Header NodeParser::As() const {
+  Header header{};
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto rev_major = attribute_parser.As<double>(Header::kXodrRevMajor);
+  header.rev_major = ValidateDouble(rev_major, kDontAllowNan);
+
+  const auto rev_minor = attribute_parser.As<double>(Header::kXodrRevMinor);
+  header.rev_minor = ValidateDouble(rev_minor, kDontAllowNan);
+  // @}
+
+  // Optional attributes.
+  // @{
+  header.name = attribute_parser.As<std::string>(Header::kXodrName);
+  header.date = attribute_parser.As<std::string>(Header::kXodrDate);
+  header.version = attribute_parser.As<double>(Header::kXodrVersion);
+  header.north = attribute_parser.As<double>(Header::kXodrNorth);
+  header.south = attribute_parser.As<double>(Header::kXodrSouth);
+  header.east = attribute_parser.As<double>(Header::kXodrEast);
+  header.west = attribute_parser.As<double>(Header::kXodrWest);
+  header.vendor = attribute_parser.As<std::string>(Header::kXodrVendor);
+  // @}
+
+  tinyxml2::XMLElement* geo_reference_element = element_->FirstChildElement(GeoReference::kGeoReferenceTag);
+  if (geo_reference_element != nullptr) {
+    header.geo_reference = NodeParser(geo_reference_element, parser_configuration_).As<GeoReference>();
+  }
+  tinyxml2::XMLElement* offset_element = element_->FirstChildElement(Offset::kOffsetTag);
+  if (offset_element != nullptr) {
+    header.offset = NodeParser(offset_element, parser_configuration_).As<Offset>();
+  }
+  return header;
 }
 
 // Specialization to parse `RoadLink::LinkAttributes`'s node.

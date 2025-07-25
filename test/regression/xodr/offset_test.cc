@@ -29,22 +29,32 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/offset.h"
 
-#include <ostream>
+#include <gtest/gtest.h>
 
 namespace malidrive {
 namespace xodr {
+namespace test {
+namespace {
 
-bool Offset::operator==(const Offset& other) const {
-  return x == other.x && y == other.y && z == other.z && hdg == other.hdg;
+GTEST_TEST(Offset, EqualityOperator) {
+  const Offset kOffset{1, 2, 3, 3.14};
+  Offset offset = kOffset;
+
+  EXPECT_EQ(kOffset, offset);
+  offset.x = 1.2;
+  EXPECT_NE(kOffset, offset);
+  offset.x = 1;
+  offset.y = 2.2;
+  EXPECT_NE(kOffset, offset);
+  offset.y = 2;
+  offset.z = 3.2;
+  EXPECT_NE(kOffset, offset);
+  offset.z = 3;
+  offset.hdg = 1.57;
+  EXPECT_NE(kOffset, offset);
 }
 
-bool Offset::operator!=(const Offset& other) const { return !(*this == other); }
-
-std::ostream& operator<<(std::ostream& out, const Offset& offset) {
-  out << "{ \"x\": " << offset.x << ", \"y\": " << offset.y << ", \"z\": " << offset.z << ", \"hdg\": " << offset.hdg
-      << " }";
-  return out;
-}
-
+}  // namespace
+}  // namespace test
 }  // namespace xodr
 }  // namespace malidrive
