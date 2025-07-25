@@ -50,3 +50,5 @@ Ancillary Data | Lane | userData | :green_circle:
 Include tag | Include file | include | :red_circle:
 Alternative Layouts | Sets | set | :red_circle:
 Data Quality Description | dataQuality | dataQuality | :red_circle:
+Coordinate System | Georeferencing | geoReference | :green_circle:
+Coordinate System | Georeferencing | offset | :green_circle:

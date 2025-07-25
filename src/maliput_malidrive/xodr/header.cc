@@ -29,13 +29,17 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/header.h"
 
+#include "maliput_malidrive/xodr/geo_reference.h"
+#include "maliput_malidrive/xodr/offset.h"
+
 namespace malidrive {
 namespace xodr {
 
 bool Header::operator==(const Header& other) const {
   return rev_major == other.rev_major && rev_minor == other.rev_minor && name == other.name &&
          version == other.version && date == other.date && north == other.north && south == other.south &&
-         east == other.east && west == other.west && vendor == other.vendor;
+         east == other.east && west == other.west && vendor == other.vendor && geo_reference == other.geo_reference &&
+         offset == other.offset;
 }
 
 bool Header::operator!=(const Header& other) const { return !(*this == other); }
@@ -50,6 +54,12 @@ std::ostream& operator<<(std::ostream& out, const Header& header) {
   out << ", \"east\": {" << (header.east.has_value() ? std::to_string(header.east.value()) : "") << "}";
   out << ", \"west\": {" << (header.west.has_value() ? std::to_string(header.west.value()) : "") << "}";
   out << ", \"vendor\": {" << (header.vendor.has_value() ? header.vendor.value() : "") << "}";
+  if (header.geo_reference.has_value()) {
+    out << ", \"geo_reference\": {" << header.geo_reference.value() << "}";
+  }
+  if (header.offset.has_value()) {
+    out << ", \"offset\": {" << header.offset.value() << "}";
+  }
   out << "}";
 
   return out;

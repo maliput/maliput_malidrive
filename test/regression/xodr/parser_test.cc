@@ -38,6 +38,7 @@
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
+#include "maliput_malidrive/xodr/geo_reference.h"
 #include "maliput_malidrive/xodr/geometry.h"
 #include "maliput_malidrive/xodr/header.h"
 #include "maliput_malidrive/xodr/junction.h"
@@ -48,6 +49,7 @@
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/lanes.h"
 #include "maliput_malidrive/xodr/lateral_profile.h"
+#include "maliput_malidrive/xodr/offset.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
@@ -259,15 +261,26 @@ TEST_F(ParsingTests, AttributeParserHandTrafficRule) {
 // @param east: The east value of the header.
 // @param west: The west value of the header.
 // @param vendor: The vendor of the header.
+// @param geo_reference: The GeoReference of the header.
+// @param x_offset: The x offset of the header.
+// @param y_offset: The y offset of the header.
+// @param z_offset: The z offset of the header.
+// @param hdg_offset: The heading offset of the header.
 // @returns A string that contains a XML description of a XODR header.
 std::string GetXODRHeader(double rev_major, double rev_minor, const std::string& name, double version,
                           const std::string& date, double north, double south, double east, double west,
-                          const std::string& vendor) {
+                          const std::string& vendor, const std::string& geo_reference, double x_offset, double y_offset,
+                          double z_offset, double hdg_offset) {
   std::stringstream ss;
   ss << "<root>";
   ss << "<header revMajor='" << rev_major << "' revMinor='" << rev_minor << "' name='" << name << "' version='"
      << version << "' date='" << date << "' north='" << north << "' south='" << south << "' east='" << east
      << "' west='" << west << "' vendor='" << vendor << "' >";
+  ss << "<geoReference>";
+  ss << "<![CDATA[" << geo_reference << "]]>";
+  ss << "</geoReference>";
+  ss << "<offset x='" << x_offset << "' y='" << y_offset << "' z='" << z_offset << "' hdg='" << hdg_offset << "'>";
+  ss << "</offset>";
   ss << "</header>";
   ss << "</root>";
   return ss.str();
@@ -275,26 +288,91 @@ std::string GetXODRHeader(double rev_major, double rev_minor, const std::string&
 
 // Tests `Header` parsing.
 TEST_F(ParsingTests, NodeParserHeader) {
-  const Header kExpectedHeader{1. /* revMajor */,
-                               1. /* revMinor */,
-                               "TestHeader" /* name */,
-                               1.21 /* version */,
-                               "Wed Sep 19 12:00:00 2018" /* date */,
-                               1.1 /* north */,
-                               2.2 /* south */,
-                               3.3 /* east */,
-                               4.4 /* west */,
-                               "TestVendor" /* vendor */};
+  const std::optional<GeoReference> geo_ref{
+      {"+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"}};
+  const std::optional<Offset> offset{{1, 2, 3, 3.14}};
+  const Header kExpectedHeader{
+      1. /* revMajor */,
+      1. /* revMinor */,
+      "TestHeader" /* name */,
+      1.21 /* version */,
+      "Wed Sep 19 12:00:00 2018" /* date */,
+      1.1 /* north */,
+      2.2 /* south */,
+      3.3 /* east */,
+      4.4 /* west */,
+      "TestVendor" /* vendor */,
+      geo_ref,
+      offset,
+  };
   const std::string xml_description =
       GetXODRHeader(kExpectedHeader.rev_major, kExpectedHeader.rev_minor, kExpectedHeader.name.value(),
                     kExpectedHeader.version.value(), kExpectedHeader.date.value(), kExpectedHeader.north.value(),
                     kExpectedHeader.south.value(), kExpectedHeader.east.value(), kExpectedHeader.west.value(),
-                    kExpectedHeader.vendor.value());
+                    kExpectedHeader.vendor.value(), kExpectedHeader.geo_reference.value().projection_data,
+                    kExpectedHeader.offset.value().x, kExpectedHeader.offset.value().y,
+                    kExpectedHeader.offset.value().z, kExpectedHeader.offset.value().hdg);
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Header::kHeaderTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(Header::kHeaderTag, dut.GetName());
   EXPECT_EQ(kExpectedHeader, dut.As<Header>());
+}
+
+// Get XODR GeoReference.
+// @returns A string that contains a XML description of a XODR GeoReference.
+std::string GetXODRGeoReference() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<geoReference>";
+  ss << "<![CDATA[+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs]]>";
+  ss << "</geoReference>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `GeoReference` parsing.
+TEST_F(ParsingTests, NodeParserGeoReference) {
+  const GeoReference kExpectedGeoRef{
+      "+proj=utm +zone=32 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs" /* projection_data */};
+  const std::string xml_description = GetXODRGeoReference();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, GeoReference::kGeoReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(GeoReference::kGeoReferenceTag, dut.GetName());
+  EXPECT_EQ(kExpectedGeoRef, dut.As<GeoReference>());
+}
+
+// Get XODR Offset.
+// @param x: The x offset.
+// @param y: The y offset.
+// @param z: The z offset.
+// @param hdg: The heading offset.
+// @returns A string that contains a XML description of a XODR Offset.
+std::string GetXODROffset(double x, double y, double z, double hdg) {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<offset x='" << x << "' y='" << y << "' z='" << z << "' hdg='" << hdg << "'>";
+  ss << "</offset>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `GeoReference` parsing.
+TEST_F(ParsingTests, NodeParserOffset) {
+  const Offset kExpectedOffset{
+      10 /* x */,
+      20 /* y */,
+      5 /* z */,
+      3.14 /* hdg */,
+  };
+  const std::string xml_description =
+      GetXODROffset(kExpectedOffset.x, kExpectedOffset.y, kExpectedOffset.z, kExpectedOffset.hdg);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Offset::kOffsetTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Offset::kOffsetTag, dut.GetName());
+  EXPECT_EQ(kExpectedOffset, dut.As<Offset>());
 }
 
 // Get a XML description of a XODR RoadLink.

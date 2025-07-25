@@ -36,6 +36,7 @@
 
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
+#include "maliput_malidrive/xodr/geo_reference.h"
 #include "maliput_malidrive/xodr/geometry.h"
 #include "maliput_malidrive/xodr/header.h"
 #include "maliput_malidrive/xodr/junction.h"
@@ -46,6 +47,7 @@
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/lanes.h"
 #include "maliput_malidrive/xodr/lateral_profile.h"
+#include "maliput_malidrive/xodr/offset.h"
 #include "maliput_malidrive/xodr/plan_view.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
@@ -316,6 +318,40 @@ std::optional<Unit> AttributeParser::As(const std::string& attribute_name) const
   return unit.has_value() ? std::make_optional<Unit>(str_to_unit(unit.value())) : std::nullopt;
 }
 
+// Specialization to parse `GeoReference`'s node.
+template <>
+GeoReference NodeParser::As() const {
+  GeoReference georef{};
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+  MALIDRIVE_TRACE("Parsing geoReference.");
+  const char* projection_data = element_->GetText();
+  MALIDRIVE_THROW_UNLESS(projection_data != nullptr);
+  georef.projection_data = projection_data;
+  return georef;
+}
+
+// Specialization to parse `Offset`'s node.
+template <>
+Offset NodeParser::As() const {
+  Offset offset{};
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+  MALIDRIVE_TRACE("Parsing offset.");
+
+  // Non-optional attributes.
+  // @{
+  const auto x = attribute_parser.As<double>(Offset::kX);
+  offset.x = ValidateDouble(x, kDontAllowNan);
+  const auto y = attribute_parser.As<double>(Offset::kY);
+  offset.y = ValidateDouble(y, kDontAllowNan);
+  const auto z = attribute_parser.As<double>(Offset::kZ);
+  offset.z = ValidateDouble(z, kDontAllowNan);
+  const auto hdg = attribute_parser.As<double>(Offset::kHeading);
+  offset.hdg = ValidateDouble(hdg, kDontAllowNan);
+  // @}
+
+  return offset;
+}
+
 // Specialization to parse `Header`'s node.
 template <>
 Header NodeParser::As() const {
@@ -343,6 +379,14 @@ Header NodeParser::As() const {
   header.vendor = attribute_parser.As<std::string>(Header::kXodrVendor);
   // @}
 
+  tinyxml2::XMLElement* geo_reference_element = element_->FirstChildElement(GeoReference::kGeoReferenceTag);
+  if (geo_reference_element != nullptr) {
+    header.geo_reference = NodeParser(geo_reference_element, parser_configuration_).As<GeoReference>();
+  }
+  tinyxml2::XMLElement* offset_element = element_->FirstChildElement(Offset::kOffsetTag);
+  if (offset_element != nullptr) {
+    header.offset = NodeParser(offset_element, parser_configuration_).As<Offset>();
+  }
   return header;
 }
 

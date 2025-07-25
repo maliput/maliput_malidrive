@@ -5,6 +5,7 @@ add_library(xodr
   connection.cc
   db_manager.cc
   elevation_profile.cc
+  geo_reference.cc
   geometry.cc
   header.cc
   junction.cc
@@ -15,6 +16,7 @@ add_library(xodr
   lane_width.cc
   lateral_profile.cc
   parser.cc
+  offset.cc
   road_header.cc
   road_link.cc
   road_type.cc
