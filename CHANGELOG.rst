@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.1 (2025-07-29)
+------------------
+* Implement GeoReferenceInfo API (`#330 <https://github.com/maliput/maliput_malidrive/issues/330>`_)
+* Contributors: Santiago Lopez
+
 0.9.0 (2025-07-29)
 ------------------
 * Parse `geoReference` and `offset` XODR elements. (`#328 <https://github.com/maliput/maliput_malidrive/issues/328>`_)
