@@ -2,8 +2,14 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.9.0 (2025-07-29)
+------------------
+* Parse `geoReference` and `offset` XODR elements. (`#328 <https://github.com/maliput/maliput_malidrive/issues/328>`_)
+* Allow OS Lane position conversions to off road r-coordinates. (`#326 <https://github.com/maliput/maliput_malidrive/issues/326>`_)
+* Contributors: Santiago Lopez
+
 0.8.0 (2025-07-04)
------------
+------------------
 * Use road::rule XODR attribute to convert to a traffic direction rule. (`#321 <https://github.com/maliput/maliput_malidrive/issues/321>`_)
 * Fixes CI. (`#322 <https://github.com/maliput/maliput_malidrive/issues/322>`_)
 * Parse Lane Groups attributes added in OpenDRIVE 1.8 (`#320 <https://github.com/maliput/maliput_malidrive/issues/320>`_)
