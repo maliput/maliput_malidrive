@@ -1299,24 +1299,35 @@ TEST_P(RoadGeometryDoBackendCustomCommand, DoBackendCustomCommand) {
 INSTANTIATE_TEST_CASE_P(RoadGeometryDoBackendCustomCommandGroup, RoadGeometryDoBackendCustomCommand,
                         ::testing::ValuesIn(InstanciateCommandsInputOutputsParameters()));
 
-class RoadGeometryGeoReferenceInfo : public ::testing::Test {
+// Holds the input and expected output for the DoBackendCustomCommand test.
+struct GeoReferenceInfoParams {
+  std::string xodr_file;
+  std::string expected_output;
+};
+
+std::vector<GeoReferenceInfoParams> InstanciateGeoReferenceParameters() {
+  return {{"Town01.xodr", "+lat_0=4.9000000000000000e+1 +lon_0=8.0000000000000000e+0"}, {"ArcLane.xodr", ""}};
+}
+
+class RoadGeometryGeoReferenceInfo : public ::testing::TestWithParam<GeoReferenceInfoParams> {
  protected:
-  void SetUp() override {
-    road_geometry_configuration_.id = maliput::api::RoadGeometryId("GeoReferenceInfo");
-    road_geometry_configuration_.opendrive_file = utility::FindResourceInPath("Town01.xodr", kMalidriveResourceFolder);
-    road_network_ =
-        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
-  }
+  void SetUp() override { road_geometry_configuration_.id = maliput::api::RoadGeometryId("GeoReferenceInfo"); }
   builder::RoadGeometryConfiguration road_geometry_configuration_{};
   std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
 };
 
-TEST_F(RoadGeometryGeoReferenceInfo, DoGeoReferenceInfo) {
-  const std::string expected_output = "+lat_0=4.9000000000000000e+1 +lon_0=8.0000000000000000e+0";
+TEST_P(RoadGeometryGeoReferenceInfo, DoGeoReferenceInfo) {
+  const auto param = GetParam();
+  road_geometry_configuration_.opendrive_file = utility::FindResourceInPath(param.xodr_file, kMalidriveResourceFolder);
+  road_network_ =
+      ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
   auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
   const std::string result = rg->GeoReferenceInfo();
-  EXPECT_EQ(expected_output, result);
+  EXPECT_EQ(param.expected_output, result);
 }
+
+INSTANTIATE_TEST_CASE_P(RoadGeometryGeoReferenceInfoGroup, RoadGeometryGeoReferenceInfo,
+                        ::testing::ValuesIn(InstanciateGeoReferenceParameters()));
 
 }  // namespace
 }  // namespace tests
