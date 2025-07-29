@@ -1299,6 +1299,25 @@ TEST_P(RoadGeometryDoBackendCustomCommand, DoBackendCustomCommand) {
 INSTANTIATE_TEST_CASE_P(RoadGeometryDoBackendCustomCommandGroup, RoadGeometryDoBackendCustomCommand,
                         ::testing::ValuesIn(InstanciateCommandsInputOutputsParameters()));
 
+class RoadGeometryGeoReferenceInfo : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("GeoReferenceInfo");
+    road_geometry_configuration_.opendrive_file = utility::FindResourceInPath("Town01.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_F(RoadGeometryGeoReferenceInfo, DoGeoReferenceInfo) {
+  const std::string expected_output = "+lat_0=4.9000000000000000e+1 +lon_0=8.0000000000000000e+0";
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  const std::string result = rg->GeoReferenceInfo();
+  EXPECT_EQ(expected_output, result);
+}
+
 }  // namespace
 }  // namespace tests
 }  // namespace malidrive

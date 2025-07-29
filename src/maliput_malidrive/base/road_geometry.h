@@ -328,6 +328,11 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   // Finds the maliput lane that corresponds to the offset from the intial_lane.
   const Lane* ApplyOffsetToLane(const Lane* initial_lane, int lane_offset) const;
 
+  // Get the Geo Reference info of the RoadGeometry.
+  //
+  // @returns A string with the Geo Reference info.
+  std::string DoGeoReferenceInfo() const override;
+
   std::unique_ptr<xodr::DBManager> manager_;
   std::unordered_map<xodr::RoadHeader::Id, RoadCharacteristics> road_characteristics_;
 };

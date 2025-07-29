@@ -659,4 +659,10 @@ std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) con
   return commands_handler.Execute(commands_handler.ParseCommand(command));
 }
 
+std::string RoadGeometry::DoGeoReferenceInfo() const {
+  return manager_->GetXodrHeader().geo_reference.has_value()
+             ? manager_->GetXodrHeader().geo_reference.value().projection_data
+             : "";
+}
+
 }  // namespace malidrive
