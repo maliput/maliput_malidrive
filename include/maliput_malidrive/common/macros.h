@@ -47,7 +47,7 @@
 #define MALIDRIVE_ABORT_MSG(msg) MALIPUT_ABORT_MESSAGE(msg)
 
 /// @def MALIDRIVE_IS_IN_RANGE
-/// Throws if `value` is within [`min_value`; `max_value`]. It forwards the call
+/// Throws if `value` is not within [`min_value`; `max_value`]. It forwards the call
 /// to MALIDRIVE_VALIDATE() with a customized string stating the error.
 #define MALIDRIVE_IS_IN_RANGE(value, min_value, max_value)                                       \
   do {                                                                                           \
