@@ -69,6 +69,22 @@
     MALIDRIVE_VALIDATE(false, maliput::common::assertion_error, message.c_str()); \
   } while (0)
 
+/// @def MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_UNLESS
+/// Throws a road_network_description_parser_error unless `condition` is true.
+#define MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_UNLESS(condition) MALIPUT_ROAD_NETWORK_DESCRIPTION_PARSER_THROW_UNLESS(condition)
+
+/// @def MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_MESSAGE
+/// Throws a road_network_description_parser_error with `msg`.
+#define MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_MESSAGE(msg) MALIPUT_ROAD_NETWORK_DESCRIPTION_PARSER_THROW_MESSAGE(msg)
+
+/// @def MALIDRIVE_ROAD_GEOMETRY_BUILDER_THROW_UNLESS
+/// Throws a road_geometry_construction_error unless `condition` is true.
+#define MALIDRIVE_ROAD_GEOMETRY_BUILDER_THROW_UNLESS(condition) MALIPUT_ROAD_GEOMETRY_CONSTRUCTION_THROW_UNLESS(condition)
+
+/// @def MALIDRIVE_ROAD_GEOMETRY_BUILDER_THROW_MESSAGE
+/// Throws a road_geometry_construction_error with `msg`.
+#define MALIDRIVE_ROAD_GEOMETRY_BUILDER_THROW_MESSAGE(msg) MALIPUT_ROAD_GEOMETRY_CONSTRUCTION_THROW_MESSAGE(msg)
+
 /// @def MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN
 /// Deletes the special member functions for copy-construction, copy-assignment,
 /// move-construction, and move-assignment.
