@@ -70,11 +70,11 @@ class ParsingTests : public ::testing::Test {
   static constexpr bool kAllowSchemaErrors{true};
 
   tinyxml2::XMLElement* LoadXMLAndGetNodeByName(const std::string& xml_str, const std::string& node_name) {
-    MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS);
     tinyxml2::XMLElement* p_xml = xml_doc_.FirstChildElement();
-    MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_UNLESS(p_xml != nullptr);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(p_xml != nullptr);
     tinyxml2::XMLElement* p_elem = p_xml->FirstChildElement(node_name.c_str());
-    MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_UNLESS(p_elem != nullptr);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(p_elem != nullptr);
     return p_elem;
   }
   const std::optional<double> kNullParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
@@ -1527,7 +1527,7 @@ GTEST_TEST(XMLToText, ConvertXMLNodeToText) {
 )R";
 
   tinyxml2::XMLDocument xml_doc;
-  MALIDRIVE_ROAD_NETWORK_XODR_PARSER_THROW_UNLESS(xml_doc.Parse(kArbitraryXMLDescription) == tinyxml2::XML_SUCCESS);
+  MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(xml_doc.Parse(kArbitraryXMLDescription) == tinyxml2::XML_SUCCESS);
   const std::string str_xml = ConvertXMLNodeToText(xml_doc.FirstChildElement());
   EXPECT_EQ(kArbitraryXMLDescription, str_xml);
 }
