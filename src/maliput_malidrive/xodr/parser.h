@@ -49,8 +49,8 @@ class ParserBase {
   /// Creates an ParserBase from a tinyxml2::XMLElement.
   /// @param element Is the XML Node that contains attributes to be parsed.
   /// @param parser_configuration Holds the configuration for the parser.
-  /// @throw maliput::common::assertion_error When `element` is nullptr.
-  /// @throw maliput::common::assertion_error When `parser_configuration.tolerance` is negative.
+  /// @throw maliput::common::road_network_description_parser_error When `element` is nullptr.
+  /// @throw maliput::common::road_network_description_parser_error When `parser_configuration.tolerance` is negative.
   ParserBase(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
       : element_(element), parser_configuration_(parser_configuration) {
     MALIDRIVE_THROW_UNLESS(element_ != nullptr);
@@ -86,7 +86,7 @@ class AttributeParser : public ParserBase {
   /// Creates an AttributeParser from a tinyxml2::XMLElement.
   /// @param element Is the XML Node that contains attributes to be parsed.
   /// @param parser_configuration Holds the configuration for the parser.
-  /// @throw maliput::common::assertion_error When `element` is nullptr.
+  /// @throw maliput::common::road_network_description_parser_error When `element` is nullptr.
   AttributeParser(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
       : ParserBase(element, parser_configuration) {}
 
@@ -111,14 +111,14 @@ class NodeParser : public ParserBase {
   /// Creates a NodeParser from a tinyxml2::XMLElement.
   /// @param element Is the XML Node to be parsed.
   /// @param parser_configuration Holds the configuration for the parser.
-  /// @throw maliput::common::assertion_error When `element` is nullptr.
+  /// @throw maliput::common::road_network_description_parser_error When `element` is nullptr.
   NodeParser(tinyxml2::XMLElement* element, const ParserConfiguration& parser_configuration)
       : ParserBase(element, parser_configuration) {}
 
   /// Parses the node as `T`.
   /// @tparam T Is the type of the node's value.
   /// @return A `T(value)`.
-  /// @throw maliput::common::assertion_error When the node couldn't be parsed as `T`.
+  /// @throw maliput::common::road_network_description_parser_error When the node couldn't be parsed as `T`.
   template <typename T>
   T As() const;
 };
@@ -126,7 +126,7 @@ class NodeParser : public ParserBase {
 /// Convert all the content of the XML node into text.
 /// @param element Is the XML Node.
 /// @returns A string with the XML description.
-/// @throw maliput::common::assertion_error When element is nullptr.
+/// @throw maliput::common::road_network_description_parser_error When element is nullptr.
 std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element);
 
 }  // namespace xodr
