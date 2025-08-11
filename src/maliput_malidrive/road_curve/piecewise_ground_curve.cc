@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/maliput_error.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/range_validator.h>
 

@@ -31,7 +31,7 @@
 #include <cmath>
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/maliput_error.h>
 #include <maliput/math/compare.h>
 #include <maliput/math/vector.h>
 
