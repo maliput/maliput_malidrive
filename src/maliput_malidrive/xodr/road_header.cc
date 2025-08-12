@@ -48,7 +48,8 @@ std::string RoadHeader::hand_traffic_rule_to_str(RoadHeader::HandTrafficRule rul
 }
 
 RoadHeader::HandTrafficRule RoadHeader::str_to_hand_traffic_rule(const std::string& rule) {
-  MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(str_to_hand_traffic_rule_map.find(rule) != str_to_hand_traffic_rule_map.end());
+  MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(str_to_hand_traffic_rule_map.find(rule) !=
+                                                  str_to_hand_traffic_rule_map.end());
   return str_to_hand_traffic_rule_map.at(rule);
 }
 
@@ -71,7 +72,8 @@ int RoadHeader::GetLaneSectionIndex(double s) const {
     }
   }
   MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Coordinate s: ") + std::to_string(s) +
-                          std::string(" is not part of any LaneSection of Road Id: ") + id.string());
+                                                   std::string(" is not part of any LaneSection of Road Id: ") +
+                                                   id.string());
 }
 
 double RoadHeader::GetRoadTypeLength(int index) const {
@@ -96,7 +98,8 @@ const RoadType* RoadHeader::GetRoadType(double s) const {
     }
   }
   MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Coordinate s: ") + std::to_string(s) +
-                          std::string(" is not part of any RoadType of Road Id: ") + id.string());
+                                                   std::string(" is not part of any RoadType of Road Id: ") +
+                                                   id.string());
 }
 
 std::vector<const RoadType*> RoadHeader::GetRoadTypesInRange(double s_start, double s_end) const {

@@ -69,7 +69,8 @@ static constexpr bool kDontAllowNan{false};
 // @returns The validated value.
 //
 // @throws maliput::common::road_network_description_parser_error When `value` is std::nullopt.
-// @throws maliput::common::road_network_description_parser_error When `value.value()` is a NaN value iff `allow_nan` is false.
+// @throws maliput::common::road_network_description_parser_error When `value.value()` is a NaN value iff `allow_nan` is
+// false.
 double ValidateDouble(const std::optional<double>& value, bool allow_nan) {
   MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(value != std::nullopt);
   if (!allow_nan) {
@@ -106,8 +107,8 @@ bool IsContiguous(const Geometry& geometry_a, const Geometry& geometry_b, double
 // @param xml_node XML node that is used to improve logging messages.
 // @param functions Collection of functions.
 //
-// @throws maliput::common::road_network_description_parser_error When `allow_schema_errors` is false and only `new_function.s_0` value is
-// equal to `functions->back().s_0` value.
+// @throws maliput::common::road_network_description_parser_error When `allow_schema_errors` is false and only
+// `new_function.s_0` value is equal to `functions->back().s_0` value.
 template <typename T>
 void AddPolynomialDescriptionToCollection(const T& new_function, const std::string& node_id, bool allow_schema_errors,
                                           tinyxml2::XMLElement* xml_node, std::vector<T>* functions) {
@@ -202,8 +203,8 @@ std::optional<bool> AttributeParser::As(const std::string& attribute_name) const
   const char* attribute_as_str_ptr = element_->Attribute(attribute_name.c_str());
   if (attribute_as_str_ptr == nullptr) return std::nullopt;
   const std::string attribute_value = static_cast<std::string>(attribute_as_str_ptr);
-  MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(attribute_value == kTrueStr || attribute_value == kTrueNum || attribute_value == kFalseStr ||
-                         attribute_value == kFalseNum);
+  MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(attribute_value == kTrueStr || attribute_value == kTrueNum ||
+                                                  attribute_value == kFalseStr || attribute_value == kFalseNum);
   return attribute_value == kTrueStr || attribute_value == kTrueNum;
 }
 
@@ -433,8 +434,8 @@ RoadLink NodeParser::As() const {
 template <>
 Geometry::Line NodeParser::As() const {
   if (NumberOfAttributes()) {
-    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Bad Line description. Line node doesn't allow attributes: ") +
-                            ConvertXMLNodeToText(element_));
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(
+        std::string("Bad Line description. Line node doesn't allow attributes: ") + ConvertXMLNodeToText(element_));
   }
   return Geometry::Line{};
 }
@@ -443,8 +444,9 @@ Geometry::Line NodeParser::As() const {
 template <>
 Geometry::Arc NodeParser::As() const {
   if (NumberOfAttributes() != 1) {
-    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Bad Arc description. Arc demands only one argument: 'curvature'. ") +
-                            ConvertXMLNodeToText(element_));
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(
+        std::string("Bad Arc description. Arc demands only one argument: 'curvature'. ") +
+        ConvertXMLNodeToText(element_));
   }
   const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto curvature = attribute_parser.As<double>(Geometry::Arc::kCurvature);
@@ -455,9 +457,10 @@ Geometry::Arc NodeParser::As() const {
 template <>
 Geometry::Spiral NodeParser::As() const {
   if (NumberOfAttributes() != 2) {
-    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Bad Spiral description. Spiral demands only two arguments: 'curvStart' and "
-                                        "'curvEnd'. ") +
-                            ConvertXMLNodeToText(element_));
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(
+        std::string("Bad Spiral description. Spiral demands only two arguments: 'curvStart' and "
+                    "'curvEnd'. ") +
+        ConvertXMLNodeToText(element_));
   }
   const AttributeParser attribute_parser(element_, parser_configuration_);
   const auto curv_start = attribute_parser.As<double>(Geometry::Spiral::kCurvStart);
@@ -803,8 +806,9 @@ Geometry NodeParser::As() const {
       geometry.description = geometry_type.As<Geometry::Spiral>();
       break;
     default:
-      MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("The Geometry type '") + Geometry::type_to_str(geometry.type) +
-                              std::string("' is not supported."));
+      MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("The Geometry type '") +
+                                                       Geometry::type_to_str(geometry.type) +
+                                                       std::string("' is not supported."));
   }
   // @}
   return geometry;
@@ -1039,7 +1043,8 @@ Connection NodeParser::As() const {
   const auto type = attribute_parser.As<Connection::Type>(Connection::kType);
   // TODO(#477): Support virtual connections.
   if (type.has_value() && type.value() != Connection::Type::kDefault) {
-    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Only default connection type is supported: Error at Connection Id: ") + *id);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(
+        std::string("Only default connection type is supported: Error at Connection Id: ") + *id);
   }
   // @}
 
@@ -1073,7 +1078,8 @@ Junction NodeParser::As() const {
   const auto type = attribute_parser.As<Junction::Type>(Junction::kType);
   // TODO(#477): Support virtual junctions.
   if (type.has_value() && (type.value() != Junction::Type::kDefault)) {
-    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Only default junction type is supported: Error at Junction Id: ") + *id);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(
+        std::string("Only default junction type is supported: Error at Junction Id: ") + *id);
   }
   // @}
 
@@ -1089,7 +1095,8 @@ Junction NodeParser::As() const {
   while (connection_element) {
     const auto connection = NodeParser(connection_element, parser_configuration_).As<Connection>();
     if (connections.find(connection.id) != connections.end()) {
-      MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Connection Id: ") + connection.id.string() + std::string(" is duplicated."));
+      MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(std::string("Connection Id: ") + connection.id.string() +
+                                                       std::string(" is duplicated."));
     }
     connections.insert({connection.id, std::move(connection)});
     connection_element = connection_element->NextSiblingElement(Connection::kConnectionTag);

@@ -50,7 +50,8 @@ GTEST_TEST(RoadHeader, StrToHandTrafficRule) {
   EXPECT_EQ(RoadHeader::HandTrafficRule::kRHT, RoadHeader::str_to_hand_traffic_rule(kRHT));
   EXPECT_EQ(RoadHeader::HandTrafficRule::kLHT, RoadHeader::str_to_hand_traffic_rule(kLHT));
   const std::string kWrongValue{"WrongValue"};
-  EXPECT_THROW(RoadHeader::str_to_hand_traffic_rule(kWrongValue), maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(RoadHeader::str_to_hand_traffic_rule(kWrongValue),
+               maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(RoadHeader, EqualityOperator) {

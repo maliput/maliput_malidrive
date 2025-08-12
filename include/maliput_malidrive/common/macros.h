@@ -31,10 +31,10 @@
 
 #include <string>
 
-#include <maliput/common/maliput_error.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_abort.h>
 #include <maliput/common/maliput_copyable.h>
+#include <maliput/common/maliput_error.h>
 #include <maliput/common/maliput_throw.h>
 
 /// @def MALIDRIVE_DEMAND
@@ -71,7 +71,8 @@
 
 /// @def MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS
 /// Throws a road_network_description_parser_error unless `condition` is true.
-#define MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(condition) MALIPUT_THROW_ROAD_NETWORK_DESCRIPTION_PARSER_UNLESS(condition)
+#define MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(condition) \
+  MALIPUT_THROW_ROAD_NETWORK_DESCRIPTION_PARSER_UNLESS(condition)
 
 /// @def MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE
 /// Throws a road_network_description_parser_error with `msg`.
@@ -79,7 +80,8 @@
 
 /// @def MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS
 /// Throws a road_geometry_construction_error unless `condition` is true.
-#define MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(condition) MALIPUT_THROW_ROAD_GEOMETRY_CONSTRUCTION_UNLESS(condition)
+#define MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(condition) \
+  MALIPUT_THROW_ROAD_GEOMETRY_CONSTRUCTION_UNLESS(condition)
 
 /// @def MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE
 /// Throws a road_geometry_construction_error with `msg`.
