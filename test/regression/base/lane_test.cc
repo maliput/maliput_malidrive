@@ -37,7 +37,7 @@
 #include <maliput/api/compare.h>
 #include <maliput/api/lane.h>
 #include <maliput/api/lane_data.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 #include <maliput/geometry_base/junction.h>
 #include <maliput/geometry_base/road_geometry.h>
 #include <maliput/math/roll_pitch_yaw.h>

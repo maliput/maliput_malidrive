@@ -32,7 +32,7 @@
 #include <array>
 
 #include <gtest/gtest.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 #include <maliput/math/vector.h>
 
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"

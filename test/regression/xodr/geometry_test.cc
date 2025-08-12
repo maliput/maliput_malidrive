@@ -32,7 +32,7 @@
 #include <sstream>
 
 #include <gtest/gtest.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 
 namespace malidrive {
 namespace xodr {

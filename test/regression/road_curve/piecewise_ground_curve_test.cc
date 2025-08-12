@@ -30,7 +30,7 @@
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
 
 #include <gtest/gtest.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 #include <maliput/math/compare.h>
 
 #include "assert_compare.h"

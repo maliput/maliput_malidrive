@@ -33,7 +33,7 @@
 #include <cmath>
 
 #include <maliput/common/logger.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 #include <maliput/common/range_validator.h>
 
 namespace malidrive {

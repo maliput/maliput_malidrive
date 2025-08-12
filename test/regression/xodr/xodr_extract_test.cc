@@ -34,7 +34,7 @@
 #include <vector>
 
 #include <gtest/gtest.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 
 #include "maliput_malidrive/common/macros.h"
 

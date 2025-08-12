@@ -32,7 +32,7 @@
 #include <optional>
 
 #include <gtest/gtest.h>
-#include <maliput/common/maliput_error.h>
+#include <maliput/common/error.h>
 
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/test_utilities/xodr_testing_map_descriptions.h"
