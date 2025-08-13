@@ -78,11 +78,13 @@ class RoadCurveOffsetTest : public ::testing::Test {
 
 TEST_F(RoadCurveOffsetTest, ConstructorAssertionRoadCurve) {
   EXPECT_THROW(RoadCurveOffset(nullptr, lane_offset_0.get(), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
-               maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, 0.), maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, -1.), maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, 0.),
+               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(RoadCurveOffset(road_curve_.get(), nullptr, kP0, kP1, -1.),
+               maliput::common::road_geometry_construction_error);
 }
 
 // Flat, non-elevated and non-superelevated line road curve. Offsets are not
@@ -109,7 +111,7 @@ TEST_F(FlatLineRoadCurveTest, ConstructorAssertionRange) {
   const double kWrongP1{3.};
   EXPECT_THROW(RoadCurveOffset(road_curve_.get(), lane_offset_0.get(), kWrongP0, kWrongP1,
                                kRoadCurveOffsetIntegratorAccuracyMultiplier),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(FlatLineRoadCurveTest, RoadCurve) {

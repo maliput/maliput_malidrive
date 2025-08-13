@@ -58,18 +58,18 @@ class ScaledDomainFunction : public Function {
   /// @param p1 The new p1 value to use as domain's upper boundary.
   /// @param linear_tolerance Is the range extension to be accepted.
   ///
-  /// @throws maliput::common::assertion_error When @p function is nullptr.
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is less than @p p0.
+  /// @throws maliput::common::road_geometry_construction_error When @p function is nullptr.
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is less than @p p0.
   ScaledDomainFunction(std::unique_ptr<Function> function, double p0, double p1, double linear_tolerance)
       : function_(std::move(function)),
         p0_(p0),
         p1_(p1),
         validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
                                                                                  Function::kEpsilon)) {
-    MALIDRIVE_THROW_UNLESS(function_ != nullptr);
-    MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
-    MALIDRIVE_THROW_UNLESS(p1_ > p0_);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(function_ != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ > p0_);
 
     alpha_ = (function_->p1() - function_->p0()) / (p1_ - p0_);
     beta_ = function_->p0() - alpha_ * p0_;

@@ -94,7 +94,7 @@ const std::map<xodr::Lane::Type, XodrLaneProperties> kXodrLaneTypesToMaliputProp
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type) {
-  MALIDRIVE_THROW_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
 
   std::vector<maliput::api::LaneEnd> connecting_lane_ends;
 
@@ -102,21 +102,21 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
   const std::optional<xodr::RoadLink::LinkAttributes> road_link =
       connection_type == XodrConnectionType::kSuccessor ? xodr_lane_properties.road_header->road_link.successor
                                                         : xodr_lane_properties.road_header->road_link.predecessor;
-  MALIDRIVE_VALIDATE(road_link != std::nullopt, maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(road_link != std::nullopt, maliput::common::road_geometry_construction_error,
                      "SolveLaneEndsForConnectingRoad(). Trying to connect Xodr Road(" +
                          xodr_lane_properties.road_header->id.string() + ") but the road_link " +
                          (connection_type == XodrConnectionType::kSuccessor ? "successor" : "predecessor") +
                          " is empty.");
-  MALIDRIVE_VALIDATE(road_link->element_type == xodr::RoadLink::ElementType::kRoad, maliput::common::assertion_error,
-                     "SolveLaneEndsForConnectingRoad(). Expecting Xodr Road(" +
-                         xodr_lane_properties.road_header->id.string() +
-                         ") with road_link of type xodr::RoadLink::ElementType::kRoad but it is "
-                         "xodr::RoadLink::ElementType::kJunction");
+  MALIDRIVE_VALIDATE(
+      road_link->element_type == xodr::RoadLink::ElementType::kRoad, maliput::common::road_geometry_construction_error,
+      "SolveLaneEndsForConnectingRoad(). Expecting Xodr Road(" + xodr_lane_properties.road_header->id.string() +
+          ") with road_link of type xodr::RoadLink::ElementType::kRoad but it is "
+          "xodr::RoadLink::ElementType::kJunction");
 
   // Finds the Road and connecting lanes section.
   const xodr::RoadHeader::Id road_header_id(road_link->element_id.string());
   MALIDRIVE_VALIDATE(
-      road_headers.find(road_header_id) != road_headers.end(), maliput::common::assertion_error,
+      road_headers.find(road_header_id) != road_headers.end(), maliput::common::road_geometry_construction_error,
       "SolveLaneEndsForConnectingRoad(). RoadLink pointing to missing Xodr Road(" + road_header_id.string() + ").");
 
   const xodr::RoadHeader& road_header = road_headers.at(road_header_id);
@@ -148,7 +148,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers,
     const std::unordered_map<xodr::Junction::Id, xodr::Junction>& junctions, XodrConnectionType connection_type) {
-  MALIDRIVE_THROW_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
 
   std::vector<maliput::api::LaneEnd> connecting_lane_ends;
 
@@ -156,20 +156,21 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
   const std::optional<xodr::RoadLink::LinkAttributes> road_link =
       connection_type == XodrConnectionType::kSuccessor ? xodr_lane_properties.road_header->road_link.successor
                                                         : xodr_lane_properties.road_header->road_link.predecessor;
-  MALIDRIVE_VALIDATE(road_link != std::nullopt, maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(road_link != std::nullopt, maliput::common::road_geometry_construction_error,
                      "SolveLaneEndsForJunction(). Trying to connect Xodr Road(" +
                          xodr_lane_properties.road_header->id.string() + ") but the road_link " +
                          (connection_type == XodrConnectionType::kSuccessor ? "successor" : "predecessor") +
                          " is empty.");
-  MALIDRIVE_VALIDATE(
-      road_link->element_type == xodr::RoadLink::ElementType::kJunction, maliput::common::assertion_error,
-      "SolveLaneEndsForJunction(). Expecting Xodr Road(" + xodr_lane_properties.road_header->id.string() +
-          ") with road_link of type xodr::RoadLink::ElementType::kJunction but it is "
-          "xodr::RoadLink::ElementType::kRoad");
+  MALIDRIVE_VALIDATE(road_link->element_type == xodr::RoadLink::ElementType::kJunction,
+                     maliput::common::road_geometry_construction_error,
+                     "SolveLaneEndsForJunction(). Expecting Xodr Road(" +
+                         xodr_lane_properties.road_header->id.string() +
+                         ") with road_link of type xodr::RoadLink::ElementType::kJunction but it is "
+                         "xodr::RoadLink::ElementType::kRoad");
 
   // Gets the Junction that this road connects to.
   const auto junction = junctions.find(xodr::Junction::Id(road_link->element_id.string()));
-  MALIDRIVE_VALIDATE(junction != junctions.end(), maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(junction != junctions.end(), maliput::common::road_geometry_construction_error,
                      "SolveLaneEndsForJunction(). RoadLink pointing to missing Xodr Junction(" +
                          road_link->element_id.string() + ").");
 
@@ -183,7 +184,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
 
       // Get the RoadHeader of the connecting road.
       const auto road_header = road_headers.find(xodr::RoadHeader::Id(connection.second.connecting_road));
-      MALIDRIVE_VALIDATE(road_header != road_headers.end(), maliput::common::assertion_error,
+      MALIDRIVE_VALIDATE(road_header != road_headers.end(), maliput::common::road_geometry_construction_error,
                          "SolveLaneEndsForJunction(). Xodr Junction(" + road_link->element_id.string() +
                              ") has Xodr Connection(" + connection.first.string() + ") with a connecting Xodr Road(" +
                              connection.second.connecting_road + ") that cannot be found.");
@@ -213,7 +214,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
 std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type) {
-  MALIDRIVE_THROW_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
   // Successor / Predecessor is a road.
   const std::optional<xodr::RoadLink::LinkAttributes> road_link =
       connection_type == XodrConnectionType::kSuccessor ? xodr_lane_properties.road_header->road_link.successor
@@ -227,7 +228,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
     return {};
   }
   if (road_link->element_type == xodr::RoadLink::ElementType::kJunction) {
-    MALIDRIVE_THROW_MESSAGE("Junctions connected to junctions are not supported.");
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE("Junctions connected to junctions are not supported.");
   }
   return SolveLaneEndsForConnectingRoad(rg, xodr_lane_properties, road_headers, connection_type);
 }
@@ -235,7 +236,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForInnerLaneSection(
     const maliput::api::RoadGeometry* rg, const maliput::api::LaneEnd& lane_end,
     const MalidriveXodrLaneProperties& xodr_lane_properties) {
-  MALIDRIVE_THROW_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
 
   std::vector<maliput::api::LaneEnd> connecting_lane_ends;
 

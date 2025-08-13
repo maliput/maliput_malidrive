@@ -78,7 +78,7 @@ constexpr const char* TypeName() {
   } else if (std::is_same<T, xodr::LaneOffset>::value) {
     return "LaneOffset";
   } else {
-    // MALIDRIVE_THROW_MESSAGE macro can't be used within a constexpr function.
+    // MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE macro can't be used within a constexpr function.
     throw maliput::common::assertion_error(
         "Only xodr::ElevationProfile::Elevation, xodr::LateralProfile::Superelevation and xodr::LaneOffset types are "
         "allowed by this function. ");
@@ -118,8 +118,8 @@ std::unique_ptr<road_curve::Function> RoadCurveFactory::MakeCubicPolynomial(doub
 // @endcode
 std::unique_ptr<road_curve::Function> RoadCurveFactory::MakeCubicPolynomial(double p0, double p1, double y,
                                                                             double dy) const {
-  MALIDRIVE_THROW_UNLESS(p0 >= 0);
-  MALIDRIVE_THROW_UNLESS(p1 > p0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 > p0);
   const double cubic_p0 = p0 * p0 * p0;
   const double quad_p0 = p0 * p0;
   const double cubic_p1 = p1 * p1 * p1;
@@ -154,7 +154,7 @@ xodr::LaneWidth RoadCurveFactory::AdaptCubicPolynomial(const xodr::LaneWidth& a,
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeArcGroundCurve(
     const xodr::Geometry& arc_geometry) const {
-  MALIDRIVE_THROW_UNLESS(arc_geometry.type == xodr::Geometry::Type::kArc);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(arc_geometry.type == xodr::Geometry::Type::kArc);
   const double p0{arc_geometry.s_0};
   const double p1{arc_geometry.s_0 + arc_geometry.length};
   MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
@@ -168,7 +168,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeArcGroundCurve(
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeLineGroundCurve(
     const xodr::Geometry& line_geometry) const {
-  MALIDRIVE_THROW_UNLESS(line_geometry.type == xodr::Geometry::Type::kLine);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(line_geometry.type == xodr::Geometry::Type::kLine);
   const double p0{line_geometry.s_0};
   const double p1{line_geometry.s_0 + line_geometry.length};
   MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
@@ -182,7 +182,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeLineGroundCurve(
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeSpiralGroundCurve(
     const xodr::Geometry& spiral_geometry) const {
-  MALIDRIVE_THROW_UNLESS(spiral_geometry.type == xodr::Geometry::Type::kSpiral);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(spiral_geometry.type == xodr::Geometry::Type::kSpiral);
   const double p0{spiral_geometry.s_0};
   const double p1{spiral_geometry.s_0 + spiral_geometry.length};
   MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
@@ -197,7 +197,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeSpiralGroundCurve
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCurve(
     const std::vector<xodr::Geometry>& geometries) const {
-  MALIDRIVE_THROW_UNLESS(!geometries.empty());
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(!geometries.empty());
 
   std::vector<std::unique_ptr<road_curve::GroundCurve>> ground_curves;
   for (const xodr::Geometry& geometry : geometries) {
@@ -216,19 +216,20 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
         ground_curves.emplace_back(MakeSpiralGroundCurve(geometry));
         break;
       default:
-        MALIDRIVE_THROW_MESSAGE("Geometries contain a xodr::Geometry whose type is not in {kLine, kArc}.");
+        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(
+            "Geometries contain a xodr::Geometry whose type is not in {kLine, kArc}.");
         break;
     }
   }
-  MALIDRIVE_THROW_UNLESS(!ground_curves.empty());
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(!ground_curves.empty());
   return std::make_unique<road_curve::PiecewiseGroundCurve>(std::move(ground_curves), linear_tolerance(),
                                                             angular_tolerance());
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeElevation(
     const xodr::ElevationProfile& elevation_profile, double p0, double p1, bool assert_continuity) const {
-  MALIDRIVE_THROW_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_UNLESS(p1 > p0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 > p0);
   return MakeCubicFromXodr<xodr::ElevationProfile::Elevation>(elevation_profile.elevations, p0, p1,
                                                               FillingGapPolicy::kEnsureContiguity,
                                                               FromBoolToContiguityCheck(assert_continuity));
@@ -236,8 +237,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeElevation
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeSuperelevation(
     const xodr::LateralProfile& lateral_profile, double p0, double p1, bool assert_continuity) const {
-  MALIDRIVE_THROW_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_UNLESS(p1 > p0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 > p0);
   return MakeCubicFromXodr<xodr::LateralProfile::Superelevation>(lateral_profile.superelevations, p0, p1,
                                                                  FillingGapPolicy::kEnsureContiguity,
                                                                  FromBoolToContiguityCheck(assert_continuity));
@@ -261,12 +262,13 @@ std::vector<std::unique_ptr<malidrive::road_curve::Function>> RoadCurveFactory::
     // the same road_curve::Function::kEpsilon which value is zero. So it makes sense to match the same behavior.
     if (p0_i - p1_i >= road_curve::Function::kEpsilon) {
       if (!end) {
-        MALIDRIVE_THROW_MESSAGE("Invalid range for the laneWidth's function in position " + std::to_string(i) +
-                                ": p0_i: " + std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
+        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE("Invalid range for the laneWidth's function in position " +
+                                                      std::to_string(i) + ": p0_i: " + std::to_string(p0_i) +
+                                                      " | p1_i: " + std::to_string(p1_i));
       } else {
         if (p0_i != p1_i) {
-          MALIDRIVE_THROW_MESSAGE("Last laneWidth's function has invalid length: p0_i: " + std::to_string(p0_i) +
-                                  " | p1_i: " + std::to_string(p1_i));
+          MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE("Last laneWidth's function has invalid length: p0_i: " +
+                                                        std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
         } else {
           maliput::log()->debug("Last laneWidth's function has null length: p0_i = p1_1 = ", p1_i);
           continue;
@@ -300,11 +302,11 @@ bool RoadCurveFactory::AreLaneWidthsContinuous(const xodr::LaneWidth& a, const x
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth(
     const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1, bool assert_continuity,
     bool adapt_lane_widths) const {
-  MALIDRIVE_THROW_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_UNLESS(p1 > p0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 > p0);
   const int num_polynomials = static_cast<int>(lane_widths.size());
-  MALIDRIVE_THROW_UNLESS(num_polynomials > 0);
-  MALIDRIVE_THROW_UNLESS(lane_widths[0].s_0 == 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(num_polynomials > 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_widths[0].s_0 == 0);
   std::vector<std::unique_ptr<road_curve::Function>> polynomials;
 
   std::vector<xodr::LaneWidth> adapted_lane_widths;
@@ -331,8 +333,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeReferenceLineOffset(
     const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1, bool assert_continuity) const {
-  MALIDRIVE_THROW_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_UNLESS(p1 > p0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 > p0);
   return MakeCubicFromXodr<xodr::LaneOffset>(reference_offsets, p0, p1, FillingGapPolicy::kZero,
                                              FromBoolToContiguityCheck(assert_continuity));
 }
@@ -348,8 +350,8 @@ template <class T>
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFromXodr(
     const std::vector<T>& xodr_data, double p0, double p1, FillingGapPolicy policy,
     road_curve::PiecewiseFunction::ContinuityCheck continuity_check) const {
-  MALIDRIVE_THROW_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_UNLESS(p1 > p0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 > p0);
   const std::string xodr_data_type{TypeName<T>()};
   const int num_polynomials = static_cast<int>(xodr_data.size());
   std::vector<std::unique_ptr<road_curve::Function>> polynomials;
@@ -370,13 +372,14 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
     // the same epsilon(Function::kEpsilon) which value is zero. So it makes sense to match the same behavior.
     if (p0_i - p1_i >= road_curve::Function::kEpsilon) {
       if (!end) {
-        MALIDRIVE_THROW_MESSAGE("Invalid range for the " + xodr_data_type + "'s function in position " +
-                                std::to_string(i) + ": p0_i: " + std::to_string(p0_i) +
-                                " | p1_i: " + std::to_string(p1_i));
+        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(
+            "Invalid range for the " + xodr_data_type + "'s function in position " + std::to_string(i) +
+            ": p0_i: " + std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
       } else {
         if (p0_i != p1_i) {
-          MALIDRIVE_THROW_MESSAGE("Last " + xodr_data_type + "'s function has invalid length: p0_i: " +
-                                  std::to_string(p0_i) + " | p1_i: " + std::to_string(p1_i));
+          MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(
+              "Last " + xodr_data_type + "'s function has invalid length: p0_i: " + std::to_string(p0_i) +
+              " | p1_i: " + std::to_string(p1_i));
         } else {
           maliput::log()->debug("Last function that compounds ", xodr_data_type,
                                 " has null length: p0_i = p1_1 = ", p1_i);
@@ -410,7 +413,7 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
                                                 polynomials[0]->f_dot(xodr_cubic->s_0)));
         break;
       default:
-        MALIDRIVE_THROW_MESSAGE("Unknown FillingGapPolicy value.");
+        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE("Unknown FillingGapPolicy value.");
     }
   }
 

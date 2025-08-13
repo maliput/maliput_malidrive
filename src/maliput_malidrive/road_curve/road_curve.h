@@ -113,14 +113,14 @@ class RoadCurve {
   ///        must not be nullptr.
   /// @param assert_contiguity True for assert contiguity for `elevation` and `superelevation` functions.
   ///
-  /// @throws maliput::common::assertion_error When @p linear_tolerance or
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance or
   ///         @p scale_length are negative.
-  /// @throws maliput::common::assertion_error When @p ground_curve or
+  /// @throws maliput::common::road_geometry_construction_error When @p ground_curve or
   ///         @p elevation or @p superelevation are nullptr.
-  /// @throws maliput::common::assertion_error When @p ground_curve or
+  /// @throws maliput::common::road_geometry_construction_error When @p ground_curve or
   ///         @p elevation or @p superelevation are not G¹.
-  /// @throws maliput::common::assertion_error When @p ground_curve is not G¹.
-  /// @throws maliput::common::assertion_error When @p ground_curve,
+  /// @throws maliput::common::road_geometry_construction_error When @p ground_curve is not G¹.
+  /// @throws maliput::common::road_geometry_construction_error When @p ground_curve,
   ///         @p elevation and @p superelevation do not share the same range
   ///         within @p linear_tolerance.
   RoadCurve(double linear_tolerance, double scale_length, std::unique_ptr<GroundCurve> ground_curve,
@@ -178,10 +178,10 @@ class RoadCurve {
   /// @param lane_offset Holds the function, @f$ r(p) @f$, that describes the lateral offset at p.
   ///                    Used to calculate the derivative at @p prh.
   /// @return The derivative of @f$ W @f$ with respect to @f$ p @f$ at @p prh.
-  /// @throw maliput::common::assertion_error When @p lane_offset is nullptr.
-  /// @throw maliput::common::assertion_error When @p prh .x() is not in range [p0, p1].
-  /// @throw maliput::common::assertion_error When @p lane_offset ->p0() is not in range [p0, p1].
-  /// @throw maliput::common::assertion_error When @p lane_offset ->p1() is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset is nullptr.
+  /// @throw maliput::common::road_geometry_construction_error When @p prh .x() is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset ->p0() is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset ->p1() is not in range [p0, p1].
   maliput::math::Vector3 WDot(const maliput::math::Vector3& prh, const Function* lane_offset) const;
 
   /// Evaluates the orientation in the INERTIAL Frame of the RoadCurve at @p p,
@@ -204,8 +204,8 @@ class RoadCurve {
   /// @param lane_offset Holds the function, @f$ r(p) @f$, that describes the lateral offset at p.
   ///                    Used to calculate the derivative at @p prh.
   /// @return The orientation in the INERTIAL Frame of the RoadCurve at @p prh.
-  /// @throw maliput::common::assertion_error When @p lane_offset is nullptr.
-  /// @throw maliput::common::assertion_error When @p prh .x() is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset is nullptr.
+  /// @throw maliput::common::road_geometry_construction_error When @p prh .x() is not in range [p0, p1].
   maliput::math::RollPitchYaw Orientation(const maliput::math::Vector3& prh, const Function* lane_offset) const;
 
   /// Evaluates @f$ W⁻¹(x, y, z) @f$.
@@ -230,8 +230,8 @@ class RoadCurve {
   ///                    Used to calculate the derivative at @p prh.
   /// @return A normalized tangent vector in the direction of increasing
   ///         @f$ p @f$ at @p prh.
-  /// @throw maliput::common::assertion_error When @p lane_offset is nullptr.
-  /// @throw maliput::common::assertion_error When @p prh .x() is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset is nullptr.
+  /// @throw maliput::common::road_geometry_construction_error When @p prh .x() is not in range [p0, p1].
   maliput::math::Vector3 SHat(const maliput::math::Vector3& prh, const Function* lane_offset) const;
 
   /// Evaluates the r-axis unit vector at @f$ (p, r, h) @f$.
@@ -248,8 +248,8 @@ class RoadCurve {
   ///                    Used to calculate the derivative at @p prh.
   /// @return A normalized tangent vector in the direction of increasing
   ///         @f$ r @f$ at @p prh.
-  /// @throw maliput::common::assertion_error When @p lane_offset is nullptr.
-  /// @throw maliput::common::assertion_error When @p prh .x() is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset is nullptr.
+  /// @throw maliput::common::road_geometry_construction_error When @p prh .x() is not in range [p0, p1].
   maliput::math::Vector3 RHat(const maliput::math::Vector3& prh, const Function* lane_offset) const;
 
   /// Evaluates the h-axis unit vector at @f$ (p, r, h) @f$.
@@ -259,8 +259,8 @@ class RoadCurve {
   /// @return A normalized tangent vector in the direction of increasing
   ///         @f$ h @f$ at @p p, i.e. at @f$ (p, 0, 0) @f$.
   ///         It is orthogonal to @p s_hat by construction.
-  /// @throw maliput::common::assertion_error When @p lane_offset is nullptr.
-  /// @throw maliput::common::assertion_error When @p p is not in range [p0, p1].
+  /// @throw maliput::common::road_geometry_construction_error When @p lane_offset is nullptr.
+  /// @throw maliput::common::road_geometry_construction_error When @p p is not in range [p0, p1].
   maliput::math::Vector3 HHat(double p, const maliput::math::Vector3& s_hat) const;
 
   /// Calculates the @f$ p @f$ value that matches with the @f$ p @f$ value in the XODR description.

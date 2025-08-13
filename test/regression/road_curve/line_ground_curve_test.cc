@@ -64,17 +64,21 @@ TEST_F(LineGroundCurveConstructorTest, InvalidZeroTolerance) {
 
 TEST_F(LineGroundCurveConstructorTest, InvalidLineLengthTooSmall) {
   EXPECT_THROW(LineGroundCurve(1.0, kZero, (GroundCurve::kEpsilon / 2.) * kUnitX, 0., 1.),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveConstructorTest, InvalidNegativeP0) {
-  EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, -0.01, 1.), maliput::common::assertion_error);
+  EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, -0.01, 1.), maliput::common::road_geometry_construction_error);
 }
 
+// TODO(Santoi): This method throws because of RangeValidator. It should throw
+// maliput::common::road_geometry_construction_error.
 TEST_F(LineGroundCurveConstructorTest, InvalidP1SmallerThanP0) {
   EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, 0., -0.01), maliput::common::assertion_error);
 }
 
+// TODO(Santoi): This method throws because of RangeValidator. It should throw
+// maliput::common::road_geometry_construction_error.
 TEST_F(LineGroundCurveConstructorTest, InvalidP1NotSufficientlyLargerThanP0) {
   EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, 0., GroundCurve::kEpsilon / 2.), maliput::common::assertion_error);
 }

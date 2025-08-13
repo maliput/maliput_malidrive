@@ -91,36 +91,41 @@ TEST_F(PiecewiseFunctionTest, ConstructorNoThrow) {
 TEST_F(PiecewiseFunctionTest, ConstructorUnmetContraints) {
   {  // Empty function vector.
     std::vector<std::unique_ptr<Function>> empty_vector;
-    EXPECT_THROW(PiecewiseFunction(std::move(empty_vector), kTolerance), maliput::common::assertion_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(empty_vector), kTolerance),
+                 maliput::common::road_geometry_construction_error);
   }
   {  // Negative tolerance.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), -kTolerance), maliput::common::assertion_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), -kTolerance),
+                 maliput::common::road_geometry_construction_error);
   }
   {  // Zero tolerance.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), 0.), maliput::common::assertion_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), 0.), maliput::common::road_geometry_construction_error);
   }
   {  // Vector holds a nullptr.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(nullptr);
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance), maliput::common::assertion_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance),
+                 maliput::common::road_geometry_construction_error);
   }
   {  // Functions are not C0.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(std::make_unique<FunctionStub>(kFD, kFDotD, kFDotDotD, kP0D, kP1D, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance), maliput::common::assertion_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance),
+                 maliput::common::road_geometry_construction_error);
   }
   {  // Functions are not C1.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(std::make_unique<FunctionStub>(kFE, kFDotE, kFDotDotE, kP0E, kP1E, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance), maliput::common::assertion_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance),
+                 maliput::common::road_geometry_construction_error);
   }
   {  // Functions are not C1 but continuity check only logs.
     const PiecewiseFunction::ContinuityCheck kContinuityCheckOnlyLog{PiecewiseFunction::ContinuityCheck::kLog};

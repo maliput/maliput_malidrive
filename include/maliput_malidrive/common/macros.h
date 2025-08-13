@@ -31,10 +31,10 @@
 
 #include <string>
 
+#include <maliput/common/error.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_abort.h>
 #include <maliput/common/maliput_copyable.h>
-#include <maliput/common/error.h>
 #include <maliput/common/maliput_throw.h>
 
 /// @def MALIDRIVE_DEMAND

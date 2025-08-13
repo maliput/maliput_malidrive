@@ -43,18 +43,18 @@ struct ContinuityChecker {
 
   ContinuityChecker(double tolerance_in, const PiecewiseFunction::ContinuityCheck& continuity_check_in)
       : tolerance(tolerance_in), continuity_check(continuity_check_in) {
-    MALIDRIVE_THROW_UNLESS(tolerance > 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(tolerance > 0.);
   }
 
   // Evaluates whether `lhs` is C1 continuous with `rhs` according to the contiguity strictness.
-  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kThrow maliput::common::assertion_error is
-  //  thrown when contiguity is violated.
+  //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kThrow
+  //  maliput::common::road_geometry_construction_error is thrown when contiguity is violated.
   //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kLog log message is printed when
   //  contiguity is violated.
   //
   // @returns True when C1 continuity is met between both functions.
-  // @throws maliput::common::assertion_error When `lhs` is not C1 continuous with `rhs` and continuity_check is
-  // PiecewiseFunction::ContinuityCheck::kThrow.
+  // @throws maliput::common::road_geometry_construction_error When `lhs` is not C1 continuous with `rhs` and
+  // continuity_check is PiecewiseFunction::ContinuityCheck::kThrow.
   bool operator()(const Function* lhs, const Function* rhs) const {
     const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
     if (f_distance > tolerance) {
@@ -63,7 +63,7 @@ struct ContinuityChecker {
                               "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
       maliput::log()->debug(f_msg);
       MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
-                         maliput::common::assertion_error, f_msg);
+                         maliput::common::road_geometry_construction_error, f_msg);
       return false;
     }
 
@@ -74,7 +74,7 @@ struct ContinuityChecker {
                                   "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
       maliput::log()->debug(f_dot_msg);
       MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
-                         maliput::common::assertion_error, f_dot_msg);
+                         maliput::common::road_geometry_construction_error, f_dot_msg);
       return false;
     }
     return true;
@@ -89,17 +89,17 @@ struct ContinuityChecker {
 PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
                                      const PiecewiseFunction::ContinuityCheck& continuity_check)
     : functions_(std::move(functions)), linear_tolerance_(tolerance) {
-  MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0.);
-  MALIDRIVE_THROW_UNLESS(!functions_.empty());
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(!functions_.empty());
 
-  MALIDRIVE_THROW_UNLESS(functions_[0].get() != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(functions_[0].get() != nullptr);
   p0_ = functions_[0]->p0();
   double p = p0_;
   Function* previous_function{nullptr};
   const ContinuityChecker checker(linear_tolerance_, continuity_check);
   for (const auto& function : functions_) {
-    MALIDRIVE_THROW_UNLESS(function.get() != nullptr);
-    MALIDRIVE_THROW_UNLESS(function->IsG1Contiguous());
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(function.get() != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(function->IsG1Contiguous());
     if (previous_function != nullptr) {
       if (!checker(previous_function, function.get())) {
         is_g1_contiguous = false;
@@ -122,8 +122,8 @@ std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p
   auto search_it = interval_function_.find(FunctionInterval(p));
   if (search_it == interval_function_.end()) {
     if (p != p1_) {
-      MALIDRIVE_THROW_MESSAGE(std::string("p = ") + std::to_string(p) +
-                              std::string(" doesn't match with any Function interval."));
+      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(std::string("p = ") + std::to_string(p) +
+                                                    std::string(" doesn't match with any Function interval."));
     } else {
       search_it = --interval_function_.end();
     }

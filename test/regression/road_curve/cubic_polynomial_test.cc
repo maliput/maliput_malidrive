@@ -51,11 +51,15 @@ GTEST_TEST(CubicPolynomial, Constructor) {
   // Correct construction.
   EXPECT_NO_THROW(CubicPolynomial(kA, kB, kC, kD, kP0, kP1, kTolerance));
   // Same p0 and p1.
-  EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, kP0, kP0, kTolerance), maliput::common::assertion_error);
+  EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, kP0, kP0, kTolerance),
+               maliput::common::road_geometry_construction_error);
   // p1 < p0
+  // TODO(Santoi): This method throws because of RangeValidator. It should throw
+  // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, kP1, kP0, kTolerance), maliput::common::assertion_error);
   // p0 is less than 0.
-  EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, -kP1, kP0, kTolerance), maliput::common::assertion_error);
+  EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, -kP1, kP0, kTolerance),
+               maliput::common::road_geometry_construction_error);
 }
 
 // Evaluates a quadratic polynomial behind the Function interface.

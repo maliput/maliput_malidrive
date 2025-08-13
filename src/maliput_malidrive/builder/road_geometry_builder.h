@@ -204,8 +204,8 @@ class RoadGeometryBuilder {
           factory(factory_in),
           rg_config(rg_config_in),
           rg(rg_in) {
-      MALIDRIVE_THROW_UNLESS(rg != nullptr);
-      MALIDRIVE_THROW_UNLESS(factory != nullptr);
+      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
+      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(factory != nullptr);
     }
 
     // Returns A vector containing all the created Lanes and its properties.

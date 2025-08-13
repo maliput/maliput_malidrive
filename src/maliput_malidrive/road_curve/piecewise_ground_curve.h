@@ -57,12 +57,13 @@ class PiecewiseGroundCurve : public GroundCurve {
   /// @param angular_tolerance A non-negative value expected to be the same as
   /// maliput::api::RoadGeometry::angular_tolerance().
   ///
-  /// @throw maliput::common::assertion_error When @p ground_curves ' size is zero.
-  /// @throw maliput::common::assertion_error When @p ground_curves contains a nullptr.
-  /// @throw maliput::common::assertion_error When @p ground_curves ' curves are not G1 contiguous.
-  /// @throw maliput::common::assertion_error When @p linear_tolerance is non-positive.
-  /// @throw maliput::common::assertion_error When @p angular_tolerance is non-positive.
-  /// @throw maliput::common::assertion_error When the resultant p1 is not sufficiently larger than the resultant p0.
+  /// @throw maliput::common::road_geometry_construction_error When @p ground_curves ' size is zero.
+  /// @throw maliput::common::road_geometry_construction_error When @p ground_curves contains a nullptr.
+  /// @throw maliput::common::road_geometry_construction_error When @p ground_curves ' curves are not G1 contiguous.
+  /// @throw maliput::common::road_geometry_construction_error When @p linear_tolerance is non-positive.
+  /// @throw maliput::common::road_geometry_construction_error When @p angular_tolerance is non-positive.
+  /// @throw maliput::common::road_geometry_construction_error When the resultant p1 is not sufficiently larger than the
+  /// resultant p0.
   PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCurve>>&& ground_curves, double linear_tolerance,
                        double angular_tolerance);
 
@@ -72,9 +73,9 @@ class PiecewiseGroundCurve : public GroundCurve {
     // Creates a RoadCurveInterval.
     // @param min_in Is the minimum value of the interval.
     // @param max_in Is the maximum value of the interval.
-    // @throw maliput::common::assertion_error When `min_in` is greater than `max_in`.
+    // @throw maliput::common::road_geometry_construction_error When `min_in` is greater than `max_in`.
     RoadCurveInterval(double min_in, double max_in) : min(min_in), max(max_in) {
-      MALIDRIVE_THROW_UNLESS(min_in <= max_in);
+      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(min_in <= max_in);
     }
 
     // Creates a RoadCurveInterval where
@@ -93,7 +94,7 @@ class PiecewiseGroundCurve : public GroundCurve {
   // @param p Is the parameter in the PiecewiseGroundCurve domain.
   // @returns A pair where the first value is the GroundCurve and the second value is the p parameter for that
   // GroundCurve that matches with `p`.
-  // @throws maliput::common::assertion_error When @p p is not in
+  // @throws maliput::common::road_geometry_construction_error When @p p is not in
   //         @f$ [`p0()`; `p1()`] @f$.
   std::pair<const GroundCurve*, double> GetGroundCurveFromP(double p) const;
 
@@ -103,8 +104,8 @@ class PiecewiseGroundCurve : public GroundCurve {
   // @param ground_curve Is a GroundCurve, part of the PiecewiseGroundCurve.
   // @param p_i Is p parameter of `ground_curve`.
   // @returns The p parameter in the PiecewiseGroundCurve domain.
-  // @throws maliput::common::assertion_error When @p ground_curve is nullptr.
-  // @throws maliput::common::assertion_error When @p p_i is not in
+  // @throws maliput::common::road_geometry_construction_error When @p ground_curve is nullptr.
+  // @throws maliput::common::road_geometry_construction_error When @p p_i is not in
   //         @f$ [ground_curve->p0(); ground_curve->p1()] @f$.
   double GetPiecewiseP(const GroundCurve* ground_curve, double p_i) const;
 

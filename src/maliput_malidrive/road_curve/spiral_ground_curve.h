@@ -66,13 +66,17 @@ class SpiralGroundCurve : public GroundCurve {
   ///        GroundCurve::kEpsilon.
   /// @param p1 The value of the @f$ p @f$ parameter at the end of the spiral,
   ///        which must be greater than @p p0 by at least GroundCurve::kEpsilon.
-  /// @throws maliput::common::assertion_error When @p linear_tolerance is
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is
   ///         non-positive.
-  /// @throws maliput::common::assertion_error When @p arc_length is smaller
+  /// @throws maliput::common::road_geometry_construction_error When @p arc_length is smaller
   ///         than GroundCurve::kEpsilon.
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not sufficiently
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not sufficiently
   ///         larger than @p p0.
+  // TODO(Santoi): Even so this method should throw a maliput::common::road_geometry_construction_error it
+  // actually throws a maliput::common::assertion_error coming from the RangeValidator called in the
+  // initialization list. After solving https://github.com/maliput/maliput/issues/666, we can make sure that
+  // it throws what we want it to throw.
   SpiralGroundCurve(double linear_tolerance, const maliput::math::Vector2& xy0, double heading0, double curvature0,
                     double curvature1, double arc_length, double p0, double p1);
 

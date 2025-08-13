@@ -66,12 +66,12 @@ class ArcGroundCurve : public GroundCurve {
   ///        GroundCurve::kEpsilon.
   /// @param p1 The value of the @f$ p @f$ parameter at the end of the arc,
   ///        which must be greater than @p p0 by at least GroundCurve::kEpsilon.
-  /// @throws maliput::common::assertion_error When @p linear_tolerance is
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is
   ///         non-positive.
-  /// @throws maliput::common::assertion_error When @p arc_length is smaller
+  /// @throws maliput::common::road_geometry_construction_error When @p arc_length is smaller
   ///         than GroundCurve::kEpsilon.
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not sufficiently
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not sufficiently
   ///         larger than @p p0.
   ArcGroundCurve(double linear_tolerance, const maliput::math::Vector2& xy0, double start_heading, double curvature,
                  double arc_length, double p0, double p1)
@@ -86,11 +86,11 @@ class ArcGroundCurve : public GroundCurve {
         center_(xy0_ - std::abs(radius_) * maliput::math::Vector2{std::cos(theta0_), std::sin(theta0_)}),
         validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
                                                                                  GroundCurve::kEpsilon)) {
-    MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0);
-    MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
-    MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
-    MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon);
-    MALIDRIVE_THROW_UNLESS(std::abs(curvature) >= GroundCurve::kEpsilon);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(curvature) >= GroundCurve::kEpsilon);
   }
 
  private:

@@ -104,7 +104,7 @@ TEST_F(PiecewiseGroundCurveConstructorTest, CorrectlyConstructed) {
 TEST_F(PiecewiseGroundCurveConstructorTest, ZeroGroundCurves) {
   std::vector<std::unique_ptr<GroundCurve>> ground_curves;
   EXPECT_THROW(PiecewiseGroundCurve(std::move(ground_curves), kLinearTolerance, kAngularTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(PiecewiseGroundCurveConstructorTest, NullptrGroundCurve) {
@@ -113,7 +113,7 @@ TEST_F(PiecewiseGroundCurveConstructorTest, NullptrGroundCurve) {
       std::make_unique<LineGroundCurve>(kLinearTolerance, kXY0LineX, kDxyLineX, kP0LineX, kP1LineX));
   ground_curves.push_back(nullptr);
   EXPECT_THROW(PiecewiseGroundCurve(std::move(ground_curves), kLinearTolerance, kAngularTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(PiecewiseGroundCurveConstructorTest, NotG1ContiguousGroundCurvesAtTheEdges) {
@@ -125,7 +125,7 @@ TEST_F(PiecewiseGroundCurveConstructorTest, NotG1ContiguousGroundCurvesAtTheEdge
   ground_curves.push_back(
       std::make_unique<LineGroundCurve>(kLinearTolerance, kXY0LineY, kDxyLineY, kP0LineY, kP1LineY));
   EXPECT_THROW(PiecewiseGroundCurve(std::move(ground_curves), kLinearTolerance, kAngularTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 // LineGroundCurve mock for testing G1 contiguous checking.
@@ -150,7 +150,7 @@ TEST_F(PiecewiseGroundCurveConstructorTest, NotG1ContiguousGroundCurves) {
   ground_curves.push_back(
       std::make_unique<MockNonContiguousLineGroundCurve>(kLinearTolerance, kXY0LineY, kDxyLineY, kP0LineY, kP1LineY));
   EXPECT_THROW(PiecewiseGroundCurve(std::move(ground_curves), kLinearTolerance, kAngularTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(PiecewiseGroundCurveConstructorTest, BadLinearTolerance) {
@@ -162,7 +162,7 @@ TEST_F(PiecewiseGroundCurveConstructorTest, BadLinearTolerance) {
   ground_curves.push_back(
       std::make_unique<LineGroundCurve>(kLinearTolerance, kXY0LineY, kDxyLineY, kP0LineY, kP1LineY));
   EXPECT_THROW(PiecewiseGroundCurve(std::move(ground_curves), -1 * kLinearTolerance, kAngularTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(PiecewiseGroundCurveConstructorTest, BadAngularTolerance) {
@@ -174,7 +174,7 @@ TEST_F(PiecewiseGroundCurveConstructorTest, BadAngularTolerance) {
   ground_curves.push_back(
       std::make_unique<LineGroundCurve>(kLinearTolerance, kXY0LineY, kDxyLineY, kP0LineY, kP1LineY));
   EXPECT_THROW(PiecewiseGroundCurve(std::move(ground_curves), kLinearTolerance, -1 * kAngularTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 class PiecewiseGroundCurveTest : public PiecewiseGroundCurveConstructorTest {
@@ -410,7 +410,7 @@ TEST_F(PiecewiseGroundCurveGInverseTest, GInverse) {
       kStrictLinearTolerance)));
   // Center of curvature of arc GroundCurve.
   const Vector2 kCoordCenterOfCurvature{100., 50.};
-  EXPECT_THROW(kExpectedArc->GInverse(kCoordCenterOfCurvature), maliput::common::assertion_error);
+  EXPECT_THROW(kExpectedArc->GInverse(kCoordCenterOfCurvature), maliput::common::road_geometry_construction_error);
   EXPECT_TRUE(AssertCompare(CompareVectors(
       kExpectedLineXDirection->G(kExpectedLineXDirection->GInverse(kCoordCenterOfCurvature)),
       piecewise_ground_curve_->G(piecewise_ground_curve_->GInverse(kCoordCenterOfCurvature)), kStrictLinearTolerance)));

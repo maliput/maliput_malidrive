@@ -66,6 +66,8 @@ TEST_F(SpiralGroundCurveConstructorTest, CorrectlyConstructedDoesNotThrow) {
 
 TEST_F(SpiralGroundCurveConstructorTest, NegativeLinearToleranceThrows) {
   static constexpr double kNegativeTolerance{-1.0};
+  // TODO(Santoi): This method throws because of RangeValidator. It should throw
+  // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(
       {
         SpiralGroundCurve(kNegativeTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kArcLength, kP0,
@@ -80,7 +82,7 @@ TEST_F(SpiralGroundCurveConstructorTest, SameCurvatureThrows) {
       {
         SpiralGroundCurve(kLinearTolerance, kXy0, kStartHeading, kSameCurvature, kSameCurvature, kArcLength, kP0, kP1);
       },
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(SpiralGroundCurveConstructorTest, SmallArcLengthThrows) {
@@ -90,7 +92,7 @@ TEST_F(SpiralGroundCurveConstructorTest, SmallArcLengthThrows) {
         SpiralGroundCurve(kLinearTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kSmallArcLength, kP0,
                           kP1);
       },
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(SpiralGroundCurveConstructorTest, NegativeP0Throws) {
@@ -100,11 +102,13 @@ TEST_F(SpiralGroundCurveConstructorTest, NegativeP0Throws) {
         SpiralGroundCurve(kLinearTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kArcLength,
                           kNegativeP0, kP1);
       },
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(SpiralGroundCurveConstructorTest, NegativeP1Throws) {
   static constexpr double kNegativeP1{-1.};
+  // TODO(Santoi): This method throws because of RangeValidator. It should throw
+  // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(
       {
         SpiralGroundCurve(kLinearTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kArcLength, kP0,

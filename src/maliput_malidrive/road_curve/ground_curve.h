@@ -68,13 +68,14 @@ class GroundCurve {
   /// @param xodr_p The parameter in the XODR description.
   /// @returns The @f$ p @f$ value in the GroundCurve domain.
   ///
-  /// @throws maliput::common::assertion_error When @p xodr_p doesn't match to any parameter value in the XODR domain.
+  /// @throws maliput::common::road_geometry_construction_error When @p xodr_p doesn't match to any parameter value in
+  /// the XODR domain.
   double PFromP(double xodr_p) const { return DoPFromP(xodr_p); }
 
   /// Evaluates @f$ G(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The image of @f$ G(p) @f$.
   maliput::math::Vector2 G(double p) const { return DoG(p); }
@@ -82,7 +83,7 @@ class GroundCurve {
   /// Evaluates @f$ G'(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The image of @f$ G'(p) @f$, i.e. the tangent vector.
   maliput::math::Vector2 GDot(double p) const { return DoGDot(p); }
@@ -90,7 +91,7 @@ class GroundCurve {
   /// Evaluates @f$ θ(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The heading of @f$ G(p) @f$ at @p p.
   double Heading(double p) const { return DoHeading(p); }
@@ -98,7 +99,7 @@ class GroundCurve {
   /// Evaluates @f$ θ'(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The derivative of the heading of @f$ G(p) @f$ at @p p.
   double HeadingDot(double p) const { return DoHeadingDot(p); }
