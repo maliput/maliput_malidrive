@@ -1274,12 +1274,12 @@ TEST_P(RoadGeometryNonContiguousInNonDrivableLanesTest, CheckG1ContiguityEnforce
   // Gap in non drivable road/lane + strict.
   rg_config.standard_strictness_policy = builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kStrict;
 
-  // EXPECT_THROW(
-  //     builder::RoadGeometryBuilder(
-  //         xodr::LoadDataBaseFromFile(utility::FindResourceInPath(rg_config.opendrive_file, kMalidriveResourceFolder),
-  //                                    {rg_config.tolerances.linear_tolerance.value()}),
-  //         rg_config)(),
-  //     maliput::common::assertion_error);
+  EXPECT_THROW(
+      builder::RoadGeometryBuilder(
+          xodr::LoadDataBaseFromFile(utility::FindResourceInPath(rg_config.opendrive_file, kMalidriveResourceFolder),
+                                     {rg_config.tolerances.linear_tolerance.value()}),
+          rg_config)(),
+      maliput::common::assertion_error);
 
   // Gap in non drivable road/lane + allow semantic errors.
   rg_config.standard_strictness_policy =
