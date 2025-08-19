@@ -638,7 +638,9 @@ const Lane* RoadGeometry::ApplyOffsetToLane(const Lane* initial_lane, int lane_o
   if (lane_offset != 0) {
     for (int asb_offset = lane_offset * lane_offset / std::abs(lane_offset); asb_offset != 0; --asb_offset) {
       target_lane = dynamic_cast<const Lane*>(to_left ? target_lane->to_left() : target_lane->to_right());
-      MALIPUT_THROW_UNLESS(target_lane != nullptr);
+      if (target_lane == nullptr) {
+        break;
+      }
     }
   }
   return target_lane;
