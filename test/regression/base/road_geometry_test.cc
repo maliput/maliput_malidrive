@@ -941,6 +941,18 @@ TEST_F(RoadGeometryOpenScenarioConversionsSingleRoadSDirectionChange,
                                                                                      ds_lane, offset),
                  maliput::common::assertion_error);
   }
+  // d_lane goes off road and throws
+  {
+    // OpenScenario/OpenDrive parameters.
+    const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 5., 1, 0.};  // Lane 2_0_1's srh(5,0,0)
+    const int d_lane = 10;
+    const double ds_lane = 2.;
+    const double offset = 0.5;
+    auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    EXPECT_THROW(rg->OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(input_xodr_lane_position, d_lane,
+                                                                                     ds_lane, offset),
+                 maliput::common::assertion_error);
+  }
   ///////////////////////////////////////////////////////////
   // RelativeLanePosition not falling within the same Road //
   ///////////////////////////////////////////////////////////
