@@ -326,6 +326,11 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   const Segment* FindSegmentByOpenScenarioRoadPosition(const OpenScenarioRoadPosition& xodr_road_position) const;
 
   // Finds the maliput lane that corresponds to the offset from the intial_lane.
+  //
+  // @param initial_lane The lane to find the offset lane from.
+  // @param lane_offset The amount of lanes to offset from the @p initial_lane.
+  //
+  // @returns The lane corresponding to the offset from the @p initial_lane or null if there is no such lane.
   const Lane* ApplyOffsetToLane(const Lane* initial_lane, int lane_offset) const;
 
   // Get the Geo Reference info of the RoadGeometry.
