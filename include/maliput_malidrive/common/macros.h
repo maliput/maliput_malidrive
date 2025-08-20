@@ -31,7 +31,7 @@
 
 #include <string>
 
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_abort.h>
 #include <maliput/common/maliput_copyable.h>
@@ -47,7 +47,7 @@
 #define MALIDRIVE_ABORT_MSG(msg) MALIPUT_ABORT_MESSAGE(msg)
 
 /// @def MALIDRIVE_IS_IN_RANGE
-/// Throws if `value` is within [`min_value`; `max_value`]. It forwards the call
+/// Throws if `value` is not within [`min_value`; `max_value`]. It forwards the call
 /// to MALIDRIVE_VALIDATE() with a customized string stating the error.
 #define MALIDRIVE_IS_IN_RANGE(value, min_value, max_value)                                       \
   do {                                                                                           \
@@ -68,6 +68,24 @@
     const std::string message(msg);                                               \
     MALIDRIVE_VALIDATE(false, maliput::common::assertion_error, message.c_str()); \
   } while (0)
+
+/// @def MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS
+/// Throws a road_network_description_parser_error unless `condition` is true.
+#define MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(condition) \
+  MALIPUT_THROW_ROAD_NETWORK_DESCRIPTION_PARSER_UNLESS(condition)
+
+/// @def MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE
+/// Throws a road_network_description_parser_error with `msg`.
+#define MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_MESSAGE(msg) MALIPUT_THROW_ROAD_NETWORK_DESCRIPTION_PARSER_MESSAGE(msg)
+
+/// @def MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS
+/// Throws a road_geometry_construction_error unless `condition` is true.
+#define MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(condition) \
+  MALIPUT_THROW_ROAD_GEOMETRY_CONSTRUCTION_UNLESS(condition)
+
+/// @def MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE
+/// Throws a road_geometry_construction_error with `msg`.
+#define MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(msg) MALIPUT_THROW_ROAD_GEOMETRY_CONSTRUCTION_MESSAGE(msg)
 
 /// @def MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN
 /// Deletes the special member functions for copy-construction, copy-assignment,

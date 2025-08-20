@@ -63,16 +63,16 @@ struct MalidriveXodrLaneProperties {
   ///        road. It must not be negative.
   /// @param _lane is the pointer to the XODR Lane. It must not be nullptr.
   ///
-  /// @throws maliput::common::assertion_error When either `road_header`,
+  /// @throws maliput::common::road_geometry_construction_error When either `road_header`,
   ///        `lane_section` or `lane` are nullptrs, or `lane_section_index`
   ///        is negative.
   MalidriveXodrLaneProperties(const xodr::RoadHeader* _road_header, const xodr::LaneSection* _lane_section,
                               int _lane_section_index, const xodr::Lane* _lane)
       : road_header(_road_header), lane(_lane), lane_section(_lane_section), lane_section_index(_lane_section_index) {
-    MALIDRIVE_THROW_UNLESS(road_header != nullptr);
-    MALIDRIVE_THROW_UNLESS(lane != nullptr);
-    MALIDRIVE_THROW_UNLESS(lane_section != nullptr);
-    MALIDRIVE_THROW_UNLESS(lane_section_index >= 0);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_header != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section_index >= 0);
   }
 
   const xodr::RoadHeader* road_header{};
@@ -91,9 +91,9 @@ struct MalidriveXodrLaneProperties {
 /// @param connection_type Is the type (successor or predecessor) of link that
 ///        is solved.
 ///
-/// @throws maliput::common::assertion_error When `rg` is nullptr.
-/// @throws maliput::common::assertion_error When there isn't a valid RoadLink.
-/// @throws maliput::common::assertion_error When there isn't a valid LaneLink.
+/// @throws maliput::common::road_geometry_construction_error When `rg` is nullptr.
+/// @throws maliput::common::road_geometry_construction_error When there isn't a valid RoadLink.
+/// @throws maliput::common::road_geometry_construction_error When there isn't a valid LaneLink.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
@@ -110,9 +110,10 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
 /// @param connection_type Is the type (successor or predecessor) of link that
 ///        is solved.
 ///
-/// @throws maliput::common::assertion_error When either `rg` is nullptr.
-/// @throws maliput::common::assertion_error When there isn't a valid RoadLink.
-/// @throws maliput::common::assertion_error When the junction where the road is connected to doesn't exist.
+/// @throws maliput::common::road_geometry_construction_error When either `rg` is nullptr.
+/// @throws maliput::common::road_geometry_construction_error When there isn't a valid RoadLink.
+/// @throws maliput::common::road_geometry_construction_error When the junction where the road is connected to doesn't
+/// exist.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers,
@@ -129,8 +130,8 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
 /// @param connection_type Is the type (successor or predecessor) of link that
 ///        is solved.
 ///
-/// @throws maliput::common::assertion_error When either `rg` is nullptr.
-/// @throws maliput::common::assertion_error When the RoadLink links to a junction.
+/// @throws maliput::common::road_geometry_construction_error When either `rg` is nullptr.
+/// @throws maliput::common::road_geometry_construction_error When the RoadLink links to a junction.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
@@ -143,7 +144,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
 /// @param lane_end is the LaneEnd to which this method looks for connections.
 /// @param xodr_lane_properties Contains useful XODR Lane Properties.
 ///
-/// @throws maliput::common::assertion_error When either `rg` is
+/// @throws maliput::common::road_geometry_construction_error When either `rg` is
 ///         nullptr.
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForInnerLaneSection(
     const maliput::api::RoadGeometry* rg, const maliput::api::LaneEnd& lane_end,

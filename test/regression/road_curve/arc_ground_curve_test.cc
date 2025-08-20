@@ -30,7 +30,7 @@
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 #include <maliput/math/compare.h>
 
 #include "assert_compare.h"
@@ -62,21 +62,22 @@ TEST_F(ArcGroundCurveConstructorTest, InvalidZeroTolerance) {
 }
 
 TEST_F(ArcGroundCurveConstructorTest, InvalidPositiveCurvatureTooSmall) {
-  EXPECT_THROW(ArcGroundCurve(1., kZero, 0., GroundCurve::kEpsilon / 2., 1., 0., 1.), maliput::common::assertion_error);
+  EXPECT_THROW(ArcGroundCurve(1., kZero, 0., GroundCurve::kEpsilon / 2., 1., 0., 1.),
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(ArcGroundCurveConstructorTest, InvalidNegativeCurvatureTooSmall) {
   EXPECT_THROW(ArcGroundCurve(1., kZero, 0., -GroundCurve::kEpsilon / 2., 1., 0., 1.),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(ArcGroundCurveConstructorTest, InvalidArcLengthTooSmall) {
   EXPECT_THROW(ArcGroundCurve(1.0, kZero, 0., 1., GroundCurve::kEpsilon / 2., 0., 1.),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(ArcGroundCurveConstructorTest, InvalidNegativeP0) {
-  EXPECT_THROW(ArcGroundCurve(1.0, kZero, 0., 1., 1., -0.01, 1.), maliput::common::assertion_error);
+  EXPECT_THROW(ArcGroundCurve(1.0, kZero, 0., 1., 1., -0.01, 1.), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(ArcGroundCurveConstructorTest, InvalidP1SmallerThanP0) {
@@ -460,14 +461,15 @@ TEST_F(ArcGroundCurveTest, GInverse) {
   EXPECT_NEAR(kP1, right_turn_90deg_dut_->GInverse({17., -17.}), kTolerance);
 
   // Confirm that it throws for points too close to the center of rotation
-  EXPECT_THROW(left_turn_90deg_dut_->GInverse(/* kLeftTurn90DegGCenter */ {0., 16.}), maliput::common::assertion_error);
+  EXPECT_THROW(left_turn_90deg_dut_->GInverse(/* kLeftTurn90DegGCenter */ {0., 16.}),
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(right_turn_90deg_dut_->GInverse(/* kRightTurn90DegGCenter */ {0., -16.}),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(u_turn_quadrant1_dut_->GInverse(/* kUTurnQuadrant1GCenter */ {-5.928203230275509, 4.}),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(
       slight_right_turn_quadrant3_dut_->GInverse(/* kSlightRightTurnQuadrant3GCenter */ {-22., 64.42562584220408}),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 }  // namespace

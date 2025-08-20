@@ -64,17 +64,17 @@ class RoadCurveFactoryBase {
   ///        geometry objects. It must be positive.
   /// @param angular_tolerance RoadGeometry's angular tolerance. It will be used
   ///        to build geometry objects. It must be positive.
-  /// @throws maliput::common::assertion_error When @p linear_tolerance is not
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is not
   ///         positive.
-  /// @throws maliput::common::assertion_error When @p scale_length is not
+  /// @throws maliput::common::road_geometry_construction_error When @p scale_length is not
   ///         positive.
-  /// @throws maliput::common::assertion_error When @p angular_tolerance is not
+  /// @throws maliput::common::road_geometry_construction_error When @p angular_tolerance is not
   ///         positive.
   RoadCurveFactoryBase(double linear_tolerance, double scale_length, double angular_tolerance)
       : linear_tolerance_(linear_tolerance), scale_length_(scale_length), angular_tolerance_(angular_tolerance) {
-    MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0.);
-    MALIDRIVE_THROW_UNLESS(scale_length_ > 0.);
-    MALIDRIVE_THROW_UNLESS(angular_tolerance_ > 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(scale_length_ > 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(angular_tolerance_ > 0.);
   }
 
   virtual ~RoadCurveFactoryBase() = default;
@@ -108,8 +108,8 @@ class RoadCurveFactoryBase {
   /// @param dy Derived polynomial evaluated at @f$ p = `p1` @f$.
   /// @return A road_curve::CubicPolynomial.
   ///
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater than @p p0.
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not greater than @p p0.
   virtual std::unique_ptr<road_curve::Function> MakeCubicPolynomial(double p0, double p1, double y,
                                                                     double dy) const = 0;
 
@@ -132,7 +132,7 @@ class RoadCurveFactoryBase {
   ///        road_curve::ArcGroundCurve. Its type must be
   ///        xodr::Geometry::Type::kArc.
   /// @return A road_curve::ArcGroundCurve.
-  /// @throws maliput::common::assertion_error When `arc_geometry.type` is not
+  /// @throws maliput::common::road_geometry_construction_error When `arc_geometry.type` is not
   ///         xodr::Geometry::Type::kArc.
   virtual std::unique_ptr<road_curve::GroundCurve> MakeArcGroundCurve(const xodr::Geometry& arc_geometry) const = 0;
 
@@ -144,7 +144,7 @@ class RoadCurveFactoryBase {
   ///        road_curve::LineGroundCurve. Its type must be
   ///        xodr::Geometry::Type::kLine.
   /// @return A road_curve::LineGroundCurve.
-  /// @throws maliput::common::assertion_error When `line_geometry.type` is not
+  /// @throws maliput::common::road_geometry_construction_error When `line_geometry.type` is not
   ///         xodr::Geometry::Type::kLine.
   virtual std::unique_ptr<road_curve::GroundCurve> MakeLineGroundCurve(const xodr::Geometry& line_geometry) const = 0;
 
@@ -156,7 +156,7 @@ class RoadCurveFactoryBase {
   ///        road_curve::SpiralGroundCurve. Its type must be
   ///        xodr::Geometry::Type::kSpiral.
   /// @return A road_curve::SpiralGroundCurve.
-  /// @throws maliput::common::assertion_error When `spiral_geometry.type` is not
+  /// @throws maliput::common::road_geometry_construction_error When `spiral_geometry.type` is not
   ///         xodr::Geometry::Type::kSpiral.
   virtual std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(
       const xodr::Geometry& spiral_geometry) const = 0;
@@ -170,10 +170,10 @@ class RoadCurveFactoryBase {
   ///        {xodr::Geometry::Type::kArc, xodr::Geometry::Type::kLine, xodr::Geometry::Type::kSpiral}.
   ///        It must not be empty. Geometries whose length is less than GroundCurve::kEpsilon are discarded.
   /// @return A road_curve::PiecewiseGroundCurve.
-  /// @throws maliput::common::assertion_error When any item of @p geometries
+  /// @throws maliput::common::road_geometry_construction_error When any item of @p geometries
   ///         has other type than {xodr::Geometry::Type::kArc,
   ///         xodr::Geometry::Type::kLine, xodr::Geometry::Type::kSpiral}.
-  /// @throws maliput::common::assertion_error When @p geometries is empty.
+  /// @throws maliput::common::road_geometry_construction_error When @p geometries is empty.
   virtual std::unique_ptr<road_curve::GroundCurve> MakePiecewiseGroundCurve(
       const std::vector<xodr::Geometry>& geometries) const = 0;
 
@@ -197,8 +197,8 @@ class RoadCurveFactoryBase {
   ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the elevation of the Road.
   ///
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeElevation(
       const xodr::ElevationProfile& elevation_profile, double p0, double p1, bool assert_continuity) const = 0;
 
@@ -222,8 +222,8 @@ class RoadCurveFactoryBase {
   ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the superelevation of the Road.
   ///
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeSuperelevation(
       const xodr::LateralProfile& lateral_profile, double p0, double p1, bool assert_continuity) const = 0;
 
@@ -241,14 +241,15 @@ class RoadCurveFactoryBase {
   /// @param adapt_lane_widths If true, lane widths that don't comply with C1 continuity are adapted so they do.
   /// @returns A function that describes the width of the Lane.
   ///
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
-  /// @throws maliput::common::assertion_error When @p lane_widths 's size is zero.
-  /// @throws maliput::common::assertion_error When the first offset value of @p lane_widths is different than zero.
-  /// @throws maliput::common::assertion_error When @p lane_widths 's start points are distanced less than linear
-  /// tolerance.
-  /// @throws maliput::common::assertion_error When @p lane_widths 's functions aren't at least as long as
-  /// road::curve::GroundCurve::kEpsilon.
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not greater enough than @p p0.
+  /// @throws maliput::common::road_geometry_construction_error When @p lane_widths 's size is zero.
+  /// @throws maliput::common::road_geometry_construction_error When the first offset value of @p lane_widths is
+  /// different than zero.
+  /// @throws maliput::common::road_geometry_construction_error When @p lane_widths 's start points are distanced less
+  /// than linear tolerance.
+  /// @throws maliput::common::road_geometry_construction_error When @p lane_widths 's functions aren't at least as long
+  /// as road::curve::GroundCurve::kEpsilon.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeLaneWidth(
       const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1, bool assert_continuity,
       bool adapt_lane_widths) const = 0;
@@ -272,8 +273,8 @@ class RoadCurveFactoryBase {
   ///                          Otherwise only warning messages are printed.
   /// @returns A function that describes the lateral shift of the road reference line.
   ///
-  /// @throws maliput::common::assertion_error When @p p0 is negative.
-  /// @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  /// @throws maliput::common::road_geometry_construction_error When @p p1 is not greater enough than @p p0.
   virtual std::unique_ptr<malidrive::road_curve::Function> MakeReferenceLineOffset(
       const std::vector<xodr::LaneOffset>& reference_offsets, double p0, double p1, bool assert_continuity) const = 0;
 
@@ -358,8 +359,8 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   // enforced.
   // @returns A cubic polynomial function.
   //
-  // @throws maliput::common::assertion_error When @p p0 is negative.
-  // @throws maliput::common::assertion_error When @p p1 is not greater enough than @p p0.
+  // @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
+  // @throws maliput::common::road_geometry_construction_error When @p p1 is not greater enough than @p p0.
   template <class T>
   std::unique_ptr<malidrive::road_curve::Function> MakeCubicFromXodr(
       const std::vector<T>& xodr_data, double p0, double p1, FillingGapPolicy policy,
@@ -374,7 +375,8 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   //        than @p p0.
   // @returns A vector of cubic polynomial functions.
   //
-  // @throws maliput::common::assertion_error When any of @p lane_width's offset is less than one of the priors.
+  // @throws maliput::common::road_geometry_construction_error When any of @p lane_width's offset is less than one of
+  // the priors.
   std::vector<std::unique_ptr<malidrive::road_curve::Function>> MakeCubicPolynomialsFromLaneWidths(
       const std::vector<xodr::LaneWidth>& lane_widths, double p0, double p1) const;
 

@@ -37,7 +37,7 @@
 #include <maliput/api/compare.h>
 #include <maliput/api/lane.h>
 #include <maliput/api/lane_data.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 #include <maliput/geometry_base/junction.h>
 #include <maliput/geometry_base/road_geometry.h>
 #include <maliput/math/roll_pitch_yaw.h>
@@ -186,22 +186,22 @@ TEST_F(LaneTest, ConstructorAssertions) {
       Lane(kId, kXordTrackInvalid, kXodrLaneId, kElevationBounds, road_curve_.get(),
            MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
            kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
   // Invalid lane_width.
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(), nullptr,
            MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
   // Invalid lane_offset.
   EXPECT_THROW(Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
                     MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), nullptr, kP0, kP1,
                     kRoadCurveOffsetIntegratorAccuracyMultiplier),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Invalid road_curve.
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, nullptr, MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
            MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
   // Out of range lane_width.
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),

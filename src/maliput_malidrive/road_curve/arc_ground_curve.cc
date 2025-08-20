@@ -58,9 +58,9 @@ double wrap(double theta) {
 // involves the extra step picking the 'closest' interval to saturate
 // within.
 double saturate_on_wrapped_bounds(double theta, double theta_min, double theta_max) {
-  MALIDRIVE_THROW_UNLESS(-M_PI <= theta);
-  MALIDRIVE_THROW_UNLESS(theta <= M_PI);
-  MALIDRIVE_THROW_UNLESS(theta_min <= theta_max);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(-M_PI <= theta);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(theta <= M_PI);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(theta_min <= theta_max);
 
   if (theta_max >= theta_min + 2. * M_PI) return theta;
 
@@ -90,7 +90,7 @@ double ArcGroundCurve::DoGInverse(const maliput::math::Vector2& xy) const {
   const maliput::math::Vector2 center_to_xy = xy - center_;
 
   // throw if test point is to close to the center of curvature
-  MALIDRIVE_THROW_UNLESS(center_to_xy.norm() >= linear_tolerance_);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(center_to_xy.norm() >= linear_tolerance_);
 
   // compute theta angle
   const double theta = std::atan2(center_to_xy.y(), center_to_xy.x());

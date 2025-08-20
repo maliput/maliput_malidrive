@@ -32,7 +32,7 @@
 #include <optional>
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
@@ -69,62 +69,64 @@ TEST_F(LaneOffsetTest, Constructor) {
   // Same p0 and p1.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, kP0,
                           kP0, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p1 < p0
+  // TODO(Santoi): This method throws because of RangeValidator. It should throw
+  // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, kP1,
                           kP0, kTolerance),
                maliput::common::assertion_error);
   // p0 is less than 0.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, -kP1,
                           kP0, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p0 of kLaneWidth doesn't match.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane,
                           kP0 - 10 * kTolerance, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p1 of kLaneWidth doesn't match.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, kP0,
                           kP1 - 10 * kTolerance, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 
   const CubicPolynomial kPreviousLaneOffsetWrongP0{1., 2., 3., 4., kP0 - 10 * kTolerance, kP1, kTolerance};
   const CubicPolynomial kPreviousLaneOffsetWrongP1{1., 2., 3., 4., kP0, kP1 - 10 * kTolerance, kTolerance};
   // p0 of kPreviousLaneOffsetWrongP0  doesn't match.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetWrongP0, &kPreviousLaneWidth}}, &kLaneWidth, &kReferenceLineOffset,
                           LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p1 of kPreviousLaneOffsetWrongP1 doesn't match.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetWrongP1, &kPreviousLaneWidth}}, &kLaneWidth, &kReferenceLineOffset,
                           LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 
   const CubicPolynomial kPreviousLaneWidthWrongP0{5., 6., 7., 8., kP0 - 10 * kTolerance, kP1, kTolerance};
   const CubicPolynomial kPreviousLaneWidthWrongP1{5., 6., 7., 8., kP0, kP1 - 10 * kTolerance, kTolerance};
   // p0 of kPreviousLaneWidthWrongP0  doesn't match.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetAtLeft, &kPreviousLaneWidthWrongP0}}, &kLaneWidth,
                           &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p1 of kPreviousLaneWidthWrongP1 doesn't match.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetAtLeft, &kPreviousLaneWidthWrongP1}}, &kLaneWidth,
                           &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 
   // Current lane width is nullptr.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetAtLeft, &kPreviousLaneWidth}}, nullptr, &kReferenceLineOffset,
                           LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Previous lane width is nullptr.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetAtLeft, nullptr}}, &kLaneWidth, &kReferenceLineOffset,
                           LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Previous lane offest is nullptr.
   EXPECT_THROW(LaneOffset({{nullptr, &kPreviousLaneWidth}}, &kLaneWidth, &kReferenceLineOffset,
                           LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Reference line offset function is nullptr.
   EXPECT_THROW(LaneOffset({{&kPreviousLaneOffsetAtLeft, &kPreviousLaneWidth}}, &kLaneWidth, nullptr,
                           LaneOffset::kAtLeftFromCenterLane, kP0, kP1, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 // Evaluates a LaneOffset.

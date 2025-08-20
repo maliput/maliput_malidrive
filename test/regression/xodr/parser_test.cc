@@ -33,7 +33,7 @@
 #include <sstream>
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/xodr/connection.h"
@@ -70,11 +70,11 @@ class ParsingTests : public ::testing::Test {
   static constexpr bool kAllowSchemaErrors{true};
 
   tinyxml2::XMLElement* LoadXMLAndGetNodeByName(const std::string& xml_str, const std::string& node_name) {
-    MALIDRIVE_THROW_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS);
     tinyxml2::XMLElement* p_xml = xml_doc_.FirstChildElement();
-    MALIDRIVE_THROW_UNLESS(p_xml != nullptr);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(p_xml != nullptr);
     tinyxml2::XMLElement* p_elem = p_xml->FirstChildElement(node_name.c_str());
-    MALIDRIVE_THROW_UNLESS(p_elem != nullptr);
+    MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(p_elem != nullptr);
     return p_elem;
   }
   const std::optional<double> kNullParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
@@ -144,8 +144,8 @@ TEST_F(ParsingTests, AttributeParserDouble) {
   xml_description = GetBasicXMLNode(kNode, kValue1, std::to_string(kNanValue), kValue2, std::to_string(kNanValue));
   const AttributeParser dut2(LoadXMLAndGetNodeByName(xml_description, kNode),
                              {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut2.As<double>(kValue1), maliput::common::assertion_error);
-  EXPECT_THROW(dut2.As<double>(kValue2), maliput::common::assertion_error);
+  EXPECT_THROW(dut2.As<double>(kValue1), maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(dut2.As<double>(kValue2), maliput::common::road_network_description_parser_error);
 }
 
 // Tests `string` parsing.
@@ -219,7 +219,7 @@ TEST_F(ParsingTests, AttributeParserBool) {
     EXPECT_TRUE(parsed_value.has_value());
     EXPECT_EQ(kExpectedValues[i], parsed_value.value());
   }
-  EXPECT_THROW(dut.As<bool>(kValue[4]), maliput::common::assertion_error);
+  EXPECT_THROW(dut.As<bool>(kValue[4]), maliput::common::road_network_description_parser_error);
 
   const char* kMissingAttribute = "MissingAttribute";
   const std::optional<bool> missing_value = dut.As<bool>(kMissingAttribute);
@@ -242,7 +242,7 @@ TEST_F(ParsingTests, AttributeParserHandTrafficRule) {
   EXPECT_TRUE(optional_hand_traffic_rule.has_value());
   EXPECT_EQ(kExpectedValues[0], RoadHeader::hand_traffic_rule_to_str(optional_hand_traffic_rule.value()));
 
-  EXPECT_THROW(dut.As<RoadHeader::HandTrafficRule>(kValue2), maliput::common::assertion_error);
+  EXPECT_THROW(dut.As<RoadHeader::HandTrafficRule>(kValue2), maliput::common::road_network_description_parser_error);
 
   const char* kMissingAttribute = "MissingAttribute";
   const std::optional<RoadHeader::HandTrafficRule> missing_value =
@@ -640,7 +640,7 @@ TEST_F(ParsingTests, NodeParserPlanViewNonContiguous) {
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, PlanView::kPlanViewTag),
                        {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut.As<PlanView>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut.As<PlanView>(), maliput::common::road_network_description_parser_error);
 }
 
 // Get a XML description that contains a XODR elevation.
@@ -1053,7 +1053,7 @@ TEST_F(ParsingTests, NodeParserLaneSectionWrongCenterLaneWidth) {
   const NodeParser dut(LoadXMLAndGetNodeByName(kLaneSectionWrongCenterLaneWidth, LaneSection::kLaneSectionTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(LaneSection::kLaneSectionTag, dut.GetName());
-  EXPECT_THROW(dut.As<LaneSection>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut.As<LaneSection>(), maliput::common::road_network_description_parser_error);
 }
 
 // XML description that contains a XODR LaneSection node with a wrong center lane.
@@ -1093,7 +1093,7 @@ TEST_F(ParsingTests, NodeParserLaneSectionWrongCenterLaneSpeed) {
   const NodeParser dut(LoadXMLAndGetNodeByName(kLaneSectionWrongCenterLaneSpeed, LaneSection::kLaneSectionTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(LaneSection::kLaneSectionTag, dut.GetName());
-  EXPECT_THROW(dut.As<LaneSection>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut.As<LaneSection>(), maliput::common::road_network_description_parser_error);
 }
 
 // Template of a XML description that contains a XODR Lanes node.
@@ -1515,7 +1515,7 @@ TEST_F(ParsingTests, NodeParserJunctionNoConnections) {
   allow_schema_errors = false;
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(kJunctionTemplateNoConnections, Junction::kJunctionTag),
                               {kStrictParserSTolerance, allow_schema_errors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<Junction>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<Junction>(), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(XMLToText, ConvertXMLNodeToText) {
@@ -1527,7 +1527,7 @@ GTEST_TEST(XMLToText, ConvertXMLNodeToText) {
 )R";
 
   tinyxml2::XMLDocument xml_doc;
-  MALIDRIVE_THROW_UNLESS(xml_doc.Parse(kArbitraryXMLDescription) == tinyxml2::XML_SUCCESS);
+  MALIDRIVE_THROW_ROAD_NETWORK_XODR_PARSER_UNLESS(xml_doc.Parse(kArbitraryXMLDescription) == tinyxml2::XML_SUCCESS);
   const std::string str_xml = ConvertXMLNodeToText(xml_doc.FirstChildElement());
   EXPECT_EQ(kArbitraryXMLDescription, str_xml);
 }
@@ -1564,7 +1564,7 @@ class ElevationRepeatedDescriptionsParsingTests : public ParsingTests {
 TEST_F(ElevationRepeatedDescriptionsParsingTests, NotAllowingSchemaErrors) {
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(xml_description, ElevationProfile::kElevationProfileTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<ElevationProfile>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<ElevationProfile>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(ElevationRepeatedDescriptionsParsingTests, AllowingSchemaErrors) {
@@ -1587,7 +1587,7 @@ class SuperelevationRepeatedDescriptionsParsingTests : public ParsingTests {
 TEST_F(SuperelevationRepeatedDescriptionsParsingTests, NotAllowingSchemaErrors) {
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(xml_description, LateralProfile::kLateralProfileTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<LateralProfile>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<LateralProfile>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(SuperelevationRepeatedDescriptionsParsingTests, AllowingSchemaErrors) {
@@ -1624,7 +1624,7 @@ class LaneRepeatedWidthDescriptionsParsingTests : public ParsingTests {};
 TEST_F(LaneRepeatedWidthDescriptionsParsingTests, NotAllowingSchemaErrors) {
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(kLaneRepeatedWidthTemplate, Lane::kLaneTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<Lane>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<Lane>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(LaneRepeatedWidthDescriptionsParsingTests, AllowingSchemaErrors) {
@@ -1676,7 +1676,7 @@ class LaneOffsetRepeatedWidthDescriptionsParsingTests : public ParsingTests {};
 TEST_F(LaneOffsetRepeatedWidthDescriptionsParsingTests, NotAllowingSchemaErrors) {
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(kLanesNodeWithRepeatedLaneOffsetTemplate, Lanes::kLanesTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<Lanes>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<Lanes>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(LaneOffsetRepeatedWidthDescriptionsParsingTests, AllowingSchemaErrors) {
@@ -1768,7 +1768,7 @@ TEST_F(ElevationNanDescriptionsParsingTests, NotAllowingSchemaErrors) {
       ElevationProfile::kElevationProfileTag, ElevationProfile::Elevation::kElevationTag, kSameStartS);
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(xml_description, ElevationProfile::kElevationProfileTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<ElevationProfile>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<ElevationProfile>(), maliput::common::road_network_description_parser_error);
 }
 
 // A function has NaN values and schema errors are allowed.
@@ -1779,7 +1779,7 @@ TEST_F(ElevationNanDescriptionsParsingTests, AllowingSchemaErrorsDifferentStartP
       ElevationProfile::kElevationProfileTag, ElevationProfile::Elevation::kElevationTag, kDifferentStartS);
   const NodeParser dut_permissive(LoadXMLAndGetNodeByName(xml_description, ElevationProfile::kElevationProfileTag),
                                   {kNullParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_permissive.As<ElevationProfile>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_permissive.As<ElevationProfile>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(ElevationNanDescriptionsParsingTests, AllowingSchemaErrorsSameStartPoint) {
@@ -1802,7 +1802,7 @@ TEST_F(SuperelevationNanDescriptionsParsingTests, NotAllowingSchemaErrors) {
       LateralProfile::kLateralProfileTag, LateralProfile::Superelevation::kSuperelevationTag, kSameStartS);
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(xml_description, LateralProfile::kLateralProfileTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<LateralProfile>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<LateralProfile>(), maliput::common::road_network_description_parser_error);
 }
 
 // A function has NaN values and schema errors are allowed.
@@ -1813,7 +1813,7 @@ TEST_F(SuperelevationNanDescriptionsParsingTests, AllowingSchemaErrorsDifferentS
       LateralProfile::kLateralProfileTag, LateralProfile::Superelevation::kSuperelevationTag, kDifferentStartS);
   const NodeParser dut_permissive(LoadXMLAndGetNodeByName(xml_description, LateralProfile::kLateralProfileTag),
                                   {kNullParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_permissive.As<LateralProfile>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_permissive.As<LateralProfile>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(SuperelevationNanDescriptionsParsingTests, AllowingSchemaErrorsSameStartPoint) {
@@ -1837,7 +1837,7 @@ TEST_F(LaneWithNanWidthDescriptionsParsingTests, NotAllowingSchemaErrors) {
   const std::string xml_description = GetNanLaneWidth(kSameStartS);
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<Lane>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<Lane>(), maliput::common::road_network_description_parser_error);
 }
 
 // A function has NaN values and schema errors are allowed.
@@ -1847,7 +1847,7 @@ TEST_F(LaneWithNanWidthDescriptionsParsingTests, AllowingSchemaErrorsDifferentSt
   const std::string xml_description = GetNanLaneWidth(kDifferentStartS);
   const NodeParser dut_permissive(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
                                   {kNullParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_permissive.As<Lane>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_permissive.As<Lane>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(LaneWithNanWidthDescriptionsParsingTests, AllowingSchemaErrorsSameStartPoint) {
@@ -1877,7 +1877,7 @@ TEST_F(LanesWithNanLaneOffsetParsingTests, NotAllowingSchemaErrors) {
   const std::string xml_description = GetLanesNodeWithNanLaneOffset(kSameStartS);
   const NodeParser dut_strict(LoadXMLAndGetNodeByName(xml_description, Lanes::kLanesTag),
                               {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_strict.As<Lanes>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_strict.As<Lanes>(), maliput::common::road_network_description_parser_error);
 }
 
 // A function has NaN values and schema errors are allowed.
@@ -1887,7 +1887,7 @@ TEST_F(LanesWithNanLaneOffsetParsingTests, AllowingSchemaErrorsDifferentStartPoi
   const std::string xml_description = GetLanesNodeWithNanLaneOffset(kDifferentStartS);
   const NodeParser dut_permissive(LoadXMLAndGetNodeByName(xml_description, Lanes::kLanesTag),
                                   {kNullParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_THROW(dut_permissive.As<Lanes>(), maliput::common::assertion_error);
+  EXPECT_THROW(dut_permissive.As<Lanes>(), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(LanesWithNanLaneOffsetParsingTests, AllowingSchemaErrorsSameStartPoint) {

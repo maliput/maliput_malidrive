@@ -60,13 +60,13 @@ struct ArcLengthDerivativeFunction {
 
   // Constructs the arc length derivative function for the given @p road_curve and @lane_offset.
   //
-  // @throws maliput::common::assertion_error When `road_curve` or `lane_offset` is nullptr.
+  // @throws maliput::common::road_geometry_construction_error When `road_curve` or `lane_offset` is nullptr.
   ArcLengthDerivativeFunction(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1)
       : road_curve_(road_curve), lane_offset_(lane_offset), p0_(p0), p1_(p1) {
-    MALIDRIVE_THROW_UNLESS(road_curve_ != nullptr);
-    MALIDRIVE_THROW_UNLESS(lane_offset_ != nullptr);
-    MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
-    MALIDRIVE_THROW_UNLESS(p1_ >= p0_);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_curve_ != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset_ != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ >= p0_);
   }
 
   // Computes the arc length derivative for the RoadCurve specified
@@ -113,13 +113,13 @@ struct InverseArcLengthODEFunction {
 
   // Constructs an inverse arc length ODE for the given @p road_curve and @lane_offset.
   //
-  // @throws maliput::common::assertion_error When `road_curve` or `lane_offset` is nullptr.
+  // @throws maliput::common::road_geometry_construction_error When `road_curve` or `lane_offset` is nullptr.
   InverseArcLengthODEFunction(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1)
       : road_curve_(road_curve), lane_offset_(lane_offset), p0_(p0), p1_(p1) {
-    MALIDRIVE_THROW_UNLESS(road_curve_ != nullptr);
-    MALIDRIVE_THROW_UNLESS(lane_offset_ != nullptr);
-    MALIDRIVE_THROW_UNLESS(p0_ >= 0.);
-    MALIDRIVE_THROW_UNLESS(p1_ >= p0_);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_curve_ != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset_ != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ >= p0_);
   }
 
   // Computes the inverse arc length derivative for the RoadCurve
@@ -163,11 +163,11 @@ struct InverseArcLengthODEFunction {
 RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* lane_offset, double p0, double p1,
                                  double integrator_accuracy_multiplier)
     : road_curve_(road_curve), lane_offset_(lane_offset), p0_(p0), p1_(p1) {
-  MALIDRIVE_THROW_UNLESS(road_curve_ != nullptr);
-  MALIDRIVE_THROW_UNLESS(lane_offset_ != nullptr);
-  MALIDRIVE_THROW_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_UNLESS(p0 <= p1);
-  MALIDRIVE_THROW_UNLESS(integrator_accuracy_multiplier > 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_curve_ != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset_ != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 <= p1);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(integrator_accuracy_multiplier > 0.);
 
   maliput::log()->trace("Creating RoadCurveOffset with p0: ", p0, " and p1: ", p1);
 

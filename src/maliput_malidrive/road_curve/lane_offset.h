@@ -81,12 +81,18 @@ class LaneOffset : public Function {
   ///        than @p p0.
   /// @param linear_tolerance Tolerance of the range [ @p p0; @p p1] that will be
   ///        used to evaluate the parameter.
-  /// @throws maliput::common::assertion_error When @p linear_tolerance is not
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is not
   ///         positive.
-  /// @throws maliput::common::assertion_error When @p lane_width is nullptr.
-  /// @throws maliput::common::assertion_error When @p reference_line_offset is nullptr.
-  /// @throws maliput::common::assertion_error When @p adjacent_lane_functions 's offset value is nullptr.
-  /// @throws maliput::common::assertion_error When @p adjacent_lane_functions 's width value is nullptr.
+  /// @throws maliput::common::road_geometry_construction_error When @p lane_width is nullptr.
+  /// @throws maliput::common::road_geometry_construction_error When @p reference_line_offset is nullptr.
+  /// @throws maliput::common::road_geometry_construction_error When @p adjacent_lane_functions 's offset value is
+  /// nullptr.
+  /// @throws maliput::common::road_geometry_construction_error When @p adjacent_lane_functions 's width value is
+  /// nullptr.
+  // TODO(Santoi): Even so this method should throw a maliput::common::road_geometry_construction_error it
+  // actually throws a maliput::common::assertion_error coming from the RangeValidator called in the
+  // initialization list. After solving https://github.com/maliput/maliput/issues/666, we can make sure that
+  // it throws what we want it to throw.
   LaneOffset(const std::optional<AdjacentLaneFunctions>& adjacent_lane_functions, const Function* lane_width,
              const Function* reference_line_offset, bool at_right, double p0, double p1, double linear_tolerance);
 

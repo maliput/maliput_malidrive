@@ -30,7 +30,7 @@
 #include "maliput_malidrive/xodr/road_header.h"
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 
 namespace malidrive {
 namespace xodr {
@@ -50,7 +50,8 @@ GTEST_TEST(RoadHeader, StrToHandTrafficRule) {
   EXPECT_EQ(RoadHeader::HandTrafficRule::kRHT, RoadHeader::str_to_hand_traffic_rule(kRHT));
   EXPECT_EQ(RoadHeader::HandTrafficRule::kLHT, RoadHeader::str_to_hand_traffic_rule(kLHT));
   const std::string kWrongValue{"WrongValue"};
-  EXPECT_THROW(RoadHeader::str_to_hand_traffic_rule(kWrongValue), maliput::common::assertion_error);
+  EXPECT_THROW(RoadHeader::str_to_hand_traffic_rule(kWrongValue),
+               maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(RoadHeader, EqualityOperator) {
@@ -181,14 +182,14 @@ TEST_F(RoadHeaderTest, GetLaneSectionLength) {
 }
 
 TEST_F(RoadHeaderTest, GetLaneSectionIndex) {
-  EXPECT_THROW(kRoadHeader.GetLaneSectionIndex(9.99999), maliput::common::assertion_error);
+  EXPECT_THROW(kRoadHeader.GetLaneSectionIndex(9.99999), maliput::common::road_network_description_parser_error);
   EXPECT_EQ(0, kRoadHeader.GetLaneSectionIndex(10.));
   EXPECT_EQ(0, kRoadHeader.GetLaneSectionIndex(29.99999));
   EXPECT_EQ(1, kRoadHeader.GetLaneSectionIndex(30.));
   EXPECT_EQ(1, kRoadHeader.GetLaneSectionIndex(69.99999));
   EXPECT_EQ(2, kRoadHeader.GetLaneSectionIndex(70.));
   EXPECT_EQ(2, kRoadHeader.GetLaneSectionIndex(109.99999));
-  EXPECT_THROW(kRoadHeader.GetLaneSectionIndex(110.), maliput::common::assertion_error);
+  EXPECT_THROW(kRoadHeader.GetLaneSectionIndex(110.), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(RoadHeaderTest, GetRoadTypeLength) {
@@ -201,19 +202,19 @@ TEST_F(RoadHeaderTest, GetRoadTypeLength) {
 }
 
 TEST_F(RoadHeaderTest, GetRoadType) {
-  EXPECT_THROW(kRoadHeader.GetRoadType(9.99999), maliput::common::assertion_error);
+  EXPECT_THROW(kRoadHeader.GetRoadType(9.99999), maliput::common::road_network_description_parser_error);
   EXPECT_EQ(kRoadType0, *kRoadHeader.GetRoadType(10.));
   EXPECT_EQ(kRoadType0, *kRoadHeader.GetRoadType(52.99999));
   EXPECT_EQ(kRoadType1, *kRoadHeader.GetRoadType(53.));
   EXPECT_EQ(kRoadType1, *kRoadHeader.GetRoadType(73.99999));
   EXPECT_EQ(kRoadType2, *kRoadHeader.GetRoadType(74.));
   EXPECT_EQ(kRoadType2, *kRoadHeader.GetRoadType(109.99999));
-  EXPECT_THROW(kRoadHeader.GetRoadType(110.), maliput::common::assertion_error);
+  EXPECT_THROW(kRoadHeader.GetRoadType(110.), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(RoadHeaderTest, GetRoadTypesInRangeThrows) {
-  EXPECT_THROW(kRoadHeader.GetRoadTypesInRange(-1., 5.), maliput::common::assertion_error);
-  EXPECT_THROW(kRoadHeader.GetRoadTypesInRange(5., 3.), maliput::common::assertion_error);
+  EXPECT_THROW(kRoadHeader.GetRoadTypesInRange(-1., 5.), maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(kRoadHeader.GetRoadTypesInRange(5., 3.), maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(RoadHeaderTest, GetRoadTypesInRange) {

@@ -32,7 +32,7 @@
 #include <memory>
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 #include <maliput/math/vector.h>
 
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
@@ -55,13 +55,19 @@ GTEST_TEST(RoadCurveFactoryConstructorTest, Prerequisites) {
   const double kScaleLength{1.};
   const double kZero{0.};
   // Zeroed arguments.
-  EXPECT_THROW(RoadCurveFactory(kZero, kScaleLength, kAngularTolerance), maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, kZero, kAngularTolerance), maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, kScaleLength, kZero), maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurveFactory(kZero, kScaleLength, kAngularTolerance),
+               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, kZero, kAngularTolerance),
+               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, kScaleLength, kZero),
+               maliput::common::road_geometry_construction_error);
   // Negative arguments.
-  EXPECT_THROW(RoadCurveFactory(-kLinearTolerance, kScaleLength, kAngularTolerance), maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, -kScaleLength, kAngularTolerance), maliput::common::assertion_error);
-  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, kScaleLength, -kAngularTolerance), maliput::common::assertion_error);
+  EXPECT_THROW(RoadCurveFactory(-kLinearTolerance, kScaleLength, kAngularTolerance),
+               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, -kScaleLength, kAngularTolerance),
+               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(RoadCurveFactory(kLinearTolerance, kScaleLength, -kAngularTolerance),
+               maliput::common::road_geometry_construction_error);
   // Positive arguments.
   EXPECT_NO_THROW(RoadCurveFactory(kAngularTolerance, kScaleLength, kLinearTolerance));
 }
@@ -148,7 +154,7 @@ TEST_F(RoadCurveFactoryTest, PiecewiseGroundCurveWithLineAndSpiral) {
 }
 
 TEST_F(RoadCurveFactoryTest, PiecewiseGroundCurveExpectsFailure) {
-  EXPECT_THROW(dut_.MakePiecewiseGroundCurve({}), maliput::common::assertion_error);
+  EXPECT_THROW(dut_.MakePiecewiseGroundCurve({}), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(RoadCurveFactoryTest, RoadCurve) {
@@ -213,23 +219,24 @@ TEST_F(RoadCurveFactoryMakeElevationSuperelevationReferenceLineOffsetTest, Throw
 
   // Negative p0.
   EXPECT_THROW(road_curve_factory_->MakeElevation(kElevationProfile, -2, kP1, kEnsureContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p1 equal to p0.
   EXPECT_THROW(road_curve_factory_->MakeElevation(kElevationProfile, kP0, kP0, kEnsureContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Zero number of polynomials.
-  EXPECT_THROW(road_curve_factory_->MakeElevation({}, kP0, kP0, kEnsureContiguity), maliput::common::assertion_error);
+  EXPECT_THROW(road_curve_factory_->MakeElevation({}, kP0, kP0, kEnsureContiguity),
+               maliput::common::road_geometry_construction_error);
   // First width's offset different than zero.
   EXPECT_THROW(road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}}}, kP0, kP1, kEnsureContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Share same s_0 value.
   EXPECT_THROW(road_curve_factory_->MakeElevation({{{1. /* s_0 */, 2., 3., 4, 5.}, {1. /* s_0 */, 2., 3., 4, 5.}}}, kP0,
                                                   kP1, kEnsureContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // It doesn't meet C1 continuity between both functions.
   EXPECT_THROW(road_curve_factory_->MakeElevation({{{2.4 /* s_0 */, 2., 3., 4, 5.}, {20. /* s_0 */, 6., 7., 8, 9.}}},
                                                   kP0, kP1, kEnsureContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // It doesn't meet C1 continuity between both functions however continuity isn't ensured.
   EXPECT_NO_THROW(road_curve_factory_->MakeElevation({{{2.4 /* s_0 */, 2., 3., 4, 5.}, {20. /* s_0 */, 6., 7., 8, 9.}}},
                                                      kP0, kP1, kDontEnsureContiguity));
@@ -406,6 +413,8 @@ TEST_F(RoadCurveFactoryMakeReferenceLineOffsetTest, DiscontinuousReferenceLineOf
   const std::vector<xodr::LaneOffset> kLaneOffsets{{0. /* s_0 */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
                                                    {10. /* s_0 */, 4. /* a */, 0. /* b */, 0. /* c */, 0. /* d */}};
 
+  // TODO(Santoi): This method throws because of RangeValidator. It should throw
+  // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1, kEnsureContiguity),
                maliput::common::assertion_error);
 }
@@ -476,35 +485,35 @@ class RoadCurveFactoryMakeLaneWidthTest : public ::testing::Test {
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, Throws) {
   // Negative p0.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, -2, kP1, kEnsureContiguity, kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p1 equal to p0.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth(kLaneWidths, kP0, kP0, kEnsureContiguity, kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Zero number of polynomials.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth({}, kP0, kP0, kEnsureContiguity, kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // First width's offset different than zero.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity,
                                                   kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Share same offset value.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{1. /* offset */, 2., 3., 4, 5.}, {1. /* offset */, 2., 3., 4, 5.}},
                                                   kP0, kP1, kEnsureContiguity, kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Function length is zero.
   EXPECT_THROW(road_curve_factory_->MakeLaneWidth({{kP1 /* offset */, 2., 3., 4, 5.}}, kP0, kP1, kEnsureContiguity,
                                                   kDontAdaptLaneWidths),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // It doesn't meet C1 continuity between both functions.
   EXPECT_THROW(
       road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
                                          kP1, kEnsureContiguity, kDontAdaptLaneWidths),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
   // It doesn't meet C1 continuity between both functions however continuity isn't ensured.
   EXPECT_THROW(
       road_curve_factory_->MakeLaneWidth({{2.4 /* offset */, 2., 3., 4, 5.}, {20. /* offset */, 6., 7., 8, 9.}}, kP0,
                                          kP1, kDontEnsureContiguity, kDontAdaptLaneWidths),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, MultipleLaneWidth) {
@@ -536,7 +545,7 @@ TEST_F(RoadCurveFactoryMakeLaneWidthTest, MultipleLaneWidth) {
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, EnsureContiguityNoAdaptThrows) {
   EXPECT_THROW(
       road_curve_factory_->MakeLaneWidth(kLaneWidthsToAdapt, kP0, kP1, kEnsureContiguity, kDontAdaptLaneWidths),
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(RoadCurveFactoryMakeLaneWidthTest, AdaptMultipleLaneWidth) {

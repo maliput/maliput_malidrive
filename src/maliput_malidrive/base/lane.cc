@@ -65,11 +65,11 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
       road_curve_offset_(road_curve_, lane_offset.get(), p0, p1, integrator_accuracy_multiplier),
       lane_width_(std::move(lane_width)),
       lane_offset_(std::move(lane_offset)) {
-  MALIDRIVE_THROW_UNLESS(xodr_track >= 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(xodr_track >= 0);
 
-  MALIDRIVE_THROW_UNLESS(road_curve_ != nullptr);
-  MALIDRIVE_THROW_UNLESS(lane_width_ != nullptr);
-  MALIDRIVE_THROW_UNLESS(lane_offset_ != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_curve_ != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_width_ != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset_ != nullptr);
 
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_width_->p0() - p0), 0., road_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_width_->p1() - p1), 0., road_curve_->linear_tolerance());

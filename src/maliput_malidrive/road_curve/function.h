@@ -63,7 +63,7 @@ class Function {
   /// Evaluates @f$ F(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The image of @f$ F(p) @f$.
   double f(double p) const { return do_f(p); }
@@ -71,7 +71,7 @@ class Function {
   /// Evaluates @f$ F'(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The image of @f$ F'(p) @f$.
   double f_dot(double p) const { return do_f_dot(p); }
@@ -79,7 +79,7 @@ class Function {
   /// Evaluates @f$ F''(p) @f$.
   ///
   /// @param p The parameter. It must be in the range @f$ [`p0()`; `p1()`] @f$.
-  /// @throws maliput::common::assertion_error When @p p is not in
+  /// @throws maliput::common::road_geometry_construction_error When @p p is not in
   ///         @f$ [`p0()`; `p1()`] @f$.
   /// @return The image of @f$ F''(p) @f$.
   double f_dot_dot(double p) const { return do_f_dot_dot(p); }

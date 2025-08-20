@@ -32,7 +32,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/range_validator.h>
 
@@ -53,11 +53,12 @@ struct G1ContiguityChecker {
 
   // Determines whether the `lhs` and `rhs` ground curves are contiguous
   // in their endpoint and startpoint, respectively.
-  // @throws maliput::common::assertion_error When linear tolerance constraint is not met.
-  // @throws maliput::common::assertion_error When angular tolerance constraint is not met.
+  // @throws maliput::common::road_geometry_construction_error When linear tolerance constraint is not met.
+  // @throws maliput::common::road_geometry_construction_error When angular tolerance constraint is not met.
   void operator()(const GroundCurve* lhs, GroundCurve* rhs) const {
     const double ground_curve_endpoint_distance = (lhs->G(lhs->p1()) - rhs->G(rhs->p0())).norm();
-    MALIDRIVE_VALIDATE(ground_curve_endpoint_distance <= linear_tolerance, maliput::common::assertion_error,
+    MALIDRIVE_VALIDATE(ground_curve_endpoint_distance <= linear_tolerance,
+                       maliput::common::road_geometry_construction_error,
                        std::string("Error when constructing piecewise ground curve. Endpoint distance is <") +
                            std::to_string(ground_curve_endpoint_distance) +
                            "> which is greater than linear_tolerance: " + std::to_string(linear_tolerance) + ">.");
@@ -65,7 +66,7 @@ struct G1ContiguityChecker {
     if (std::abs(delta_heading - M_PI) < angular_tolerance) {
       delta_heading = 0.;
     }
-    MALIDRIVE_VALIDATE(delta_heading <= angular_tolerance, maliput::common::assertion_error,
+    MALIDRIVE_VALIDATE(delta_heading <= angular_tolerance, maliput::common::road_geometry_construction_error,
                        std::string("Error when constructing piecewise ground curve. Angular distance is <") +
                            std::to_string(delta_heading) +
                            "> which is greater than angular_tolerance: " + std::to_string(angular_tolerance) + ">.");
@@ -80,17 +81,17 @@ struct G1ContiguityChecker {
 PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCurve>>&& ground_curves,
                                            double linear_tolerance, double angular_tolerance)
     : ground_curves_(std::move(ground_curves)), linear_tolerance_(linear_tolerance) {
-  MALIDRIVE_THROW_UNLESS(ground_curves_.size() > 0);
-  MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0);
-  MALIDRIVE_THROW_UNLESS(angular_tolerance > 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curves_.size() > 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(angular_tolerance > 0);
 
-  MALIDRIVE_THROW_UNLESS(ground_curves_[0] != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curves_[0] != nullptr);
   double cumulative_p{0.};
   GroundCurve* previous_ground_curve{nullptr};
   const G1ContiguityChecker contiguity_checker(linear_tolerance_, angular_tolerance);
   for (const auto& ground_curve : ground_curves_) {
-    MALIDRIVE_THROW_UNLESS(ground_curve != nullptr);
-    MALIDRIVE_THROW_UNLESS(ground_curve->IsG1Contiguous());
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve != nullptr);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve->IsG1Contiguous());
     arc_length_ += ground_curve->ArcLength();
     const double delta_p = ground_curve->p1() - ground_curve->p0();
     if (previous_ground_curve != nullptr) {
@@ -102,7 +103,7 @@ PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCur
   }
   p0_ = 0.;
   p1_ = cumulative_p;
-  MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= kEpsilon);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ - p0_ >= kEpsilon);
   validate_p_ = maliput::common::RangeValidator::GetRelativeEpsilonValidator(p0_, p1_, linear_tolerance_, kEpsilon);
 }
 
@@ -110,8 +111,8 @@ std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(
   p = validate_p_(p);
   auto search_it = interval_ground_curve_.find(RoadCurveInterval(p));
   if (search_it == interval_ground_curve_.end()) {
-    MALIDRIVE_THROW_MESSAGE(std::string("p = ") + std::to_string(p) +
-                            std::string(" doesn't match with any GroundCurve interval."));
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(std::string("p = ") + std::to_string(p) +
+                                                  std::string(" doesn't match with any GroundCurve interval."));
   }
   const GroundCurve* gc = search_it->second;
   const RoadCurveInterval interval = search_it->first;
@@ -122,7 +123,7 @@ std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(
 }
 
 double PiecewiseGroundCurve::GetPiecewiseP(const GroundCurve* ground_curve, double p_i) const {
-  MALIDRIVE_THROW_UNLESS(ground_curve != nullptr);
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve != nullptr);
   p_i = validate_p_(p_i);
   const auto range_gc =
       std::find_if(interval_ground_curve_.begin(), interval_ground_curve_.end(),
@@ -138,7 +139,7 @@ double PiecewiseGroundCurve::DoPFromP(double xodr_p) const {
                                             [tol = linear_tolerance_, xodr_p](const std::unique_ptr<GroundCurve>& gc) {
                                               return (xodr_p >= gc->p0() - tol) && (xodr_p < gc->p1() + tol);
                                             });
-  MALIDRIVE_THROW_UNLESS(ground_curve_it != ground_curves_.end());
+  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve_it != ground_curves_.end());
   return GetPiecewiseP(ground_curve_it->get(), xodr_p);
 }
 
@@ -149,7 +150,7 @@ double PiecewiseGroundCurve::DoGInverse(const maliput::math::Vector2& xy) const 
     double p_i{};
     try {
       p_i = ground_curve->GInverse(xy);
-    } catch (const maliput::common::assertion_error&) {
+    } catch (const maliput::common::road_geometry_construction_error&) {
       maliput::log()->info("Mapping to p parameter is not possible at [", xy.x(), ", ", xy.y(), "].");
       p_i = ground_curve->p0();
     }

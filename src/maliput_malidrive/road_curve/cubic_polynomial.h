@@ -62,10 +62,14 @@ class CubicPolynomial : public Function {
   ///        than @p p0.
   /// @param linear_tolerance Tolerance of the range [@p p0; @p p1] that will be
   ///        used to evaluate the parameter.
-  /// @throws maliput::common::assertion_error When @p p0 is negative or @p p1
+  /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative or @p p1
   ///         is less or equal to @p p0.
-  /// @throws maliput::common::assertion_error When @p linear_tolerance is not
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is not
   ///         positive.
+  // TODO(Santoi): Even so this method should throw a maliput::common::road_geometry_construction_error it
+  // actually throws a maliput::common::assertion_error coming from the RangeValidator called in the
+  // initialization list. After solving https://github.com/maliput/maliput/issues/666, we can make sure that
+  // it throws what we want it to throw.
   CubicPolynomial(double a, double b, double c, double d, double p0, double p1, double linear_tolerance)
       : a_(a),
         b_(b),
@@ -75,9 +79,9 @@ class CubicPolynomial : public Function {
         p1_(p1),
         validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
                                                                                  Function::kEpsilon)) {
-    MALIDRIVE_THROW_UNLESS(p0_ >= 0);
-    MALIDRIVE_THROW_UNLESS(p1_ > p0_);
-    MALIDRIVE_THROW_UNLESS(linear_tolerance > 0.);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ > p0_);
+    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance > 0.);
   }
 
  private:

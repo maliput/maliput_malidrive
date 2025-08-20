@@ -34,7 +34,7 @@
 #include <utility>
 
 #include <gtest/gtest.h>
-#include <maliput/common/assertion_error.h>
+#include <maliput/common/error.h>
 #include <maliput/math/compare.h>
 #include <maliput/math/matrix.h>
 #include <maliput/math/vector.h>
@@ -144,7 +144,7 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeLinearTolerance) {
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeScaleLength) {
@@ -159,7 +159,7 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NegativeScaleLength) {
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 GTEST_TEST(MalidriveRoadCurveConstructorTest, NotG1Functions) {
@@ -176,17 +176,17 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, NotG1Functions) {
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsNotG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Throws because Elevation is not G1.
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Throws because Superelevation is not G1.
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Elevation is not G1 but contiguity is not asserted.
   EXPECT_NO_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kP0, kP1, kIsG1Contiguous),
                             MakeZeroedFunctionStub(kP0, kP1, kIsNotG1Contiguous),
@@ -211,29 +211,29 @@ GTEST_TEST(MalidriveRoadCurveConstructorTest, WrongRange) {
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPC, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPB, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Elevation has a different range.
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPC, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPB, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // Superelevation has a different range.
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPC, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   EXPECT_THROW(RoadCurve(kLinearTolerance, kScaleLength, MakeZeroedGroundCurveStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPA, kPD, kIsG1Contiguous),
                          MakeZeroedFunctionStub(kPB, kPD, kIsG1Contiguous), kAssertContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 GTEST_TEST(MalidriveRoadCurveAccessorsTest, Accessors) {

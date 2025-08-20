@@ -62,10 +62,10 @@ class PiecewiseFunction : public Function {
   /// @param tolerance Tolerance used to verify continuity.
   /// @param continuity_check Select continuity check behavior. ContinuityCheck::kThrow by default.
   ///
-  /// @throws maliput::common::assertion_error When @p functions is empty.
-  /// @throws maliput::common::assertion_error When @p functions has a nullptr
+  /// @throws maliput::common::road_geometry_construction_error When @p functions is empty.
+  /// @throws maliput::common::road_geometry_construction_error When @p functions has a nullptr
   ///         item.
-  /// @throws maliput::common::assertion_error When two consecutive items in
+  /// @throws maliput::common::road_geometry_construction_error When two consecutive items in
   ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kThrow.
   PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
                     const ContinuityCheck& continuity_check);
@@ -85,9 +85,11 @@ class PiecewiseFunction : public Function {
     FunctionInterval() = delete;
 
     // Constructs a range @f$ [`min_in`, `max_in`) @f$.
-    // @throws maliput::common::assertion_error When `max_in` is not greater
+    // @throws maliput::common::road_geometry_construction_error When `max_in` is not greater
     //         than `min_in`.
-    FunctionInterval(double min_in, double max_in) : min(min_in), max(max_in) { MALIDRIVE_THROW_UNLESS(max >= min); }
+    FunctionInterval(double min_in, double max_in) : min(min_in), max(max_in) {
+      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(max >= min);
+    }
 
     // Constructs a range @f$ [`x`, `x`) @f$.
     FunctionInterval(double x) : min(x), max(x) {}
@@ -102,7 +104,7 @@ class PiecewiseFunction : public Function {
 
   // Finds the Function and the p parameter in the Function's domain to which
   // @p p maps to.
-  // @throws maliput::common::assertion_error When p is not in [`p0()`, `p1()`].
+  // @throws maliput::common::road_geometry_construction_error When p is not in [`p0()`, `p1()`].
   std::pair<const Function*, double> GetFunctionAndPAt(double p) const;
 
   double do_f(double p) const override;
