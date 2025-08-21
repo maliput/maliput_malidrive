@@ -135,6 +135,9 @@ class Lane : public maliput::geometry_base::Lane {
   /// @throws maliput::common::assertion_error When @p track_s is not in range.
   double LaneSFromTrackS(double track_s) const { return s_from_p_(track_s); }
 
+  /// Validates the `s` coordinate in the LANE Frame.
+  double s_range_validation(double s) const { return s_range_validation_(s); }
+
  private:
   // maliput::api::Lane private virtual method implementations.
   //@{

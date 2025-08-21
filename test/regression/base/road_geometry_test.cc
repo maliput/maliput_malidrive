@@ -1341,6 +1341,34 @@ TEST_P(RoadGeometryGeoReferenceInfo, DoGeoReferenceInfo) {
 INSTANTIATE_TEST_CASE_P(RoadGeometryGeoReferenceInfoGroup, RoadGeometryGeoReferenceInfo,
                         ::testing::ValuesIn(InstanciateGeoReferenceParameters()));
 
+class ShortStraightLanesMaliputRoadPositionToOpenScenarioLanePosition : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("ShortStraightLanes");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("ShortStraightLanes.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_F(ShortStraightLanesMaliputRoadPositionToOpenScenarioLanePosition, AtSEnd) {
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  const maliput::api::LaneId lane_id("49_1_4");
+  const auto lane = rg->ById().GetLane(lane_id);
+  ASSERT_NE(lane, nullptr);
+  const double s_end = lane->length();
+  const RoadGeometry::OpenScenarioLanePosition xodr_lane_pos =
+      rg->MaliputRoadPositionToOpenScenarioLanePosition({lane, {s_end, 0., 0.}});
+  EXPECT_EQ(xodr_lane_pos.road_id, 49);
+  EXPECT_EQ(xodr_lane_pos.lane_id, 4);
+  EXPECT_NEAR(xodr_lane_pos.s, 1.0758588807064431,
+              rg->linear_tolerance());  // Value obtained from xodr: road 49, s=0 of third lane section
+  EXPECT_EQ(xodr_lane_pos.offset, 0.);
+}
+
 }  // namespace
 }  // namespace tests
 }  // namespace malidrive
