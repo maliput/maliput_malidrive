@@ -362,7 +362,7 @@ RoadGeometry::OpenScenarioLanePosition RoadGeometry::MaliputRoadPositionToOpenSc
   const auto mali_lane = dynamic_cast<const Lane*>(road_position.lane);
   xodr_lane_position.road_id = mali_lane->get_track();
   xodr_lane_position.lane_id = mali_lane->get_lane_id();
-  xodr_lane_position.s = mali_lane->TrackSFromLaneS(road_position.pos.s());
+  xodr_lane_position.s = mali_lane->TrackSFromLaneS(mali_lane->s_range_validation(road_position.pos.s()));
   const auto segment = dynamic_cast<const Segment*>(mali_lane->segment());
   const auto roll_at_p = segment->road_curve()->superelevation()->f(xodr_lane_position.s);
   xodr_lane_position.offset = road_position.pos.r() * std::cos(roll_at_p);
@@ -414,7 +414,7 @@ RoadGeometry::OpenScenarioRoadPosition RoadGeometry::MaliputRoadPositionToOpenSc
   OpenScenarioRoadPosition xodr_road_position;
   const auto mali_lane = dynamic_cast<const Lane*>(road_position.lane);
   xodr_road_position.road_id = mali_lane->get_track();
-  xodr_road_position.s = mali_lane->TrackSFromLaneS(road_position.pos.s());
+  xodr_road_position.s = mali_lane->TrackSFromLaneS(mali_lane->s_range_validation(road_position.pos.s()));
 
   double t = mali_lane->to_reference_r(xodr_road_position.s, road_position.pos.r());
   const auto segment = dynamic_cast<const Segment*>(mali_lane->segment());
