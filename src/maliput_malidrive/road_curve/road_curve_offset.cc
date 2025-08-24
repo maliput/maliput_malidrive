@@ -189,19 +189,32 @@ RoadCurveOffset::RoadCurveOffset(const RoadCurve* road_curve, const Function* la
   // accuracy of the integrator that goes beyond the limit of the integrator.
   // The integrator_accuracy_multiplier is used to scale the relative tolerance based on the
   // desired accuracy of the integrator.
-  relative_tolerance_ = std::max(integrator_accuracy_multiplier * road_curve_->linear_tolerance() / road_curve_->LMax(),
-                                 kMinRelativeTolerance);
+  // relative_tolerance_ = std::max(integrator_accuracy_multiplier * road_curve_->linear_tolerance() /
+  // road_curve_->LMax(),
+  //                                kMinRelativeTolerance);
+  relative_tolerance_ =
+      std::max(integrator_accuracy_multiplier * road_curve_->linear_tolerance(), kMinRelativeTolerance);
+  maliput::log()->trace("Relative tolerance for RoadCurveOffset: ", relative_tolerance_);
 
   // Note: Setting this tolerance is necessary to satisfy the
   // road geometry invariants (i.e., CheckInvariants()) in Builder::Build().
   // Consider modifying this accuracy if other tolerances are modified
   // elsewhere.
   const double integrator_accuracy{relative_tolerance_ * kAccuracyMultiplier};
-
+  maliput::log()->trace("Integrator accuracy for RoadCurveOffset: ", integrator_accuracy);
   // Compute a step_multiplier to scale the initial step size and maximum step size
   // of the integrators. Use the maximum heading dot of the road curve
   // to determine the step_multiplier. This is a heuristic to ensure that the
   // integrators can handle the curvature of the road curve effectively.
+
+  // Without dividing by road_curve->LMax:
+  // [TRACE] Relative tolerance for RoadCurveOffset: 0.05
+  // [TRACE] Integrator accuracy for RoadCurveOffset: 5e-06
+
+  // Default: Dividing by road_curve->LMax:
+  // [TRACE] Relative tolerance for RoadCurveOffset: 0.000275028
+  // [TRACE] Integrator accuracy for RoadCurveOffset: 2.75028e-08
+
   const double max_heading_dot = GetMaximumHeadingDot(*road_curve_, p0_, p1_);
   maliput::log()->trace("Maximum heading dot of the road curve: ", max_heading_dot);
   double step_multiplier = 1.;
