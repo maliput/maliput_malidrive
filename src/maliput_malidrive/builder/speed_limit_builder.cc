@@ -61,7 +61,8 @@ std::vector<SpeedLimitRule> SpeedLimitBuilder::operator()() {
 
 std::vector<maliput::api::rules::SpeedLimitRule> SpeedLimitBuilder::BuildSpeedLimitFor(
     const maliput::api::Segment* segment) {
-  MALIDRIVE_THROW_UNLESS(segment != nullptr);
+  MALIDRIVE_VALIDATE(segment != nullptr, maliput::common::rulebook_error,
+                     "Segment is null when building SpeedLimit rule.");
 
   const double kDefaultMinSpeedLimit{constants::kDefaultMinSpeedLimit};
   const SpeedLimitRule::Severity kDefaultSeverity{SpeedLimitRule::Severity::kStrict};

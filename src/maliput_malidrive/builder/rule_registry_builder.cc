@@ -44,7 +44,8 @@ using maliput::api::rules::Rule;
 RuleRegistryBuilder::RuleRegistryBuilder(const maliput::api::RoadGeometry* rg,
                                          const std::optional<std::string>& rule_registry_file_path)
     : rg_{rg}, rule_registry_file_path_{rule_registry_file_path} {
-  MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
+  MALIDRIVE_VALIDATE(rg_ != nullptr, maliput::common::rule_registry_error,
+                     "RoadGeometry is null when building RuleRegistry.");
 }
 
 std::unique_ptr<maliput::api::rules::RuleRegistry> RuleRegistryBuilder::operator()() {
@@ -61,7 +62,8 @@ std::unique_ptr<maliput::api::rules::RuleRegistry> RuleRegistryBuilder::operator
 }
 
 void RuleRegistryBuilder::AddDiscreteValueRuleTypes(maliput::api::rules::RuleRegistry* rule_registry) const {
-  MALIDRIVE_THROW_UNLESS(rule_registry != nullptr);
+  MALIDRIVE_VALIDATE(rule_registry != nullptr, maliput::common::rule_registry_error,
+                     "RuleRegistry is null when adding discrete value rule type.");
 
   const Rule::RelatedRules empty_related_rules{};
   const Rule::RelatedUniqueIds empty_related_unique_ids{};
@@ -107,7 +109,8 @@ std::unordered_map<DiscreteValueRule::TypeId, std::vector<std::string>> RuleRegi
 }
 
 void RuleRegistryBuilder::AddSpeedLimitRuleType(maliput::api::rules::RuleRegistry* rule_registry) const {
-  MALIDRIVE_THROW_UNLESS(rule_registry != nullptr);
+  MALIDRIVE_VALIDATE(rule_registry != nullptr, maliput::common::rule_registry_error,
+                     "RuleRegistry is null when adding speed limit rule type.");
 
   const Rule::RelatedRules empty_related_rules{};
   const Rule::RelatedUniqueIds empty_related_unique_ids{};

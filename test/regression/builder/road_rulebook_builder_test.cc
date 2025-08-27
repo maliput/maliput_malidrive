@@ -158,10 +158,10 @@ class RoadRulebookBuilderTest : public ::testing::Test {
 TEST_F(RoadRulebookBuilderTest, Constructor) {
   // Throws because RoadGeometry pointer is null.
   EXPECT_THROW(RoadRuleBookBuilder(nullptr, rule_registry_.get(), road_rulebook_path)(),
-               maliput::common::assertion_error);
+               maliput::common::rulebook_error);
   // Throws because RuleRegistry pointer is null.
   EXPECT_THROW(RoadRuleBookBuilder(road_geometry_.get(), nullptr, road_rulebook_path)(),
-               maliput::common::assertion_error);
+               maliput::common::rulebook_error);
   // Correct construction with RoadRulebook's yaml path is empty.
   EXPECT_NO_THROW(RoadRuleBookBuilder(road_geometry_.get(), rule_registry_.get(), std::nullopt)());
   // Correct contruction.

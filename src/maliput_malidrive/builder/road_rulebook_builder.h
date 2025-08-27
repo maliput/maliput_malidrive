@@ -82,7 +82,7 @@ class RoadRuleBookBuilder {
   /// @param rg is the pointer to the RoadGeometry. It must not be nullptr.
   /// @param rule_registry is the pointer to the RuleRegistry. It must not be nullptr.
   /// @param road_rulebook_file_path to the yaml file to load the RoadRulebook.
-  /// @throw maliput::assertion_error When `rg` or `rule_registry` are nullptr.
+  /// @throw maliput::rulebook_error When `rg` or `rule_registry` are nullptr.
   RoadRuleBookBuilder(const maliput::api::RoadGeometry* rg, const maliput::api::rules::RuleRegistry* rule_registry,
                       const std::optional<std::string>& road_rulebook_file_path);
 
@@ -120,13 +120,13 @@ class RoadRuleBookBuilder {
   // @param rulebook The RoadRulebook to which to add the rules.
   //        It must not be nullptr.
   //
-  // @throws maliput::common::assertion_error When `rg` is nullptr.
-  // @throws maliput::common::assertion_error When `rule_registry` is nullptr.
-  // @throws maliput::common::assertion_error When `rulebook` is nullptr.
-  // @throws maliput::common::assertion_error When
+  // @throws maliput::common::rulebook_error When `rg` is nullptr.
+  // @throws maliput::common::rulebook_error When `rule_registry` is nullptr.
+  // @throws maliput::common::rulebook_error When `rulebook` is nullptr.
+  // @throws maliput::common::rulebook_error When
   // maliput::api::rules::RuleRegistry has no type equal to
   // maliput::SpeedLimitRuleTypeId().
-  // @throws maliput::common::assertion_error When a Lane in the RoadGeometry
+  // @throws maliput::common::rulebook_error When a Lane in the RoadGeometry
   // has a max speed limit that does not match any range in
   // maliput::SpeedLimitRuleTypeId() rule type.
   static void AddsSpeedLimitRulesToRulebook(const maliput::api::RoadGeometry* rg,
@@ -143,13 +143,13 @@ class RoadRuleBookBuilder {
   // @param rulebook The RoadRulebook to add the rules.
   //        It must not be nullptr.
   //
-  // @throws maliput::common::assertion_error When `rulebook` is nullptr.
+  // @throws maliput::common::rulebook_error When `rulebook` is nullptr.
   static void AddsDirectionUsageRulesToRulebook(const maliput::api::RoadGeometry* rg,
                                                 const maliput::api::rules::RuleRegistry* rule_registry,
                                                 maliput::ManualRulebook* rulebook);
 
   // @returns A LaneSRoute that covers `lane.`
-  // @throws maliput::common::assertion_error When `lane` is nullptr.
+  // @throws maliput::common::rulebook_error When `lane` is nullptr.
   static maliput::api::LaneSRoute CreateLaneSRouteFor(const Lane* lane);
 
   const maliput::api::RoadGeometry* rg_{};

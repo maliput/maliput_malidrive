@@ -88,7 +88,7 @@ class PiecewiseFunction : public Function {
     // @throws maliput::common::road_geometry_construction_error When `max_in` is not greater
     //         than `min_in`.
     FunctionInterval(double min_in, double max_in) : min(min_in), max(max_in) {
-      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(max >= min);
+      MALIDRIVE_THROW_UNLESS(max >= min, maliput::common::road_geometry_construction_error);
     }
 
     // Constructs a range @f$ [`x`, `x`) @f$.

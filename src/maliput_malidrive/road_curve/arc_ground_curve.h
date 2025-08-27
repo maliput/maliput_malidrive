@@ -86,11 +86,12 @@ class ArcGroundCurve : public GroundCurve {
         center_(xy0_ - std::abs(radius_) * maliput::math::Vector2{std::cos(theta0_), std::sin(theta0_)}),
         validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
                                                                                  GroundCurve::kEpsilon)) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(curvature) >= GroundCurve::kEpsilon);
+    MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(std::abs(curvature) >= GroundCurve::kEpsilon,
+                           maliput::common::road_geometry_construction_error);
   }
 
  private:

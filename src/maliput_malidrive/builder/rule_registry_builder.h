@@ -80,7 +80,7 @@ class RuleRegistryBuilder {
   // maliput::api::rules::Rule::State::kStrict severity.
   // Direction usage rule type are included to the rule registry.
   //
-  // @throws maliput::common::assertion_error When `rule_registry` is nullptr.
+  // @throws maliput::common::rule_registry_error When `rule_registry` is nullptr.
   void AddDiscreteValueRuleTypes(maliput::api::rules::RuleRegistry* rule_registry) const;
 
   // @returns An unordered map of DiscreteValueRule::TypeId and possible rule states.
@@ -101,7 +101,7 @@ class RuleRegistryBuilder {
   // All built ranges will have a minimum speed constants::kDefaultMaxSpeedLimit.
   // When no maximum speed is set, constants::kDefaultMaxSpeedLimit is used.
   //
-  // @throws maliput::common::assertion_error When `rule_registry` is nullptr.
+  // @throws maliput::common::rule_registry_error When `rule_registry` is nullptr.
   void AddSpeedLimitRuleType(maliput::api::rules::RuleRegistry* rule_registry) const;
 
   const maliput::api::RoadGeometry* rg_{};

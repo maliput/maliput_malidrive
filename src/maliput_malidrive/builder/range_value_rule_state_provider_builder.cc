@@ -37,11 +37,12 @@ namespace {
 
 // Sets to `state_provider` the first range in each
 // RangeValueRule::states() in `range_value_rules` as the default state.
-// @throws maliput::common::assertion_error When `state_provider` is
+// @throws maliput::common::state_provider_error When `state_provider` is
 //         nullptr.
 void PopulateRangeValueRuleStates(const std::map<Rule::Id, RangeValueRule>& range_value_rules,
                                   maliput::ManualRangeValueRuleStateProvider* state_provider) {
-  MALIDRIVE_THROW_UNLESS(state_provider != nullptr);
+  MALIDRIVE_VALIDATE(state_provider != nullptr, maliput::common::state_provider_error,
+                     "State provider is null when populating range value rule states.");
   for (const auto& rule_id_rule : range_value_rules) {
     state_provider->SetState(rule_id_rule.first, rule_id_rule.second.states().front(), std::nullopt, std::nullopt);
   }

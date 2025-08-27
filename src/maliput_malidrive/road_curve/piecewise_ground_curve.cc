@@ -81,17 +81,17 @@ struct G1ContiguityChecker {
 PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCurve>>&& ground_curves,
                                            double linear_tolerance, double angular_tolerance)
     : ground_curves_(std::move(ground_curves)), linear_tolerance_(linear_tolerance) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curves_.size() > 0);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(angular_tolerance > 0);
+  MALIDRIVE_THROW_UNLESS(ground_curves_.size() > 0, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(angular_tolerance > 0, maliput::common::road_geometry_construction_error);
 
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curves_[0] != nullptr);
+  MALIDRIVE_THROW_UNLESS(ground_curves_[0] != nullptr, maliput::common::road_geometry_construction_error);
   double cumulative_p{0.};
   GroundCurve* previous_ground_curve{nullptr};
   const G1ContiguityChecker contiguity_checker(linear_tolerance_, angular_tolerance);
   for (const auto& ground_curve : ground_curves_) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve->IsG1Contiguous());
+    MALIDRIVE_THROW_UNLESS(ground_curve != nullptr, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(ground_curve->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
     arc_length_ += ground_curve->ArcLength();
     const double delta_p = ground_curve->p1() - ground_curve->p0();
     if (previous_ground_curve != nullptr) {
@@ -103,7 +103,7 @@ PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCur
   }
   p0_ = 0.;
   p1_ = cumulative_p;
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ - p0_ >= kEpsilon);
+  MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= kEpsilon, maliput::common::road_geometry_construction_error);
   validate_p_ = maliput::common::RangeValidator::GetRelativeEpsilonValidator(p0_, p1_, linear_tolerance_, kEpsilon);
 }
 
@@ -111,8 +111,9 @@ std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(
   p = validate_p_(p);
   auto search_it = interval_ground_curve_.find(RoadCurveInterval(p));
   if (search_it == interval_ground_curve_.end()) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(std::string("p = ") + std::to_string(p) +
-                                                  std::string(" doesn't match with any GroundCurve interval."));
+    MALIDRIVE_THROW_MESSAGE(
+        std::string("p = ") + std::to_string(p) + std::string(" doesn't match with any GroundCurve interval."),
+        maliput::common::road_geometry_construction_error);
   }
   const GroundCurve* gc = search_it->second;
   const RoadCurveInterval interval = search_it->first;
@@ -123,7 +124,7 @@ std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(
 }
 
 double PiecewiseGroundCurve::GetPiecewiseP(const GroundCurve* ground_curve, double p_i) const {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve != nullptr);
+  MALIDRIVE_THROW_UNLESS(ground_curve != nullptr, maliput::common::road_geometry_construction_error);
   p_i = validate_p_(p_i);
   const auto range_gc =
       std::find_if(interval_ground_curve_.begin(), interval_ground_curve_.end(),
@@ -139,7 +140,7 @@ double PiecewiseGroundCurve::DoPFromP(double xodr_p) const {
                                             [tol = linear_tolerance_, xodr_p](const std::unique_ptr<GroundCurve>& gc) {
                                               return (xodr_p >= gc->p0() - tol) && (xodr_p < gc->p1() + tol);
                                             });
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve_it != ground_curves_.end());
+  MALIDRIVE_THROW_UNLESS(ground_curve_it != ground_curves_.end(), maliput::common::road_geometry_construction_error);
   return GetPiecewiseP(ground_curve_it->get(), xodr_p);
 }
 

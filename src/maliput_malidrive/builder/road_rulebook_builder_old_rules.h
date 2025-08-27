@@ -81,7 +81,7 @@ class RoadRuleBookBuilderOldRules {
   /// @param road_rulebook_file_path to the yaml file to load the RoadRulebook.
   /// @param direction_usage_rules is a vector of DirectionUsageRules.
   /// @param speed_limit_rules is a vector of SpeedLimitRules.
-  /// @throw maliput::assertion_error When `rg` or `rule_registry` are nullptr.
+  /// @throw maliput::rulebook_error When `rg` or `rule_registry` are nullptr.
   RoadRuleBookBuilderOldRules(const maliput::api::RoadGeometry* rg,
                               const maliput::api::rules::RuleRegistry* rule_registry,
                               const std::optional<std::string>& road_rulebook_file_path,

@@ -101,7 +101,7 @@ class PhaseProviderBuilderTest : public ::testing::Test {
 
 TEST_F(PhaseProviderBuilderTest, Constructor) {
   // Throws because PhaseRingBook pointer is null.
-  EXPECT_THROW(PhaseProviderBuilder(nullptr)(), maliput::common::assertion_error);
+  EXPECT_THROW(PhaseProviderBuilder(nullptr)(), maliput::common::phase_book_error);
   // Correct contruction.
   EXPECT_NO_THROW(PhaseProviderBuilder(phase_ring_book_.get())());
 }

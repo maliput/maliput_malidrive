@@ -51,7 +51,7 @@ class RangeValueRuleStateProviderBuilder {
   /// @param rulebook A RoadRulebook to feed the RangeValueRuleStateProvider.
   ///        It must not be nullptr.
   ///
-  /// @throws maliput::common::assertion_error When `rulebook` is nullptr.
+  /// @throws maliput::common::state_provider_error When `rulebook` is nullptr.
   explicit RangeValueRuleStateProviderBuilder(const maliput::api::rules::RoadRulebook* rulebook) : rulebook_(rulebook) {
     MALIDRIVE_DEMAND(rulebook_ != nullptr);
   }

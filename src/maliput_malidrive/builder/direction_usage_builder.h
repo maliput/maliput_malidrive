@@ -77,7 +77,7 @@ class DirectionUsageBuilder {
   ///
   /// @param state is the maliput::api::rules::DirectionUsageRule::State::Type to be parsed.
   /// @return An optional of maliput::api::rules::DirectionUsageRule::State::Type with the parsed type.
-  /// @throws maliput::common::assertion_error When `state` is unrecognized.
+  /// @throws maliput::common::rulebook_error When `state` is unrecognized.
   maliput::api::rules::DirectionUsageRule::State::Type ParseStateType(const std::string& state) const;
 
   /// Builds a maliput::api::rules::DirectionUsageRule::State for a maliput::api::rules::DirectionUsageRule.
@@ -92,6 +92,7 @@ class DirectionUsageBuilder {
   /// @param rule_id is the ID of the DirectionUsageRule.
   /// @param lane is Lane pointer.  It must not be nullptr and its type
   ///        must be `malidrive::Lane`.
+  /// @throws maliput::common::rulebook_error when `lane` is null.
   maliput::api::rules::DirectionUsageRule::State BuildDirectionUsageRuleStateFor(
       const maliput::api::rules::DirectionUsageRule::Id& rule_id, const Lane* lane);
 
@@ -99,6 +100,7 @@ class DirectionUsageBuilder {
   ///
   /// @param lane is the Lane to inspect. It must not be nullptr and its type
   ///        must be `malidrive::Lane`.
+  /// @throws maliput::common::rulebook_error when `lane` is null.
   maliput::api::rules::DirectionUsageRule BuildDirectionUsageRuleFor(const maliput::api::Lane* lane);
 #pragma GCC diagnostic pop
 

@@ -49,8 +49,10 @@ RoadRuleBookBuilder::RoadRuleBookBuilder(const maliput::api::RoadGeometry* rg,
                                          const maliput::api::rules::RuleRegistry* rule_registry,
                                          const std::optional<std::string>& road_rulebook_file_path)
     : rg_(rg), rule_registry_(rule_registry), road_rulebook_file_path_(road_rulebook_file_path) {
-  MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
-  MALIDRIVE_THROW_UNLESS(rule_registry_ != nullptr);
+  MALIDRIVE_VALIDATE(rg_ != nullptr, maliput::common::rulebook_error,
+                     "RoadGeometry is null when building RoadRulebook.");
+  MALIDRIVE_VALIDATE(rule_registry_ != nullptr, maliput::common::rulebook_error,
+                     "RuleRegistry is null when building RoadRulebook.");
 }
 
 std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::operator()() {
@@ -64,7 +66,7 @@ std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::op
                       : std::make_unique<maliput::ManualRulebook>();
 
   maliput::ManualRulebook* rulebook_ptr = dynamic_cast<maliput::ManualRulebook*>(rulebook.get());
-  MALIDRIVE_THROW_UNLESS(rulebook_ptr != nullptr);
+  MALIDRIVE_VALIDATE(rulebook_ptr != nullptr, maliput::common::rulebook_error, "Rulebook is null.");
 
   AddsXODRBasedRulesToRulebook(rg_, rule_registry_, rulebook_ptr);
 
@@ -72,16 +74,19 @@ std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilder::op
 }
 
 LaneSRoute RoadRuleBookBuilder::CreateLaneSRouteFor(const Lane* lane) {
-  MALIDRIVE_THROW_UNLESS(lane != nullptr);
+  MALIDRIVE_VALIDATE(lane != nullptr, maliput::common::rulebook_error, "Lane is null when creating lane s-route.");
   return LaneSRoute({LaneSRange(lane->id(), SRange(0., lane->length()))});
 }
 
 void RoadRuleBookBuilder::AddsXODRBasedRulesToRulebook(const maliput::api::RoadGeometry* rg,
                                                        const maliput::api::rules::RuleRegistry* rule_registry,
                                                        maliput::ManualRulebook* rulebook) {
-  MALIDRIVE_THROW_UNLESS(rg != nullptr);
-  MALIDRIVE_THROW_UNLESS(rule_registry != nullptr);
-  MALIDRIVE_THROW_UNLESS(rulebook != nullptr);
+  MALIDRIVE_VALIDATE(rg != nullptr, maliput::common::rulebook_error,
+                     "RoadGeometry is null when adding XODR based rules to rulebook.");
+  MALIDRIVE_VALIDATE(rule_registry != nullptr, maliput::common::rulebook_error,
+                     "RoadRegistry is null when adding XODR based rules to rulebook.");
+  MALIDRIVE_VALIDATE(rulebook != nullptr, maliput::common::rulebook_error,
+                     "Rulebook is null when adding XODR based rules to rulebook.");
 
   // Discrete Value Rules
   // @{
@@ -108,7 +113,8 @@ void RoadRuleBookBuilder::AddsVehicleExclusiveAndUsageRulesToRulebook(
 
   for (const auto& lane_id_lane : rg->ById().GetLanes()) {
     const Lane* lane = dynamic_cast<const Lane*>(lane_id_lane.second);
-    MALIDRIVE_THROW_UNLESS(lane != nullptr);
+    MALIDRIVE_VALIDATE(lane != nullptr, maliput::common::rulebook_error,
+                       "RoadGeometry is null when building RoadRulebook.");
 
     const std::pair<std::string, std::optional<std::string>> vehicle_rule_values =
         VehicleUsageAndExclusiveRuleStateValues(lane);
@@ -124,7 +130,7 @@ void RoadRuleBookBuilder::AddsVehicleExclusiveAndUsageRulesToRulebook(
 
       MALIDRIVE_VALIDATE(
           related_rules.emplace(rules::VehicleExclusiveRuleTypeId().string(), std::vector<Rule::Id>{rule_id}).second,
-          maliput::common::assertion_error,
+          maliput::common::rulebook_error,
           "Failed to fill related rules for vehicle exclusive rule at lane : " + lane_id_lane.first.string());
     }
 
@@ -143,9 +149,11 @@ void RoadRuleBookBuilder::AddsSpeedLimitRulesToRulebook(const maliput::api::Road
   MALIDRIVE_DEMAND(rulebook != nullptr);
   const std::optional<maliput::api::rules::RuleRegistry::QueryResult> speed_limit_query_result =
       rule_registry->GetPossibleStatesOfRuleType(maliput::SpeedLimitRuleTypeId());
-  MALIDRIVE_THROW_UNLESS(speed_limit_query_result.has_value());
+  MALIDRIVE_VALIDATE(speed_limit_query_result.has_value(), maliput::common::rulebook_error,
+                     "No speed limit rule state found.");
   const auto ranges_ptr = std::get_if<std::vector<RangeValueRule::Range>>(&speed_limit_query_result->rule_values);
-  MALIDRIVE_THROW_UNLESS(ranges_ptr != nullptr);
+  MALIDRIVE_VALIDATE(ranges_ptr != nullptr, maliput::common::rulebook_error,
+                     "No range value rule for speed limit query.");
 
   // Returns an optional bearing a RangeValueRule::Range whose maximum is
   // `max_speed_limit` when found. Otherwise, std::nullopt is returned.
@@ -162,7 +170,9 @@ void RoadRuleBookBuilder::AddsSpeedLimitRulesToRulebook(const maliput::api::Road
 
   for (const auto& lane_id_lane : rg->ById().GetLanes()) {
     const Lane* lane = dynamic_cast<const Lane*>(lane_id_lane.second);
-    MALIDRIVE_THROW_UNLESS(lane != nullptr);
+    MALIDRIVE_VALIDATE(
+        lane != nullptr, maliput::common::rulebook_error,
+        "Lane with ID " + lane_id_lane.first.string() + " is null when adding speed limit rule to rulebook");
 
     const auto max_speed_limits = GetMaxSpeedLimitFor(lane);
     UniqueIntegerProvider speed_limit_indexer(0);
@@ -171,7 +181,7 @@ void RoadRuleBookBuilder::AddsSpeedLimitRulesToRulebook(const maliput::api::Road
       const std::optional<RangeValueRule::Range> range = range_from_max_speed_limit(speed_limit.max);
       const LaneSRoute lane_s_route({LaneSRange(
           lane->id(), SRange(lane->LaneSFromTrackS(speed_limit.s_start), lane->LaneSFromTrackS(speed_limit.s_end)))});
-      MALIDRIVE_VALIDATE(range.has_value(), maliput::common::assertion_error,
+      MALIDRIVE_VALIDATE(range.has_value(), maliput::common::rulebook_error,
                          "Failed to obtain speed limit rule range for lane : " + lane_id_lane.first.string());
       rulebook->AddRule(
           rule_registry->BuildRangeValueRule(rule_id, maliput::SpeedLimitRuleTypeId(), lane_s_route, {*range}));
@@ -182,9 +192,12 @@ void RoadRuleBookBuilder::AddsSpeedLimitRulesToRulebook(const maliput::api::Road
 void RoadRuleBookBuilder::AddsDirectionUsageRulesToRulebook(const maliput::api::RoadGeometry* rg,
                                                             const maliput::api::rules::RuleRegistry* rule_registry,
                                                             maliput::ManualRulebook* rulebook) {
-  MALIDRIVE_THROW_UNLESS(rg != nullptr);
-  MALIDRIVE_THROW_UNLESS(rule_registry != nullptr);
-  MALIDRIVE_THROW_UNLESS(rulebook != nullptr);
+  MALIDRIVE_VALIDATE(rg != nullptr, maliput::common::rulebook_error,
+                     "RoadGeometry is null when adding direction rules to rulebook.");
+  MALIDRIVE_VALIDATE(rule_registry != nullptr, maliput::common::rulebook_error,
+                     "RuleRegistry is null when adding direction rules to rulebook.");
+  MALIDRIVE_VALIDATE(rulebook != nullptr, maliput::common::rulebook_error,
+                     "Rulebook is null when adding direction rules to rulebook.");
   const int severity{Rule::State::kStrict};
   for (const auto& lane_id_lane : rg->ById().GetLanes()) {
     const Rule::RelatedRules empty_related_rules;

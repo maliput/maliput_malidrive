@@ -75,7 +75,7 @@ class PiecewiseGroundCurve : public GroundCurve {
     // @param max_in Is the maximum value of the interval.
     // @throw maliput::common::road_geometry_construction_error When `min_in` is greater than `max_in`.
     RoadCurveInterval(double min_in, double max_in) : min(min_in), max(max_in) {
-      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(min_in <= max_in);
+      MALIDRIVE_THROW_UNLESS(min_in <= max_in, maliput::common::road_geometry_construction_error);
     }
 
     // Creates a RoadCurveInterval where

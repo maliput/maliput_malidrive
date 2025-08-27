@@ -79,9 +79,9 @@ class CubicPolynomial : public Function {
         p1_(p1),
         validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
                                                                                  Function::kEpsilon)) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ > p0_);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance > 0.);
+    MALIDRIVE_THROW_UNLESS(p0_ >= 0, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(p1_ > p0_, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(linear_tolerance > 0., maliput::common::road_geometry_construction_error);
   }
 
  private:

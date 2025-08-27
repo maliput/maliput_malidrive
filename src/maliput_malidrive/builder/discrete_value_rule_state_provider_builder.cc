@@ -38,11 +38,12 @@ namespace {
 // Sets to `state_provider` the first value in each
 // DiscreteValueRule::states() in `discrete_value_rules` as the default
 // state.
-// @throws maliput::common::assertion_error When `state_provider` is
+// @throws maliput::common::state_provider_error When `state_provider` is
 //         nullptr.
 void PopulateDiscreteValueRuleStates(const std::map<Rule::Id, DiscreteValueRule>& discrete_value_rules,
                                      maliput::PhasedDiscreteRuleStateProvider* state_provider) {
-  MALIDRIVE_THROW_UNLESS(state_provider != nullptr);
+  MALIDRIVE_VALIDATE(state_provider != nullptr, maliput::common::state_provider_error,
+                     "StateProvider is null when populating discrete value rule states.");
   for (const auto& rule_id_rule : discrete_value_rules) {
     state_provider->SetState(rule_id_rule.first, rule_id_rule.second.states().front(), std::nullopt, std::nullopt);
   }

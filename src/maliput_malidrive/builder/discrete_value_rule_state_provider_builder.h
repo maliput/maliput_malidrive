@@ -56,15 +56,18 @@ class DiscreteValueRuleStateProviderBuilder {
   /// @param phase_provider A PhaseProvider to feed the
   ///        DiscreteValueRuleStateProvider. It must not be nullptr.
   ///
-  /// @throws maliput::common::assertion_error When `rulebook`,
+  /// @throws maliput::common::state_provider_error When `rulebook`,
   ///         `phase_ring_book` or `phase_provider` are nullptr.
   explicit DiscreteValueRuleStateProviderBuilder(const maliput::api::rules::RoadRulebook* rulebook,
                                                  const maliput::api::rules::PhaseRingBook* phase_ring_book,
                                                  const maliput::api::rules::PhaseProvider* phase_provider)
       : rulebook_(rulebook), phase_ring_book_(phase_ring_book), phase_provider_(phase_provider) {
-    MALIDRIVE_DEMAND(rulebook_ != nullptr);
-    MALIDRIVE_DEMAND(phase_ring_book_ != nullptr);
-    MALIDRIVE_DEMAND(phase_provider_ != nullptr);
+    MALIDRIVE_VALIDATE(rulebook_ != nullptr, maliput::common::state_provider_error,
+                       "Rulebook is null when building DiscreteValueRuleStateProvider.");
+    MALIDRIVE_VALIDATE(phase_ring_book_ != nullptr, maliput::common::state_provider_error,
+                       "PhaseRingBook is null when building DiscreteValueRuleStateProvider.");
+    MALIDRIVE_VALIDATE(phase_provider_ != nullptr, maliput::common::state_provider_error,
+                       "PhaseProvider is null when building DiscreteValueRuleStateProvider.");
   }
 
   /// Builds a maliput::PhasedDiscreteRuleStateProvider.

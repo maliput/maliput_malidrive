@@ -68,13 +68,15 @@ DirectionUsageRule::State::Type DirectionUsageBuilder::ParseStateType(const std:
       {"Undefined", DirectionUsageRule::State::Type::kUndefined},
   };
 
-  MALIDRIVE_THROW_UNLESS(string_to_state.find(state) != string_to_state.end());
+  MALIDRIVE_VALIDATE(string_to_state.find(state) != string_to_state.end(), maliput::common::rulebook_error,
+                     "State type `" + state + "` does not exist.");
   return string_to_state.at(state);
 }
 
 DirectionUsageRule::State DirectionUsageBuilder::BuildDirectionUsageRuleStateFor(const DirectionUsageRule::Id& rule_id,
                                                                                  const Lane* lane) {
-  MALIDRIVE_THROW_UNLESS(lane != nullptr);
+  MALIDRIVE_VALIDATE(lane != nullptr, maliput::common::rulebook_error,
+                     "Lane is null when building direction usage rule state.");
   const DirectionUsageRule::State::Id state_id = GetDirectionUsageRuleStateId(rule_id);
   const DirectionUsageRule::State::Type state_type = ParseStateType(
       GetDirectionUsageRuleStateType(GetXodrRoadFromMalidriveLane(lane), GetXodrLaneFromMalidriveLane(lane)));
@@ -83,7 +85,8 @@ DirectionUsageRule::State DirectionUsageBuilder::BuildDirectionUsageRuleStateFor
 
 DirectionUsageRule DirectionUsageBuilder::BuildDirectionUsageRuleFor(const maliput::api::Lane* lane) {
   const Lane* mali_lane = dynamic_cast<const Lane*>(lane);
-  MALIDRIVE_THROW_UNLESS(mali_lane != nullptr);
+  MALIDRIVE_VALIDATE(mali_lane != nullptr, maliput::common::rulebook_error,
+                     "Lane is null when building DirectionUseageRule.");
 
   const DirectionUsageRule::Id rule_id = GetDirectionUsageRuleId(mali_lane->id(), direction_usage_indexer_.new_id());
   const maliput::api::LaneSRange lane_s_range(mali_lane->id(), maliput::api::SRange(0., mali_lane->length()));
