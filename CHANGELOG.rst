@@ -2,6 +2,15 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.0 (2025-08-27)
+-------------------
+* Generalize error handling by passing custom error type to macros. (`#340 <https://github.com/maliput/maliput_malidrive/issues/340>`_)
+* Bazel: Road network plugin's deps linked statically. (`#339 <https://github.com/maliput/maliput_malidrive/issues/339>`_)
+* Add missing range validators to conversion methods. (`#338 <https://github.com/maliput/maliput_malidrive/issues/338>`_)
+* Return null if offset lane was not found. (`#336 <https://github.com/maliput/maliput_malidrive/issues/336>`_)
+* Malidrive new errors. (`#332 <https://github.com/maliput/maliput_malidrive/issues/332>`_)
+* Contributors: Franco Cipollone, Santiago Lopez
+
 0.9.1 (2025-07-29)
 ------------------
 * Implement GeoReferenceInfo API (`#330 <https://github.com/maliput/maliput_malidrive/issues/330>`_)
