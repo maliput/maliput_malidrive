@@ -169,6 +169,11 @@ cc_library(
 )
 
 cc_binary(
+    # Road network plugin for the maliput_malidrive implementation.
+    # - linkstatic is set to True to link all the dependencies statically.
+    # This is convenient for users of the plugin, as they won't have to
+    # worry about providing the dependencies at runtime.
+    # - linkshared is set to True to build a shared library.
     name = "maliput_plugins/libmaliput_malidrive_road_network.so",
     srcs = glob(["src/plugin/**/*.cc"]),
     copts = COPTS,
@@ -177,7 +182,7 @@ cc_binary(
         ":builder",
         "@maliput//:plugin",
     ],
-    linkstatic = False,
+    linkstatic = True,
     linkshared = True,
 )
 
