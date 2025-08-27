@@ -68,14 +68,14 @@ DirectionUsageRule::State::Type DirectionUsageBuilder::ParseStateType(const std:
       {"Undefined", DirectionUsageRule::State::Type::kUndefined},
   };
 
-  MALIDRIVE_VALIDATE(string_to_state.find(state) != string_to_state.end(), maliput::common::state_provider_error,
+  MALIDRIVE_VALIDATE(string_to_state.find(state) != string_to_state.end(), maliput::common::rulebook_error,
                      "State type `" + state + "` does not exist.");
   return string_to_state.at(state);
 }
 
 DirectionUsageRule::State DirectionUsageBuilder::BuildDirectionUsageRuleStateFor(const DirectionUsageRule::Id& rule_id,
                                                                                  const Lane* lane) {
-  MALIDRIVE_VALIDATE(lane != nullptr, maliput::common::state_provider_error,
+  MALIDRIVE_VALIDATE(lane != nullptr, maliput::common::rulebook_error,
                      "Lane is null when building direction usage rule state.");
   const DirectionUsageRule::State::Id state_id = GetDirectionUsageRuleStateId(rule_id);
   const DirectionUsageRule::State::Type state_type = ParseStateType(
