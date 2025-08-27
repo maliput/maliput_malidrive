@@ -49,27 +49,31 @@ RoadCurve::RoadCurve(double linear_tolerance, double scale_length, std::unique_p
       elevation_(std::move(elevation)),
       superelevation_(std::move(superelevation)) {
   // Non negative quantities check.
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ >= 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(scale_length_ >= 0.);
+  MALIDRIVE_THROW_UNLESS(linear_tolerance_ >= 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(scale_length_ >= 0., maliput::common::road_geometry_construction_error);
   // nullptr check.
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve_ != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(elevation_ != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(superelevation_ != nullptr);
+  MALIDRIVE_THROW_UNLESS(ground_curve_ != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(elevation_ != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(superelevation_ != nullptr, maliput::common::road_geometry_construction_error);
   // Contiguity check.
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(ground_curve_->IsG1Contiguous());
+  MALIDRIVE_THROW_UNLESS(ground_curve_->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
   if (assert_contiguity) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(elevation_->IsG1Contiguous());
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(superelevation_->IsG1Contiguous());
+    MALIDRIVE_THROW_UNLESS(elevation_->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(superelevation_->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
   }
   // Range checks.
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(ground_curve_->p0() - elevation_->p0()) <= linear_tolerance_);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(ground_curve_->p0() - superelevation_->p0()) <=
-                                               linear_tolerance_);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(elevation_->p0() - superelevation_->p0()) <= linear_tolerance_);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(ground_curve_->p1() - elevation_->p1()) <= linear_tolerance_);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(ground_curve_->p1() - superelevation_->p1()) <=
-                                               linear_tolerance_);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(elevation_->p1() - superelevation_->p1()) <= linear_tolerance_);
+  MALIDRIVE_THROW_UNLESS(std::abs(ground_curve_->p0() - elevation_->p0()) <= linear_tolerance_,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(ground_curve_->p0() - superelevation_->p0()) <= linear_tolerance_,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(elevation_->p0() - superelevation_->p0()) <= linear_tolerance_,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(ground_curve_->p1() - elevation_->p1()) <= linear_tolerance_,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(ground_curve_->p1() - superelevation_->p1()) <= linear_tolerance_,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(elevation_->p1() - superelevation_->p1()) <= linear_tolerance_,
+                         maliput::common::road_geometry_construction_error);
 }
 
 maliput::math::Vector3 RoadCurve::W(const maliput::math::Vector3& prh) const {
@@ -92,7 +96,7 @@ maliput::math::Vector3 RoadCurve::WDot(const maliput::math::Vector3& prh) const 
 }
 
 maliput::math::Vector3 RoadCurve::WDot(const maliput::math::Vector3& prh, const Function* lane_offset) const {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset != nullptr);
+  MALIDRIVE_THROW_UNLESS(lane_offset != nullptr, maliput::common::road_geometry_construction_error);
   MALIDRIVE_IS_IN_RANGE(prh.x(), ground_curve_->p0() - ground_curve_->linear_tolerance(),
                         ground_curve_->p1() + ground_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(lane_offset->p0(), ground_curve_->p0() - ground_curve_->linear_tolerance(),
@@ -139,7 +143,7 @@ maliput::math::RollPitchYaw RoadCurve::Orientation(const maliput::math::Vector3&
 maliput::math::RollPitchYaw RoadCurve::Orientation(const maliput::math::Vector3& prh,
                                                    const Function* lane_offset) const {
   MALIDRIVE_IS_IN_RANGE(prh.x(), ground_curve_->p0(), ground_curve_->p1());
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset != nullptr);
+  MALIDRIVE_THROW_UNLESS(lane_offset != nullptr, maliput::common::road_geometry_construction_error);
   const double p = maliput::math::saturate(prh.x(), ground_curve_->p0(), ground_curve_->p1());
 
   // Calculate s,r basis vectors at (s,r,h).
@@ -216,13 +220,13 @@ maliput::math::Vector3 RoadCurve::RHat(const maliput::math::Vector3& prh) const 
 
 maliput::math::Vector3 RoadCurve::SHat(const maliput::math::Vector3& prh, const Function* lane_offset) const {
   MALIDRIVE_IS_IN_RANGE(prh.x(), ground_curve_->p0(), ground_curve_->p1());
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset != nullptr);
+  MALIDRIVE_THROW_UNLESS(lane_offset != nullptr, maliput::common::road_geometry_construction_error);
   return WDot(prh, lane_offset).normalized();
 }
 
 maliput::math::Vector3 RoadCurve::RHat(const maliput::math::Vector3& prh, const Function* lane_offset) const {
   MALIDRIVE_IS_IN_RANGE(prh.x(), ground_curve_->p0(), ground_curve_->p1());
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_offset != nullptr);
+  MALIDRIVE_THROW_UNLESS(lane_offset != nullptr, maliput::common::road_geometry_construction_error);
   const maliput::math::Vector3 s_hat = SHat(prh, lane_offset);
   const maliput::math::Vector3 h_hat = HHat(prh.x(), s_hat);
   return h_hat.cross(s_hat);

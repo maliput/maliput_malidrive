@@ -58,8 +58,10 @@ RoadRuleBookBuilderOldRules::RoadRuleBookBuilderOldRules(
       road_rulebook_file_path_(road_rulebook_file_path),
       direction_usage_rules_(direction_usage_rules),
       speed_limit_rules_(speed_limit_rules) {
-  MALIDRIVE_THROW_UNLESS(rg_ != nullptr);
-  MALIDRIVE_THROW_UNLESS(rule_registry_ != nullptr);
+  MALIDRIVE_VALIDATE(rg_ != nullptr, maliput::common::rulebook_error,
+                     "RoadGeometry is null when building RoadRulebook (old rules).");
+  MALIDRIVE_VALIDATE(rule_registry_ != nullptr, maliput::common::rulebook_error,
+                     "RuleRegistry is null when building RoadRulebook (old rules).");
 }
 #pragma GCC diagnostic pop
 
@@ -74,7 +76,7 @@ std::unique_ptr<const maliput::api::rules::RoadRulebook> RoadRuleBookBuilderOldR
                       : std::make_unique<maliput::ManualRulebook>();
 
   maliput::ManualRulebook* rulebook_ptr = dynamic_cast<maliput::ManualRulebook*>(rulebook.get());
-  MALIDRIVE_THROW_UNLESS(rulebook_ptr != nullptr);
+  MALIDRIVE_VALIDATE(rulebook_ptr != nullptr, maliput::common::rulebook_error, "Rulebook is null (old rules).");
 
   // Adds rules based on RuleRegistry.
   RoadRuleBookBuilder::AddsXODRBasedRulesToRulebook(rg_, rule_registry_, rulebook_ptr);

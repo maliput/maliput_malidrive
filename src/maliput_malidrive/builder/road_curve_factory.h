@@ -72,9 +72,9 @@ class RoadCurveFactoryBase {
   ///         positive.
   RoadCurveFactoryBase(double linear_tolerance, double scale_length, double angular_tolerance)
       : linear_tolerance_(linear_tolerance), scale_length_(scale_length), angular_tolerance_(angular_tolerance) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0.);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(scale_length_ > 0.);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(angular_tolerance_ > 0.);
+    MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0., maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(scale_length_ > 0., maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(angular_tolerance_ > 0., maliput::common::road_geometry_construction_error);
   }
 
   virtual ~RoadCurveFactoryBase() = default;

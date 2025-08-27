@@ -47,10 +47,10 @@ class PhaseProviderBuilder {
   /// @param phase_ring_book A PhaseRingBook to feed the
   ///        PhaseProviderBuilder. It must not be nullptr.
   ///
-  /// @throws maliput::common::assertion_error When `phase_ring_book` is nullptr.
+  /// @throws maliput::common::phase_book_error When `phase_ring_book` is nullptr.
   explicit PhaseProviderBuilder(const maliput::api::rules::PhaseRingBook* phase_ring_book)
       : phase_ring_book_(phase_ring_book) {
-    MALIDRIVE_THROW_UNLESS(phase_ring_book_ != nullptr);
+    MALIDRIVE_VALIDATE(phase_ring_book_ != nullptr, maliput::common::phase_book_error, "PhaseRingBook is null.");
   }
 
   /// Builds a maliput::ManualPhaseProvider.

@@ -106,8 +106,8 @@ double ComputeKdTreeSamplingStep(const maliput::api::RoadGeometry* rg) {
 RoadGeometryBuilder::RoadGeometryBuilder(std::unique_ptr<xodr::DBManager> manager,
                                          const RoadGeometryConfiguration& road_geometry_configuration)
     : rg_config_(road_geometry_configuration), manager_(std::move(manager)) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(manager_.get());
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg_config_.scale_length >= 0.);
+  MALIDRIVE_THROW_UNLESS(manager_.get(), maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(rg_config_.scale_length >= 0., maliput::common::road_geometry_construction_error);
   MALIDRIVE_VALIDATE(rg_config_.tolerances.angular_tolerance >= 0, maliput::common::road_geometry_construction_error,
                      std::string("angular tolerance should be non-negative: ") +
                          std::to_string(rg_config_.tolerances.angular_tolerance));
@@ -215,7 +215,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                             "] with a width value of: " + std::to_string(f_p0)};
       maliput::log()->debug(msg);
       if (!allow_negative_width) {
-        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(msg);
+        MALIDRIVE_THROW_MESSAGE(msg, maliput::common::road_geometry_construction_error);
       }
     }
     if (f_p1 < -linear_tolerance / 2.) {
@@ -227,7 +227,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                             "] with a width value of: " + std::to_string(f_p1)};
       maliput::log()->debug(msg);
       if (!allow_negative_width) {
-        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(msg);
+        MALIDRIVE_THROW_MESSAGE(msg, maliput::common::road_geometry_construction_error);
       }
     }
     if (non_negative_limits) {
@@ -248,7 +248,7 @@ void RoadGeometryBuilder::VerifyNonNegativeLaneWidth(const std::vector<xodr::Lan
                                 " | lane_s = " + std::to_string(p_local_min.value() + lane_widths[i].s_0) + "]"};
           maliput::log()->debug(msg);
           if (!allow_negative_width) {
-            MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(msg);
+            MALIDRIVE_THROW_MESSAGE(msg, maliput::common::road_geometry_construction_error);
           }
         }
       }
@@ -260,15 +260,15 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
     const xodr::Lane* lane, const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section,
     int xodr_lane_section_index, const RoadCurveFactoryBase* factory, const RoadGeometryConfiguration& rg_config,
     Segment* segment, road_curve::LaneOffset::AdjacentLaneFunctions* adjacent_lane_functions) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_header != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(xodr_lane_section_index >= 0);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(factory != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(segment != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(xodr_lane_section_index >= 0);
+  MALIDRIVE_THROW_UNLESS(lane != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(road_header != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(lane_section != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(xodr_lane_section_index >= 0, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(factory != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(segment != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(xodr_lane_section_index >= 0, maliput::common::road_geometry_construction_error);
   const int xodr_track_id = std::stoi(road_header->id.string());
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(xodr_track_id >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_track_id >= 0, maliput::common::road_geometry_construction_error);
   const int xodr_lane_id = std::stoi(lane->id.string());
   // Build a maliput::api::LaneId.
   const maliput::api::LaneId lane_id = GetLaneId(xodr_track_id, xodr_lane_section_index, xodr_lane_id);
@@ -331,8 +331,8 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
 
 std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::LanesBuilderParallelPolicy(
     std::size_t num_of_threads, RoadGeometry* rg) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(num_of_threads > 0);
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(num_of_threads > 0, maliput::common::road_geometry_construction_error);
   maliput::utility::ThreadPool task_executor(num_of_threads);
 
   // Queue all the tasks in the thread pool. Each task will build all the lanes of a junction.
@@ -385,7 +385,7 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::La
 }
 
 void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
   std::vector<LaneConstructionResult> built_lanes_result =
       rg_config_.build_policy.type == malidrive::builder::BuildPolicy::Type::kParallel
           ? LanesBuilderParallelPolicy(GetEffectiveNumberOfThreads(rg_config_.build_policy), rg)
@@ -393,7 +393,7 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
   for (auto& built_lane : built_lanes_result) {
     const auto result = lane_xodr_lane_properties_.insert(
         {built_lane.lane->id(), {built_lane.lane.get(), built_lane.xodr_lane_properties}});
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(result.second == true);
+    MALIDRIVE_THROW_UNLESS(result.second == true, maliput::common::road_geometry_construction_error);
 
     const bool hide_lane =
         rg_config_.omit_nondrivable_lanes && !is_driveable_lane(*built_lane.xodr_lane_properties.lane);
@@ -482,9 +482,10 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator(
       "Used linear tolerances are in the range [" + std::to_string(linear_tolerances[0]) + ", " +
       std::to_string(linear_tolerances.back()) + "] with an increasing step of " +
       std::to_string(static_cast<int>((constants::kToleranceStepMultiplier - 1) * 100)) + "% per iteration.";
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE("None of the tolerances(" + std::to_string(linear_tolerances.size()) +
-                                                ") worked to build a RoadGeometry " + file_description + ".\n\t" +
-                                                linear_tolerance_description);
+  MALIDRIVE_THROW_MESSAGE("None of the tolerances(" + std::to_string(linear_tolerances.size()) +
+                              ") worked to build a RoadGeometry " + file_description + ".\n\t" +
+                              linear_tolerance_description,
+                          maliput::common::road_geometry_construction_error);
   // @}
 }
 
@@ -492,9 +493,11 @@ void RoadGeometryBuilder::Reset(double linear_tolerance, double angular_toleranc
   rg_config_.tolerances.linear_tolerance = linear_tolerance;
   rg_config_.tolerances.angular_tolerance = angular_tolerance;
   rg_config_.scale_length = scale_length;
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg_config_.tolerances.linear_tolerance.value() >= 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg_config_.tolerances.angular_tolerance >= 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg_config_.scale_length >= 0.);
+  MALIDRIVE_THROW_UNLESS(rg_config_.tolerances.linear_tolerance.value() >= 0.,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(rg_config_.tolerances.angular_tolerance >= 0.,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(rg_config_.scale_length >= 0., maliput::common::road_geometry_construction_error);
   // TODO(#12): It goes against dependency injection. Should use a provider instead.
   factory_ = std::make_unique<builder::RoadCurveFactory>(linear_tolerance, scale_length, angular_tolerance);
 
@@ -603,11 +606,12 @@ std::unique_ptr<road_curve::RoadCurve> RoadGeometryBuilder::BuildRoadCurve(
   const auto& start_geometry = road_header.reference_geometry.plan_view.geometries.begin();
   const auto start_lane_section = road_header.lanes.lanes_section.begin();
   if (std::abs(start_geometry->s_0 - start_lane_section->s_0) >= rg_config_.tolerances.linear_tolerance) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(
+    MALIDRIVE_THROW_MESSAGE(
         std::string("Start geometry differs more than linear_tolerance from the start lane section s coordinate.") +
-        std::string("RoadId: ") + road_header.id.string() + std::string(", geometry.s0: ") +
-        std::to_string(start_geometry->s_0) + std::string(", start lane section s0: ") +
-        std::to_string(start_lane_section->s_0));
+            std::string("RoadId: ") + road_header.id.string() + std::string(", geometry.s0: ") +
+            std::to_string(start_geometry->s_0) + std::string(", start lane section s0: ") +
+            std::to_string(start_lane_section->s_0),
+        maliput::common::road_geometry_construction_error);
   }
   const auto& geometries{road_header.reference_geometry.plan_view.geometries};
   maliput::log()->trace("Creating GroundCurve for road id ", road_header.id.string());
@@ -639,11 +643,11 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
     const xodr::RoadHeader* road_header, const xodr::LaneSection* lane_section, int xodr_lane_section_index,
     const RoadCurveFactoryBase* factory, const RoadGeometryConfiguration& rg_config, RoadGeometry* rg,
     Segment* segment) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_header != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(segment != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(factory != nullptr);
+  MALIDRIVE_THROW_UNLESS(lane_section != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(road_header != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(segment != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(factory != nullptr, maliput::common::road_geometry_construction_error);
 
   std::vector<RoadGeometryBuilder::LaneConstructionResult> built_lanes_result;
   road_curve::LaneOffset::AdjacentLaneFunctions adjacent_lane_functions{nullptr, nullptr};
@@ -677,22 +681,22 @@ std::vector<RoadGeometryBuilder::LaneConstructionResult> RoadGeometryBuilder::Bu
 std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunction(const std::string& xodr_track_id,
                                                                                      int lane_section_index) {
   const int xodr_track = std::stoi(xodr_track_id);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(xodr_track >= 0);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section_index >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_track >= 0, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(lane_section_index >= 0, maliput::common::road_geometry_construction_error);
   return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_track, lane_section_index));
 }
 
 std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunction(
     const std::string& xodr_junction_id) {
   const int xodr_junction = std::stoi(xodr_junction_id);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(xodr_junction >= 0);
+  MALIDRIVE_THROW_UNLESS(xodr_junction >= 0, maliput::common::road_geometry_construction_error);
   return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_junction));
 }
 
 std::unique_ptr<malidrive::road_curve::GroundCurve> RoadGeometryBuilder::MakeGroundCurve(
     const std::vector<xodr::Geometry>& geometries,
     const std::vector<xodr::DBManager::XodrGeometriesToSimplify>& geometries_to_simplify) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(!geometries.empty());
+  MALIDRIVE_THROW_UNLESS(!geometries.empty(), maliput::common::road_geometry_construction_error);
 
   if (!geometries_to_simplify.empty()) {
     maliput::log()->trace("Simplifying XODR Road ", geometries_to_simplify.front().road_header_id.string(), ".");
@@ -708,15 +712,15 @@ std::unique_ptr<malidrive::road_curve::GroundCurve> RoadGeometryBuilder::MakeGro
       case xodr::Geometry::Type::kSpiral:
         return factory_->MakeSpiralGroundCurve(*start_geometry);
       default:
-        MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE("Geometry " + xodr::Geometry::type_to_str(start_geometry->type) +
-                                                      " cannot be built");
+        MALIDRIVE_THROW_MESSAGE("Geometry " + xodr::Geometry::type_to_str(start_geometry->type) + " cannot be built",
+                                maliput::common::road_geometry_construction_error);
     }
   }
   return factory_->MakePiecewiseGroundCurve(SimplifyGeometries(geometries, geometries_to_simplify));
 }
 
 void RoadGeometryBuilder::BuildBranchPointsForLanes(RoadGeometry* rg) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
   maliput::log()->trace("Building BranchPoints for Lanes...");
 
   for (auto& lane_xodr_lane_properties : lane_xodr_lane_properties_) {
@@ -730,8 +734,8 @@ void RoadGeometryBuilder::BuildBranchPointsForLanes(RoadGeometry* rg) {
 
 void RoadGeometryBuilder::FindOrCreateBranchPointFor(const MalidriveXodrLaneProperties& xodr_lane_properties,
                                                      Lane* lane, RoadGeometry* rg) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane != nullptr);
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(lane != nullptr, maliput::common::road_geometry_construction_error);
 
   std::vector<maliput::api::LaneEnd> connecting_lane_ends;
   // Start BP
@@ -753,7 +757,7 @@ void RoadGeometryBuilder::FindOrCreateBranchPointFor(const MalidriveXodrLaneProp
 
 std::vector<maliput::api::LaneEnd> RoadGeometryBuilder::FindConnectingLaneEndsForLaneEnd(
     const maliput::api::LaneEnd& lane_end, const MalidriveXodrLaneProperties& xodr_lane_properties, RoadGeometry* rg) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(rg != nullptr);
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
 
   // Checks if the LaneSection is an inner LaneSection or not. When it is
   // inner, the Lane end look up is simplified as it connects to lanes which
@@ -859,7 +863,7 @@ void RoadGeometryBuilder::SetDefaultsToBranchPoints() {
     const maliput::api::LaneEndSet* a_side_set = bps_[i]->GetASide();
     const maliput::api::LaneEndSet* b_side_set = bps_[i]->GetBSide();
     // We expect to have at least one in A side.
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(a_side_set->size() > 0);
+    MALIDRIVE_THROW_UNLESS(a_side_set->size() > 0, maliput::common::road_geometry_construction_error);
     for (int j = 0; j < b_side_set->size(); ++j) {
       bps_[i]->SetDefault(b_side_set->get(j), a_side_set->get(0));
     }
@@ -877,7 +881,7 @@ maliput::api::BranchPointId RoadGeometryBuilder::GetNewBranchPointId() {
 
 bool RoadGeometryBuilder::IsLaneEndOnABSide(const maliput::api::BranchPoint* bp, const maliput::api::LaneEnd& lane_end,
                                             BranchPointSide bp_side) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(bp != nullptr);
+  MALIDRIVE_THROW_UNLESS(bp != nullptr, maliput::common::road_geometry_construction_error);
 
   auto equiv = [](const maliput::api::LaneEnd& lane_end_a, const maliput::api::LaneEnd& lane_end_b) {
     return lane_end_a.lane == lane_end_b.lane && lane_end_a.end == lane_end_b.end;

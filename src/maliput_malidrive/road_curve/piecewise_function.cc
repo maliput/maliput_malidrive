@@ -43,7 +43,7 @@ struct ContinuityChecker {
 
   ContinuityChecker(double tolerance_in, const PiecewiseFunction::ContinuityCheck& continuity_check_in)
       : tolerance(tolerance_in), continuity_check(continuity_check_in) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(tolerance > 0.);
+    MALIDRIVE_THROW_UNLESS(tolerance > 0., maliput::common::road_geometry_construction_error);
   }
 
   // Evaluates whether `lhs` is C1 continuous with `rhs` according to the contiguity strictness.
@@ -89,17 +89,17 @@ struct ContinuityChecker {
 PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
                                      const PiecewiseFunction::ContinuityCheck& continuity_check)
     : functions_(std::move(functions)), linear_tolerance_(tolerance) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(!functions_.empty());
+  MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(!functions_.empty(), maliput::common::road_geometry_construction_error);
 
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(functions_[0].get() != nullptr);
+  MALIDRIVE_THROW_UNLESS(functions_[0].get() != nullptr, maliput::common::road_geometry_construction_error);
   p0_ = functions_[0]->p0();
   double p = p0_;
   Function* previous_function{nullptr};
   const ContinuityChecker checker(linear_tolerance_, continuity_check);
   for (const auto& function : functions_) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(function.get() != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(function->IsG1Contiguous());
+    MALIDRIVE_THROW_UNLESS(function.get() != nullptr, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(function->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
     if (previous_function != nullptr) {
       if (!checker(previous_function, function.get())) {
         is_g1_contiguous = false;
@@ -122,8 +122,9 @@ std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p
   auto search_it = interval_function_.find(FunctionInterval(p));
   if (search_it == interval_function_.end()) {
     if (p != p1_) {
-      MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_MESSAGE(std::string("p = ") + std::to_string(p) +
-                                                    std::string(" doesn't match with any Function interval."));
+      MALIDRIVE_THROW_MESSAGE(
+          std::string("p = ") + std::to_string(p) + std::string(" doesn't match with any Function interval."),
+          maliput::common::road_geometry_construction_error);
     } else {
       search_it = --interval_function_.end();
     }

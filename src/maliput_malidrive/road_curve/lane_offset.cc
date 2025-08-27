@@ -50,26 +50,32 @@ LaneOffset::LaneOffset(const std::optional<AdjacentLaneFunctions>& adjacent_lane
       p1_(p1),
       validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
                                                                                Function::kEpsilon)) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ > p0_);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance > 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_width_ != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(reference_line_offset_ != nullptr);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(lane_width_->p0() - p0_) <= linear_tolerance);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(lane_width_->p1() - p1_) <= linear_tolerance);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(reference_line_offset_->p0() <= p0 + linear_tolerance);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(reference_line_offset_->p1() >= p1_ - linear_tolerance);
+  MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(p1_ > p0_, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(linear_tolerance > 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(lane_width_ != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(reference_line_offset_ != nullptr, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(lane_width_->p0() - p0_) <= linear_tolerance,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(lane_width_->p1() - p1_) <= linear_tolerance,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(reference_line_offset_->p0() <= p0 + linear_tolerance,
+                         maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(reference_line_offset_->p1() >= p1_ - linear_tolerance,
+                         maliput::common::road_geometry_construction_error);
   if (adjacent_lane_functions_.has_value()) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(adjacent_lane_functions_->offset != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(adjacent_lane_functions_->width != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(adjacent_lane_functions_->offset->p0() - p0_) <=
-                                                 linear_tolerance);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(adjacent_lane_functions_->offset->p1() - p1_) <=
-                                                 linear_tolerance);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(adjacent_lane_functions_->width->p0() - p0_) <=
-                                                 linear_tolerance);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(adjacent_lane_functions_->width->p1() - p1_) <=
-                                                 linear_tolerance);
+    MALIDRIVE_THROW_UNLESS(adjacent_lane_functions_->offset != nullptr,
+                           maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(adjacent_lane_functions_->width != nullptr,
+                           maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(std::abs(adjacent_lane_functions_->offset->p0() - p0_) <= linear_tolerance,
+                           maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(std::abs(adjacent_lane_functions_->offset->p1() - p1_) <= linear_tolerance,
+                           maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(std::abs(adjacent_lane_functions_->width->p0() - p0_) <= linear_tolerance,
+                           maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(std::abs(adjacent_lane_functions_->width->p1() - p1_) <= linear_tolerance,
+                           maliput::common::road_geometry_construction_error);
   }
 }
 

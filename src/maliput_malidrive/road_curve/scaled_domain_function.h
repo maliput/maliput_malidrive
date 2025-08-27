@@ -67,9 +67,9 @@ class ScaledDomainFunction : public Function {
         p1_(p1),
         validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
                                                                                  Function::kEpsilon)) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(function_ != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ > p0_);
+    MALIDRIVE_THROW_UNLESS(function_ != nullptr, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(p1_ > p0_, maliput::common::road_geometry_construction_error);
 
     alpha_ = (function_->p1() - function_->p0()) / (p1_ - p0_);
     beta_ = function_->p0() - alpha_ * p0_;

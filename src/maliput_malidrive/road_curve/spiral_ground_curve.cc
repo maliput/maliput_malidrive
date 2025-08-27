@@ -69,10 +69,10 @@ inline maliput::math::Vector2 ConditionalShiftYComponent(const maliput::math::Ve
 // @return The p parameter value that minimizes the distance against @p point.
 double FindBestPParameter(const SpiralGroundCurve& curve, const maliput::math::Vector2& point, double p0, double p1,
                           size_t partitions, double tolerance) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0 >= 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1 - p0 >= GroundCurve::kEpsilon);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(partitions >= 2u);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(tolerance >= 0.);
+  MALIDRIVE_THROW_UNLESS(p0 >= 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(p1 - p0 >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(partitions >= 2u, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(tolerance >= 0., maliput::common::road_geometry_construction_error);
 
   const size_t kIterations{2u * static_cast<size_t>(std::ceil(std::log(partitions))) + 1u};
   // Initialize the list of p values.
@@ -130,11 +130,12 @@ SpiralGroundCurve::SpiralGroundCurve(double linear_tolerance, const maliput::mat
       p1_(p1),
       validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
                                                                                GroundCurve::kEpsilon)) {
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(linear_tolerance_ > 0);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(arc_length_ >= GroundCurve::kEpsilon);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p0_ >= 0.);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon);
-  MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(std::abs(curvature1_ - curvature0_) >= GroundCurve::kEpsilon);
+  MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(std::abs(curvature1_ - curvature0_) >= GroundCurve::kEpsilon,
+                         maliput::common::road_geometry_construction_error);
 }
 
 maliput::math::Vector2 SpiralGroundCurve::DoG(double p) const {

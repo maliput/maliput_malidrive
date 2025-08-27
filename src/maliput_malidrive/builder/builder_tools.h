@@ -69,10 +69,10 @@ struct MalidriveXodrLaneProperties {
   MalidriveXodrLaneProperties(const xodr::RoadHeader* _road_header, const xodr::LaneSection* _lane_section,
                               int _lane_section_index, const xodr::Lane* _lane)
       : road_header(_road_header), lane(_lane), lane_section(_lane_section), lane_section_index(_lane_section_index) {
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(road_header != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section != nullptr);
-    MALIDRIVE_THROW_ROAD_GEOMETRY_BUILDER_UNLESS(lane_section_index >= 0);
+    MALIDRIVE_THROW_UNLESS(road_header != nullptr, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(lane != nullptr, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(lane_section != nullptr, maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(lane_section_index >= 0, maliput::common::road_geometry_construction_error);
   }
 
   const xodr::RoadHeader* road_header{};
