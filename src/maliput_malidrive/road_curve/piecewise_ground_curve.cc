@@ -104,7 +104,9 @@ PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCur
   p0_ = 0.;
   p1_ = cumulative_p;
   MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= kEpsilon, maliput::common::road_geometry_construction_error);
-  validate_p_ = maliput::common::RangeValidator::GetRelativeEpsilonValidator(p0_, p1_, linear_tolerance_, kEpsilon);
+  validate_p_ =
+      maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetRelativeEpsilonValidator(
+          p0_, p1_, linear_tolerance_, kEpsilon);
 }
 
 std::pair<const GroundCurve*, double> PiecewiseGroundCurve::GetGroundCurveFromP(double p) const {

@@ -66,10 +66,6 @@ class CubicPolynomial : public Function {
   ///         is less or equal to @p p0.
   /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is not
   ///         positive.
-  // TODO(Santoi): Even so this method should throw a maliput::common::road_geometry_construction_error it
-  // actually throws a maliput::common::assertion_error coming from the RangeValidator called in the
-  // initialization list. After solving https://github.com/maliput/maliput/issues/666, we can make sure that
-  // it throws what we want it to throw.
   CubicPolynomial(double a, double b, double c, double d, double p0, double p1, double linear_tolerance)
       : a_(a),
         b_(b),
@@ -77,8 +73,8 @@ class CubicPolynomial : public Function {
         d_(d),
         p0_(p0),
         p1_(p1),
-        validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
-                                                                                 Function::kEpsilon)) {
+        validate_p_(maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::
+                        GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance, Function::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(p0_ >= 0, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(p1_ > p0_, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(linear_tolerance > 0., maliput::common::road_geometry_construction_error);
@@ -111,7 +107,7 @@ class CubicPolynomial : public Function {
   const double p0_{};
   const double p1_{};
   // Validates that p is within [p0_, p1_] with linear_tolerance.
-  const maliput::common::RangeValidator validate_p_;
+  const maliput::common::RangeValidator<maliput::common::road_geometry_construction_error> validate_p_;
 };
 
 }  // namespace road_curve

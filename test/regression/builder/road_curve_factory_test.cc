@@ -413,10 +413,8 @@ TEST_F(RoadCurveFactoryMakeReferenceLineOffsetTest, DiscontinuousReferenceLineOf
   const std::vector<xodr::LaneOffset> kLaneOffsets{{0. /* s_0 */, 0. /* a */, 0.2 /* b */, 0. /* c */, 0. /* d */},
                                                    {10. /* s_0 */, 4. /* a */, 0. /* b */, 0. /* c */, 0. /* d */}};
 
-  // TODO(Santoi): This method throws because of RangeValidator. It should throw
-  // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(road_curve_factory_->MakeReferenceLineOffset(kLaneOffsets, kP0, kP1, kEnsureContiguity),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(RoadCurveFactoryMakeReferenceLineOffsetTest, DiscontinuousReferenceLineOffset) {

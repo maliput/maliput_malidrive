@@ -75,7 +75,7 @@ TEST_F(LaneOffsetTest, Constructor) {
   // maliput::common::road_geometry_construction_error.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, kP1,
                           kP0, kTolerance),
-               maliput::common::assertion_error);
+               maliput::common::road_geometry_construction_error);
   // p0 is less than 0.
   EXPECT_THROW(LaneOffset(kNoAdjacentLane, &kLaneWidth, &kReferenceLineOffset, LaneOffset::kAtLeftFromCenterLane, -kP1,
                           kP0, kTolerance),
@@ -302,9 +302,9 @@ TEST_F(LaneOffsetTest, Range) {
                        kP1,
                        kTolerance};
 
-  EXPECT_THROW(dut.f(kP1 + 1.), maliput::common::assertion_error);
-  EXPECT_THROW(dut.f_dot(kP1 + 1.), maliput::common::assertion_error);
-  EXPECT_THROW(dut.f_dot_dot(kP1 + 1.), maliput::common::assertion_error);
+  EXPECT_THROW(dut.f(kP1 + 1.), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(dut.f_dot(kP1 + 1.), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(dut.f_dot_dot(kP1 + 1.), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LaneOffsetTest, IsG1Contiguous) {

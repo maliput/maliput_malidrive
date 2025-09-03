@@ -73,7 +73,7 @@ TEST_F(SpiralGroundCurveConstructorTest, NegativeLinearToleranceThrows) {
         SpiralGroundCurve(kNegativeTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kArcLength, kP0,
                           kP1);
       },
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(SpiralGroundCurveConstructorTest, SameCurvatureThrows) {
@@ -114,7 +114,7 @@ TEST_F(SpiralGroundCurveConstructorTest, NegativeP1Throws) {
         SpiralGroundCurve(kLinearTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kArcLength, kP0,
                           kNegativeP1);
       },
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(SpiralGroundCurveConstructorTest, P0AndP1AreAlmostEqualThrows) {
@@ -124,7 +124,7 @@ TEST_F(SpiralGroundCurveConstructorTest, P0AndP1AreAlmostEqualThrows) {
         SpiralGroundCurve(kLinearTolerance, kXy0, kStartHeading, kStartCurvature, kEndCurvature, kArcLength, kP0,
                           kAlmostP0P1);
       },
-      maliput::common::assertion_error);
+      maliput::common::road_geometry_construction_error);
 }
 
 // Test class to validate the correct value retrieval of the accessors.
@@ -169,7 +169,7 @@ TEST_F(SpiralGroundCurveAccessorsTest, IsG1Contiguous) { EXPECT_TRUE(dut_.IsG1Co
 // @pre Given lower integration bound @p p0 is greater than or equal to 0.
 // @pre Given upper integration bound @p p1 is greater than or equal to the given lower integration bound @p p0.
 // @pre Given @p k_order for the linear approximation is a non-negative number.
-// @throws maliput::common::assertion_error if preconditions are not met.
+// @throws maliput::common::road_geometry_construction_error if preconditions are not met.
 double BruteForcePathLengthIntegral(const SpiralGroundCurve& dut, double p0, double p1, int k_order) {
   MALIDRIVE_IS_IN_RANGE(p0, dut.p0(), dut.p1());
   MALIDRIVE_IS_IN_RANGE(p1, dut.p0(), dut.p1());

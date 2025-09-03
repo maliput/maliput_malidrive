@@ -84,8 +84,8 @@ class ArcGroundCurve : public GroundCurve {
         d_theta_(arc_length * curvature),
         theta0_(start_heading - std::copysign(M_PI / 2., d_theta_)),
         center_(xy0_ - std::abs(radius_) * maliput::math::Vector2{std::cos(theta0_), std::sin(theta0_)}),
-        validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
-                                                                                 GroundCurve::kEpsilon)) {
+        validate_p_(maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::
+                        GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
@@ -158,7 +158,7 @@ class ArcGroundCurve : public GroundCurve {
   // curve.
   const maliput::math::Vector2 center_{};
   // Validates that p is within [p0, p1] with linear_tolerance.
-  const maliput::common::RangeValidator validate_p_;
+  const maliput::common::RangeValidator<maliput::common::road_geometry_construction_error> validate_p_;
 };
 
 }  // namespace road_curve

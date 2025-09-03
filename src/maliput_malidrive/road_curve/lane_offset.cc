@@ -48,8 +48,10 @@ LaneOffset::LaneOffset(const std::optional<AdjacentLaneFunctions>& adjacent_lane
       at_right_(at_right),
       p0_(p0),
       p1_(p1),
-      validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance,
-                                                                               Function::kEpsilon)) {
+      validate_p_(maliput::common::RangeValidator<
+                  maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(p0_, p1_,
+                                                                                                  linear_tolerance,
+                                                                                                  Function::kEpsilon)) {
   MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(p1_ > p0_, maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(linear_tolerance > 0., maliput::common::road_geometry_construction_error);
