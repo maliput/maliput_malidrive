@@ -55,11 +55,11 @@ TEST_F(LineGroundCurveConstructorTest, CorrectlyConstructed) {
 }
 
 TEST_F(LineGroundCurveConstructorTest, InvalidNegativeTolerance) {
-  EXPECT_THROW(LineGroundCurve(-1., kZero, kUnitX, 0., 1.), maliput::common::assertion_error);
+  EXPECT_THROW(LineGroundCurve(-1., kZero, kUnitX, 0., 1.), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveConstructorTest, InvalidZeroTolerance) {
-  EXPECT_THROW(LineGroundCurve(0., kZero, kUnitX, 0., 1.), maliput::common::assertion_error);
+  EXPECT_THROW(LineGroundCurve(0., kZero, kUnitX, 0., 1.), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveConstructorTest, InvalidLineLengthTooSmall) {
@@ -74,13 +74,14 @@ TEST_F(LineGroundCurveConstructorTest, InvalidNegativeP0) {
 // TODO(Santoi): This method throws because of RangeValidator. It should throw
 // maliput::common::road_geometry_construction_error.
 TEST_F(LineGroundCurveConstructorTest, InvalidP1SmallerThanP0) {
-  EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, 0., -0.01), maliput::common::assertion_error);
+  EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, 0., -0.01), maliput::common::road_geometry_construction_error);
 }
 
 // TODO(Santoi): This method throws because of RangeValidator. It should throw
 // maliput::common::road_geometry_construction_error.
 TEST_F(LineGroundCurveConstructorTest, InvalidP1NotSufficientlyLargerThanP0) {
-  EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, 0., GroundCurve::kEpsilon / 2.), maliput::common::assertion_error);
+  EXPECT_THROW(LineGroundCurve(1.0, kZero, kUnitX, 0., GroundCurve::kEpsilon / 2.),
+               maliput::common::road_geometry_construction_error);
 }
 
 class LineGroundCurveTest : public ::testing::Test {
@@ -175,12 +176,12 @@ TEST_F(LineGroundCurveTest, G) {
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.
-  EXPECT_THROW(trivial_dut_->G(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(trivial_dut_->G(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->G(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->G(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->G(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->G(20.02), maliput::common::assertion_error);
+  EXPECT_THROW(trivial_dut_->G(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(trivial_dut_->G(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->G(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->G(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->G(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->G(20.02), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveTest, GDot) {
@@ -200,12 +201,12 @@ TEST_F(LineGroundCurveTest, GDot) {
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.
-  EXPECT_THROW(trivial_dut_->GDot(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(trivial_dut_->GDot(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->GDot(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->GDot(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->GDot(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->GDot(20.02), maliput::common::assertion_error);
+  EXPECT_THROW(trivial_dut_->GDot(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(trivial_dut_->GDot(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->GDot(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->GDot(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->GDot(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->GDot(20.02), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveTest, Heading) {
@@ -222,12 +223,12 @@ TEST_F(LineGroundCurveTest, Heading) {
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.
-  EXPECT_THROW(trivial_dut_->Heading(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(trivial_dut_->Heading(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->Heading(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->Heading(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->Heading(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->Heading(20.02), maliput::common::assertion_error);
+  EXPECT_THROW(trivial_dut_->Heading(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(trivial_dut_->Heading(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->Heading(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->Heading(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->Heading(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->Heading(20.02), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveTest, HeadingDot) {
@@ -244,12 +245,12 @@ TEST_F(LineGroundCurveTest, HeadingDot) {
 
   // Confirm that it throws when given p value outside of [p0, p1] by excess of
   // linear tolerance.
-  EXPECT_THROW(trivial_dut_->HeadingDot(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(trivial_dut_->HeadingDot(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->HeadingDot(9.988), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant1_dut_->HeadingDot(20.02), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->HeadingDot(9.98), maliput::common::assertion_error);
-  EXPECT_THROW(quadrant3_dut_->HeadingDot(20.02), maliput::common::assertion_error);
+  EXPECT_THROW(trivial_dut_->HeadingDot(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(trivial_dut_->HeadingDot(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->HeadingDot(9.988), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant1_dut_->HeadingDot(20.02), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->HeadingDot(9.98), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(quadrant3_dut_->HeadingDot(20.02), maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(LineGroundCurveTest, GInverse) {

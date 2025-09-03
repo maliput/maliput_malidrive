@@ -128,8 +128,8 @@ SpiralGroundCurve::SpiralGroundCurve(double linear_tolerance, const maliput::mat
       heading0_spiral_(maliput::math::FresnelSpiralHeading(t0_ * norm_, k_dot_)),
       p0_(p0),
       p1_(p1),
-      validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
-                                                                               GroundCurve::kEpsilon)) {
+      validate_p_(maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::
+                      GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon)) {
   MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0, maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);

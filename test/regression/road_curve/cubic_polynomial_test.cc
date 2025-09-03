@@ -56,7 +56,8 @@ GTEST_TEST(CubicPolynomial, Constructor) {
   // p1 < p0
   // TODO(Santoi): This method throws because of RangeValidator. It should throw
   // maliput::common::road_geometry_construction_error.
-  EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, kP1, kP0, kTolerance), maliput::common::assertion_error);
+  EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, kP1, kP0, kTolerance),
+               maliput::common::road_geometry_construction_error);
   // p0 is less than 0.
   EXPECT_THROW(CubicPolynomial(kA, kB, kC, kD, -kP1, kP0, kTolerance),
                maliput::common::road_geometry_construction_error);
@@ -112,9 +113,9 @@ GTEST_TEST(CubicPolynomial, FunctionApi) {
 GTEST_TEST(CubicPolynomial, Range) {
   const CubicPolynomial dut(kA, kB, kC, kD, kP0, kP1, kTolerance);
 
-  EXPECT_THROW(dut.f(kP1 + 1.), maliput::common::assertion_error);
-  EXPECT_THROW(dut.f_dot(kP1 + 1.), maliput::common::assertion_error);
-  EXPECT_THROW(dut.f_dot_dot(kP1 + 1.), maliput::common::assertion_error);
+  EXPECT_THROW(dut.f(kP1 + 1.), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(dut.f_dot(kP1 + 1.), maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(dut.f_dot_dot(kP1 + 1.), maliput::common::road_geometry_construction_error);
 }
 
 GTEST_TEST(CubicPolynomial, IsG1Contiguous) {

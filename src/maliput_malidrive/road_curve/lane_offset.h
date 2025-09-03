@@ -89,10 +89,6 @@ class LaneOffset : public Function {
   /// nullptr.
   /// @throws maliput::common::road_geometry_construction_error When @p adjacent_lane_functions 's width value is
   /// nullptr.
-  // TODO(Santoi): Even so this method should throw a maliput::common::road_geometry_construction_error it
-  // actually throws a maliput::common::assertion_error coming from the RangeValidator called in the
-  // initialization list. After solving https://github.com/maliput/maliput/issues/666, we can make sure that
-  // it throws what we want it to throw.
   LaneOffset(const std::optional<AdjacentLaneFunctions>& adjacent_lane_functions, const Function* lane_width,
              const Function* reference_line_offset, bool at_right, double p0, double p1, double linear_tolerance);
 
@@ -114,7 +110,7 @@ class LaneOffset : public Function {
   const double p0_{};
   const double p1_{};
   // Validates that p is within [p0_, p1_] with linear_tolerance.
-  const maliput::common::RangeValidator validate_p_;
+  const maliput::common::RangeValidator<maliput::common::road_geometry_construction_error> validate_p_;
 };
 
 }  // namespace road_curve

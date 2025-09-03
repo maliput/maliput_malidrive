@@ -63,10 +63,6 @@ class LineGroundCurve : public GroundCurve {
   /// @throws maliput::common::road_geometry_construction_error When the norm of @p dxy is too small.
   /// @throws maliput::common::road_geometry_construction_error When @p p0 is negative.
   /// @throws maliput::common::road_geometry_construction_error When @p p1 is not sufficiently larger than @p p0.
-  // TODO(Santoi): Even so this method should throw a maliput::common::road_geometry_construction_error it
-  // actually throws a maliput::common::assertion_error coming from the RangeValidator called in the
-  // initialization list. After solving https://github.com/maliput/maliput/issues/666, we can make sure that
-  // it throws what we want it to throw.
   LineGroundCurve(const double linear_tolerance, const maliput::math::Vector2& xy0, const maliput::math::Vector2& dxy,
                   double p0, double p1)
       : linear_tolerance_(linear_tolerance),
@@ -76,8 +72,8 @@ class LineGroundCurve : public GroundCurve {
         heading_(std::atan2(dxy.y(), dxy.x())),
         p0_(p0),
         p1_(p1),
-        validate_p_(maliput::common::RangeValidator::GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_,
-                                                                                 GroundCurve::kEpsilon)) {
+        validate_p_(maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::
+                        GetAbsoluteEpsilonValidator(p0_, p1_, linear_tolerance_, GroundCurve::kEpsilon)) {
     MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
@@ -122,7 +118,7 @@ class LineGroundCurve : public GroundCurve {
   // The value of the p parameter at the end of the line.
   const double p1_{};
   // Validates that p is within [p0, p1] with linear_tolerance.
-  const maliput::common::RangeValidator validate_p_;
+  const maliput::common::RangeValidator<maliput::common::road_geometry_construction_error> validate_p_;
 };
 
 }  // namespace road_curve
