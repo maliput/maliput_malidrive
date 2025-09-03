@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.1 (2025-09-03)
+-------------------
+* Add custom error types to RangeValidator instances. (`#342 <https://github.com/maliput/maliput_malidrive/issues/342>`_)
+* Contributors: Santiago Lopez
+
 0.10.0 (2025-08-27)
 -------------------
 * Generalize error handling by passing custom error type to macros. (`#340 <https://github.com/maliput/maliput_malidrive/issues/340>`_)
