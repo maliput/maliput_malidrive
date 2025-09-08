@@ -281,29 +281,53 @@ struct XodrDirectionUsageRuleReferenceValue {
   std::string right_lane_direction_modifier;
   std::string left_lane_direction_rule_state;
   std::string right_lane_direction_rule_state;
+  bool support_user_data;
 };
 
-std::vector<XodrDirectionUsageRuleReferenceValue> InstatiateDirectionUsageRuleStateTypeParameters() {
+std::vector<XodrDirectionUsageRuleReferenceValue> InstatiateDirectionUsageRuleStateTypeParametersSupportingUserData() {
   return {
       {"RHT", "<userData><vectorLane travelDir='forward'/></userData>", "",
-       "<userData><vectorLane travelDir='forward'/></userData>", "", "WithS", "WithS"},
+       "<userData><vectorLane travelDir='forward'/></userData>", "", "WithS", "WithS", true},
       {"RHT", "<userData><vectorLane travelDir='backward'/></userData>", "",
-       "<userData><vectorLane travelDir='backward'/></userData>", "", "AgainstS", "AgainstS"},
+       "<userData><vectorLane travelDir='backward'/></userData>", "", "AgainstS", "AgainstS", true},
       {"RHT", "<userData><vectorLane travelDir='forward'/></userData>", "reversed",
-       "<userData><vectorLane travelDir='forward'/></userData>", "reversed", "WithS", "WithS"},
-      {"RHT", "", "standard", "", "standard", "AgainstS", "WithS"},
-      {"RHT", "", "reversed", "", "reversed", "WithS", "AgainstS"},
-      {"LHT", "", "standard", "", "standard", "WithS", "AgainstS"},
-      {"LHT", "", "reversed", "", "reversed", "AgainstS", "WithS"},
-      {"LHT", "", "both", "", "both", "Bidirectional", "Bidirectional"},
+       "<userData><vectorLane travelDir='forward'/></userData>", "reversed", "WithS", "WithS", true},
+      {"RHT", "", "standard", "", "standard", "AgainstS", "WithS", true},
+      {"RHT", "", "reversed", "", "reversed", "WithS", "AgainstS", true},
+      {"LHT", "", "standard", "", "standard", "WithS", "AgainstS", true},
+      {"LHT", "", "reversed", "", "reversed", "AgainstS", "WithS", true},
+      {"LHT", "", "both", "", "both", "Bidirectional", "Bidirectional", true},
+      {"RHT", "<userData><vectorLane travelDir='undirected'/></userData>", "reversed",
+       "<userData><vectorLane travelDir='bidirectional'/></userData>", "reversed", "Bidirectional", "Bidirectional",
+       true},
+  };
+}
+
+std::vector<XodrDirectionUsageRuleReferenceValue>
+InstatiateDirectionUsageRuleStateTypeParametersNotSupportingUserData() {
+  return {
+      {"RHT", "<userData><vectorLane travelDir='forward'/></userData>", "",
+       "<userData><vectorLane travelDir='backward'/></userData>", "", "AgainstS", "WithS", false},
+      {"RHT", "<userData><vectorLane travelDir='undirected'/></userData>", "",
+       "<userData><vectorLane travelDir='bidirectional'/></userData>", "", "AgainstS", "WithS", false},
+      {"RHT", "<userData><vectorLane travelDir='forward'/></userData>", "reversed",
+       "<userData><vectorLane travelDir='forward'/></userData>", "reversed", "WithS", "AgainstS", false},
+      {"RHT", "", "standard", "", "standard", "AgainstS", "WithS", false},
+      {"RHT", "", "reversed", "", "reversed", "WithS", "AgainstS", false},
+      {"LHT", "", "standard", "", "standard", "WithS", "AgainstS", false},
+      {"LHT", "", "reversed", "", "reversed", "AgainstS", "WithS", false},
+      {"LHT", "", "both", "", "both", "Bidirectional", "Bidirectional", false},
   };
 }
 
 class DirectionUsageRuleStateTypeTest : public ::testing::TestWithParam<XodrDirectionUsageRuleReferenceValue> {
  protected:
-  void SetUp() override { reference_value_ = GetParam(); }
+  void SetUp() override {
+    reference_value_ = GetParam();
+    parser_configuration_.support_user_data = reference_value_.support_user_data;
+  }
   const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
-  const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
+  xodr::ParserConfiguration parser_configuration_{kParserSTolerance};
   XodrDirectionUsageRuleReferenceValue reference_value_;
 };
 
@@ -313,7 +337,7 @@ TEST_P(DirectionUsageRuleStateTypeTest, GetDirectionUsageRuleTest) {
                                                     reference_value_.left_lane_direction_modifier,
                                                     reference_value_.right_lane_user_data,
                                                     reference_value_.right_lane_direction_modifier),
-                          kParserConfiguration)
+                          parser_configuration_)
                           ->GetRoadHeaders();
   xodr::RoadHeader road_header = road_headers.at(xodr::RoadHeader::Id("0"));
   xodr::Lane left_lane = road_header.lanes.lanes_section[0].left_lanes[0];
@@ -323,8 +347,11 @@ TEST_P(DirectionUsageRuleStateTypeTest, GetDirectionUsageRuleTest) {
   EXPECT_EQ(reference_value_.right_lane_direction_rule_state, GetDirectionUsageRuleStateType(road_header, right_lane));
 }
 
-INSTANTIATE_TEST_CASE_P(DirectionUsageRuleStateTypeTestGroup, DirectionUsageRuleStateTypeTest,
-                        ::testing::ValuesIn(InstatiateDirectionUsageRuleStateTypeParameters()));
+INSTANTIATE_TEST_CASE_P(DirectionUsageRuleStateTypeSupportingUserDataTestGroup, DirectionUsageRuleStateTypeTest,
+                        ::testing::ValuesIn(InstatiateDirectionUsageRuleStateTypeParametersSupportingUserData()));
+
+INSTANTIATE_TEST_CASE_P(DirectionUsageRuleStateTypeNotSupportingUserDataTestGroup, DirectionUsageRuleStateTypeTest,
+                        ::testing::ValuesIn(InstatiateDirectionUsageRuleStateTypeParametersNotSupportingUserData()));
 
 struct LaneGroupDirectionReferenceValue {
   LaneTravelDirection::Direction expected_direction;

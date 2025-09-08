@@ -132,8 +132,9 @@ inline ::testing::AssertionResult IsEqual(const T& rule_a, const T& rule_b, doub
 class RoadRulebookBuilderTest : public ::testing::Test {
  public:
   void SetUp() override {
-    auto manager =
-        xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file, {constants::kLinearTolerance});
+    auto manager = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file,
+                                              {constants::kLinearTolerance, allow_schema_errors_,
+                                               allow_semantic_errors_, road_geometry_configuration_.support_user_data});
     road_geometry_ = RoadGeometryBuilder(std::move(manager), road_geometry_configuration_)();
     rule_registry_ = RuleRegistryBuilder(road_geometry_.get(), rule_registry_path)();
   }
@@ -148,7 +149,10 @@ class RoadRulebookBuilderTest : public ::testing::Test {
   const RoadGeometryConfiguration road_geometry_configuration_{RoadGeometryConfiguration::FromMap({
       {"opendrive_file", xodr_file_path},
       {"omit_nondrivable_lanes", "false"},
+      {"support_user_data", "true"},
   })};
+  const bool allow_schema_errors_{true};
+  const bool allow_semantic_errors_{true};
 
   std::unique_ptr<const maliput::api::RoadGeometry> road_geometry_;
   std::unique_ptr<const maliput::api::rules::RoadRulebook> road_rulebook_;

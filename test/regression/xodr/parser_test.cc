@@ -68,6 +68,10 @@ class ParsingTests : public ::testing::Test {
   static constexpr bool kDontAllowSemanticErrors{false};
   // Flag to allow schema errors.
   static constexpr bool kAllowSchemaErrors{true};
+  // Flag to support userData XODR parsing.
+  static constexpr bool kSupportUserData{true};
+  // Flag to not support userData XODR parsing.
+  static constexpr bool kDontSupportUserData{false};
 
   tinyxml2::XMLElement* LoadXMLAndGetNodeByName(const std::string& xml_str, const std::string& node_name) {
     MALIDRIVE_THROW_UNLESS(xml_doc_.Parse(xml_str.c_str()) == tinyxml2::XML_SUCCESS,
@@ -1006,7 +1010,6 @@ TEST_F(ParsingTests, NodeParserLaneNoUserData) {
       kExpectedLane.dynamic_lane_direction.value() ? "true" : "false",
       kExpectedLane.dynamic_lane_type.value() ? "true" : "false", kExpectedLane.road_works.value() ? "true" : "false");
   std::cout << "XML description: " << xml_description << std::endl;
-
 
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kDontSupportUserData});

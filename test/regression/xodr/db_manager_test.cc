@@ -104,6 +104,8 @@ constexpr std::optional<double> kStrictParserSTolerance{malidrive::constants::kS
 constexpr bool kDontAllowSchemaErrors{false};
 // Flag to not allow semantic errors.
 constexpr bool kDontAllowSemanticErrors{false};
+// Flag to support user data.
+constexpr bool kSupportUserData{true};
 
 // Tests the loading of a XODR description from a file.
 GTEST_TEST(DBManager, LoadFromFile) {
@@ -1616,7 +1618,7 @@ GTEST_TEST(DBManagerTest, Highway) {
                                        7.5243157171900776e+1 /* length */,
                                        RoadHeader::Id("52") /* id */,
                                        std::string("50") /* junction */,
-                                       std::nullopt,
+                                       std::nullopt /* rule */,
                                        kExpectedRoadLink /* road_link */,
                                        {} /* road_types */,
                                        {kPlanView, kElevationProfile, {}} /* reference_geometry */,
@@ -1690,8 +1692,9 @@ GTEST_TEST(DBManagerTest, Highway) {
                                       {kConnection17_5.id, kConnection17_5}}};
   // @}
 
-  const std::unique_ptr<DBManager> dut =
-      LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder), {kStrictParserSTolerance});
+  const std::unique_ptr<DBManager> dut = LoadDataBaseFromFile(
+      utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder),
+      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kSupportUserData});
 
   const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
   EXPECT_EQ(NumOfRoads, static_cast<int>(road_headers.size()));
