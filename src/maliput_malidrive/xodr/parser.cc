@@ -644,7 +644,10 @@ Lane NodeParser::As() const {
   }
 
   std::optional<std::string> user_data{std::nullopt};
-  tinyxml2::XMLElement* user_data_element = element_->FirstChildElement(Lane::kUserData);
+  tinyxml2::XMLElement* user_data_element = nullptr;
+  if (parser_configuration_.support_user_data) {
+    user_data_element = element_->FirstChildElement(Lane::kUserData);
+  }
   if (user_data_element != nullptr) {
     user_data = ConvertXMLNodeToText(user_data_element);
   }

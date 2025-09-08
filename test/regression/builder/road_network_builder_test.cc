@@ -1314,6 +1314,7 @@ class RoadNetworkBuilderPopulationTest : public ::testing::Test {
       {params::kPhaseRingBook, phase_ring_book_path},
       {params::kIntersectionBook, intersection_book_path},
       {params::kOmitNonDrivableLanes, "false"},
+      {params::kSupportUserData, "false"},
   })};
 };
 

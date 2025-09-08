@@ -190,6 +190,12 @@ static constexpr char const* kOmitNonDrivableLanes{"omit_nondrivable_lanes"};
 ///   - Default: @e "1.0"
 static constexpr char const* kIntegratorAccuracyMultiplier{"integrator_accuracy_multiplier"};
 
+/// True for supporting userData XODR tags within Lane XODR tags. If false, they will be ignored.
+/// userData are mostly used for traffic direction management, and will overwrite any other traffic direction
+/// configuration in the lane it is set for.
+///   - Default: @e "false"
+static constexpr char const* kSupportUserData{"support_user_data"};
+
 /// @}
 
 }  // namespace params
