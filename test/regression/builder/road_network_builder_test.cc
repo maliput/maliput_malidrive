@@ -309,8 +309,8 @@ TEST_P(RoadNetworkBuilderTest, RoadGeometryBuilding) {
       *dut, {false, true /* Invariants */, false, false, false, false, false, false}));
 }
 
-INSTANTIATE_TEST_CASE_P(RoadNetworkBuilderTestGroup, RoadNetworkBuilderTest,
-                        ::testing::ValuesIn(InstantiateBuilderParameters()));
+INSTANTIATE_TEST_SUITE_P(RoadNetworkBuilderTestGroup, RoadNetworkBuilderTest,
+                         ::testing::ValuesIn(InstantiateBuilderParameters()));
 
 // TODO(#562): All the following tests are analogue to the tests performed in `road_network_builder_test`.
 //             Code could be reused.
@@ -742,8 +742,8 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(DirectionUsageTestGroup, DirectionUsageTest,
-                        ::testing::ValuesIn(InstantiateDirectionUsageBuilderParameters()));
+INSTANTIATE_TEST_SUITE_P(DirectionUsageTestGroup, DirectionUsageTest,
+                         ::testing::ValuesIn(InstantiateDirectionUsageBuilderParameters()));
 
 // Holds reference values for VehicleUsageRule and VehicleExclusiveRule check.
 struct VehicleRulesReferenceValue {
@@ -866,8 +866,8 @@ TEST_P(VehicleRulesTest, VehicleRulesTest) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(VehicleRulesTestGroup, VehicleRulesTest,
-                        ::testing::ValuesIn(InstantiateVehicleRulesTestParameters()));
+INSTANTIATE_TEST_SUITE_P(VehicleRulesTestGroup, VehicleRulesTest,
+                         ::testing::ValuesIn(InstantiateVehicleRulesTestParameters()));
 
 // Holds reference values to create Rule::Id and evaluate that
 // the state in the StateProvider is the same as the first value in
@@ -948,8 +948,8 @@ TEST_P(VehicleRulesStateProviderTest, DiscreteValueRuleStateProviderTest) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(VehicleRulesStateProviderTestGroup, VehicleRulesStateProviderTest,
-                        ::testing::ValuesIn(InstantiateVehicleRulesStateProviderTestParameters()));
+INSTANTIATE_TEST_SUITE_P(VehicleRulesStateProviderTestGroup, VehicleRulesStateProviderTest,
+                         ::testing::ValuesIn(InstantiateVehicleRulesStateProviderTestParameters()));
 
 struct ValueAndRange {
   double max{};
@@ -1127,8 +1127,8 @@ std::vector<SpeedLimitRuleTruthTable> SpeedLimitRuleTestParameters() {
   };
 }
 
-INSTANTIATE_TEST_CASE_P(SpeedLimitRuleBuilderTestGroup, SpeedLimitRuleBuilderTest,
-                        ::testing::ValuesIn(SpeedLimitRuleTestParameters()));
+INSTANTIATE_TEST_SUITE_P(SpeedLimitRuleBuilderTestGroup, SpeedLimitRuleBuilderTest,
+                         ::testing::ValuesIn(SpeedLimitRuleTestParameters()));
 
 TEST_P(SpeedLimitRuleBuilderTest, SpeedLimitRulesTest) {
   auto rn = loader::Load<builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
@@ -1278,8 +1278,8 @@ TEST_P(RangeValueRuleStateProviderTest, RangeValueRuleStateProviderTest) {
   }
 }
 
-INSTANTIATE_TEST_CASE_P(RangeValueRuleStateProviderTestGroup, RangeValueRuleStateProviderTest,
-                        ::testing::ValuesIn(RangeValueRuleStateProviderTestParameters()));
+INSTANTIATE_TEST_SUITE_P(RangeValueRuleStateProviderTestGroup, RangeValueRuleStateProviderTest,
+                         ::testing::ValuesIn(RangeValueRuleStateProviderTestParameters()));
 
 // RoadNetworkBuilder constructs a RoadNetwork that holds:
 // - RoadGeometry

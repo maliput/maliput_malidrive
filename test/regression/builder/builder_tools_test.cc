@@ -323,8 +323,8 @@ TEST_P(DirectionUsageRuleStateTypeTest, GetDirectionUsageRuleTest) {
   EXPECT_EQ(reference_value_.right_lane_direction_rule_state, GetDirectionUsageRuleStateType(road_header, right_lane));
 }
 
-INSTANTIATE_TEST_CASE_P(DirectionUsageRuleStateTypeTestGroup, DirectionUsageRuleStateTypeTest,
-                        ::testing::ValuesIn(InstatiateDirectionUsageRuleStateTypeParameters()));
+INSTANTIATE_TEST_SUITE_P(DirectionUsageRuleStateTypeTestGroup, DirectionUsageRuleStateTypeTest,
+                         ::testing::ValuesIn(InstatiateDirectionUsageRuleStateTypeParameters()));
 
 struct LaneGroupDirectionReferenceValue {
   LaneTravelDirection::Direction expected_direction;
@@ -374,8 +374,8 @@ TEST_P(LaneGroupDirectionTest, CreateDirectionTravelDirFromLaneGroup) {
           .GetXodrTravelDir());
 }
 
-INSTANTIATE_TEST_CASE_P(LaneGroupDirectionTestGroup, LaneGroupDirectionTest,
-                        ::testing::ValuesIn(InstatiateLaneGroupDirectionParameters()));
+INSTANTIATE_TEST_SUITE_P(LaneGroupDirectionTestGroup, LaneGroupDirectionTest,
+                         ::testing::ValuesIn(InstatiateLaneGroupDirectionParameters()));
 
 struct HandTrafficRuleReferenceValue {
   LaneTravelDirection::Direction expected_direction;
@@ -410,8 +410,8 @@ TEST_P(HandTrafficRuleTest, CreateDirectionTravelDirFromHandTrafficRule) {
                 .GetXodrTravelDir());
 }
 
-INSTANTIATE_TEST_CASE_P(HandTrafficRuleTestGroup, HandTrafficRuleTest,
-                        ::testing::ValuesIn(InstatiateHandTrafficRuleDirectionParameters()));
+INSTANTIATE_TEST_SUITE_P(HandTrafficRuleTestGroup, HandTrafficRuleTest,
+                         ::testing::ValuesIn(InstatiateHandTrafficRuleDirectionParameters()));
 
 /*
   Loaded map has the following structure:

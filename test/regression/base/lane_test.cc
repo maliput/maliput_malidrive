@@ -1526,8 +1526,8 @@ TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, EvalMotionDerivatives
   //@}
 }
 
-INSTANTIATE_TEST_CASE_P(MaldriveLaneSingleLaneWithElevationGroup, MalidriveLineLaneWithElevationFullyInitializedTest,
-                        ::testing::ValuesIn(InstantiateElevationParameters()));
+INSTANTIATE_TEST_SUITE_P(MaldriveLaneSingleLaneWithElevationGroup, MalidriveLineLaneWithElevationFullyInitializedTest,
+                         ::testing::ValuesIn(InstantiateElevationParameters()));
 
 struct ArcElevationValues {
   // Elevation Cubic polynomial. @f$ F(p) = a p^3 + b p^2 + c p + d @f$.
@@ -1781,8 +1781,8 @@ TEST_P(MalidriveArcLaneWithElevationFullyInitializedTest, ToLanePosition) {
 // TODO(francocipollone): Add tests for GetOrientation method.
 // TODO(francocipollone): Add tests for EvalMotionDerivatives method.
 
-INSTANTIATE_TEST_CASE_P(MaldriveLaneSingleArcLaneWithElevationGroup, MalidriveArcLaneWithElevationFullyInitializedTest,
-                        ::testing::ValuesIn(InstantiateElevationParametersForArc()));
+INSTANTIATE_TEST_SUITE_P(MaldriveLaneSingleArcLaneWithElevationGroup, MalidriveArcLaneWithElevationFullyInitializedTest,
+                         ::testing::ValuesIn(InstantiateElevationParametersForArc()));
 
 // Hold superelevation values and expected values.
 struct SuperelevatedLaneTestParams {
@@ -2195,9 +2195,9 @@ TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, EvalMotionDeriva
   //@}
 }
 
-INSTANTIATE_TEST_CASE_P(MaldriveLaneSingleLaneWithSuperelevationGroup,
-                        MalidriveLineLaneWithSuperelevationFullyInitializedTest,
-                        ::testing::ValuesIn(InstantiateSuperelevationParametersForLine()));
+INSTANTIATE_TEST_SUITE_P(MaldriveLaneSingleLaneWithSuperelevationGroup,
+                         MalidriveLineLaneWithSuperelevationFullyInitializedTest,
+                         ::testing::ValuesIn(InstantiateSuperelevationParametersForLine()));
 
 // Initializes a single flat line variable width Lane in a single Junction - Segment environment.
 class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing::Test {
