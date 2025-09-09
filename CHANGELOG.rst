@@ -2,6 +2,16 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.0 (2025-09-09)
+-------------------
+* Solve some macos compilation issues (`#346 <https://github.com/maliput/maliput_malidrive/issues/346>`_)
+* Add `RoadGeometryConfiguration` option to parse userData XODR node. (`#344 <https://github.com/maliput/maliput_malidrive/issues/344>`_)
+  * Disable userData parsing by default.
+  * Adapt tests to explicitly parse user data.
+  * Rename userdata parameter.
+  ---------
+* Contributors: Franco Cipollone, Santiago Lopez
+
 0.10.1 (2025-09-03)
 -------------------
 * Add custom error types to RangeValidator instances. (`#342 <https://github.com/maliput/maliput_malidrive/issues/342>`_)
