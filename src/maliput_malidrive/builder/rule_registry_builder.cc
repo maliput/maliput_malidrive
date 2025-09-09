@@ -119,7 +119,7 @@ void RuleRegistryBuilder::AddSpeedLimitRuleType(maliput::api::rules::RuleRegistr
   // the RuleRegistry a maliput::SpeedLimitRuleTypeId() RangeValueRule
   // containing the default minimum speed limit and the discovered maximum
   // speed limit.
-  for (const auto lane_id_lane : rg_->ById().GetLanes()) {
+  for (const auto& lane_id_lane : rg_->ById().GetLanes()) {
     const auto max_speed_limits = GetMaxSpeedLimitFor(dynamic_cast<const Lane*>(lane_id_lane.second));
     for (const auto& speed_limit : max_speed_limits) {
       speed_limit_range_set.insert(RangeValueRule::Range{Rule::State::kStrict, empty_related_rules,

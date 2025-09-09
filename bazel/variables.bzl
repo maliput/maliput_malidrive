@@ -9,6 +9,7 @@
 COPTS = [
     "-std=c++17",
     "-Wno-builtin-macro-redefined",
+    "-Wno-deprecated-declarations",
     "-Wno-missing-field-initializers",
     "-Wno-unused-const-variable",
     "-O2",
@@ -31,7 +32,6 @@ COPTS = [
     # "-Wno-missing-braces",
     # "-Wno-pessimizing-move",
     # "-Wno-self-assign",
-    # "-Wno-deprecated-declarations",
     # "-Wno-unused-private-field",
     # "-Wno-maybe-uninitialized",
     # "-Wno-deprecated-register",

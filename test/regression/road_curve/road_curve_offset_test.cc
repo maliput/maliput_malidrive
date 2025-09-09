@@ -263,21 +263,12 @@ class FlatArcRoadCurveTest : public RoadCurveOffsetTest {
   const double kRadiusRRight{std::abs(1. / kCurvature) + kRRight};
   const double kArcLength{100.};
   const double kDTheta{kArcLength / kRadiusR0};
-  const std::array<std::array<double, 5>, 3> kSs{/*{*/ 0.,
-                                                 0.25 * kArcLength,
-                                                 0.5 * kArcLength,
-                                                 0.75 * kArcLength,
-                                                 kArcLength /*}*/,
-                                                 /*{*/ 0.,
-                                                 0.25 * kDTheta* kRadiusRLeft,
-                                                 0.5 * kDTheta* kRadiusRLeft,
-                                                 0.75 * kDTheta* kRadiusRLeft,
-                                                 kDTheta* kRadiusRLeft /*}*/,
-                                                 /*{*/ 0.,
-                                                 0.25 * kDTheta* kRadiusRRight,
-                                                 0.5 * kDTheta* kRadiusRRight,
-                                                 0.75 * kDTheta* kRadiusRRight,
-                                                 kDTheta* kRadiusRRight /*}*/};
+  const std::array<std::array<double, 5>, 3> kSs{
+      std::array<double, 5>{0., 0.25 * kArcLength, 0.5 * kArcLength, 0.75 * kArcLength, kArcLength},
+      std::array<double, 5>{0., 0.25 * kDTheta* kRadiusRLeft, 0.5 * kDTheta* kRadiusRLeft, 0.75 * kDTheta* kRadiusRLeft,
+                            kDTheta* kRadiusRLeft},
+      std::array<double, 5>{0., 0.25 * kDTheta* kRadiusRRight, 0.5 * kDTheta* kRadiusRRight,
+                            0.75 * kDTheta* kRadiusRRight, kDTheta* kRadiusRRight}};
 };
 
 TEST_F(FlatArcRoadCurveTest, RoadCurve) {
@@ -358,21 +349,12 @@ TEST_F(FlatArcRoadCurveTest, SFromP) {
 // Test a RoadCurveOffset that uses a sub range of the entire RoadCurve domain.
 class FlatArcRoadCurveSubRangeTest : public FlatArcRoadCurveTest {
  protected:
-  const std::array<std::array<double, 5>, 3> kSsSub{/*{*/ 0.,
-                                                    0.25 * kArcLength / 2,
-                                                    0.5 * kArcLength / 2,
-                                                    0.75 * kArcLength / 2,
-                                                    kArcLength / 2 /*}*/,
-                                                    /*{*/ 0.,
-                                                    0.25 * kDTheta* kRadiusRLeft / 2,
-                                                    0.5 * kDTheta* kRadiusRLeft / 2,
-                                                    0.75 * kDTheta* kRadiusRLeft / 2,
-                                                    kDTheta* kRadiusRLeft / 2 /*}*/,
-                                                    /*{*/ 0.,
-                                                    0.25 * kDTheta* kRadiusRRight / 2,
-                                                    0.5 * kDTheta* kRadiusRRight / 2,
-                                                    0.75 * kDTheta* kRadiusRRight / 2,
-                                                    kDTheta* kRadiusRRight / 2 /*}*/};
+  const std::array<std::array<double, 5>, 3> kSsSub{
+      std::array<double, 5>{0., 0.25 * kArcLength / 2, 0.5 * kArcLength / 2, 0.75 * kArcLength / 2, kArcLength / 2},
+      std::array<double, 5>{0., 0.25 * kDTheta* kRadiusRLeft / 2, 0.5 * kDTheta* kRadiusRLeft / 2,
+                            0.75 * kDTheta* kRadiusRLeft / 2, kDTheta* kRadiusRLeft / 2},
+      std::array<double, 5>{0., 0.25 * kDTheta* kRadiusRRight / 2, 0.5 * kDTheta* kRadiusRRight / 2,
+                            0.75 * kDTheta* kRadiusRRight / 2, kDTheta* kRadiusRRight / 2}};
   const double kP0Sub{12.};
   const double kP1Sub{17.};
   const double kDeltaPSub{kP1Sub - kP0Sub};

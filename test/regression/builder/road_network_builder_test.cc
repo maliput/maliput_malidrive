@@ -669,7 +669,7 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
       {DirectionUsageRule::State::Type::kWithS, "WithS"},
   };
   // Verify coverage of the lanes in the RoadNetwork by DirectionUsage rules.
-  for (const auto lane : rn->road_geometry()->ById().GetLanes()) {
+  for (const auto& lane : rn->road_geometry()->ById().GetLanes()) {
     const auto results = rn->rulebook()->FindRules({{lane.first, {0.0, lane.second->length()}}}, 0);
 
     EXPECT_EQ(static_cast<int>(results.direction_usage.size()), 1);
@@ -695,7 +695,7 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
   }
 
   // Check directions and severity for lanes using FindRules
-  for (const auto reference_value : reference_values_) {
+  for (const auto& reference_value : reference_values_) {
     auto lane = rn->road_geometry()->ById().GetLane(reference_value.lane_id);
     ASSERT_NE(lane, nullptr);
     const SRange s_range(0., lane->length());
@@ -719,7 +719,7 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
   // } @
 
   // Rule coverage by LaneSRange.
-  for (const auto lane_id_lane : rn->road_geometry()->ById().GetLanes()) {
+  for (const auto& lane_id_lane : rn->road_geometry()->ById().GetLanes()) {
     const auto results = rn->rulebook()->FindRules({{lane_id_lane.first, {0.0, lane_id_lane.second->length()}}}, 0);
     EXPECT_TRUE(std::find_if(results.discrete_value_rules.begin(), results.discrete_value_rules.end(),
                              [](const auto& rule_id_rule) {
@@ -1135,7 +1135,7 @@ TEST_P(SpeedLimitRuleBuilderTest, SpeedLimitRulesTest) {
   ASSERT_NE(rn.get(), nullptr);
 
   // { @ Code in this block must be removed once the old SpeedLimitRules are deprecated.
-  for (const auto lane_id_lane : rn->road_geometry()->ById().GetLanes()) {
+  for (const auto& lane_id_lane : rn->road_geometry()->ById().GetLanes()) {
     // Gets the reference values for this LaneId.
     const SpeedLimitRuleReferenceValue reference_value =
         *(std::find_if(reference_values_.begin(), reference_values_.end(),
@@ -1174,7 +1174,7 @@ TEST_P(SpeedLimitRuleBuilderTest, SpeedLimitRulesTest) {
   // } @
 
   // Rule coverage by LaneSRange.
-  for (const auto lane_id_lane : rn->road_geometry()->ById().GetLanes()) {
+  for (const auto& lane_id_lane : rn->road_geometry()->ById().GetLanes()) {
     const auto results = rn->rulebook()->FindRules({{lane_id_lane.first, {0.0, lane_id_lane.second->length()}}}, 0);
     EXPECT_TRUE(
         std::find_if(results.range_value_rules.begin(), results.range_value_rules.end(), [](const auto& rule_id_rule) {

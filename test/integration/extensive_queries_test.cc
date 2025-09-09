@@ -81,7 +81,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     const std::unordered_map<maliput::api::LaneId, const maliput::api::Lane*> lane_map =
         rn_->road_geometry()->ById().GetLanes();
 
-    for (const auto lane_id_lane : lane_map) {
+    for (const auto& lane_id_lane : lane_map) {
       const maliput::api::Lane* lane = lane_id_lane.second;
       ASSERT_NE(lane, nullptr);
       const double length = lane->length();
@@ -217,7 +217,7 @@ class MalidriveExtensiveQueriesTest : public ::testing::Test {
     const std::unordered_map<maliput::api::LaneId, const maliput::api::Lane*> lane_map =
         rn_->road_geometry()->ById().GetLanes();
 
-    for (const auto lane_id_lane : lane_map) {
+    for (const auto& lane_id_lane : lane_map) {
       const maliput::api::Lane* lane = lane_id_lane.second;
       ASSERT_NE(lane, nullptr);
 

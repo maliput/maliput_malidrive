@@ -50,7 +50,7 @@ std::vector<DirectionUsageRule> DirectionUsageBuilder::operator()() {
   // information, see issue #211.
   const std::map<maliput::api::LaneId, const maliput::api::Lane*> sorted_lanes(lanes.begin(), lanes.end());
   std::vector<DirectionUsageRule> direction_usage_rules;
-  for (const auto lane_id_lane : sorted_lanes) {
+  for (const auto& lane_id_lane : sorted_lanes) {
     direction_usage_rules.push_back(BuildDirectionUsageRuleFor(lane_id_lane.second));
     maliput::log()->trace("Built DirectionUsageRule ", direction_usage_rules.back().id().string(), " for Lane ",
                           lane_id_lane.first.string(), ".");
