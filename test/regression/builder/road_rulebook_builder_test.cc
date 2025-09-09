@@ -197,7 +197,7 @@ class RoadRulebookBuilderRulesFromXodrTest : public RoadRulebookBuilderTest {
       {Rule::Id{maliput::SpeedLimitRuleTypeId().string() + "/0_0_1_1"},
        maliput::SpeedLimitRuleTypeId(),
        LaneSRoute{{{maliput::api::LaneId("0_0_1"), {0, 169.272}}}},
-       {{Rule::State::kStrict, {}, {}, {"m/s"}, {0.}, {17.8816}}}},
+       {{Rule::State::kStrict, {}, {}, {"m/s"}, 0., 17.8816}}},
   };
 };
 
@@ -271,7 +271,7 @@ class RoadRulebookBuilderRulesFromYamlFileTest : public RoadRulebookBuilderTest 
            {maliput::api::LaneId("82_4_-1"), {0, 0.17999}},
        }},
        {
-           {Rule::State::kStrict, {}, {}, "Urban Road", {0.}, {15000.}},
+           {Rule::State::kStrict, {}, {}, "Urban Road", 0., 15000.},
        }},
   };
 };
