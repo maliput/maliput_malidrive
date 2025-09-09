@@ -54,7 +54,7 @@ struct ParserConfiguration {
   bool allow_semantic_errors{true};
 
   /// When active, the parser will support userData XODR nodes.
-  bool support_user_data{false};
+  bool use_userdata_traffic_direction{false};
 };
 
 }  // namespace xodr

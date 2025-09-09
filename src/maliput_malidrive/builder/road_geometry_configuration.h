@@ -183,7 +183,7 @@ struct RoadGeometryConfiguration {
   // lane 1, the lane 2 will have an incorrect lane offset function.
   bool omit_nondrivable_lanes{true};
   double integrator_accuracy_multiplier{1.0};
-  bool support_user_data{false};
+  bool use_userdata_traffic_direction{false};
   /// @}
 };
 

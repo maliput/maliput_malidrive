@@ -69,7 +69,7 @@ class ParsingTests : public ::testing::Test {
   // Flag to allow schema errors.
   static constexpr bool kAllowSchemaErrors{true};
   // Flag to support userData XODR parsing.
-  static constexpr bool kSupportUserData{true};
+  static constexpr bool kUseUserDataTrafficDirection{true};
   // Flag to not support userData XODR parsing.
   static constexpr bool kDontSupportUserData{false};
 
@@ -956,8 +956,9 @@ TEST_F(ParsingTests, NodeParserLane) {
       kExpectedLane.dynamic_lane_type.value() ? "true" : "false", kExpectedLane.road_works.value() ? "true" : "false");
   std::cout << "XML description: " << xml_description << std::endl;
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
-                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kSupportUserData});
+  const NodeParser dut(
+      LoadXMLAndGetNodeByName(xml_description, Lane::kLaneTag),
+      {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kUseUserDataTrafficDirection});
   EXPECT_EQ(Lane::kLaneTag, dut.GetName());
   const Lane lane = dut.As<Lane>();
   EXPECT_EQ(kExpectedLane.id, lane.id);

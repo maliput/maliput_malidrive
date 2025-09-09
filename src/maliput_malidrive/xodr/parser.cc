@@ -645,7 +645,7 @@ Lane NodeParser::As() const {
 
   std::optional<std::string> user_data{std::nullopt};
   tinyxml2::XMLElement* user_data_element = nullptr;
-  if (parser_configuration_.support_user_data) {
+  if (parser_configuration_.use_userdata_traffic_direction) {
     user_data_element = element_->FirstChildElement(Lane::kUserData);
   }
   if (user_data_element != nullptr) {

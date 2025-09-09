@@ -281,7 +281,7 @@ struct XodrDirectionUsageRuleReferenceValue {
   std::string right_lane_direction_modifier;
   std::string left_lane_direction_rule_state;
   std::string right_lane_direction_rule_state;
-  bool support_user_data;
+  bool use_userdata_traffic_direction;
 };
 
 std::vector<XodrDirectionUsageRuleReferenceValue> InstatiateDirectionUsageRuleStateTypeParametersSupportingUserData() {
@@ -324,7 +324,7 @@ class DirectionUsageRuleStateTypeTest : public ::testing::TestWithParam<XodrDire
  protected:
   void SetUp() override {
     reference_value_ = GetParam();
-    parser_configuration_.support_user_data = reference_value_.support_user_data;
+    parser_configuration_.use_userdata_traffic_direction = reference_value_.use_userdata_traffic_direction;
   }
   const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
   xodr::ParserConfiguration parser_configuration_{kParserSTolerance};

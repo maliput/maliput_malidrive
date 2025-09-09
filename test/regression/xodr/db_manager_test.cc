@@ -105,7 +105,7 @@ constexpr bool kDontAllowSchemaErrors{false};
 // Flag to not allow semantic errors.
 constexpr bool kDontAllowSemanticErrors{false};
 // Flag to support user data.
-constexpr bool kSupportUserData{true};
+constexpr bool kUseUserDataTrafficDirection{true};
 
 // Tests the loading of a XODR description from a file.
 GTEST_TEST(DBManager, LoadFromFile) {
@@ -1694,7 +1694,7 @@ GTEST_TEST(DBManagerTest, Highway) {
 
   const std::unique_ptr<DBManager> dut = LoadDataBaseFromFile(
       utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder),
-      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kSupportUserData});
+      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kUseUserDataTrafficDirection});
 
   const std::map<RoadHeader::Id, RoadHeader> road_headers = dut->GetRoadHeaders();
   EXPECT_EQ(NumOfRoads, static_cast<int>(road_headers.size()));

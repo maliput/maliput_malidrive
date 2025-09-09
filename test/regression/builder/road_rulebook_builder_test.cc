@@ -132,9 +132,10 @@ inline ::testing::AssertionResult IsEqual(const T& rule_a, const T& rule_b, doub
 class RoadRulebookBuilderTest : public ::testing::Test {
  public:
   void SetUp() override {
-    auto manager = xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file,
-                                              {constants::kLinearTolerance, allow_schema_errors_,
-                                               allow_semantic_errors_, road_geometry_configuration_.support_user_data});
+    auto manager =
+        xodr::LoadDataBaseFromFile(road_geometry_configuration_.opendrive_file,
+                                   {constants::kLinearTolerance, allow_schema_errors_, allow_semantic_errors_,
+                                    road_geometry_configuration_.use_userdata_traffic_direction});
     road_geometry_ = RoadGeometryBuilder(std::move(manager), road_geometry_configuration_)();
     rule_registry_ = RuleRegistryBuilder(road_geometry_.get(), rule_registry_path)();
   }
@@ -149,7 +150,7 @@ class RoadRulebookBuilderTest : public ::testing::Test {
   const RoadGeometryConfiguration road_geometry_configuration_{RoadGeometryConfiguration::FromMap({
       {"opendrive_file", xodr_file_path},
       {"omit_nondrivable_lanes", "false"},
-      {"support_user_data", "true"},
+      {"use_userdata_traffic_direction", "true"},
   })};
   const bool allow_schema_errors_{true};
   const bool allow_semantic_errors_{true};

@@ -41,7 +41,7 @@ xodr::ParserConfiguration XodrParserConfigurationFromRoadGeometryConfiguration(
           (rg_config.standard_strictness_policy &
            RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors) ==
               RoadGeometryConfiguration::StandardStrictnessPolicy::kAllowSemanticErrors,
-          rg_config.support_user_data};
+          rg_config.use_userdata_traffic_direction};
 }
 
 }  // namespace builder
