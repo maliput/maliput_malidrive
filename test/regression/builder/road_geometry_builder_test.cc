@@ -523,9 +523,8 @@ class RoadGeometryBuilderSequentialBuildPolicyTest : public RoadGeometryBuilderB
 
 TEST_P(RoadGeometryBuilderSequentialBuildPolicyTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderSequentialBuildPolicyTestGroup,
-                         RoadGeometryBuilderSequentialBuildPolicyTest,
-                         ::testing::ValuesIn(InstantiateBuilderParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderSequentialBuildPolicyTestGroup, RoadGeometryBuilderSequentialBuildPolicyTest,
+                        ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
 // @{ Runs the Builder with a parallel lane building process using an automatic selection of the number of threads.
@@ -541,9 +540,9 @@ class RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest : public RoadGe
 
 TEST_P(RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTestGroup,
-                         RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest,
-                         ::testing::ValuesIn(InstantiateBuilderParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTestGroup,
+                        RoadGeometryBuilderParallelBuildPolicyAutomaticThreadsTest,
+                        ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
 // @{ Runs the Builder with a parallel lane building process using a manual selection of the number of threads.
@@ -559,9 +558,9 @@ class RoadGeometryBuilderParallelBuildPolicyManualThreadsTest : public RoadGeome
 
 TEST_P(RoadGeometryBuilderParallelBuildPolicyManualThreadsTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderParallelBuildPolicyManualThreadsTestGroup,
-                         RoadGeometryBuilderParallelBuildPolicyManualThreadsTest,
-                         ::testing::ValuesIn(InstantiateBuilderParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderParallelBuildPolicyManualThreadsTestGroup,
+                        RoadGeometryBuilderParallelBuildPolicyManualThreadsTest,
+                        ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
 // @{ Runs the Builder with a single linear tolerance option.
@@ -575,9 +574,8 @@ class RoadGeometryBuilderSingleLinearToleranceTest : public RoadGeometryBuilderB
 
 TEST_P(RoadGeometryBuilderSingleLinearToleranceTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderSingleLinearToleranceTestGroup,
-                         RoadGeometryBuilderSingleLinearToleranceTest,
-                         ::testing::ValuesIn(InstantiateBuilderParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderSingleLinearToleranceTestGroup, RoadGeometryBuilderSingleLinearToleranceTest,
+                        ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
 // @{ Runs the Builder with an automatic tolerance selection.
@@ -596,8 +594,8 @@ class RoadGeometryBuilderLinearToleranceRangeTest : public RoadGeometryBuilderBa
 // Tests that the RoadGeometry is constructed.
 TEST_P(RoadGeometryBuilderLinearToleranceRangeTest, BuildProcessTest) { RunTest(); }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderLinearToleranceRangeTestGroup, RoadGeometryBuilderLinearToleranceRangeTest,
-                         ::testing::ValuesIn(InstantiateBuilderParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderLinearToleranceRangeTestGroup, RoadGeometryBuilderLinearToleranceRangeTest,
+                        ::testing::ValuesIn(InstantiateBuilderParameters()));
 // @}
 
 // @{ Runs the Builder with the `omit_nondrivable_lanes` flag enabled.
@@ -685,9 +683,9 @@ std::vector<RoadGeometryBuilderTestParameters> InstantiateBuilderNonDrivableLane
 
 TEST_P(RoadGeometryBuilderOmitNonDrivableLanesPolicyTest, JunctionSegmentLaneTest) { RunTest(); }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderOmitNonDrivableLanesPolicyTestGroup,
-                         RoadGeometryBuilderOmitNonDrivableLanesPolicyTest,
-                         ::testing::ValuesIn(InstantiateBuilderNonDrivableLanesParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderOmitNonDrivableLanesPolicyTestGroup,
+                        RoadGeometryBuilderOmitNonDrivableLanesPolicyTest,
+                        ::testing::ValuesIn(InstantiateBuilderNonDrivableLanesParameters()));
 // @}
 
 // Alternative to BranchPoint that instead of using Lane pointers, uses LaneIds
@@ -1010,8 +1008,8 @@ TEST_P(BuilderBranchPointTest, LaneAndBranchPointTest) {
   }
 }
 
-INSTANTIATE_TEST_SUITE_P(BuilderBranchPointTestGroup, BuilderBranchPointTest,
-                         ::testing::ValuesIn(InstantiateBuilderBranchPointParameters()));
+INSTANTIATE_TEST_CASE_P(BuilderBranchPointTestGroup, BuilderBranchPointTest,
+                        ::testing::ValuesIn(InstantiateBuilderBranchPointParameters()));
 
 // Evaluates lane and segment bound computation.
 // @{
@@ -1072,8 +1070,8 @@ TEST_P(RoadGeometryBuilderSurfaceBoundariesTest, LaneBoundaries) {
                                            lane_left->segment_bounds(kSStart), kLinearTolerance)));
 }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryBuilderSurfaceBoundariesTestGroup, RoadGeometryBuilderSurfaceBoundariesTest,
-                         ::testing::ValuesIn(InstantiateBuilderSurfaceBoundariesParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryBuilderSurfaceBoundariesTestGroup, RoadGeometryBuilderSurfaceBoundariesTest,
+                        ::testing::ValuesIn(InstantiateBuilderSurfaceBoundariesParameters()));
 //@}
 
 // Holds the parameters for checking the road geometry when non-drivable lanes are omitted.
@@ -1209,8 +1207,8 @@ TEST_P(RoadGeometryOmittingNonDrivableLanesTest, InertialPositionAndRoundTripPos
       IsLanePositionClose(GetParam().lane_position, result.road_position.pos, constants::kLinearTolerance)));
 }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryOmittingNonDrivableLanesTestGroup, RoadGeometryOmittingNonDrivableLanesTest,
-                         ::testing::ValuesIn(InstantiateRoadGeometryNonDrivableLanesParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryOmittingNonDrivableLanesTestGroup, RoadGeometryOmittingNonDrivableLanesTest,
+                        ::testing::ValuesIn(InstantiateRoadGeometryNonDrivableLanesParameters()));
 
 class RoadGeometryNegativeLaneWidthTest : public ::testing::Test {
  protected:
@@ -1293,10 +1291,10 @@ TEST_P(RoadGeometryNonContiguousInNonDrivableLanesTest, CheckG1ContiguityEnforce
       rg_config)());
 }
 
-INSTANTIATE_TEST_SUITE_P(CheckG1ContiguityEnforcementGroup, RoadGeometryNonContiguousInNonDrivableLanesTest,
-                         ::testing::Values("GapInElevationNonDrivableRoad.xodr",
-                                           "GapInSuperelevationNonDrivableRoad.xodr",
-                                           "GapInLaneWidthNonDrivableLane.xodr"));
+INSTANTIATE_TEST_CASE_P(CheckG1ContiguityEnforcementGroup, RoadGeometryNonContiguousInNonDrivableLanesTest,
+                        ::testing::Values("GapInElevationNonDrivableRoad.xodr",
+                                          "GapInSuperelevationNonDrivableRoad.xodr",
+                                          "GapInLaneWidthNonDrivableLane.xodr"));
 
 // Verifies RoadGeometryBuilder behavior for different combinations of
 // linear_tolerance and max_linear_tolerance parameters.

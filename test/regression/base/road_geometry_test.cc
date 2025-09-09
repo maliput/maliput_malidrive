@@ -246,15 +246,15 @@ TEST_P(RoadGeometryGetMaliputLaneFromOpenScenarioLanePosition, GetMaliputLaneFro
   EXPECT_EQ(mali_lane->id(), param_.expected_lane_id);
 }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryGetMaliputLaneFromOpenScenarioLanePositionTests,
-                         RoadGeometryGetMaliputLaneFromOpenScenarioLanePosition,
-                         ::testing::ValuesIn(std::vector<OpenScenarioLanePositionMaliputLane>{
-                             {"LineMultipleSections.xodr", {1, 0., -1, 0.}, maliput::api::LaneId{"1_0_-1"}},
-                             {"LineMultipleSections.xodr", {1, 33.3, -1, 0.}, maliput::api::LaneId{"1_1_-1"}},
-                             {"LineMultipleSections.xodr", {1, 50., -1, 0.}, maliput::api::LaneId{"1_1_-1"}},
-                             {"LineMultipleSections.xodr", {1, 66.6, -1, 0.}, maliput::api::LaneId{"1_2_-1"}},
-                             {"LineMultipleSections.xodr", {1, 100., -1, 0.}, maliput::api::LaneId{"1_2_-1"}},
-                         }));
+INSTANTIATE_TEST_CASE_P(RoadGeometryGetMaliputLaneFromOpenScenarioLanePositionTests,
+                        RoadGeometryGetMaliputLaneFromOpenScenarioLanePosition,
+                        ::testing::ValuesIn(std::vector<OpenScenarioLanePositionMaliputLane>{
+                            {"LineMultipleSections.xodr", {1, 0., -1, 0.}, maliput::api::LaneId{"1_0_-1"}},
+                            {"LineMultipleSections.xodr", {1, 33.3, -1, 0.}, maliput::api::LaneId{"1_1_-1"}},
+                            {"LineMultipleSections.xodr", {1, 50., -1, 0.}, maliput::api::LaneId{"1_1_-1"}},
+                            {"LineMultipleSections.xodr", {1, 66.6, -1, 0.}, maliput::api::LaneId{"1_2_-1"}},
+                            {"LineMultipleSections.xodr", {1, 100., -1, 0.}, maliput::api::LaneId{"1_2_-1"}},
+                        }));
 
 class RoadGeometryOpenScenarioConversionsArcLane : public ::testing::Test {
  protected:
@@ -1308,8 +1308,8 @@ TEST_P(RoadGeometryDoBackendCustomCommand, DoBackendCustomCommand) {
   EXPECT_EQ(input_output.expected_output, result);
 }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryDoBackendCustomCommandGroup, RoadGeometryDoBackendCustomCommand,
-                         ::testing::ValuesIn(InstanciateCommandsInputOutputsParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryDoBackendCustomCommandGroup, RoadGeometryDoBackendCustomCommand,
+                        ::testing::ValuesIn(InstanciateCommandsInputOutputsParameters()));
 
 // Holds the input and expected output for the DoBackendCustomCommand test.
 struct GeoReferenceInfoParams {
@@ -1338,8 +1338,8 @@ TEST_P(RoadGeometryGeoReferenceInfo, DoGeoReferenceInfo) {
   EXPECT_EQ(param.expected_output, result);
 }
 
-INSTANTIATE_TEST_SUITE_P(RoadGeometryGeoReferenceInfoGroup, RoadGeometryGeoReferenceInfo,
-                         ::testing::ValuesIn(InstanciateGeoReferenceParameters()));
+INSTANTIATE_TEST_CASE_P(RoadGeometryGeoReferenceInfoGroup, RoadGeometryGeoReferenceInfo,
+                        ::testing::ValuesIn(InstanciateGeoReferenceParameters()));
 
 class ShortStraightLanesMaliputRoadPositionToOpenScenarioLanePosition : public ::testing::Test {
  protected:

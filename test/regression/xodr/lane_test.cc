@@ -110,8 +110,8 @@ GTEST_TEST(LaneTypeTest, StrToTypeThrowsWithUnknownToken) {
   EXPECT_THROW(Lane::str_to_type(kWrongValue), maliput::common::assertion_error);
 }
 
-INSTANTIATE_TEST_SUITE_P(GroupTypeStringConversionTest, TypeStringConversionTest,
-                         ::testing::ValuesIn(GetTestingLaneTypeAndStringTypes()));
+INSTANTIATE_TEST_CASE_P(GroupTypeStringConversionTest, TypeStringConversionTest,
+                        ::testing::ValuesIn(GetTestingLaneTypeAndStringTypes()));
 
 // Holds the Lane::Advisory and its string representation.
 struct LaneAdvisoryAndStrAdvisory {
@@ -144,8 +144,8 @@ GTEST_TEST(LaneAdvisoryTest, StrToAdvisoryThrowsWithUnknownToken) {
   EXPECT_THROW(Lane::str_to_advisory(kWrongValue), maliput::common::assertion_error);
 }
 
-INSTANTIATE_TEST_SUITE_P(GroupAdvisoryStringConversionTest, AdvisoryStringConversionTest,
-                         ::testing::ValuesIn(GetTestingLaneAdvisoryAndStringAdvisories()));
+INSTANTIATE_TEST_CASE_P(GroupAdvisoryStringConversionTest, AdvisoryStringConversionTest,
+                        ::testing::ValuesIn(GetTestingLaneAdvisoryAndStringAdvisories()));
 
 // Holds the Lane::Direction and its string representation.
 struct LaneDirectionAndStrDirection {
@@ -177,8 +177,8 @@ GTEST_TEST(LaneDirectionTest, StrToDirectionThrowsWithUnknownToken) {
   EXPECT_THROW(Lane::str_to_direction(kWrongValue), maliput::common::assertion_error);
 }
 
-INSTANTIATE_TEST_SUITE_P(GroupDirectionStringConversionTest, DirectionStringConversionTest,
-                         ::testing::ValuesIn(GetTestingLaneDirectionAndStringDirections()));
+INSTANTIATE_TEST_CASE_P(GroupDirectionStringConversionTest, DirectionStringConversionTest,
+                        ::testing::ValuesIn(GetTestingLaneDirectionAndStringDirections()));
 
 GTEST_TEST(Lane, EqualityOperator) {
   const LaneLink lane_link{LaneLink::LinkAttributes{LaneLink::LinkAttributes::Id("35")},
