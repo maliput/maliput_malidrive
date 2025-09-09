@@ -52,6 +52,9 @@ struct ParserConfiguration {
   /// - Non reciprocal Road linkage.
   /// - Non reciprocal Lane linkage within a Road.
   bool allow_semantic_errors{true};
+
+  /// When active, the parser will support userData XODR nodes.
+  bool use_userdata_traffic_direction{false};
 };
 
 }  // namespace xodr

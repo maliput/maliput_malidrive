@@ -47,6 +47,8 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
   const builder::RoadGeometryConfiguration::StandardStrictnessPolicy kStandardStrictnessPolicy{
       builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive};
   const bool kOmitNondrivableLanes{false};
+  const double kIntegratorAccuracyMultiplier{1.0};
+  const bool kUseUserDataTrafficDirection{true};
 
   const static std::unordered_map<std::string, builder::RoadGeometryConfiguration> kXodrConfigurations{
       {"SingleLane.xodr",
@@ -60,7 +62,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"ArcLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"ArcSingleLane"},
@@ -72,7 +76,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SpiralRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SpiralRoad"},
@@ -84,7 +90,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SmallTownRoads.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SmallTownRoads"},
@@ -96,7 +104,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"BikingLineLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"BikingLineLane"},
@@ -108,7 +118,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"DisconnectedRoadInJunction.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"DisconnectedRoadInJunction"},
@@ -120,7 +132,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SShapeRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SShapeRoad"},
@@ -132,7 +146,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LShapeRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LShapeRoad"},
@@ -144,7 +160,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LShapeRoadVariableLanes.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LShapeRoadVariableLanes"},
@@ -156,7 +174,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LineMultipleSections.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineMultipleSections"},
@@ -168,7 +188,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LineMultipleSectionsMoreCases.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineMultipleSectionsMoreCases"},
@@ -180,7 +202,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LineMultipleSpeeds.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineMultipleSpeeds"},
@@ -192,7 +216,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LineVariableOffset.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineVariableOffset"},
@@ -204,7 +230,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LineVariableWidth.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LineVariableWidth"},
@@ -216,7 +244,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"LongRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"LongRoad"},
@@ -228,7 +258,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"ParkingGarageRamp.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"ParkingGarageRamp"},
@@ -240,7 +272,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"RRLongRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"RRLongRoad"},
@@ -252,7 +286,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SShapeSuperelevatedRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SShapeSuperelevatedRoad"},
@@ -264,7 +300,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"TShapeRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"TShapeRoad"},
@@ -276,7 +314,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"Highway.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"Highway"},
@@ -288,7 +328,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"Figure8.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"Figure8"},
@@ -300,7 +342,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"RRFigure8.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"RRFigure8"},
@@ -312,7 +356,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"StraightForward.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"StraightForward"},
@@ -324,7 +370,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"StraightRoadMultipleLaneDirections.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"StraightRoadMultipleLaneDirections"},
@@ -336,7 +384,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadComplexDescription.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadComplexDescription"},
@@ -348,7 +398,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadComplexDescription2.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadComplexDescription2"},
@@ -360,7 +412,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadNanValues.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadNanValues"},
@@ -372,7 +426,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadNegativeWidth.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadNegativeWidth"},
@@ -384,7 +440,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadHighCoefficients.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadHighCoefficients"},
@@ -396,7 +454,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadTinyGeometry.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadTinyGeometry"},
@@ -408,7 +468,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"SingleRoadTwoGeometries.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"SingleRoadTwoGeometries"},
@@ -420,7 +482,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"FlatTown01.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"FlatTown01"},
@@ -432,7 +496,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"Town01.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town01"},
                                                          {"Town01.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
@@ -443,7 +509,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kBuildPolicy,
                                                          kSimplificationPolicy,
                                                          kStandardStrictnessPolicy,
-                                                         kOmitNondrivableLanes}},
+                                                         kOmitNondrivableLanes,
+                                                         kIntegratorAccuracyMultiplier,
+                                                         kUseUserDataTrafficDirection}},
       {"Town02.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town02"},
                                                          {"Town02.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
@@ -454,7 +522,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kBuildPolicy,
                                                          kSimplificationPolicy,
                                                          kStandardStrictnessPolicy,
-                                                         kOmitNondrivableLanes}},
+                                                         kOmitNondrivableLanes,
+                                                         kIntegratorAccuracyMultiplier,
+                                                         kUseUserDataTrafficDirection}},
       {"Town03.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town03"},
                                                          {"Town03.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
@@ -465,7 +535,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kBuildPolicy,
                                                          kSimplificationPolicy,
                                                          kStandardStrictnessPolicy,
-                                                         kOmitNondrivableLanes}},
+                                                         kOmitNondrivableLanes,
+                                                         kIntegratorAccuracyMultiplier,
+                                                         kUseUserDataTrafficDirection}},
       {"Town04.xodr",
        /* linear tolerance restricted by 0.052m elevation gap in Road 735 */
        builder::RoadGeometryConfiguration{
@@ -478,7 +550,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"Town05.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town05"},
                                                          {"Town05.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
@@ -489,7 +563,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kBuildPolicy,
                                                          kSimplificationPolicy,
                                                          kStandardStrictnessPolicy,
-                                                         kOmitNondrivableLanes}},
+                                                         kOmitNondrivableLanes,
+                                                         kIntegratorAccuracyMultiplier,
+                                                         kUseUserDataTrafficDirection}},
       {"Town06.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town06"},
                                                          {"Town06.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
@@ -500,7 +576,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kBuildPolicy,
                                                          kSimplificationPolicy,
                                                          kStandardStrictnessPolicy,
-                                                         kOmitNondrivableLanes}},
+                                                         kOmitNondrivableLanes,
+                                                         kIntegratorAccuracyMultiplier,
+                                                         kUseUserDataTrafficDirection}},
       {"Town07.xodr", builder::RoadGeometryConfiguration{maliput::api::RoadGeometryId{"Town07"},
                                                          {"Town07.xodr"},
                                                          builder::RoadGeometryConfiguration::BuildTolerance{
@@ -511,7 +589,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kBuildPolicy,
                                                          kSimplificationPolicy,
                                                          kStandardStrictnessPolicy,
-                                                         kOmitNondrivableLanes}},
+                                                         kOmitNondrivableLanes,
+                                                         kIntegratorAccuracyMultiplier,
+                                                         kUseUserDataTrafficDirection}},
       {"GapInElevationNonDrivableRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"GapInElevationNonDrivableRoad"},
@@ -523,7 +603,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"GapInSuperelevationNonDrivableRoad.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"GapInSuperelevationNonDrivableRoad"},
@@ -535,7 +617,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"GapInLaneWidthNonDrivableLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"GapInLaneWidthNonDrivableLane"},
@@ -547,7 +631,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
       {"GapInLaneWidthDrivableLane.xodr",
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"GapInLaneWidthDrivableLane"},
@@ -559,7 +645,9 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kBuildPolicy,
            kSimplificationPolicy,
            kStandardStrictnessPolicy,
-           kOmitNondrivableLanes}},
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
   };
   return kXodrConfigurations.find(xodr_file_name) != kXodrConfigurations.end()
              ? std::make_optional<builder::RoadGeometryConfiguration>(kXodrConfigurations.at(xodr_file_name))
