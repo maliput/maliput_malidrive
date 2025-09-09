@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.10.2 (2025-09-09)
+-------------------
+* Point to maliput 1.7.2 release.
+* Contributors: Franco Cipollone
+
 0.10.1 (2025-09-03)
 -------------------
 * Add custom error types to RangeValidator instances. (`#342 <https://github.com/maliput/maliput_malidrive/issues/342>`_)
