@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.11.1 (2025-09-10)
+-------------------
+* Move junction collection from unordered_map to map (`#348 <https://github.com/maliput/maliput_malidrive/issues/348>`_)
+* Contributors: Franco Cipollone
+
 0.11.0 (2025-09-09)
 -------------------
 * Solve some macos compilation issues (`#346 <https://github.com/maliput/maliput_malidrive/issues/346>`_)
