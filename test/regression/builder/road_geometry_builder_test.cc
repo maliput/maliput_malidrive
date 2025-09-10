@@ -1360,6 +1360,36 @@ TEST_F(ToleranceSelectionPolicyTest, InvalidLinearToleranceRange) {
       maliput::common::road_geometry_construction_error);
 }
 
+class BranchPointDefaultTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    auto manager = xodr::LoadDataBaseFromFile(
+        utility::FindResourceInPath(road_geometry_configuration_.opendrive_file, kMalidriveResourceFolder),
+        {kLinearTolerance});
+    rg_ = builder::RoadGeometryBuilder(std::move(manager), road_geometry_configuration_)();
+  }
+  static constexpr double kLinearTolerance{1e-6};
+  RoadGeometryConfiguration road_geometry_configuration_{GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value()};
+  std::unique_ptr<const maliput::api::RoadGeometry> rg_;
+};
+
+TEST_F(BranchPointDefaultTest, DefaultBranchPoint) {
+  ASSERT_NE(rg_, nullptr);
+  const auto bp = rg_->ById().GetBranchPoint(maliput::api::BranchPointId("2"));
+  ASSERT_NE(bp, nullptr);
+  const auto a_side = bp->GetASide();
+  ASSERT_NE(a_side, nullptr);
+  EXPECT_EQ(a_side->size(), 1);
+  const auto lane_end = a_side->get(0);
+  const auto confluent_branches = bp->GetConfluentBranches(lane_end);
+  EXPECT_EQ(confluent_branches->size(), 1);
+  const auto ongoing_branches = bp->GetOngoingBranches(lane_end);
+  EXPECT_EQ(ongoing_branches->size(), 2);
+  const auto default_lane_end = bp->GetDefaultBranch(lane_end);
+  ASSERT_NE(default_lane_end, std::nullopt);
+  EXPECT_EQ(default_lane_end->lane->id(), LaneId("9_0_-1"));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
