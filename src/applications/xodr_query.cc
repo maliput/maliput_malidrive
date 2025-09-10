@@ -186,8 +186,7 @@ class DBManagerQuery {
   /// @param junction_id The malidrive::xodr::Junction::Id of the junction to
   /// look for.
   void FindJunction(const malidrive::xodr::Junction::Id& junction_id) const {
-    const std::unordered_map<malidrive::xodr::Junction::Id, malidrive::xodr::Junction>& junctions =
-        db_manager_->GetJunctions();
+    const std::map<malidrive::xodr::Junction::Id, malidrive::xodr::Junction>& junctions = db_manager_->GetJunctions();
     const auto junction_it = junctions.find(junction_id);
     if (junction_it == junctions.end()) {
       (*out_) << "JunctionId: " << junction_id.string() << " could not be found." << std::endl;

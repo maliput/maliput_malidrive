@@ -141,7 +141,7 @@ class DBManager::Impl {
   const std::map<RoadHeader::Id, RoadHeader>& get_road_headers() const { return road_headers_; }
 
   // @returns A constant reference to junction map.
-  const std::unordered_map<Junction::Id, Junction>& get_junctions() const { return junctions_; }
+  const std::map<Junction::Id, Junction>& get_junctions() const { return junctions_; }
 
   // @returns Data from the shortest Geometry in the entire XODR description.
   const XodrGeometryLengthData& get_shortest_geometry() const { return shortest_geometry_; }
@@ -873,7 +873,7 @@ class DBManager::Impl {
   // Holds the RoadHeaders of the XODR map.
   std::map<RoadHeader::Id, RoadHeader> road_headers_{};
   // Holds the Junctions of the XODR map.
-  std::unordered_map<Junction::Id, Junction> junctions_{};
+  std::map<Junction::Id, Junction> junctions_{};
   // {@ Holds data of the shortest and largest geometries.
   XodrGeometryLengthData shortest_geometry_{RoadHeader::Id("none"), 0, std::numeric_limits<double>::infinity()};
   XodrGeometryLengthData largest_geometry_{RoadHeader::Id("none"), 0, 0.};
@@ -913,7 +913,7 @@ const Header& DBManager::GetXodrHeader() const { return impl_->get_header(); }
 
 const std::map<RoadHeader::Id, RoadHeader>& DBManager::GetRoadHeaders() const { return impl_->get_road_headers(); };
 
-const std::unordered_map<Junction::Id, Junction>& DBManager::GetJunctions() const { return impl_->get_junctions(); };
+const std::map<Junction::Id, Junction>& DBManager::GetJunctions() const { return impl_->get_junctions(); };
 
 const DBManager::XodrGeometryLengthData& DBManager::GetShortestGeometry() const {
   return impl_->get_shortest_geometry();
