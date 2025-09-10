@@ -1387,7 +1387,7 @@ TEST_F(BranchPointDefaultTest, DefaultBranchPoint) {
   EXPECT_EQ(ongoing_branches->size(), 2);
   const auto default_lane_end = bp->GetDefaultBranch(lane_end);
   ASSERT_NE(default_lane_end, std::nullopt);
-  EXPECT_EQ(default_lane_end->lane->id(), LaneId("9_0_-1"));
+  EXPECT_EQ(default_lane_end->lane->id(), LaneId("5_0_-1"));
 }
 
 }  // namespace

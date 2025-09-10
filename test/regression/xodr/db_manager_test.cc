@@ -1380,7 +1380,7 @@ GTEST_TEST(DBManagerTest, GetJunctions) {
                                     {kConnection4.id, kConnection4},
                                     {kConnection5.id, kConnection5}} /* connections */};
 
-  const std::unordered_map<Junction::Id, Junction> kExpectedJunctions{{kExpectedJunction.id, kExpectedJunction}};
+  const std::map<Junction::Id, Junction> kExpectedJunctions{{kExpectedJunction.id, kExpectedJunction}};
   const std::string kXodrFile = "TShapeRoad.xodr";
   // If I decrease even more the tolerance, the TShapeRoad.xodr's geometries aren't contiguous in terms of the arc
   // length parameter.
@@ -1388,7 +1388,7 @@ GTEST_TEST(DBManagerTest, GetJunctions) {
   const std::unique_ptr<DBManager> dut =
       LoadDataBaseFromFile(utility::FindResourceInPath(kXodrFile, kMalidriveResourceFolder), {1e-6});
 
-  const std::unordered_map<Junction::Id, Junction> junctions = dut->GetJunctions();
+  const std::map<Junction::Id, Junction> junctions = dut->GetJunctions();
 
   EXPECT_EQ(kExpectedJunctions, junctions);
 }
@@ -1700,7 +1700,7 @@ GTEST_TEST(DBManagerTest, Highway) {
   EXPECT_EQ(NumOfRoads, static_cast<int>(road_headers.size()));
   EXPECT_EQ(kExpectedRoadHeader, road_headers.at(kExpectedRoadHeader.id));
 
-  const std::unordered_map<Junction::Id, Junction> junctions = dut->GetJunctions();
+  const std::map<Junction::Id, Junction> junctions = dut->GetJunctions();
   EXPECT_EQ(NumOfJunctions, static_cast<int>(junctions.size()));
   EXPECT_EQ(kExpectedJunction17, junctions.at(kExpectedJunction17.id));
 }

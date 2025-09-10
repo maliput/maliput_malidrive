@@ -31,7 +31,6 @@
 
 #include <map>
 #include <memory>
-#include <unordered_map>
 #include <utility>
 
 #include <tinyxml2.h>
@@ -144,7 +143,7 @@ class DBManager {
   const std::map<RoadHeader::Id, RoadHeader>& GetRoadHeaders() const;
 
   /// @returns A xodr::Junction map which contains all the junction information about the XODR description.
-  const std::unordered_map<Junction::Id, Junction>& GetJunctions() const;
+  const std::map<Junction::Id, Junction>& GetJunctions() const;
 
   /// @{ Xodr geometry introspection queries.
 

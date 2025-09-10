@@ -1098,7 +1098,7 @@ Junction NodeParser::As() const {
     }
     maliput::log()->debug(msg);
   }
-  std::unordered_map<Connection::Id, Connection> connections;
+  std::map<Connection::Id, Connection> connections;
   while (connection_element) {
     const auto connection = NodeParser(connection_element, parser_configuration_).As<Connection>();
     if (connections.find(connection.id) != connections.end()) {

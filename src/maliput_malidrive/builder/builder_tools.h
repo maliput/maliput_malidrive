@@ -117,7 +117,7 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForConnectingRoad(
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers,
-    const std::unordered_map<xodr::Junction::Id, xodr::Junction>& junctions, XodrConnectionType connection_type);
+    const std::map<xodr::Junction::Id, xodr::Junction>& junctions, XodrConnectionType connection_type);
 
 /// Searches which LaneEnds connect to `xodr_lane_properties.lane` in `connection_type` direction
 /// considering the LaneEnd belongs to an external interface. The XODR Road that contains the LaneEnd is

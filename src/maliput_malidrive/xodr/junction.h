@@ -31,7 +31,6 @@
 
 #include <optional>
 #include <ostream>
-#include <unordered_map>
 
 #include <maliput/api/type_specific_identifier.h>
 
@@ -91,7 +90,7 @@ struct Junction {
   /// Type of the junction, required for "virtual" junctions only.
   std::optional<Type> type{Type::kDefault};
   /// Connections within the junction.
-  std::unordered_map<Connection::Id, Connection> connections{};
+  std::map<Connection::Id, Connection> connections{};
 };
 
 /// Streams a string representation of @p junction into @p out. Returns
