@@ -729,7 +729,7 @@ TEST_P(DirectionUsageTest, DirectionUsageRuleTest) {
   // Rule construction.
   for (const DirectionUsageReferenceValue& reference_value : reference_values_) {
     const Rule::Id rule_id = GetRuleIdFrom(maliput::DirectionUsageRuleTypeId(), reference_value.lane_id);
-    const DiscreteValueRule dut = rn->rulebook()->GetDiscreteValueRule(rule_id);
+    const DiscreteValueRule dut = rn->rulebook()->GetDiscreteValueRule(rule_id).value();
     EXPECT_EQ(dut.id(), rule_id);
     EXPECT_EQ(dut.type_id(), maliput::DirectionUsageRuleTypeId());
     EXPECT_EQ(static_cast<int>(dut.zone().ranges().size()), 1);
@@ -857,7 +857,7 @@ TEST_P(VehicleRulesTest, VehicleRulesTest) {
   // Evaluates rule attributes and retrieves them by Rule::Id and LaneSRange.
   for (const VehicleRulesReferenceValue& reference_value : reference_values_) {
     const Rule::Id rule_id(GetRuleIdFrom(reference_value.rule_type, reference_value.lane_id));
-    test_rule(rn->rulebook()->GetDiscreteValueRule(rule_id), reference_value);
+    test_rule(rn->rulebook()->GetDiscreteValueRule(rule_id).value(), reference_value);
 
     const RoadRulebook::QueryResults query_result =
         rn->rulebook()->FindRules({LaneSRange(reference_value.lane_id, reference_value.s_range)}, kLinearTolerance);
@@ -938,7 +938,7 @@ TEST_P(VehicleRulesStateProviderTest, DiscreteValueRuleStateProviderTest) {
 
   for (const VehicleRulesStateProviderReferenceValue& reference_value : reference_values_) {
     const Rule::Id rule_id(GetRuleIdFrom(reference_value.rule_type, reference_value.lane_id));
-    const DiscreteValueRule rule = rn->rulebook()->GetDiscreteValueRule(rule_id);
+    const DiscreteValueRule rule = rn->rulebook()->GetDiscreteValueRule(rule_id).value();
 
     const std::optional<DiscreteValueRuleStateProvider::StateResult> state_result =
         rn->discrete_value_rule_state_provider()->GetState(rule_id);
@@ -1186,7 +1186,7 @@ TEST_P(SpeedLimitRuleBuilderTest, SpeedLimitRulesTest) {
     for (const auto& index_value_range : reference_value.index_values_ranges) {
       const Rule::Id rule_id =
           GetRuleIdFrom(maliput::SpeedLimitRuleTypeId(), reference_value.lane_id, index_value_range.first);
-      const RangeValueRule dut = rn->rulebook()->GetRangeValueRule(rule_id);
+      const RangeValueRule dut = rn->rulebook()->GetRangeValueRule(rule_id).value();
       EXPECT_EQ(dut.id(), rule_id);
       EXPECT_EQ(dut.type_id(), maliput::SpeedLimitRuleTypeId());
       EXPECT_EQ(static_cast<int>(dut.zone().ranges().size()), 1);
@@ -1268,7 +1268,7 @@ TEST_P(RangeValueRuleStateProviderTest, RangeValueRuleStateProviderTest) {
 
   for (const RangeValueRuleStateProviderReferenceValue& reference_value : reference_values_) {
     const Rule::Id rule_id(GetRuleIdFrom(reference_value.rule_type, reference_value.lane_id, 1));
-    const RangeValueRule rule = rn->rulebook()->GetRangeValueRule(rule_id);
+    const RangeValueRule rule = rn->rulebook()->GetRangeValueRule(rule_id).value();
 
     const std::optional<RangeValueRuleStateProvider::StateResult> state_result =
         rn->range_value_rule_state_provider()->GetState(rule_id);
