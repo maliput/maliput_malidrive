@@ -210,14 +210,15 @@ TEST_F(RoadRulebookBuilderRulesFromXodrTest, VerifyRulesObtainedFromXODR) {
   road_rulebook_ = RoadRuleBookBuilder(road_geometry_.get(), rule_registry_.get(), std::nullopt)();
   for (const auto& expected_rule : expected_discrete_value_rules) {
     std::unique_ptr<DiscreteValueRule> rule;
-    EXPECT_NO_THROW(rule =
-                        std::make_unique<DiscreteValueRule>(road_rulebook_->GetDiscreteValueRule(expected_rule.id())));
+    EXPECT_NO_THROW(
+        rule = std::make_unique<DiscreteValueRule>(road_rulebook_->GetDiscreteValueRule(expected_rule.id()).value()));
     EXPECT_TRUE(IsEqual<DiscreteValueRule>(expected_rule, *rule, malidrive::constants::kLinearTolerance));
   }
   for (const auto& expected_rule : expected_range_value_rules) {
     std::unique_ptr<RangeValueRule> rule;
     road_rulebook_->GetRangeValueRule(expected_rule.id());
-    EXPECT_NO_THROW(rule = std::make_unique<RangeValueRule>(road_rulebook_->GetRangeValueRule(expected_rule.id())));
+    EXPECT_NO_THROW(
+        rule = std::make_unique<RangeValueRule>(road_rulebook_->GetRangeValueRule(expected_rule.id()).value()));
     EXPECT_TRUE(IsEqual<RangeValueRule>(expected_rule, *rule, malidrive::constants::kLinearTolerance));
   }
 }
@@ -285,13 +286,14 @@ TEST_F(RoadRulebookBuilderRulesFromYamlFileTest, RoadRulebookBuilderRulesFromYam
   road_rulebook_ = RoadRuleBookBuilder(road_geometry_.get(), rule_registry_.get(), road_rulebook_path)();
   for (const auto& expected_rule : expected_discrete_value_rules) {
     std::unique_ptr<DiscreteValueRule> rule;
-    EXPECT_NO_THROW(rule =
-                        std::make_unique<DiscreteValueRule>(road_rulebook_->GetDiscreteValueRule(expected_rule.id())));
+    EXPECT_NO_THROW(
+        rule = std::make_unique<DiscreteValueRule>(road_rulebook_->GetDiscreteValueRule(expected_rule.id()).value()));
     EXPECT_TRUE(IsEqual<DiscreteValueRule>(expected_rule, *rule, malidrive::constants::kLinearTolerance));
   }
   for (const auto& expected_rule : expected_range_value_rules) {
     std::unique_ptr<RangeValueRule> rule;
-    EXPECT_NO_THROW(rule = std::make_unique<RangeValueRule>(road_rulebook_->GetRangeValueRule(expected_rule.id())));
+    EXPECT_NO_THROW(
+        rule = std::make_unique<RangeValueRule>(road_rulebook_->GetRangeValueRule(expected_rule.id()).value()));
     EXPECT_TRUE(IsEqual<RangeValueRule>(expected_rule, *rule, malidrive::constants::kLinearTolerance));
   }
 }
