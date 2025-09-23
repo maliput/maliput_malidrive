@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.12.0 (2025-09-22)
+-------------------
+* Get value from optional parameter. (`#350 <https://github.com/maliput/maliput_malidrive/issues/350>`_)
+* Contributors: Santiago Lopez
+
 0.11.1 (2025-09-10)
 -------------------
 * Move junction collection from unordered_map to map (`#348 <https://github.com/maliput/maliput_malidrive/issues/348>`_)
