@@ -236,6 +236,34 @@ TEST_F(RoadGeometryFindRoadPositions, FindSingleRoadPosition) {
   EXPECT_EQ(results[0].road_position.lane->id(), lane_id);
 }
 
+TEST_F(RoadGeometryFindRoadPositions, FindPositionsBetween3BranchingLanes) {
+  const maliput::api::LaneId lane_id("0_0_1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length(), 0., 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+  double radius = 0.1;
+  maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
+  std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
+  EXPECT_EQ(static_cast<int>(results.size()), 3);
+}
+
+TEST_F(RoadGeometryFindRoadPositions, FindPositionsBetween2ParallelLanes) {
+  const maliput::api::LaneId lane_id("0_0_1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length() / 2, lane->lane_bounds(lane->length() / 2).min(), 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+  double radius = 0.1;
+  maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
+  std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
+  EXPECT_EQ(static_cast<int>(results.size()), 2);
+  const maliput::api::LanePosition parallel_lane_position(lane->length() / 2, lane->lane_bounds(lane->length() / 2).max(), 0.);
+  const maliput::api::LaneId parallel_lane_id("0_0_-1");
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(parallel_lane_position, results[0].road_position.pos, constants::kLinearTolerance)));
+  EXPECT_EQ(results[0].road_position.lane->id(), parallel_lane_id);
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, results[1].road_position.pos, constants::kLinearTolerance)));
+  EXPECT_EQ(results[1].road_position.lane->id(), lane_id);
+}
+
 TEST_F(RoadGeometryFindRoadPositions, FindAllRoadPosition) {
   const maliput::api::LaneId lane_id("0_0_1");
   auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
