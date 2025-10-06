@@ -33,7 +33,9 @@
 
 #include <gtest/gtest.h>
 #include <maliput/api/compare.h>
+#include <maliput/api/lane_data.h>
 #include <maliput/common/error.h>
+#include <maliput/geometry_base/kd_tree_strategy.h>
 #include <maliput/math/compare.h>
 
 #include "assert_compare.h"
@@ -206,6 +208,80 @@ TEST_F(RoadGeometryFigure8Trafficlights, RoundTripPositionAtTheEnd) {
   auto result = road_network_->road_geometry()->ToRoadPosition(inertial_position);
   EXPECT_EQ(lane_id, result.road_position.lane->id());
   EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, result.road_position.pos, constants::kLinearTolerance)));
+}
+
+class RoadGeometryFindRoadPositions : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("TShapeRoad");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("TShapeRoad.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_F(RoadGeometryFindRoadPositions, FindSingleRoadPosition) {
+  const maliput::api::LaneId lane_id("0_0_1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length() / 2, 0., 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+  double radius = 0.1;
+  maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
+  std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
+  EXPECT_EQ(static_cast<int>(results.size()), 1);
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, results[0].road_position.pos, constants::kLinearTolerance)));
+  EXPECT_EQ(results[0].road_position.lane->id(), lane_id);
+}
+
+TEST_F(RoadGeometryFindRoadPositions, FindPositionsBetween3BranchingLanes) {
+  const maliput::api::LaneId lane_id("0_0_1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length(), 0., 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+  double radius = 0.1;
+  maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
+  std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
+  EXPECT_EQ(static_cast<int>(results.size()), 3);
+}
+
+TEST_F(RoadGeometryFindRoadPositions, FindPositionsBetween2ParallelLanes) {
+  const maliput::api::LaneId lane_id("0_0_1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length() / 2, lane->lane_bounds(lane->length() / 2).min(), 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+  double radius = 0.1;
+  maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
+  std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
+  EXPECT_EQ(static_cast<int>(results.size()), 2);
+  const maliput::api::LanePosition parallel_lane_position(lane->length() / 2,
+                                                          lane->to_right()->lane_bounds(lane->length() / 2).max(), 0.);
+  std::vector<std::pair<maliput::api::LaneId, maliput::api::LanePosition>> lanes;
+  const maliput::api::LaneId parallel_lane_id("0_0_-1");
+  lanes.push_back({parallel_lane_id, parallel_lane_position});
+  lanes.push_back({lane_id, position});
+  EXPECT_EQ(results.size(), lanes.size());
+  for (const auto& expected_lane : lanes) {
+    const auto it = std::find_if(results.begin(), results.end(), [&](const auto& result) {
+      return result.road_position.lane->id() == expected_lane.first;
+    });
+    EXPECT_NE(it, results.end());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane.second, it->road_position.pos, constants::kLinearTolerance)));
+  }
+}
+
+TEST_F(RoadGeometryFindRoadPositions, FindAllRoadPosition) {
+  const maliput::api::LaneId lane_id("0_0_1");
+  auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
+  const maliput::api::LanePosition position(lane->length() / 2, 0., 0.);
+  auto inertial_position = lane->ToInertialPosition(position);
+  double radius = 1000.0;
+  maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
+  std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
+  EXPECT_EQ(static_cast<int>(results.size()), road_network_->road_geometry()->ById().GetLanes().size());
 }
 
 struct OpenScenarioLanePositionMaliputLane {
