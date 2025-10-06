@@ -257,13 +257,20 @@ TEST_F(RoadGeometryFindRoadPositions, FindPositionsBetween2ParallelLanes) {
   std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
   EXPECT_EQ(static_cast<int>(results.size()), 2);
   const maliput::api::LanePosition parallel_lane_position(lane->length() / 2,
-                                                          lane->lane_bounds(lane->length() / 2).max(), 0.);
+                                                          lane->to_right()->lane_bounds(lane->length() / 2).max(), 0.);
+  std::vector<std::pair<maliput::api::LaneId, maliput::api::LanePosition>> lanes;
   const maliput::api::LaneId parallel_lane_id("0_0_-1");
-  EXPECT_TRUE(AssertCompare(
-      IsLanePositionClose(parallel_lane_position, results[0].road_position.pos, constants::kLinearTolerance)));
-  EXPECT_EQ(results[0].road_position.lane->id(), parallel_lane_id);
-  EXPECT_TRUE(AssertCompare(IsLanePositionClose(position, results[1].road_position.pos, constants::kLinearTolerance)));
-  EXPECT_EQ(results[1].road_position.lane->id(), lane_id);
+  lanes.push_back({parallel_lane_id, parallel_lane_position});
+  lanes.push_back({lane_id, position});
+  EXPECT_EQ(results.size(), lanes.size());
+  for (const auto& expected_lane : lanes) {
+    const auto it = std::find_if(results.begin(), results.end(), [&](const auto& result) {
+      return result.road_position.lane->id() == expected_lane.first;
+    });
+    EXPECT_NE(it, results.end());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane.second, it->road_position.pos, constants::kLinearTolerance)));
+  }
 }
 
 TEST_F(RoadGeometryFindRoadPositions, FindAllRoadPosition) {
