@@ -103,6 +103,7 @@ jobs:
       working-directory: ${{ env.COLCON_WS }}
       run: |
         source install/setup.bash;
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib64/;
         auditwheel repair \
           --plat ${{ github.event.inputs.platform || 'manylinux_2_28_x86_64' }} \
           --wheel-dir build/${PACKAGE_NAME}/wheel/repaired \
