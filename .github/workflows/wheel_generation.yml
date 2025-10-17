@@ -8,16 +8,42 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      platform:
+        type: choice
+        description: 'Manylinux platform'
+        required: false
+        default: 'manylinux_2_28_x86_64'
+        options:
+          - 'manylinux2014_x86_64'
+          - 'manylinux_2_28_x86_64'
+      python_version:
+        type: choice
+        description: 'Python version'
+        required: false
+        default: '3.10'
+        options:
+          - '3.8'
+          - '3.10'
+      cp_python_version:
+        type: choice
+        description: 'CP Python version'
+        required: false
+        default: 'cp310-cp310'
+        options:
+          - 'cp38-cp38'
+          - 'cp310-cp310'
   schedule:
     - cron:  '0 9 * * *' # 9:00am UTC, 1:00am PST.
 
 env:
   PACKAGE_NAME: maliput_malidrive
   COLCON_WS: maliput_ws
-  PYTHON_VERSION: cp38-cp38
-  CMAKE_COMMAND_ENV: /opt/python/cp38-cp38/bin/cmake
+  PYTHON_VERSION: ${{ github.event.inputs.python_version || '3.10' }}
+  CP_PYTHON_VERSION: ${{ github.event.inputs.cp_python_version || 'cp310-cp310' }}
+  CMAKE_COMMAND_ENV: /opt/python/${{ github.event.inputs.cp_python_version || 'cp310-cp310' }}/bin/cmake
   RETENTION_DAYS: 7
-  VCS_PATH: /opt/python/cp38-cp38/bin/
+  VCS_PATH: /opt/python/${{ github.event.inputs.cp_python_version || 'cp310-cp310' }}/bin/
 
   # Cancel previously running PR jobs
 concurrency:
@@ -25,10 +51,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  manylinux2014:
+  manylinux:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/maliput/manylinux2014_maliput:latest
+      image: ghcr.io/maliput/${{ github.event.inputs.platform || 'manylinux_2_28_x86_64' }}_${{ github.event.inputs.cp_python_version || 'cp310-cp310' }}_maliput:latest
       credentials:
          username: ${{ github.actor }}
          password: ${{ secrets.GITHUB_TOKEN }}
@@ -48,7 +74,7 @@ jobs:
       working-directory: ${{ env.COLCON_WS }}/src
       run: PATH=$PATH:${{ env.VCS_PATH }} ./${PACKAGE_NAME}/.github/try_vcs_checkout ${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
     - name: colcon graph
-      run: /opt/python/${PYTHON_VERSION}/bin/colcon graph
+      run: /opt/python/${{ env.CP_PYTHON_VERSION }}/bin/colcon graph
       shell: bash
       working-directory: ${{ env.COLCON_WS }}
     # colcon build
@@ -57,12 +83,14 @@ jobs:
       working-directory: ${{ env.COLCON_WS }}
       run: |
         source /colcon_builds/install/setup.bash;
-        PATH=/opt/python/${PYTHON_VERSION}/bin:$PATH \
-        /opt/python/${PYTHON_VERSION}/bin/colcon build --packages-up-to ${PACKAGE_NAME} \
+        PATH=/opt/python/${{ env.CP_PYTHON_VERSION }}/bin:$PATH \
+        /opt/python/${{ env.CP_PYTHON_VERSION }}/bin/colcon build --packages-up-to ${PACKAGE_NAME} \
           --cmake-args \
             ' -DWHEEL_GENERATION=On' \
             ' -DBUILD_TESTING=Off' \
-            ' -DPython3_EXECUTABLE=/opt/python/${{ env.PYTHON_VERSION }}/bin/python3' \
+            ' -DPython3_EXECUTABLE=/opt/python/${{ env.CP_PYTHON_VERSION }}/bin/python3' \
+            ' -DPython3_INCLUDE_DIR=/opt/python/${{ env.CP_PYTHON_VERSION }}/include/python${{ env.PYTHON_VERSION }}' \
+            ' -DPython3_LIBRARY=/opt/python/${{ env.CP_PYTHON_VERSION }}/lib/python${{ env.PYTHON_VERSION }}' \
           --event-handlers=console_direct+
     # List wheel output
     - name: list wheel output
@@ -76,7 +104,7 @@ jobs:
       run: |
         source install/setup.bash;
         auditwheel repair \
-          --plat manylinux2014_x86_64 \
+          --plat ${{ github.event.inputs.platform || 'manylinux_2_28_x86_64' }} \
           --wheel-dir build/${PACKAGE_NAME}/wheel/repaired \
           build/${PACKAGE_NAME}/wheel/*.whl
     # List repaired wheel output
@@ -87,8 +115,8 @@ jobs:
     # Upload repaired wheel as artifact
     # TODO: The container has installed glibc-2.17-326.el7_9.x86_64 and v4 requires 2.25 and above. Need to stick with an old version.
     - name: upload wheels as artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
-        name: maliput_malidrive_manylinux2014_x86_64
+        name: maliput_malidrive_${{ github.event.inputs.platform || 'manylinux_2_28_x86_64' }}_${{ env.CP_PYTHON_VERSION }}
         path: ${{ env.COLCON_WS }}/build/${{ env.PACKAGE_NAME }}/wheel/repaired
         retention-days: ${{ env.RETENTION_DAYS }}
