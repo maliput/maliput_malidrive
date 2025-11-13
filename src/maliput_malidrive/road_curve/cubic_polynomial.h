@@ -78,6 +78,7 @@ class CubicPolynomial : public Function {
     MALIDRIVE_THROW_UNLESS(p0_ >= 0, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(p1_ > p0_, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(linear_tolerance > 0., maliput::common::road_geometry_construction_error);
+    validate_p_.set_error_scope("CubicPolynomial");
   }
 
  private:

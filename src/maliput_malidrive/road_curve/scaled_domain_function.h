@@ -73,6 +73,7 @@ class ScaledDomainFunction : public Function {
 
     alpha_ = (function_->p1() - function_->p0()) / (p1_ - p0_);
     beta_ = function_->p0() - alpha_ * p0_;
+    validate_p_.set_error_scope("ScaledDomainFunction");
   }
 
  private:

@@ -136,6 +136,7 @@ SpiralGroundCurve::SpiralGroundCurve(double linear_tolerance, const maliput::mat
   MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(std::abs(curvature1_ - curvature0_) >= GroundCurve::kEpsilon,
                          maliput::common::road_geometry_construction_error);
+  validate_p_.set_error_scope("SpiralGroundCurve");
 }
 
 maliput::math::Vector2 SpiralGroundCurve::DoG(double p) const {

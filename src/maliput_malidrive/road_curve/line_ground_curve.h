@@ -78,6 +78,7 @@ class LineGroundCurve : public GroundCurve {
     MALIDRIVE_THROW_UNLESS(arc_length_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(p0_ >= 0., maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
+    validate_p_.set_error_scope("LineGroundCurve");
   }
 
  private:

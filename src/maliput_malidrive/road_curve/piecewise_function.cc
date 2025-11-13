@@ -117,9 +117,10 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
     : PiecewiseFunction(std::move(functions), tolerance, PiecewiseFunction::ContinuityCheck::kThrow) {}
 
 std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p) const {
-  p = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
-      p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
-
+  const auto range_validation = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
+      p0_, p1_, linear_tolerance_, Function::kEpsilon);
+  range_validation.set_error_scope(std::string("PiecewiseFunction:") + std::string(__func__) + ": " + std::to_string(__LINE__));
+  p = range_validation(p);
   auto search_it = interval_function_.find(FunctionInterval(p));
   if (search_it == interval_function_.end()) {
     if (p != p1_) {
@@ -139,22 +140,28 @@ std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p
 }
 
 double PiecewiseFunction::do_f(double p) const {
-  p = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
-      p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  const auto range_validation = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
+      p0_, p1_, linear_tolerance_, Function::kEpsilon);
+  range_validation.set_error_scope(std::string("PiecewiseFunction:") + std::string(__func__) + ": " + std::to_string(__LINE__));
+  p = range_validation(p);
   const std::pair<const Function*, double> function_p = GetFunctionAndPAt(p);
   return function_p.first->f(function_p.second);
 }
 
 double PiecewiseFunction::do_f_dot(double p) const {
-  p = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
-      p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  const auto range_validation = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
+      p0_, p1_, linear_tolerance_, Function::kEpsilon);
+  range_validation.set_error_scope(std::string("PiecewiseFunction:") + std::string(__func__) + ": " + std::to_string(__LINE__));
+  p = range_validation(p);
   const std::pair<const Function*, double> function_p = GetFunctionAndPAt(p);
   return function_p.first->f_dot(function_p.second);
 }
 
 double PiecewiseFunction::do_f_dot_dot(double p) const {
-  p = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
-      p0_, p1_, linear_tolerance_, Function::kEpsilon)(p);
+  const auto range_validation = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
+      p0_, p1_, linear_tolerance_, Function::kEpsilon);
+  range_validation.set_error_scope(std::string("PiecewiseFunction:") + std::string(__func__) + ": " + std::to_string(__LINE__));
+  p = range_validation(p);
   const std::pair<const Function*, double> function_p = GetFunctionAndPAt(p);
   return function_p.first->f_dot_dot(function_p.second);
 }

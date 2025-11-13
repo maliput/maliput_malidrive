@@ -94,9 +94,11 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
     // functions of this class are in range with linear_tolerance and b) values
     // are adjusted to be in the open range (0, length_) with one-tenth of
     // linear_tolerance as the distance between closed and open range extrema.
-    s_range_validation_ =
+    const auto s_range_validation =
         maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
             0., length_, road_curve_->linear_tolerance(), road_curve_->linear_tolerance() / 10.);
+    s_range_validation.set_error_scope(std::string("Lane:") + std::string(__func__) + ": " + std::to_string(__LINE__));
+    s_range_validation_ = [s_range_validation](double s) { return s_range_validation(s); };
   } else {
     maliput::log()->trace("Lane ", id.string(),
                           " is shorter than linear tolerance. Will not construct the RoadCurveOffset for it.");
@@ -110,9 +112,11 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
     // There are no numerical integrations involved in p_from_s_ and s_from_p_
     // but to mimic the behavior, we will tolerate up to linear tolerance excess
     // in s range. Then, the s value will be saturated.
-    s_range_validation_ =
+    const auto s_range_validation =
         maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
             0., length_, road_curve_->linear_tolerance(), /*epsilon*/ 0.);
+    s_range_validation.set_error_scope(std::string("Lane:") + std::string(__func__) + ": " + std::to_string(__LINE__));
+    s_range_validation_ = [s_range_validation](double s) { return s_range_validation(s); };
   }
   // @}
 }

@@ -79,6 +79,7 @@ LaneOffset::LaneOffset(const std::optional<AdjacentLaneFunctions>& adjacent_lane
     MALIDRIVE_THROW_UNLESS(std::abs(adjacent_lane_functions_->width->p1() - p1_) <= linear_tolerance,
                            maliput::common::road_geometry_construction_error);
   }
+  validate_p_.set_error_scope("LaneOffset");
 }
 
 double LaneOffset::do_f(double p) const {

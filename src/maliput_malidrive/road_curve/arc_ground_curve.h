@@ -92,6 +92,7 @@ class ArcGroundCurve : public GroundCurve {
     MALIDRIVE_THROW_UNLESS(p1_ - p0_ >= GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(std::abs(curvature) >= GroundCurve::kEpsilon,
                            maliput::common::road_geometry_construction_error);
+    validate_p_.set_error_scope("ArcGroundCurve");
   }
 
  private:

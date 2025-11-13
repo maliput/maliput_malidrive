@@ -34,6 +34,8 @@
 #include <memory>
 #include <vector>
 
+#include <maliput/common/range_validator.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/road_curve/ground_curve.h"
 
