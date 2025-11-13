@@ -34,12 +34,16 @@ namespace xodr {
 namespace {
 
 // Map for Type to string conversion.
-const std::map<Geometry::Type, std::string> type_to_str_map{
-    {Geometry::Type::kLine, "line"}, {Geometry::Type::kArc, "arc"}, {Geometry::Type::kSpiral, "spiral"}};
+const std::map<Geometry::Type, std::string> type_to_str_map{{Geometry::Type::kLine, "line"},
+                                                             {Geometry::Type::kArc, "arc"},
+                                                             {Geometry::Type::kSpiral, "spiral"},
+                                                             {Geometry::Type::kParamPoly3, "paramPoly3"}};
 
 // Map for string to Type conversion.
-const std::map<std::string, Geometry::Type> str_to_type_map{
-    {"line", Geometry::Type::kLine}, {"arc", Geometry::Type::kArc}, {"spiral", Geometry::Type::kSpiral}};
+const std::map<std::string, Geometry::Type> str_to_type_map{{"line", Geometry::Type::kLine},
+                                                             {"arc", Geometry::Type::kArc},
+                                                             {"spiral", Geometry::Type::kSpiral},
+                                                             {"paramPoly3", Geometry::Type::kParamPoly3}};
 
 }  // namespace
 
@@ -71,6 +75,13 @@ std::ostream& operator<<(std::ostream& os, const Geometry& geometry) {
       os << " - curvature at [start, end]: [" << std::get<xodr::Geometry::Spiral>(geometry.description).curv_start;
       os << ", " << std::get<xodr::Geometry::Spiral>(geometry.description).curv_end << "]";
       break;
+    case Geometry::Type::kParamPoly3: {
+      const auto& pp3 = std::get<xodr::Geometry::ParamPoly3>(geometry.description);
+      os << " - aU: " << pp3.aU << ", bU: " << pp3.bU << ", cU: " << pp3.cU << ", dU: " << pp3.dU;
+      os << " | aV: " << pp3.aV << ", bV: " << pp3.bV << ", cV: " << pp3.cV << ", dV: " << pp3.dV;
+      os << " | pRange: " << (pp3.p_range == Geometry::ParamPoly3::PRange::kArcLength ? "arcLength" : "normalized");
+      break;
+    }
     default:
       MALIPUT_THROW_MESSAGE("Unknown Geometry::Type");
       break;

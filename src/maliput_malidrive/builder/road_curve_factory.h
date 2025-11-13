@@ -161,6 +161,19 @@ class RoadCurveFactoryBase {
   virtual std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(
       const xodr::Geometry& spiral_geometry) const = 0;
 
+  /// Makes a road_curve::ParamPoly3GroundCurve.
+  ///
+  /// Its linear tolerance will be the constructor argument.
+  ///
+  /// @param param_poly3_geometry xodr::Geometry definition to construct a
+  ///        road_curve::ParamPoly3GroundCurve. Its type must be
+  ///        xodr::Geometry::Type::kParamPoly3.
+  /// @return A road_curve::ParamPoly3GroundCurve.
+  /// @throws maliput::common::road_geometry_construction_error When `param_poly3_geometry.type` is not
+  ///         xodr::Geometry::Type::kParamPoly3.
+  virtual std::unique_ptr<road_curve::GroundCurve> MakeParamPoly3GroundCurve(
+      const xodr::Geometry& param_poly3_geometry) const = 0;
+
   /// Makes a road_curve::PiecewiseGroundCurve.
   ///
   /// Its linear tolerance will be the constructor argument.
@@ -316,6 +329,9 @@ class RoadCurveFactory final : public RoadCurveFactoryBase {
   std::unique_ptr<road_curve::GroundCurve> MakeLineGroundCurve(const xodr::Geometry& line_geometry) const override;
 
   std::unique_ptr<road_curve::GroundCurve> MakeSpiralGroundCurve(const xodr::Geometry& spiral_geometry) const override;
+
+  std::unique_ptr<road_curve::GroundCurve> MakeParamPoly3GroundCurve(
+      const xodr::Geometry& param_poly3_geometry) const override;
 
   std::unique_ptr<road_curve::GroundCurve> MakePiecewiseGroundCurve(
       const std::vector<xodr::Geometry>& geometries) const override;

@@ -711,6 +711,8 @@ std::unique_ptr<malidrive::road_curve::GroundCurve> RoadGeometryBuilder::MakeGro
         return factory_->MakeArcGroundCurve(*start_geometry);
       case xodr::Geometry::Type::kSpiral:
         return factory_->MakeSpiralGroundCurve(*start_geometry);
+      case xodr::Geometry::Type::kParamPoly3:
+        return factory_->MakeParamPoly3GroundCurve(*start_geometry);
       default:
         MALIDRIVE_THROW_MESSAGE("Geometry " + xodr::Geometry::type_to_str(start_geometry->type) + " cannot be built",
                                 maliput::common::road_geometry_construction_error);
