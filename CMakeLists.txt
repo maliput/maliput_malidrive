@@ -148,6 +148,7 @@ install (FILES resources/ArcLane.xodr
                resources/LShapeRoadVariableLanes.xodr
                resources/LShapeSection.xodr
                resources/onramp.xodr
+               resources/ParametricCubicCurveRoad.xodr
                resources/ParkingGarageRamp.xodr
                resources/Roundabout.xodr
                resources/RRFigure8.xodr
