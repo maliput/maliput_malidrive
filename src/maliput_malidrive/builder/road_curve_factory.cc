@@ -211,12 +211,11 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeParamPoly3GroundC
                          "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
   const auto& param_poly3 = std::get<xodr::Geometry::ParamPoly3>(param_poly3_geometry.description);
   return std::make_unique<road_curve::ParamPoly3GroundCurve>(
-      linear_tolerance(), param_poly3_geometry.start_point, param_poly3_geometry.orientation,
-      param_poly3.aU, param_poly3.bU, param_poly3.cU, param_poly3.dU,
-      param_poly3.aV, param_poly3.bV, param_poly3.cV, param_poly3.dV,
-      param_poly3_geometry.length, p0, p1, 
-      param_poly3.p_range == xodr::Geometry::ParamPoly3::PRange::kArcLength 
-          ? road_curve::ParamPoly3GroundCurve::PRangeType::kArcLength 
+      linear_tolerance(), param_poly3_geometry.start_point, param_poly3_geometry.orientation, param_poly3.aU,
+      param_poly3.bU, param_poly3.cU, param_poly3.dU, param_poly3.aV, param_poly3.bV, param_poly3.cV, param_poly3.dV,
+      param_poly3_geometry.length, p0, p1,
+      param_poly3.p_range == xodr::Geometry::ParamPoly3::PRange::kArcLength
+          ? road_curve::ParamPoly3GroundCurve::PRangeType::kArcLength
           : road_curve::ParamPoly3GroundCurve::PRangeType::kNormalized);
 }
 
@@ -244,8 +243,9 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
         ground_curves.emplace_back(MakeParamPoly3GroundCurve(geometry));
         break;
       default:
-        MALIDRIVE_THROW_MESSAGE("Geometries contain a xodr::Geometry whose type is not in {kLine, kArc, kSpiral, kParamPoly3}.",
-                                maliput::common::road_geometry_construction_error);
+        MALIDRIVE_THROW_MESSAGE(
+            "Geometries contain a xodr::Geometry whose type is not in {kLine, kArc, kSpiral, kParamPoly3}.",
+            maliput::common::road_geometry_construction_error);
         break;
     }
   }

@@ -482,7 +482,7 @@ Geometry::ParamPoly3 NodeParser::As() const {
         maliput::common::road_network_description_parser_error);
   }
   const AttributeParser attribute_parser(element_, parser_configuration_);
-  
+
   Geometry::ParamPoly3 param_poly3;
   param_poly3.aU = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kAU), kDontAllowNan);
   param_poly3.bU = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kBU), kDontAllowNan);
@@ -492,7 +492,7 @@ Geometry::ParamPoly3 NodeParser::As() const {
   param_poly3.bV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kBV), kDontAllowNan);
   param_poly3.cV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kCV), kDontAllowNan);
   param_poly3.dV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kDV), kDontAllowNan);
-  
+
   const auto p_range_opt = attribute_parser.As<std::string>(Geometry::ParamPoly3::kPRange);
   if (!p_range_opt.has_value()) {
     MALIDRIVE_THROW_MESSAGE(std::string("Bad ParamPoly3 description. Missing required attribute 'pRange'. ") +
@@ -509,7 +509,7 @@ Geometry::ParamPoly3 NodeParser::As() const {
                                 "'. Expected 'arcLength' or 'normalized'. " + ConvertXMLNodeToText(element_),
                             maliput::common::road_network_description_parser_error);
   }
-  
+
   return param_poly3;
 }
 

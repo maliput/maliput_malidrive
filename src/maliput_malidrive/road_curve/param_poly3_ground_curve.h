@@ -13,7 +13,8 @@ namespace road_curve {
 
 /// GroundCurve specification for a reference curve that describes a parametric cubic polynomial
 /// in the ground plane following OpenDRIVE's paramPoly3 definition
-/// See https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/v1.8.1/specification/09_geometries/09_06_param_poly3.html
+/// See
+/// https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/v1.8.1/specification/09_geometries/09_06_param_poly3.html
 ///
 /// The curve is defined by two cubic polynomials in local u,v coordinates:
 ///   u(p) = aU + bU*p + cU*p² + dU*p³
@@ -65,8 +66,8 @@ class ParamPoly3GroundCurve : public GroundCurve {
   /// @throws maliput::common::road_geometry_construction_error When @p p1 is not sufficiently
   ///         larger than @p p0.
   ParamPoly3GroundCurve(double linear_tolerance, const maliput::math::Vector2& xy0, double heading0, double aU,
-                        double bU, double cU, double dU, double aV, double bV, double cV, double dV,
-                        double arc_length, double p0, double p1, PRangeType p_range);
+                        double bU, double cU, double dU, double aV, double bV, double cV, double dV, double arc_length,
+                        double p0, double p1, PRangeType p_range);
 
  private:
   // Computes the normalized parameter from the input parameter p.
@@ -131,5 +132,5 @@ class ParamPoly3GroundCurve : public GroundCurve {
   const maliput::common::RangeValidator<maliput::common::road_geometry_construction_error> validate_p_;
 };
 
-} // namespace road_curve
+}  // namespace road_curve
 }  // namespace malidrive

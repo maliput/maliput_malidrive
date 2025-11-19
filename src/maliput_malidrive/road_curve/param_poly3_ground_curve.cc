@@ -89,13 +89,9 @@ double ParamPoly3GroundCurve::V(double p_norm) const {
   return aV_ + bV_ * p_norm + cV_ * p_norm * p_norm + dV_ * p_norm * p_norm * p_norm;
 }
 
-double ParamPoly3GroundCurve::UDot(double p_norm) const {
-  return bU_ + 2. * cU_ * p_norm + 3. * dU_ * p_norm * p_norm;
-}
+double ParamPoly3GroundCurve::UDot(double p_norm) const { return bU_ + 2. * cU_ * p_norm + 3. * dU_ * p_norm * p_norm; }
 
-double ParamPoly3GroundCurve::VDot(double p_norm) const {
-  return bV_ + 2. * cV_ * p_norm + 3. * dV_ * p_norm * p_norm;
-}
+double ParamPoly3GroundCurve::VDot(double p_norm) const { return bV_ + 2. * cV_ * p_norm + 3. * dV_ * p_norm * p_norm; }
 
 maliput::math::Vector2 ParamPoly3GroundCurve::DoG(double p) const {
   p = validate_p_(p);
@@ -146,7 +142,8 @@ double ParamPoly3GroundCurve::DoHeading(double p) const {
 
 double ParamPoly3GroundCurve::DoHeadingDot(double p) const {
   // Computes the curvature (change in heading).
-  // It uses the second derivatives of the polynomials (u'', v'') and the quotient rule for the derivative of arctangent.
+  // It uses the second derivatives of the polynomials (u'', v'') and the quotient rule for the derivative of
+  // arctangent.
   p = validate_p_(p);
   const double p_norm = NormalizedP(p);
   const double u_dot = UDot(p_norm);

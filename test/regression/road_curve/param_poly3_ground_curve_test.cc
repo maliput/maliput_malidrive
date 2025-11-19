@@ -80,10 +80,10 @@ TEST_F(ParamPoly3GroundCurveConstructorTest, InvalidZeroTolerance) {
 }
 
 TEST_F(ParamPoly3GroundCurveConstructorTest, InvalidArcLengthTooSmall) {
-  EXPECT_THROW(ParamPoly3GroundCurve(kLinearTolerance, kZero, kHeading, 0., 1., 0., 0., 0., 0., 0., 0.,
-                                     GroundCurve::kEpsilon / 2., kP0, kP1,
-                                     ParamPoly3GroundCurve::PRangeType::kArcLength),
-               maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(
+      ParamPoly3GroundCurve(kLinearTolerance, kZero, kHeading, 0., 1., 0., 0., 0., 0., 0., 0.,
+                            GroundCurve::kEpsilon / 2., kP0, kP1, ParamPoly3GroundCurve::PRangeType::kArcLength),
+      maliput::common::road_geometry_construction_error);
 }
 
 TEST_F(ParamPoly3GroundCurveConstructorTest, InvalidNegativeP0) {
@@ -93,9 +93,8 @@ TEST_F(ParamPoly3GroundCurveConstructorTest, InvalidNegativeP0) {
 }
 
 TEST_F(ParamPoly3GroundCurveConstructorTest, InvalidP1NotSufficientlyLargerThanP0) {
-  EXPECT_THROW(ParamPoly3GroundCurve(kLinearTolerance, kZero, kHeading, 0., 1., 0., 0., 0., 0., 0., 0., kArcLength,
-                                     kP0, kP0 + GroundCurve::kEpsilon / 2.,
-                                     ParamPoly3GroundCurve::PRangeType::kArcLength),
+  EXPECT_THROW(ParamPoly3GroundCurve(kLinearTolerance, kZero, kHeading, 0., 1., 0., 0., 0., 0., 0., 0., kArcLength, kP0,
+                                     kP0 + GroundCurve::kEpsilon / 2., ParamPoly3GroundCurve::PRangeType::kArcLength),
                maliput::common::road_geometry_construction_error);
 }
 
@@ -133,24 +132,24 @@ class ParamPoly3GroundCurveArcLengthTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // Straight line: aU=0, bU=1, cU=0, dU=0, aV=0, bV=0, cV=0, dV=0
-    straight_dut_ = std::make_unique<ParamPoly3GroundCurve>(
-        kLinearTolerance, kStraightXY0, kStraightHeading, 0., 1., 0., 0., 0., 0., 0., 0., kArcLength, kP0, kP1,
-        ParamPoly3GroundCurve::PRangeType::kArcLength);
+    straight_dut_ = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kStraightXY0, kStraightHeading, 0., 1.,
+                                                            0., 0., 0., 0., 0., 0., kArcLength, kP0, kP1,
+                                                            ParamPoly3GroundCurve::PRangeType::kArcLength);
 
     // Parabolic: aU=0, bU=1, cU=0, dU=0, aV=0, bV=0, cV=0.1, dV=0
-    parabolic_dut_ = std::make_unique<ParamPoly3GroundCurve>(
-        kLinearTolerance, kParabolicXY0, kParabolicHeading, 0., 1., 0., 0., 0., 0., 0.1, 0., kArcLength, kP0, kP1,
-        ParamPoly3GroundCurve::PRangeType::kArcLength);
+    parabolic_dut_ = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kParabolicXY0, kParabolicHeading, 0., 1.,
+                                                             0., 0., 0., 0., 0.1, 0., kArcLength, kP0, kP1,
+                                                             ParamPoly3GroundCurve::PRangeType::kArcLength);
 
     // Offset curve with same polynomial as straight but different start position and heading
-    offset_dut_ = std::make_unique<ParamPoly3GroundCurve>(
-        kLinearTolerance, kOffsetXY0, kOffsetHeading, 0., 1., 0., 0., 0., 0., 0., 0., kArcLength, kP0, kP1,
-        ParamPoly3GroundCurve::PRangeType::kArcLength);
+    offset_dut_ = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kOffsetXY0, kOffsetHeading, 0., 1., 0., 0.,
+                                                          0., 0., 0., 0., kArcLength, kP0, kP1,
+                                                          ParamPoly3GroundCurve::PRangeType::kArcLength);
 
     // S-curve: aU=0, bU=1, cU=0, dU=0, aV=0, bV=0, cV=-1.5, dV=1.0
-    s_curve_dut_ = std::make_unique<ParamPoly3GroundCurve>(
-        kLinearTolerance, kSCurveXY0, kSCurveHeading, 0., 1., 0., 0., 0., 0., -1.5, 1.0, kArcLength, kP0, kP1,
-        ParamPoly3GroundCurve::PRangeType::kArcLength);
+    s_curve_dut_ = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kSCurveXY0, kSCurveHeading, 0., 1., 0., 0.,
+                                                           0., 0., -1.5, 1.0, kArcLength, kP0, kP1,
+                                                           ParamPoly3GroundCurve::PRangeType::kArcLength);
   }
 };
 
