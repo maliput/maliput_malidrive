@@ -648,12 +648,12 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kOmitNondrivableLanes,
            kIntegratorAccuracyMultiplier,
            kUseUserDataTrafficDirection}},
-      {"ParametricCubicCurve.xodr",
+      {"ParametricCubicCurveRoad.xodr",
        builder::RoadGeometryConfiguration{
-           maliput::api::RoadGeometryId{"ParametricCubicCurve"},
-           {"ParametricCubicCurve.xodr"},
+           maliput::api::RoadGeometryId{"ParametricCubicCurveRoad"},
+           {"ParametricCubicCurveRoad.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
-               5e-2 /* linear_tolerance */, 5e-2 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
+               5e-2 /* linear_tolerance */, 5e-2 /*max_linear_tolerance*/, 5e-2 /* angular_tolerance */},
            constants::kScaleLength,
            kZeroVector,
            kBuildPolicy,
