@@ -365,6 +365,100 @@ TEST_F(ParamPoly3GroundCurveNormalizedTest, ArcLength) {
   EXPECT_NEAR(kArcLength, parabolic_normalized_dut_->ArcLength(), kTolerance);
 }
 
+// Testing a particular case found in a real map where two normalized ParamPoly3GroundCurves are
+// piecewise defined and should be G1 continuous at the junction point.
+// ```xml
+//    <geometry s="0.9904119476262467" x="-313.14358290075324" y="-230.13526211911812" hdg="0.6337793906204895"
+//    length="102.55095233684085">
+//        <paramPoly3 aU="-1.001732625427465e-05" bU="-15.607339930340142" cU="17.73428764660845"
+//        dU="-0.07156552371693392" aV="2.0854290403327127e-06" bV="-100.85107741575929" cV="-2.7041990832798084"
+//        dV="1.5310998464695593" pRange="normalized"/>
+//    </geometry>
+//    <geometry s="103.5413642844671" x="-251.069229704492" y="-311.128665715651" hdg="0.8944017402133678"
+//    length="94.21265088125782">
+//        <paramPoly3 aU="4.2037027252472825e-06" bU="-6.737514468953576" cU="14.937077700165037"
+//        dU="0.04708314112857581" aV="-2.69400357799654e-07" bV="-93.56938136140873" cV="-1.0823916451883346"
+//        dV="1.2022003887057964" pRange="normalized"/>
+//    </geometry>
+//    <geometry s="197.75401516572492" x="-173.03172485414" y="-363.195716287695" hdg="0.0" length="1.0309677230034846">
+//        <paramPoly3 aU="0.0" bU="0.9373212099890225" cU="-0.0036180828465148807" dU="0.003716468869242817" aV="0.0"
+//        bV="-0.4337593375239521" cV="0.009378410410135984" dV="-0.004729529144242406" pRange="normalized"/>
+//    </geometry>
+// ```
+class ParamPoly3GroundCurveNormalizedPiecewiseDefinedTest : public ::testing::Test {
+ protected:
+  const double kLinearTolerance{5e-2};
+
+  // Geometry 1
+  const double kG1S{0.9904119476262467};
+  const Vector2 kG1XY{-313.14358290075324, -230.13526211911812};
+  const double kG1Hdg{0.6337793906204895};
+  const double kG1Length{102.55095233684085};
+  // u(p) coeffs
+  const double kG1aU{-1.001732625427465e-05};
+  const double kG1bU{-15.607339930340142};
+  const double kG1cU{17.73428764660845};
+  const double kG1dU{-0.07156552371693392};
+  // v(p) coeffs
+  const double kG1aV{2.0854290403327127e-06};
+  const double kG1bV{-100.85107741575929};
+  const double kG1cV{-2.7041990832798084};
+  const double kG1dV{1.5310998464695593};
+
+  // Geometry 2
+  const double kG2S{103.5413642844671};
+  const Vector2 kG2XY{-251.069229704492, -311.128665715651};
+  const double kG2Hdg{0.8944017402133678};
+  const double kG2Length{94.21265088125782};
+  // u(p) coeffs
+  const double kG2aU{4.2037027252472825e-06};
+  const double kG2bU{-6.737514468953576};
+  const double kG2cU{14.937077700165037};
+  const double kG2dU{0.04708314112857581};
+  // v(p) coeffs
+  const double kG2aV{-2.69400357799654e-07};
+  const double kG2bV{-93.56938136140873};
+  const double kG2cV{-1.0823916451883346};
+  const double kG2dV{1.2022003887057964};
+
+  // Geometry 3
+  const double kG3S{197.75401516572492};
+  const Vector2 kG3XY{-173.03172485414, -363.195716287695};
+  const double kG3Hdg{0.0};
+  const double kG3Length{1.0309677230034846};
+  // u(p) coeffs
+  const double kG3aU{0.0};
+  const double kG3bU{0.9373212099890225};
+  const double kG3cU{-0.0036180828465148807};
+  const double kG3dU{0.003716468869242817};
+  // v(p) coeffs
+  const double kG3aV{0.0};
+  const double kG3bV{-0.4337593375239521};
+  const double kG3cV{0.009378410410135984};
+  const double kG3dV{-0.004729529144242406};
+};
+
+TEST_F(ParamPoly3GroundCurveNormalizedPiecewiseDefinedTest, Continuity) {
+  const auto g1 = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kG1XY, kG1Hdg, kG1aU, kG1bU, kG1cU, kG1dU,
+                                                          kG1aV, kG1bV, kG1cV, kG1dV, kG1Length, kG1S, kG1S + kG1Length,
+                                                          ParamPoly3GroundCurve::PRangeType::kNormalized);
+
+  const auto g2 = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kG2XY, kG2Hdg, kG2aU, kG2bU, kG2cU, kG2dU,
+                                                          kG2aV, kG2bV, kG2cV, kG2dV, kG2Length, kG2S, kG2S + kG2Length,
+                                                          ParamPoly3GroundCurve::PRangeType::kNormalized);
+
+  const auto g3 = std::make_unique<ParamPoly3GroundCurve>(kLinearTolerance, kG3XY, kG3Hdg, kG3aU, kG3bU, kG3cU, kG3dU,
+                                                          kG3aV, kG3bV, kG3cV, kG3dV, kG3Length, kG3S, kG3S + kG3Length,
+                                                          ParamPoly3GroundCurve::PRangeType::kNormalized);
+
+  // Check G0 continuity
+  EXPECT_TRUE(AssertCompare(CompareVectors(g1->G(kG1S + kG1Length), g2->G(kG2S), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(g2->G(kG2S + kG2Length), g3->G(kG3S), kLinearTolerance)));
+  // Check G1 continuity (tangents)
+  EXPECT_TRUE(AssertCompare(CompareVectors(g1->GDot(kG1S + kG1Length), g2->GDot(kG2S), kLinearTolerance)));
+  EXPECT_TRUE(AssertCompare(CompareVectors(g2->GDot(kG2S + kG2Length), g3->GDot(kG3S), kLinearTolerance)));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace road_curve
