@@ -189,7 +189,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeSpiralGroundCurve
                          maliput::common::road_geometry_construction_error);
   const double p0{spiral_geometry.s_0};
   const double p1{spiral_geometry.s_0 + spiral_geometry.length};
-  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error,
                      "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
                          "\n\tp1: " + std::to_string(p1) +
                          "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
@@ -205,7 +205,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeParamPoly3GroundC
                          maliput::common::road_geometry_construction_error);
   const double p0{param_poly3_geometry.s_0};
   const double p1{param_poly3_geometry.s_0 + param_poly3_geometry.length};
-  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error,
                      "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
                          "\n\tp1: " + std::to_string(p1) +
                          "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
