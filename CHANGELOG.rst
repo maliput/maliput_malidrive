@@ -2,6 +2,14 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.13.0 (2025-12-02)
+-------------------
+* Allow schema error: Contact point in junction. (`#362 <https://github.com/maliput/maliput_malidrive/issues/362>`_)
+* Improve trace logging of piece-wise ground curve construction. (`#361 <https://github.com/maliput/maliput_malidrive/issues/361>`_)
+* Support for parametric cubic curves (<paramPoly3>). (`#358 <https://github.com/maliput/maliput_malidrive/issues/358>`_)
+* Update wheel generation. (`#354 <https://github.com/maliput/maliput_malidrive/issues/354>`_)
+* Contributors: Franco Cipollone
+
 0.12.1 (2025-10-06)
 -------------------
 * Add tests for KDTree strategy FindRoadPositions with actual XODR. (`#352 <https://github.com/maliput/maliput_malidrive/issues/352>`_)
