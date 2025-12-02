@@ -58,6 +58,10 @@ namespace xodr {
 ///               <geometry s="0.0000000000000000e+00" x="0.0" y="0.0" hdg="0.0" length="100.0">
 ///                   <spiral curvStart="0.025" curvEnd="0.05"/>
 ///               </geometry>
+///               <geometry s="0.0000000000000000e+00" x="0.0" y="0.0" hdg="0.0" length="100.0">
+///                   <paramPoly3 aU="0.0" bU="1.0" cU="0.0" dU="0.0" aV="0.0" bV="0.0" cV="0.1" dV="0.0"
+///                   pRange="arcLength"/>
+///               </geometry>
 ///           </planView>
 ///       ...
 ///   </OpenDRIVE>
@@ -76,6 +80,7 @@ struct Geometry {
     kLine = 0,
     kArc,
     kSpiral,
+    kParamPoly3,
   };
 
   /// Line geometry description.
@@ -110,6 +115,50 @@ struct Geometry {
     bool operator==(const Spiral& other) const { return curv_start == other.curv_start && curv_end == other.curv_end; }
   };
 
+  /// ParamPoly3 geometry description.
+  /// Parametric cubic curve as defined in OpenDRIVE specification.
+  /// See
+  /// https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/v1.8.1/specification/09_geometries/09_06_param_poly3.html
+  struct ParamPoly3 {
+    /// Holds the tag names in the XODR Geometry description.
+    static constexpr const char* kAU = "aU";
+    static constexpr const char* kBU = "bU";
+    static constexpr const char* kCU = "cU";
+    static constexpr const char* kDU = "dU";
+    static constexpr const char* kAV = "aV";
+    static constexpr const char* kBV = "bV";
+    static constexpr const char* kCV = "cV";
+    static constexpr const char* kDV = "dV";
+    static constexpr const char* kPRange = "pRange";
+
+    /// Range of parameter p.
+    enum class PRange {
+      kArcLength,   ///< p in [0, length of geometry]
+      kNormalized,  ///< p in [0, 1]
+    };
+
+    /// Polynomial coefficients for u(p) = aU + bU*p + cU*p² + dU*p³
+    double aU{};
+    double bU{};
+    double cU{};
+    double dU{};
+
+    /// Polynomial coefficients for v(p) = aV + bV*p + cV*p² + dV*p³
+    double aV{};
+    double bV{};
+    double cV{};
+    double dV{};
+
+    /// Range type for parameter p
+    PRange p_range{PRange::kArcLength};
+
+    /// Equality operator.
+    bool operator==(const ParamPoly3& other) const {
+      return aU == other.aU && bU == other.bU && cU == other.cU && dU == other.dU && aV == other.aV && bV == other.bV &&
+             cV == other.cV && dV == other.dV && p_range == other.p_range;
+    }
+  };
+
   /// Matches string with a Type.
   /// @param type Is a Type.
   /// @returns A string that matches with `type`.
@@ -138,7 +187,7 @@ struct Geometry {
   /// Type of geometric element.
   Type type{Type::kLine};
   /// Description of the geometric type.
-  std::variant<Line, Arc, Spiral> description;
+  std::variant<Line, Arc, Spiral, ParamPoly3> description;
 };
 
 /// Streams a string representation of @p geometry into @p os.

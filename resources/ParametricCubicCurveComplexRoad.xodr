@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ BSD 3-Clause License
+
+ Copyright (c) 2025, Woven Planet. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ * Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<OpenDRIVE>
+    <header revMajor="1" revMinor="4" name="" vendor="xodr_extract App"/>
+    <road name="road 1" rule="LHT" id="1" junction="-1" length="198.7849828887284">
+        <planView>
+            <geometry s="0" x="-313.59048071387224" y="-229.25142860179767" hdg="0" length="0.9904119476262467">
+                <paramPoly3 aU="0.0" bU="0.4806400756642688" cU="-0.0786335943848826" dU="0.04489133183960803" aV="0.0" bV="-0.9124533843714744" cV="0.07142850337550044" dV="-0.042808636324480176" pRange="normalized"/>
+            </geometry>
+            <geometry s="0.9904119476262467" x="-313.14358290075324" y="-230.13526211911812" hdg="0.6337793906204895" length="102.55095233684085">
+                <paramPoly3 aU="-1.001732625427465e-05" bU="-15.607339930340142" cU="17.73428764660845" dU="-0.07156552371693392" aV="2.0854290403327127e-06" bV="-100.85107741575929" cV="-2.7041990832798084" dV="1.5310998464695593" pRange="normalized"/>
+            </geometry>
+            <geometry s="103.5413642844671" x="-251.069229704492" y="-311.128665715651" hdg="0.8944017402133678" length="94.21265088125782">
+                <paramPoly3 aU="4.2037027252472825e-06" bU="-6.737514468953576" cU="14.937077700165037" dU="0.04708314112857581" aV="-2.69400357799654e-07" bV="-93.56938136140873" cV="-1.0823916451883346" dV="1.2022003887057964" pRange="normalized"/>
+            </geometry>
+            <geometry s="197.75401516572492" x="-173.03172485414" y="-363.195716287695" hdg="0.0" length="1.0309677230034846">
+                <paramPoly3 aU="0.0" bU="0.9373212099890225" cU="-0.0036180828465148807" dU="0.003716468869242817" aV="0.0" bV="-0.4337593375239521" cV="0.009378410410135984" dV="-0.004729529144242406" pRange="normalized"/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+            <elevation s="0" a="349.79008150210564" b="-0.020297621147253777" c="7.253811072791486e-06" d="-3.560235152724607e-08"/>
+        </elevationProfile>
+        <lateralProfile/>
+        <lanes>
+            <laneSection s="0">
+                <left>
+                    <lane id="5" type="shoulder" level="false">
+                        <link/>
+                        <width a="3.883992662567638" b="-0.0030812555439227985" c="0.000616206418804636" d="-2.612955890292556e-06" sOffset="0"/>
+                        <width a="3.883992662567638" b="-0.0030812555439227985" c="0.000616206418804636" d="-2.612955890292556e-06" sOffset="0"/>
+                    </lane>
+                    <lane id="4" type="driving" level="false">
+                        <link>
+                            <predecessor id="4"/>
+                            <successor id="4"/>
+                        </link>
+                        <width a="3.380444987048373" b="-0.004402425238673904" c="4.28269426414416e-05" d="-1.2115403883379004e-07" sOffset="0"/>
+                        <roadMark sOffset="0" type="solid" weight="standard" color="white" height="0.02" width="0.15">
+                            <type name="solid" width="0.15">
+                                <line length="3" space="0" tOffset="0" width="0.15" sOffset="0" rule="none"/>
+                            </type>
+                        </roadMark>
+                        <roadMark sOffset="52.218554428329796" type="broken" weight="standard" color="white" height="0.02" width="0.15"/>
+                        <roadMark sOffset="121.12656630946287" type="solid" weight="standard" color="yellow" height="0.02" width="0.15">
+                            <type name="solid" width="0.15">
+                                <line length="3" space="0" tOffset="0" width="0.15" sOffset="0" rule="none"/>
+                            </type>
+                        </roadMark>
+                    </lane>
+                    <lane id="3" type="driving" level="false">
+                        <link>
+                            <predecessor id="3"/>
+                            <successor id="3"/>
+                        </link>
+                        <width a="3.594988965798193" b="0.0032842520890316675" c="-3.131425715022102e-05" d="8.978561707067882e-08" sOffset="0"/>
+                        <roadMark sOffset="0" type="broken" weight="standard" color="white" height="0.02" width="0.15"/>
+                    </lane>
+                    <lane id="2" type="driving" level="false">
+                        <link>
+                            <predecessor id="2"/>
+                            <successor id="2"/>
+                        </link>
+                        <width a="3.4909823195780776" b="0.0006815583640434998" c="-6.911529033895508e-06" d="1.5799198341390765e-08" sOffset="0"/>
+                        <roadMark sOffset="0" type="broken" weight="standard" color="yellow" height="0.02" width="0.15"/>
+                    </lane>
+                    <lane id="1" type="driving" level="false">
+                        <link>
+                            <predecessor id="1"/>
+                            <successor id="1"/>
+                        </link>
+                        <width a="4.660916798461928" b="0.00023154392975475822" c="1.3167245812868923e-06" d="-1.9376234059102104e-08" sOffset="0"/>
+                        <roadMark sOffset="0" type="broken" weight="standard" color="yellow" height="0.02" width="0.15"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="shoulder" level="false">
+                        <link/>
+                        <width a="0.15376360876392223" b="0.00020002562461500598" c="-2.798652782060957e-06" d="1.5017149800792296e-08" sOffset="0"/>
+                        <width a="0.15376360876392223" b="0.00020002562461500598" c="-2.798652782060957e-06" d="1.5017149800792296e-08" sOffset="0"/>
+                        <roadMark sOffset="0" type="solid" weight="standard" color="white" height="0.02" width="0.15">
+                            <type name="solid" width="0.15">
+                                <line length="3" space="0" tOffset="0" width="0.15" sOffset="0" rule="none"/>
+                            </type>
+                        </roadMark>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+    </road>
+</OpenDRIVE>

@@ -39,6 +39,7 @@
 #include "maliput_malidrive/road_curve/arc_ground_curve.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
+#include "maliput_malidrive/road_curve/param_poly3_ground_curve.h"
 #include "maliput_malidrive/road_curve/piecewise_ground_curve.h"
 #include "maliput_malidrive/road_curve/spiral_ground_curve.h"
 
@@ -188,7 +189,7 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeSpiralGroundCurve
                          maliput::common::road_geometry_construction_error);
   const double p0{spiral_geometry.s_0};
   const double p1{spiral_geometry.s_0 + spiral_geometry.length};
-  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error,
                      "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
                          "\n\tp1: " + std::to_string(p1) +
                          "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
@@ -196,6 +197,26 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeSpiralGroundCurve
       linear_tolerance(), spiral_geometry.start_point, spiral_geometry.orientation,
       std::get<xodr::Geometry::Spiral>(spiral_geometry.description).curv_start,
       std::get<xodr::Geometry::Spiral>(spiral_geometry.description).curv_end, spiral_geometry.length, p0, p1);
+}
+
+std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakeParamPoly3GroundCurve(
+    const xodr::Geometry& param_poly3_geometry) const {
+  MALIDRIVE_THROW_UNLESS(param_poly3_geometry.type == xodr::Geometry::Type::kParamPoly3,
+                         maliput::common::road_geometry_construction_error);
+  const double p0{param_poly3_geometry.s_0};
+  const double p1{param_poly3_geometry.s_0 + param_poly3_geometry.length};
+  MALIDRIVE_VALIDATE(p1 - p0 > road_curve::GroundCurve::kEpsilon, maliput::common::road_geometry_construction_error,
+                     "(p1 - p0 > road_curve::GroundCurve::kEpsilon) condition failed:\n\tp0: " + std::to_string(p0) +
+                         "\n\tp1: " + std::to_string(p1) +
+                         "\n\tepsilon: " + std::to_string(road_curve::GroundCurve::kEpsilon));
+  const auto& param_poly3 = std::get<xodr::Geometry::ParamPoly3>(param_poly3_geometry.description);
+  return std::make_unique<road_curve::ParamPoly3GroundCurve>(
+      linear_tolerance(), param_poly3_geometry.start_point, param_poly3_geometry.orientation, param_poly3.aU,
+      param_poly3.bU, param_poly3.cU, param_poly3.dU, param_poly3.aV, param_poly3.bV, param_poly3.cV, param_poly3.dV,
+      param_poly3_geometry.length, p0, p1,
+      param_poly3.p_range == xodr::Geometry::ParamPoly3::PRange::kArcLength
+          ? road_curve::ParamPoly3GroundCurve::PRangeType::kArcLength
+          : road_curve::ParamPoly3GroundCurve::PRangeType::kNormalized);
 }
 
 std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCurve(
@@ -218,9 +239,13 @@ std::unique_ptr<road_curve::GroundCurve> RoadCurveFactory::MakePiecewiseGroundCu
       case xodr::Geometry::Type::kSpiral:
         ground_curves.emplace_back(MakeSpiralGroundCurve(geometry));
         break;
+      case xodr::Geometry::Type::kParamPoly3:
+        ground_curves.emplace_back(MakeParamPoly3GroundCurve(geometry));
+        break;
       default:
-        MALIDRIVE_THROW_MESSAGE("Geometries contain a xodr::Geometry whose type is not in {kLine, kArc}.",
-                                maliput::common::road_geometry_construction_error);
+        MALIDRIVE_THROW_MESSAGE(
+            "Geometries contain a xodr::Geometry whose type is not in {kLine, kArc, kSpiral, kParamPoly3}.",
+            maliput::common::road_geometry_construction_error);
         break;
     }
   }

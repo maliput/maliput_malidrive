@@ -471,6 +471,48 @@ Geometry::Spiral NodeParser::As() const {
   return Geometry::Spiral{ValidateDouble(curv_start, kDontAllowNan), ValidateDouble(curv_end, kDontAllowNan)};
 }
 
+// Specialization to parse `ParamPoly3`'s node.
+template <>
+Geometry::ParamPoly3 NodeParser::As() const {
+  if (NumberOfAttributes() != 9) {
+    MALIDRIVE_THROW_MESSAGE(
+        std::string("Bad ParamPoly3 description. ParamPoly3 demands nine arguments: 'aU', 'bU', 'cU', 'dU', 'aV', "
+                    "'bV', 'cV', 'dV', 'pRange'. ") +
+            ConvertXMLNodeToText(element_),
+        maliput::common::road_network_description_parser_error);
+  }
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  Geometry::ParamPoly3 param_poly3;
+  param_poly3.aU = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kAU), kDontAllowNan);
+  param_poly3.bU = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kBU), kDontAllowNan);
+  param_poly3.cU = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kCU), kDontAllowNan);
+  param_poly3.dU = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kDU), kDontAllowNan);
+  param_poly3.aV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kAV), kDontAllowNan);
+  param_poly3.bV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kBV), kDontAllowNan);
+  param_poly3.cV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kCV), kDontAllowNan);
+  param_poly3.dV = ValidateDouble(attribute_parser.As<double>(Geometry::ParamPoly3::kDV), kDontAllowNan);
+
+  const auto p_range_opt = attribute_parser.As<std::string>(Geometry::ParamPoly3::kPRange);
+  if (!p_range_opt.has_value()) {
+    MALIDRIVE_THROW_MESSAGE(std::string("Bad ParamPoly3 description. Missing required attribute 'pRange'. ") +
+                                ConvertXMLNodeToText(element_),
+                            maliput::common::road_network_description_parser_error);
+  }
+  const std::string p_range_str = p_range_opt.value();
+  if (p_range_str == "arcLength") {
+    param_poly3.p_range = Geometry::ParamPoly3::PRange::kArcLength;
+  } else if (p_range_str == "normalized") {
+    param_poly3.p_range = Geometry::ParamPoly3::PRange::kNormalized;
+  } else {
+    MALIDRIVE_THROW_MESSAGE(std::string("Bad ParamPoly3 description. Invalid pRange value: '") + p_range_str +
+                                "'. Expected 'arcLength' or 'normalized'. " + ConvertXMLNodeToText(element_),
+                            maliput::common::road_network_description_parser_error);
+  }
+
+  return param_poly3;
+}
+
 // Specialization to parse `LaneWidth`'s node.
 template <>
 LaneWidth NodeParser::As() const {
@@ -810,6 +852,9 @@ Geometry NodeParser::As() const {
       break;
     case Geometry::Type::kSpiral:
       geometry.description = geometry_type.As<Geometry::Spiral>();
+      break;
+    case Geometry::Type::kParamPoly3:
+      geometry.description = geometry_type.As<Geometry::ParamPoly3>();
       break;
     default:
       MALIDRIVE_THROW_MESSAGE(std::string("The Geometry type '") + Geometry::type_to_str(geometry.type) +
