@@ -404,10 +404,20 @@ RoadLink::LinkAttributes NodeParser::As() const {
   const auto contact_point = attribute_parser.As<RoadLink::ContactPoint>(RoadLink::LinkAttributes::kContactPoint);
   switch (*element_type) {
     case RoadLink::ElementType::kRoad:
-      MALIDRIVE_THROW_UNLESS(contact_point != std::nullopt, maliput::common::road_network_description_parser_error);
+      if (contact_point == std::nullopt) {
+        const std::string msg = "RoadLink to Road demands contactPoint attribute.";
+        maliput::log()->debug(msg);
+        MALIDRIVE_THROW_MESSAGE(msg, maliput::common::road_network_description_parser_error);
+      }
       break;
     case RoadLink::ElementType::kJunction:
-      MALIDRIVE_THROW_UNLESS(contact_point == std::nullopt, maliput::common::road_network_description_parser_error);
+      if (contact_point != std::nullopt) {
+        const std::string msg = "RoadLink to Junction does not support contactPoint attribute.";
+        maliput::log()->debug(msg);
+        if (!parser_configuration_.allow_schema_errors) {
+          MALIDRIVE_THROW_MESSAGE(msg, maliput::common::road_network_description_parser_error);
+        }
+      }
       break;
     default:
       MALIDRIVE_THROW_MESSAGE("Invalid elementType value for RoadLink's description.",

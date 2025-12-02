@@ -158,6 +158,7 @@ static constexpr char const* kSimplificationPolicy{"simplification_policy"};
 ///      - 3. Allows having functions with NaN values. It is only accepted when there is a function that starts at
 ///      the same 's' so the function with NaN values can be discarded.
 ///      - 4. Allows having junction nodes without any connection.
+///      - 5. Allows having RoadLink to Junction with contactPoint attribute defined.
 ///    - 3. @e "allow_semantic_errors" : Allow semantic errors.
 ///      - 1. At a XODR level it allows having non reciprocal Road-linkage and Lane-linkage within a Road.
 ///      - 2. Allows having lane width descriptions that are negative in certain range.
