@@ -56,20 +56,27 @@ struct G1ContiguityChecker {
   // @throws maliput::common::road_geometry_construction_error When linear tolerance constraint is not met.
   // @throws maliput::common::road_geometry_construction_error When angular tolerance constraint is not met.
   void operator()(const GroundCurve* lhs, GroundCurve* rhs) const {
-    const double ground_curve_endpoint_distance = (lhs->G(lhs->p1()) - rhs->G(rhs->p0())).norm();
-    MALIDRIVE_VALIDATE(ground_curve_endpoint_distance <= linear_tolerance,
-                       maliput::common::road_geometry_construction_error,
-                       std::string("Error when constructing piecewise ground curve. Endpoint distance is <") +
-                           std::to_string(ground_curve_endpoint_distance) +
-                           "> which is greater than linear_tolerance: " + std::to_string(linear_tolerance) + ">.");
-    double delta_heading = std::fmod(std::abs(lhs->Heading(lhs->p1()) - rhs->Heading(rhs->p0())), M_PI);
+    const auto lhs_G_p1 = lhs->G(lhs->p1());
+    const auto rhs_G_p0 = rhs->G(rhs->p0());
+    const double ground_curve_endpoint_distance = (lhs_G_p1 - rhs_G_p0).norm();
+    MALIDRIVE_VALIDATE(
+        ground_curve_endpoint_distance <= linear_tolerance, maliput::common::road_geometry_construction_error,
+        std::string("Error when constructing piecewise ground curve. Endpoint distance is <") +
+            std::to_string(ground_curve_endpoint_distance) +
+            "> which is greater than linear_tolerance: " + std::to_string(linear_tolerance) + ">." +
+            " lhs->G(lhs->p1()): " + lhs_G_p1.to_str() + ", rhs->G(rhs->p0()): " + rhs_G_p0.to_str() + ".");
+    const auto lhs_heading_p1 = lhs->Heading(lhs->p1());
+    const auto rhs_heading_p0 = rhs->Heading(rhs->p0());
+    double delta_heading = std::fmod(std::abs(lhs_heading_p1 - rhs_heading_p0), M_PI);
     if (std::abs(delta_heading - M_PI) < angular_tolerance) {
       delta_heading = 0.;
     }
     MALIDRIVE_VALIDATE(delta_heading <= angular_tolerance, maliput::common::road_geometry_construction_error,
                        std::string("Error when constructing piecewise ground curve. Angular distance is <") +
                            std::to_string(delta_heading) +
-                           "> which is greater than angular_tolerance: " + std::to_string(angular_tolerance) + ">.");
+                           "> which is greater than angular_tolerance: " + std::to_string(angular_tolerance) + ">." +
+                           " lhs->Heading(lhs->p1()): " + std::to_string(lhs_heading_p1) +
+                           ", rhs->Heading(rhs->p0()): " + std::to_string(rhs_heading_p0) + ".");
   }
 
   double linear_tolerance{};
@@ -89,7 +96,9 @@ PiecewiseGroundCurve::PiecewiseGroundCurve(std::vector<std::unique_ptr<GroundCur
   double cumulative_p{0.};
   GroundCurve* previous_ground_curve{nullptr};
   const G1ContiguityChecker contiguity_checker(linear_tolerance_, angular_tolerance);
+  int idx = 0;
   for (const auto& ground_curve : ground_curves_) {
+    maliput::log()->trace("Processing GroundCurve index: ", idx++);
     MALIDRIVE_THROW_UNLESS(ground_curve != nullptr, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(ground_curve->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
     arc_length_ += ground_curve->ArcLength();
