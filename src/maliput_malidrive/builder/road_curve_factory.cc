@@ -324,8 +324,10 @@ bool RoadCurveFactory::AreLaneWidthsContinuous(const xodr::LaneWidth& a, const x
   const auto start_poly = MakeCubicPolynomial(a.d, a.c, a.b, a.a, 0., b.s_0 - a.s_0);
   const auto end_poly = MakeCubicPolynomial(b.d, b.c, b.b, b.a, 0., b.s_0);
   const double f_distance = std::abs(start_poly->f(start_poly->p1()) - end_poly->f(end_poly->p0()));
-  const double f_dot_distance = std::abs(start_poly->f_dot(start_poly->p1()) - end_poly->f_dot(end_poly->p0()));
-  return f_distance < linear_tolerance() && f_dot_distance < linear_tolerance();
+  const double heading_start = std::atan(start_poly->f_dot(start_poly->p1()));
+  const double heading_end = std::atan(end_poly->f_dot(end_poly->p0()));
+  const double heading_diff = std::abs(heading_start - heading_end);
+  return f_distance < linear_tolerance() && heading_diff < angular_tolerance();
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth(
@@ -356,8 +358,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeLaneWidth
   } else {
     polynomials = MakeCubicPolynomialsFromLaneWidths(lane_widths, p0, p1);
   }
-  return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(),
-                                                         FromBoolToContiguityCheck(assert_continuity));
+  return std::make_unique<road_curve::PiecewiseFunction>(
+      std::move(polynomials), linear_tolerance(), angular_tolerance(), FromBoolToContiguityCheck(assert_continuity));
 }
 
 std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeReferenceLineOffset(
@@ -447,7 +449,8 @@ std::unique_ptr<malidrive::road_curve::Function> RoadCurveFactory::MakeCubicFrom
     }
   }
 
-  return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(), continuity_check);
+  return std::make_unique<road_curve::PiecewiseFunction>(std::move(polynomials), linear_tolerance(),
+                                                         angular_tolerance(), continuity_check);
 }
 
 }  // namespace builder
