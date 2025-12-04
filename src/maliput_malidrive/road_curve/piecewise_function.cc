@@ -62,7 +62,7 @@ struct ContinuityChecker {
   // @throws maliput::common::road_geometry_construction_error When `lhs` is not C1 continuous with `rhs` and
   // continuity_check is PiecewiseFunction::ContinuityCheck::kThrow.
   bool operator()(const Function* lhs, const Function* rhs) const {
-    // G0 continuity check: compare function values using linear_tolerance.
+    // C0 continuity check: compare function values using linear_tolerance.
     const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
     if (f_distance > linear_tolerance) {
       const std::string f_msg{"Error when constructing piecewise function. C0 Discontinuity. Endpoint distance is <" +

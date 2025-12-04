@@ -56,16 +56,17 @@ class PiecewiseFunctionTest : public ::testing::Test {
   const double kP0A{10.};
   const double kP1A{20.};
 
-  // Function B is C1 continuous with A: f values within linear_tolerance, heading difference within angular_tolerance
+  // Function B is C1 continuous with A: f values within linear_tolerance, heading difference much smaller
+  // than angular_tolerance (specifically, std::tan(kAngularTolerance / 3.))
   const double kFB{kFA + kLinearTolerance / 3.};
-  const double kFDotB{kFDotA + std::tan(kAngularTolerance / 3.)};  // Small heading difference
+  const double kFDotB{std::tan(std::atan(kFDotA) + kAngularTolerance / 3.)};  // Small heading difference
   const double kFDotDotB{2.};
   const double kP0B{11.};
   const double kP1B{21.};
 
   // Function C is C1 continuous with B
   const double kFC{kFB - kLinearTolerance / 2.};
-  const double kFDotC{kFDotB - std::tan(kAngularTolerance / 4.)};  // Small heading difference
+  const double kFDotC{std::tan(std::atan(kFDotB) - kAngularTolerance / 4.)};  // Small heading difference
   const double kFDotDotC{0.};
   const double kP0C{2.};
   const double kP1C{32.};
@@ -79,7 +80,7 @@ class PiecewiseFunctionTest : public ::testing::Test {
 
   // Function E violates C1 continuity (heading differs by more than angular_tolerance)
   const double kFE{kFA + kLinearTolerance / 3.};
-  const double kFDotE{kFDotA + std::tan(3. * kAngularTolerance)};  // Large heading difference
+  const double kFDotE{std::tan(std::atan(kFDotA) + 3. * kAngularTolerance)};  // Large heading difference
   const double kFDotDotE{2.};
   const double kP0E{14.};
   const double kP1E{24.};
