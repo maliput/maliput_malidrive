@@ -56,18 +56,24 @@ class PiecewiseFunction : public Function {
   /// Constructs PiecewiseFunction from a collection of Functions.
   ///
   /// Functions are expected to be C1 continuous and C1 continuity is evaluated at
-  /// the extents. Constraints can be disabled with `continuity_check`.
+  /// the extents. C0 continuity (position) is checked using @p linear_tolerance.
+  /// C1 continuity (tangent/derivative) is checked by comparing the heading angles
+  /// (computed as atan(f'(p))) against @p angular_tolerance.
+  /// Constraints can be disabled with `continuity_check`.
   ///
   /// @param functions Hold the Functions.
-  /// @param tolerance Tolerance used to verify continuity.
+  /// @param linear_tolerance Tolerance used to verify C0 continuity (position).
+  /// @param angular_tolerance Tolerance used to verify C1 continuity (heading angle in radians).
   /// @param continuity_check Select continuity check behavior. ContinuityCheck::kThrow by default.
   ///
   /// @throws maliput::common::road_geometry_construction_error When @p functions is empty.
   /// @throws maliput::common::road_geometry_construction_error When @p functions has a nullptr
   ///         item.
+  /// @throws maliput::common::road_geometry_construction_error When @p linear_tolerance is not positive.
+  /// @throws maliput::common::road_geometry_construction_error When @p angular_tolerance is not positive.
   /// @throws maliput::common::road_geometry_construction_error When two consecutive items in
-  ///         @p functions are not C¹ contiguous up to @p tolerance and @p continuity_check is kThrow.
-  PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
+  ///         @p functions are not C¹ contiguous up to the tolerances and @p continuity_check is kThrow.
+  PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double linear_tolerance, double angular_tolerance,
                     const ContinuityCheck& continuity_check);
 
   /// Constructs PiecewiseFunction from a collection of Functions.
@@ -75,8 +81,10 @@ class PiecewiseFunction : public Function {
   /// Uses PiecewiseFunction() constructor using ContinuityCheck::kThrow.
   ///
   /// @param functions Hold the Functions.
-  /// @param tolerance Tolerance used to verify continuity.
-  PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance);
+  /// @param linear_tolerance Tolerance used to verify C0 continuity (position).
+  /// @param angular_tolerance Tolerance used to verify C1 continuity (heading angle in radians).
+  PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double linear_tolerance,
+                    double angular_tolerance);
 
  private:
   // Holds the interval of p values in `this` Function domain that map to one of

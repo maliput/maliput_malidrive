@@ -29,6 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/road_curve/piecewise_function.h"
 
+#include <cmath>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -45,7 +46,8 @@ namespace {
 
 class PiecewiseFunctionTest : public ::testing::Test {
  public:
-  const double kTolerance{1e-3};
+  const double kLinearTolerance{1e-3};
+  const double kAngularTolerance{1e-3};  // radians
   const bool kIsG1Contiguous{true};
 
   const double kFA{123.};
@@ -54,26 +56,31 @@ class PiecewiseFunctionTest : public ::testing::Test {
   const double kP0A{10.};
   const double kP1A{20.};
 
-  const double kFB{kFA + kTolerance / 3.};
-  const double kFDotB{kFDotA - kTolerance / 2.};
+  // Function B is C1 continuous with A: f values within linear_tolerance, heading difference much smaller
+  // than angular_tolerance (specifically, std::tan(kAngularTolerance / 3.))
+  const double kFB{kFA + kLinearTolerance / 3.};
+  const double kFDotB{std::tan(std::atan(kFDotA) + kAngularTolerance / 3.)};  // Small heading difference
   const double kFDotDotB{2.};
   const double kP0B{11.};
   const double kP1B{21.};
 
-  const double kFC{kFB - kTolerance / 2.};
-  const double kFDotC{kFDotB + kTolerance / 3.};
+  // Function C is C1 continuous with B
+  const double kFC{kFB - kLinearTolerance / 2.};
+  const double kFDotC{std::tan(std::atan(kFDotB) - kAngularTolerance / 4.)};  // Small heading difference
   const double kFDotDotC{0.};
   const double kP0C{2.};
   const double kP1C{32.};
 
-  const double kFD{kFA + 3. * kTolerance};
-  const double kFDotD{kFDotA - kTolerance / 2.};
+  // Function D violates C0 continuity (f value differs by more than linear_tolerance)
+  const double kFD{kFA + 3. * kLinearTolerance};
+  const double kFDotD{kFDotA};
   const double kFDotDotD{2.};
   const double kP0D{13.};
   const double kP1D{23.};
 
-  const double kFE{kFA + kTolerance / 3.};
-  const double kFDotE{kFDotA - 3. * kTolerance};
+  // Function E violates C1 continuity (heading differs by more than angular_tolerance)
+  const double kFE{kFA + kLinearTolerance / 3.};
+  const double kFDotE{std::tan(std::atan(kFDotA) + 3. * kAngularTolerance)};  // Large heading difference
   const double kFDotDotE{2.};
   const double kP0E{14.};
   const double kP1E{24.};
@@ -85,56 +92,69 @@ TEST_F(PiecewiseFunctionTest, ConstructorNoThrow) {
   functions.push_back(std::make_unique<FunctionStub>(kFB, kFDotB, kFDotDotB, kP0B, kP1B, kIsG1Contiguous));
   functions.push_back(std::make_unique<FunctionStub>(kFC, kFDotC, kFDotDotC, kP0C, kP1C, kIsG1Contiguous));
 
-  EXPECT_NO_THROW(PiecewiseFunction(std::move(functions), kTolerance));
+  EXPECT_NO_THROW(PiecewiseFunction(std::move(functions), kLinearTolerance, kAngularTolerance));
 }
 
 TEST_F(PiecewiseFunctionTest, ConstructorUnmetContraints) {
   {  // Empty function vector.
     std::vector<std::unique_ptr<Function>> empty_vector;
-    EXPECT_THROW(PiecewiseFunction(std::move(empty_vector), kTolerance),
+    EXPECT_THROW(PiecewiseFunction(std::move(empty_vector), kLinearTolerance, kAngularTolerance),
                  maliput::common::road_geometry_construction_error);
   }
-  {  // Negative tolerance.
+  {  // Negative linear tolerance.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), -kTolerance),
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), -kLinearTolerance, kAngularTolerance),
                  maliput::common::road_geometry_construction_error);
   }
-  {  // Zero tolerance.
+  {  // Zero linear tolerance.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), 0.), maliput::common::road_geometry_construction_error);
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), 0., kAngularTolerance),
+                 maliput::common::road_geometry_construction_error);
+  }
+  {  // Negative angular tolerance.
+    std::vector<std::unique_ptr<Function>> functions;
+    functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kLinearTolerance, -kAngularTolerance),
+                 maliput::common::road_geometry_construction_error);
+  }
+  {  // Zero angular tolerance.
+    std::vector<std::unique_ptr<Function>> functions;
+    functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kLinearTolerance, 0.),
+                 maliput::common::road_geometry_construction_error);
   }
   {  // Vector holds a nullptr.
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(nullptr);
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance),
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kLinearTolerance, kAngularTolerance),
                  maliput::common::road_geometry_construction_error);
   }
-  {  // Functions are not C0.
+  {  // Functions are not C0 continuous (position difference exceeds linear_tolerance).
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(std::make_unique<FunctionStub>(kFD, kFDotD, kFDotDotD, kP0D, kP1D, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance),
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kLinearTolerance, kAngularTolerance),
                  maliput::common::road_geometry_construction_error);
   }
-  {  // Functions are not C1.
+  {  // Functions are not C1 continuous (heading difference exceeds angular_tolerance).
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(std::make_unique<FunctionStub>(kFE, kFDotE, kFDotDotE, kP0E, kP1E, kIsG1Contiguous));
-    EXPECT_THROW(PiecewiseFunction(std::move(functions), kTolerance),
+    EXPECT_THROW(PiecewiseFunction(std::move(functions), kLinearTolerance, kAngularTolerance),
                  maliput::common::road_geometry_construction_error);
   }
-  {  // Functions are not C1 but continuity check only logs.
+  {  // Functions are not C1 continuous but continuity check only logs.
     const PiecewiseFunction::ContinuityCheck kContinuityCheckOnlyLog{PiecewiseFunction::ContinuityCheck::kLog};
     std::vector<std::unique_ptr<Function>> functions;
     functions.push_back(std::make_unique<FunctionStub>(kFA, kFDotA, kFDotDotA, kP0A, kP1A, kIsG1Contiguous));
     functions.push_back(std::make_unique<FunctionStub>(kFE, kFDotE, kFDotDotE, kP0E, kP1E, kIsG1Contiguous));
     std::unique_ptr<Function> function{nullptr};
-    ASSERT_NO_THROW(function =
-                        std::make_unique<PiecewiseFunction>(std::move(functions), kTolerance, kContinuityCheckOnlyLog));
+    ASSERT_NO_THROW(function = std::make_unique<PiecewiseFunction>(std::move(functions), kLinearTolerance,
+                                                                   kAngularTolerance, kContinuityCheckOnlyLog));
     EXPECT_FALSE(function->IsG1Contiguous());
   }
 }
@@ -147,7 +167,7 @@ TEST_F(PiecewiseFunctionTest, FunctionApi) {
   functions.push_back(std::make_unique<FunctionStub>(kFB, kFDotB, kFDotDotB, kP0B, kP1B, kIsG1Contiguous));
   functions.push_back(std::make_unique<FunctionStub>(kFC, kFDotC, kFDotDotC, kP0C, kP1C, kIsG1Contiguous));
 
-  const PiecewiseFunction dut(std::move(functions), kTolerance);
+  const PiecewiseFunction dut(std::move(functions), kLinearTolerance, kAngularTolerance);
 
   EXPECT_DOUBLE_EQ(/* kP0A */ 10., dut.p0());
   EXPECT_DOUBLE_EQ(/* kP0A + (kP1A - kP0A) + (kP1B - kP0B) + (kP1C - kP0C)*/ 60., dut.p1());

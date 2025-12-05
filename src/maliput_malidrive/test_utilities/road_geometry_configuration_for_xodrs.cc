@@ -540,11 +540,12 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
                                                          kUseUserDataTrafficDirection}},
       {"Town04.xodr",
        /* linear tolerance restricted by 0.052m elevation gap in Road 735 */
+       /* angular tolerance restricted by 0.0028 rad heading difference in piecewise functions */
        builder::RoadGeometryConfiguration{
            maliput::api::RoadGeometryId{"Town04"},
            {"Town04.xodr"},
            builder::RoadGeometryConfiguration::BuildTolerance{
-               6e-2 /* linear_tolerance */, 6e-2 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
+               6e-2 /* linear_tolerance */, 6e-2 /*max_linear_tolerance*/, 3e-3 /* angular_tolerance */},
            constants::kScaleLength,
            kZeroVector,
            kBuildPolicy,
