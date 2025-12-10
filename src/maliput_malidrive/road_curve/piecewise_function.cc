@@ -41,12 +41,18 @@ namespace {
 struct ContinuityChecker {
   ContinuityChecker() = delete;
 
-  ContinuityChecker(double tolerance_in, const PiecewiseFunction::ContinuityCheck& continuity_check_in)
-      : tolerance(tolerance_in), continuity_check(continuity_check_in) {
-    MALIDRIVE_THROW_UNLESS(tolerance > 0., maliput::common::road_geometry_construction_error);
+  ContinuityChecker(double linear_tolerance_in, double angular_tolerance_in,
+                    const PiecewiseFunction::ContinuityCheck& continuity_check_in)
+      : linear_tolerance(linear_tolerance_in),
+        angular_tolerance(angular_tolerance_in),
+        continuity_check(continuity_check_in) {
+    MALIDRIVE_THROW_UNLESS(linear_tolerance > 0., maliput::common::road_geometry_construction_error);
+    MALIDRIVE_THROW_UNLESS(angular_tolerance > 0., maliput::common::road_geometry_construction_error);
   }
 
   // Evaluates whether `lhs` is C1 continuous with `rhs` according to the contiguity strictness.
+  // C0 continuity (position) is checked using linear_tolerance.
+  // C1 continuity (tangent) is checked by comparing heading angles (atan(f'(p))) against angular_tolerance.
   //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kThrow
   //  maliput::common::road_geometry_construction_error is thrown when contiguity is violated.
   //  - When continuity_check is PiecewiseFunction::ContinuityCheck::kLog log message is printed when
@@ -56,22 +62,30 @@ struct ContinuityChecker {
   // @throws maliput::common::road_geometry_construction_error When `lhs` is not C1 continuous with `rhs` and
   // continuity_check is PiecewiseFunction::ContinuityCheck::kThrow.
   bool operator()(const Function* lhs, const Function* rhs) const {
+    // C0 continuity check: compare function values using linear_tolerance.
     const double f_distance = std::abs(lhs->f(lhs->p1()) - rhs->f(rhs->p0()));
-    if (f_distance > tolerance) {
-      const std::string f_msg{"Error when constructing piecewise function. Endpoint distance is <" +
+    if (f_distance > linear_tolerance) {
+      const std::string f_msg{"Error when constructing piecewise function. C0 Discontinuity. Endpoint distance is <" +
                               std::to_string(f_distance) +
-                              "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
+                              "> which is greater than linear_tolerance: " + std::to_string(linear_tolerance) + ">."};
       maliput::log()->debug(f_msg);
       MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
                          maliput::common::road_geometry_construction_error, f_msg);
       return false;
     }
 
-    const double f_dot_distance = std::abs(lhs->f_dot(lhs->p1()) - rhs->f_dot(rhs->p0()));
-    if (f_dot_distance > tolerance) {
-      const std::string f_dot_msg{"Error when constructing piecewise function. Endpoint derivative distance is <" +
-                                  std::to_string(f_dot_distance) +
-                                  "> which is greater than tolerance: " + std::to_string(tolerance) + ">."};
+    // C1 continuity check:
+    // We use angular_tolerance to compare the heading angles (the direction of the tangent) rather
+    // than directly comparing the derivatives.
+    const double heading_lhs = std::atan(lhs->f_dot(lhs->p1()));
+    const double heading_rhs = std::atan(rhs->f_dot(rhs->p0()));
+    const double heading_diff = std::abs(heading_lhs - heading_rhs);
+    if (heading_diff > angular_tolerance) {
+      const std::string f_dot_msg{
+          "Error when constructing piecewise function. C1 Discontinuity. Endpoint heading difference is <" +
+          std::to_string(heading_diff) + "> rad (lhs heading: " + std::to_string(heading_lhs) +
+          " rad, rhs heading: " + std::to_string(heading_rhs) +
+          " rad) which is greater than angular_tolerance: " + std::to_string(angular_tolerance) + "> rad."};
       maliput::log()->debug(f_dot_msg);
       MALIDRIVE_VALIDATE(!(continuity_check == PiecewiseFunction::ContinuityCheck::kThrow),
                          maliput::common::road_geometry_construction_error, f_dot_msg);
@@ -80,23 +94,26 @@ struct ContinuityChecker {
     return true;
   }
 
-  const double tolerance{};
+  const double linear_tolerance{};
+  const double angular_tolerance{};
   const PiecewiseFunction::ContinuityCheck continuity_check{};
 };
 
 }  // namespace
 
-PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance,
+PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double linear_tolerance,
+                                     double angular_tolerance,
                                      const PiecewiseFunction::ContinuityCheck& continuity_check)
-    : functions_(std::move(functions)), linear_tolerance_(tolerance) {
+    : functions_(std::move(functions)), linear_tolerance_(linear_tolerance) {
   MALIDRIVE_THROW_UNLESS(linear_tolerance_ > 0., maliput::common::road_geometry_construction_error);
+  MALIDRIVE_THROW_UNLESS(angular_tolerance > 0., maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(!functions_.empty(), maliput::common::road_geometry_construction_error);
 
   MALIDRIVE_THROW_UNLESS(functions_[0].get() != nullptr, maliput::common::road_geometry_construction_error);
   p0_ = functions_[0]->p0();
   double p = p0_;
   Function* previous_function{nullptr};
-  const ContinuityChecker checker(linear_tolerance_, continuity_check);
+  const ContinuityChecker checker(linear_tolerance_, angular_tolerance, continuity_check);
   for (const auto& function : functions_) {
     MALIDRIVE_THROW_UNLESS(function.get() != nullptr, maliput::common::road_geometry_construction_error);
     MALIDRIVE_THROW_UNLESS(function->IsG1Contiguous(), maliput::common::road_geometry_construction_error);
@@ -113,8 +130,10 @@ PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> func
   p1_ = p;
 }
 
-PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double tolerance)
-    : PiecewiseFunction(std::move(functions), tolerance, PiecewiseFunction::ContinuityCheck::kThrow) {}
+PiecewiseFunction::PiecewiseFunction(std::vector<std::unique_ptr<Function>> functions, double linear_tolerance,
+                                     double angular_tolerance)
+    : PiecewiseFunction(std::move(functions), linear_tolerance, angular_tolerance,
+                        PiecewiseFunction::ContinuityCheck::kThrow) {}
 
 std::pair<const Function*, double> PiecewiseFunction::GetFunctionAndPAt(double p) const {
   p = maliput::common::RangeValidator<maliput::common::road_geometry_construction_error>::GetAbsoluteEpsilonValidator(
