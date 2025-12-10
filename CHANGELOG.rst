@@ -2,6 +2,12 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.14.0 (2025-12-10)
+-------------------
+* Use angular_tolerance for C1 continuity checks. (`#363 <https://github.com/maliput/maliput_malidrive/issues/363>`_)
+* Add useful script to verify continuity of geometries from xodrs (`#364 <https://github.com/maliput/maliput_malidrive/issues/364>`_)
+* Contributors: Franco Cipollone
+
 0.13.0 (2025-12-02)
 -------------------
 * Allow schema error: Contact point in junction. (`#362 <https://github.com/maliput/maliput_malidrive/issues/362>`_)
