@@ -677,6 +677,9 @@ Lane NodeParser::As() const {
                                          parser_configuration_.allow_schema_errors, element_, &width_description);
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
   }
+
+  // RoadMark parsing would go here. It is an element of the Lane, the same as link and width
+
   // Only when schema errors are allowed is possible to find NaN values in the functions, otherwise
   // the NaN values would have caused an error when parsing the double value in the XODR file.
   // (See `AttributeParser` specialization for double types).
