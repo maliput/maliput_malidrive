@@ -31,29 +31,21 @@
 
 namespace malidrive {
 namespace xodr {
-namespace{
+namespace {
 
 const std::map<std::string, LaneRoadMark::Color> str_to_color_map{
-    {"black", LaneRoadMark::Color::kBlack},
-    {"blue", LaneRoadMark::Color::kBlue},
-    {"green", LaneRoadMark::Color::kGreen},
-    {"orange", LaneRoadMark::Color::kOrange},
-    {"red", LaneRoadMark::Color::kRed},
-    {"standard", LaneRoadMark::Color::kStandard},
-    {"violet", LaneRoadMark::Color::kViolet},
-    {"white", LaneRoadMark::Color::kWhite},
+    {"black", LaneRoadMark::Color::kBlack},   {"blue", LaneRoadMark::Color::kBlue},
+    {"green", LaneRoadMark::Color::kGreen},   {"orange", LaneRoadMark::Color::kOrange},
+    {"red", LaneRoadMark::Color::kRed},       {"standard", LaneRoadMark::Color::kStandard},
+    {"violet", LaneRoadMark::Color::kViolet}, {"white", LaneRoadMark::Color::kWhite},
     {"yellow", LaneRoadMark::Color::kYellow},
 };
 
 const std::map<LaneRoadMark::Color, std::string> color_to_str_map{
-    {LaneRoadMark::Color::kBlack, "black"},
-    {LaneRoadMark::Color::kBlue, "blue"},
-    {LaneRoadMark::Color::kGreen, "green"},
-    {LaneRoadMark::Color::kOrange, "orange"},
-    {LaneRoadMark::Color::kRed, "red"},
-    {LaneRoadMark::Color::kStandard, "standard"},
-    {LaneRoadMark::Color::kViolet, "violet"},
-    {LaneRoadMark::Color::kWhite, "white"},
+    {LaneRoadMark::Color::kBlack, "black"},   {LaneRoadMark::Color::kBlue, "blue"},
+    {LaneRoadMark::Color::kGreen, "green"},   {LaneRoadMark::Color::kOrange, "orange"},
+    {LaneRoadMark::Color::kRed, "red"},       {LaneRoadMark::Color::kStandard, "standard"},
+    {LaneRoadMark::Color::kViolet, "violet"}, {LaneRoadMark::Color::kWhite, "white"},
     {LaneRoadMark::Color::kYellow, "yellow"},
 };
 
@@ -65,10 +57,10 @@ const std::map<LaneRoadMark::LaneChange, std::string> lane_change_to_str_map{
 };
 
 const std::map<std::string, LaneRoadMark::LaneChange> str_to_lane_change_map{
-    {"both",LaneRoadMark::LaneChange::kBoth},
-    {"decrease" ,LaneRoadMark::LaneChange::kDecrease},
-    {"increase" ,LaneRoadMark::LaneChange::kIncrease},
-    {"none" ,LaneRoadMark::LaneChange::kNone},
+    {"both", LaneRoadMark::LaneChange::kBoth},
+    {"decrease", LaneRoadMark::LaneChange::kDecrease},
+    {"increase", LaneRoadMark::LaneChange::kIncrease},
+    {"none", LaneRoadMark::LaneChange::kNone},
 };
 
 const std::map<std::string, LaneRoadMark::Type> str_to_type_map{
@@ -106,54 +98,112 @@ const std::map<LaneRoadMark::Weight, std::string> weight_to_str_map{
     {LaneRoadMark::Weight::kStandard, "standard"},
 };
 
-const std::map<std::string, LaneRoadMark::LaneChange> str_to_weight_map{
-    {"bold",LaneRoadMark::Weight::kBold},
-    {"standard" ,LaneRoadMark::Weight::kStandard},
+const std::map<std::string, LaneRoadMark::Weight> str_to_weight_map{
+    {"bold", LaneRoadMark::Weight::kBold},
+    {"standard", LaneRoadMark::Weight::kStandard},
 };
 
-} // namespace
+const std::map<Rule, std::string> rule_to_str_map{
+    {Rule::kCaution, "caution"},
+    {Rule::kNoPassing, "no passing"},
+    {Rule::kNone, "none"},
+};
 
-std::string LaneRoadMark::color_to_str(Color color){return color_to_str_map.at(color);}
+const std::map<std::string, Rule> str_to_rule_map{
+    {"caution", Rule::kCaution},
+    {"no passing", Rule::kNoPassing},
+    {"none", Rule::kNone},
+};
 
-LaneRoadMark::Color LaneRoadMark::str_to_color(const std::string& color){
-    if (str_to_color_map.find(color) == str_to_color_map.end()) {
-        MALIDRIVE_THROW_MESSAGE(color + " lane road mark color is not available.");
-    }
-    return str_to_color_map.at(color);
+}  // namespace
+
+/// Roadmark
+
+std::string LaneRoadMark::color_to_str(Color color) { return color_to_str_map.at(color); }
+
+LaneRoadMark::Color LaneRoadMark::str_to_color(const std::string& color) {
+  if (str_to_color_map.find(color) == str_to_color_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(color + " lane road mark color is not available.");
+  }
+  return str_to_color_map.at(color);
 }
 
-std::string LaneRoadMark::lane_change_to_str(LaneChange lane_change){return lane_change_to_str_map.at(lane_change);}
+std::string LaneRoadMark::lane_change_to_str(LaneChange lane_change) { return lane_change_to_str_map.at(lane_change); }
 
-LaneRoadMark::LaneChange LaneRoadMark::str_to_lane_change(const std::string& lane_change){
-    if (str_to_lane_change_map.find(lane_change) == str_to_lane_change_map.end()) {
-        MALIDRIVE_THROW_MESSAGE(lane_change + " lane road mark lane change is not available.");
-    }
-    return str_to_lane_change_map.at(lane_change);
+LaneRoadMark::LaneChange LaneRoadMark::str_to_lane_change(const std::string& lane_change) {
+  if (str_to_lane_change_map.find(lane_change) == str_to_lane_change_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(lane_change + " lane road mark lane change is not available.");
+  }
+  return str_to_lane_change_map.at(lane_change);
 }
 
-std::string LaneRoadMark::type_to_str(Type type){return type_to_str_map.at(type);}
+std::string LaneRoadMark::type_to_str(Type type) { return type_to_str_map.at(type); }
 
-LaneRoadMark::Type LaneRoadMark::str_to_type(const std::string& type){
-    if (str_to_type_map.find(type) == str_to_type_map.end()) {
-        MALIDRIVE_THROW_MESSAGE(type + " lane road mark type is not available.");
-    }
-    return str_to_type_map.at(type);
+LaneRoadMark::Type LaneRoadMark::str_to_type(const std::string& type) {
+  if (str_to_type_map.find(type) == str_to_type_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(type + " lane road mark type is not available.");
+  }
+  return str_to_type_map.at(type);
 }
 
-std::string LaneRoadMark::weight_to_str(Weight weight){return weight_to_str_map.at(weight);}
+std::string LaneRoadMark::weight_to_str(Weight weight) { return weight_to_str_map.at(weight); }
 
-LaneRoadMark::Weight LaneRoadMark::str_to_weight(const std::string& weight){
-    if (str_to_weight_map.find(weight) == str_to_weight_map.end()) {
-        MALIDRIVE_THROW_MESSAGE(weight + " lane road mark weight is not available.");
-    }
-    return str_to_weight_map.at(weight);
+LaneRoadMark::Weight LaneRoadMark::str_to_weight(const std::string& weight) {
+  if (str_to_weight_map.find(weight) == str_to_weight_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(weight + " lane road mark weight is not available.");
+  }
+  return str_to_weight_map.at(weight);
 }
 
 bool LaneRoadMark::operator==(const LaneRoadMark& other) const {
-    // TODO
+  return color == other.color && height == other.height && lane_change == other.lane_change &&
+         material == other.material && s_offset == other.s_offset && type_attr == other.type_attr &&
+         weight == other.weight && width == other.width && this->type_elem == other.type_elem &&
+         explicit_elem == other.explicit_elem && sway_elem == other.sway_elem;
 }
 
 bool LaneRoadMark::operator!=(const LaneRoadMark& other) const { return !(*this == other); }
+
+/// Rule
+
+std::string rule_to_str(Rule rule) { return rule_to_str_map.at(rule); }
+
+Rule str_to_rule(const std::string& rule) {
+  if (str_to_rule_map.find(rule) == str_to_rule_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(rule + " lane road mark line rule is not available.");
+  }
+  return str_to_rule_map.at(rule);
+}
+
+/// TypeElementLine
+
+bool TypeElementLine::operator==(const TypeElementLine& other) const {
+  return color == other.color && length == other.length && rule == other.rule && s_offset == other.s_offset &&
+         space == other.space && t_offset == other.t_offset && width == other.width;
+}
+
+/// TypeElement
+
+bool TypeElement::operator==(const TypeElement& other) const {
+  return name == other.name && width == other.width && lines == other.lines;
+}
+
+/// ExplicitElementLine
+
+bool ExplicitElementLine::operator==(const ExplicitElementLine& other) const {
+  return length == other.length && rule == other.rule && s_offset == other.s_offset && t_offset == other.t_offset &&
+         width == other.width;
+}
+
+/// ExplicitElement
+
+bool ExplicitElement::operator==(const ExplicitElement& other) const { return lines == other.lines; }
+
+/// SwayElement
+
+bool SwayElement::operator==(const SwayElement& other) const {
+  return a == other.a && b == other.b && c == other.c && d == other.d && ds == other.ds;
+}
 
 }  // namespace xodr
 }  // namespace malidrive
