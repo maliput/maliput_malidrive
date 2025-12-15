@@ -33,22 +33,6 @@ namespace malidrive {
 namespace xodr {
 namespace {
 
-const std::map<std::string, LaneRoadMark::Color> str_to_color_map{
-    {"black", LaneRoadMark::Color::kBlack},   {"blue", LaneRoadMark::Color::kBlue},
-    {"green", LaneRoadMark::Color::kGreen},   {"orange", LaneRoadMark::Color::kOrange},
-    {"red", LaneRoadMark::Color::kRed},       {"standard", LaneRoadMark::Color::kStandard},
-    {"violet", LaneRoadMark::Color::kViolet}, {"white", LaneRoadMark::Color::kWhite},
-    {"yellow", LaneRoadMark::Color::kYellow},
-};
-
-const std::map<LaneRoadMark::Color, std::string> color_to_str_map{
-    {LaneRoadMark::Color::kBlack, "black"},   {LaneRoadMark::Color::kBlue, "blue"},
-    {LaneRoadMark::Color::kGreen, "green"},   {LaneRoadMark::Color::kOrange, "orange"},
-    {LaneRoadMark::Color::kRed, "red"},       {LaneRoadMark::Color::kStandard, "standard"},
-    {LaneRoadMark::Color::kViolet, "violet"}, {LaneRoadMark::Color::kWhite, "white"},
-    {LaneRoadMark::Color::kYellow, "yellow"},
-};
-
 const std::map<LaneRoadMark::LaneChange, std::string> lane_change_to_str_map{
     {LaneRoadMark::LaneChange::kBoth, "both"},
     {LaneRoadMark::LaneChange::kDecrease, "decrease"},
@@ -119,15 +103,6 @@ const std::map<std::string, Rule> str_to_rule_map{
 
 /// Roadmark
 
-std::string LaneRoadMark::color_to_str(Color color) { return color_to_str_map.at(color); }
-
-LaneRoadMark::Color LaneRoadMark::str_to_color(const std::string& color) {
-  if (str_to_color_map.find(color) == str_to_color_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(color + " lane road mark color is not available.");
-  }
-  return str_to_color_map.at(color);
-}
-
 std::string LaneRoadMark::lane_change_to_str(LaneChange lane_change) { return lane_change_to_str_map.at(lane_change); }
 
 LaneRoadMark::LaneChange LaneRoadMark::str_to_lane_change(const std::string& lane_change) {
@@ -157,9 +132,9 @@ LaneRoadMark::Weight LaneRoadMark::str_to_weight(const std::string& weight) {
 
 bool LaneRoadMark::operator==(const LaneRoadMark& other) const {
   return color == other.color && height == other.height && lane_change == other.lane_change &&
-         material == other.material && s_offset == other.s_offset && type_attr == other.type_attr &&
-         weight == other.weight && width == other.width && this->type_elem == other.type_elem &&
-         explicit_elem == other.explicit_elem && sway_elem == other.sway_elem;
+         material == other.material && s_offset == other.s_offset && type == other.type && weight == other.weight &&
+         width == other.width && this->type_elem == other.type_elem && explicit_elem == other.explicit_elem &&
+         sway_elem == other.sway_elem;
 }
 
 bool LaneRoadMark::operator!=(const LaneRoadMark& other) const { return !(*this == other); }

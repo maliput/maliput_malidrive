@@ -35,6 +35,7 @@
 #include <vector>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/colors.h"
 
 namespace malidrive {
 namespace xodr {
@@ -59,6 +60,151 @@ namespace xodr {
 ///   </OpenDRIVE>
 /// @endcode
 
+enum class Rule {
+  kCaution,
+  kNoPassing,
+  kNone,
+};
+
+/// Matches string with a RuleEnum.
+/// @param rule Is a RuleEnum.
+/// @returns A string that matches with `rule`.
+std::string rule_to_str(Rule rule);
+
+/// Matches RuleEnum with a string.
+/// @param rule Is a string.
+/// @returns A Rule that matches with `rule`.
+/// @throw maliput::common::assertion_error When `rule` doesn't match with a RuleEnum.
+Rule str_to_rule(const std::string& rule);
+
+struct TypeElementLine {
+  /// Convenient constants that hold the tag names in the XODR roadMark Line element description.
+  static constexpr const char* kTypeLineTag = "line";
+  static constexpr const char* kColor = "color";
+  static constexpr const char* kLength = "length";
+  static constexpr const char* kRule = "rule";
+  static constexpr const char* kSOffset = "sOffset";
+  static constexpr const char* kSpace = "space";
+  static constexpr const char* kTOffset = "tOffset";
+  static constexpr const char* kWidth = "width";
+
+  /// Color of the road marking type line element
+  std::optional<Color> color{std::nullopt};
+
+  /// Length of the visible part
+  double length;
+
+  /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute
+  /// ID to the lane with the higher absolute ID
+  std::optional<Rule> rule{std::nullopt};
+
+  /// Initial longitudinal offset of the line definition from the start of the road mark definition
+  double s_offset{};
+
+  /// Length of the gap between the visible parts
+  double space{};
+
+  /// Lateral offset from the lane border.
+  double t_offset{};
+
+  // Line width
+  std::optional<double> width{std::nullopt};
+
+  /// Equality operator.
+  bool operator==(const TypeElementLine& other) const;
+};
+
+struct TypeElement {
+  /// Convenient constants that hold the tag names in the XODR roadMark Type element description.
+  static constexpr const char* kTypeElementTag = "type";
+  static constexpr const char* kName = "name";
+  static constexpr const char* kWidth = "width";
+
+  /// Name of the road mark type. May be chosen freely.
+  std::string name{};
+
+  /// Accumulated width of the road mark. In case of several <line> elements this @width is the sum of all @width
+  /// of <line> elements and spaces in between, necessary to form the road mark.
+  double width{};
+
+  /// Line definition for a Type element, may contain one or more.
+  std::vector<TypeElementLine> lines{};
+
+  /// Equality operator.
+  bool operator==(const TypeElement& other) const;
+};
+
+struct ExplicitElementLine {
+  /// Convenient constants that hold the tag names in the XODR roadMark Line element description.
+  static constexpr const char* kExplicitElementLineTag = "line";
+  static constexpr const char* kLength = "length";
+  static constexpr const char* kRule = "rule";
+  static constexpr const char* kSOffset = "sOffset";
+  static constexpr const char* kTOffset = "tOffset";
+  static constexpr const char* kWidth = "width";
+
+  /// Length of the visible part
+  double length{};
+
+  /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute
+  /// ID to the lane with the higher absolute ID
+  std::optional<Rule> rule{std::nullopt};
+
+  /// Initial longitudinal offset of the line definition from the start of the road mark definition
+  double s_offset{};
+
+  /// Lateral offset from the lane border.
+  double t_offset{};
+
+  // Line width
+  std::optional<double> width{std::nullopt};
+
+  /// Equality operator.
+  bool operator==(const ExplicitElementLine& other) const;
+};
+
+struct ExplicitElement {
+  /// Convenient constants that hold the tag names in the XODR roadMark Explicit description.
+  static constexpr const char* kExplicitElementTag = "explicit";
+
+  /// Line definition for an Explicit element, may contain one or more.
+  std::vector<ExplicitElementLine> lines{};
+
+  /// Equality operator.
+  bool operator==(const ExplicitElement& other) const;
+};
+
+struct SwayElement {
+  /// Convenient constants that hold the tag names in the XODR roadMark Sway element description.
+  static constexpr const char* kSwayTag = "sway";
+  static constexpr const char* kA = "a";
+  static constexpr const char* kB = "b";
+  static constexpr const char* kC = "c";
+  static constexpr const char* kD = "d";
+  static constexpr const char* kDS = "ds";
+
+  /// Polynom parameter a, sway value at @s (ds=0)
+  double a{};
+
+  /// Polynom parameter b
+  double b{};
+
+  /// Polynom parameter c
+  double c{};
+
+  /// Polynom parameter d
+  double d{};
+
+  /// s-coordinate of start position of the <sway> element, relative to the @sOffset given in the <roadMark> element
+  double ds{};
+
+  /// Equality operator.
+  bool operator==(const SwayElement& other) const;
+
+  /// Inequality operator
+  bool operator!=(const SwayElement& other) const { return !(*this == other); }
+};
+
 struct LaneRoadMark {
   /// Convenient constants that hold the tag names in the XODR roadMark description.
   static constexpr const char* kLaneRoadMarkTag = "roadMark";
@@ -70,18 +216,6 @@ struct LaneRoadMark {
   static constexpr const char* kType = "type";
   static constexpr const char* kWeight = "weight";
   static constexpr const char* kWidth = "width";
-
-  enum class Color {
-    kBlack,
-    kBlue,
-    kGreen,
-    kOrange,
-    kRed,
-    kStandard,
-    kViolet,
-    kWhite,
-    kYellow,
-  };
 
   enum class LaneChange {
     kBoth,
@@ -109,17 +243,6 @@ struct LaneRoadMark {
     kBold,
     kStandard,
   };
-
-  /// Matches string with a Color.
-  /// @param color Is a Color.
-  /// @returns A string that matches with `color`.
-  static std::string color_to_str(Color color);
-
-  /// Matches Color with a string.
-  /// @param color Is a string.
-  /// @returns A Color that matches with `color`.
-  /// @throw maliput::common::assertion_error When `color` doesn't match with a Color.
-  static Color str_to_color(const std::string& color);
 
   /// Matches string with a LaneChange.
   /// @param lane_change Is a LaneChange.
@@ -193,148 +316,6 @@ struct LaneRoadMark {
 
   /// Optional Sway element for the roadMark
   std::optional<SwayElement> sway_elem{std::nullopt};
-};
-
-enum class Rule {
-  kCaution,
-  kNoPassing,
-  kNone,
-};
-
-/// Matches string with a RuleEnum.
-/// @param rule Is a RuleEnum.
-/// @returns A string that matches with `rule`.
-static std::string rule_to_str(Rule rule);
-
-/// Matches RuleEnum with a string.
-/// @param rule Is a string.
-/// @returns A Rule that matches with `rule`.
-/// @throw maliput::common::assertion_error When `rule` doesn't match with a RuleEnum.
-static Rule str_to_rule(const std::string& rule);
-
-struct TypeElementLine {
-  /// Convenient constants that hold the tag names in the XODR roadMark Line element description.
-  static constexpr const char* kTypeLineTag = "line";
-  static constexpr const char* kColor = "color";
-  static constexpr const char* kLength = "length";
-  static constexpr const char* kRule = "rule";
-  static constexpr const char* kSOffset = "sOffset";
-  static constexpr const char* kSpace = "space";
-  static constexpr const char* kTOffset = "tOffset";
-  static constexpr const char* kWidth = "width";
-
-  /// Color of the road marking type line element
-  std::optional<LaneRoadMark::Color> color{std::nullopt};
-
-  /// Length of the visible part
-  double length;
-
-  /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute
-  /// ID to the lane with the higher absolute ID
-  std::optional<Rule> rule{std::nullopt};
-
-  /// Initial longitudinal offset of the line definition from the start of the road mark definition
-  double s_offset{};
-
-  /// Length of the gap between the visible parts
-  double space{};
-
-  /// Lateral offset from the lane border.
-  double t_offset{};
-
-  // Line width
-  std::optional<double> width{std::nullopt};
-
-  /// Equality operator.
-  bool operator==(const TypeElementLine& other) const;
-};
-
-struct TypeElement {
-  /// Convenient constants that hold the tag names in the XODR roadMark Type element description.
-  static constexpr const char* kTypeElementTag = "type";
-  static constexpr const char* kName = "name";
-  static constexpr const char* kWidth = "width";
-
-  /// Name of the road mark type. May be chosen freely.
-  std::string name{};
-
-  /// Accumulated width of the road mark. In case of several <line> elements this @width is the sum of all @width
-  /// of <line> elements and spaces in between, necessary to form the road mark.
-  double width{};
-
-  /// Line definition for a Type element, may contain one or more.
-  std::vector<TypeElementLine> lines{};
-
-  /// Equality operator.
-  bool operator==(const TypeElement& other) const;
-};
-
-struct ExplicitElementLine {
-  /// Convenient constants that hold the tag names in the XODR roadMark Line element description.
-  static constexpr const char* kExplicitElementLineTag = "line";
-  static constexpr const char* kLength = "length";
-  static constexpr const char* kRule = "rule";
-  static constexpr const char* kSOffset = "sOffset";
-  static constexpr const char* kTOffset = "tOffset";
-  static constexpr const char* kWidth = "width";
-
-  /// Length of the visible part
-  double length;
-
-  /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute
-  /// ID to the lane with the higher absolute ID
-  std::optional<Rule> rule{std::nullopt};
-
-  /// Initial longitudinal offset of the line definition from the start of the road mark definition
-  double s_offset{};
-
-  /// Lateral offset from the lane border.
-  double t_offset{};
-
-  // Line width
-  std::optional<double> width{std::nullopt};
-
-  /// Equality operator.
-  bool operator==(const ExplicitElementLine& other) const;
-};
-
-struct ExplicitElement {
-  /// Convenient constants that hold the tag names in the XODR roadMark Explicit description.
-  static constexpr const char* kExplicitElementTag = "explicit";
-
-  /// Line definition for an Explicit element, may contain one or more.
-  std::vector<ExplicitElementLine> lines{};
-
-  /// Equality operator.
-  bool operator==(const ExplicitElement& other) const;
-};
-
-struct SwayElement {
-  /// Convenient constants that hold the tag names in the XODR roadMark Sway element description.
-  static constexpr const char* kSwayTag = "sway";
-  static constexpr const char* kA = "a";
-  static constexpr const char* kB = "b";
-  static constexpr const char* kC = "c";
-  static constexpr const char* kD = "d";
-  static constexpr const char* kDS = "ds";
-
-  /// Polynom parameter a, sway value at @s (ds=0)
-  double a{};
-
-  /// Polynom parameter b
-  double b{};
-
-  /// Polynom parameter c
-  double c{};
-
-  /// Polynom parameter d
-  double d{};
-
-  /// s-coordinate of start position of the <sway> element, relative to the @sOffset given in the <roadMark> element
-  double ds{};
-
-  /// Equality operator.
-  bool operator==(const SwayElement& other) const;
 };
 
 }  // namespace xodr
