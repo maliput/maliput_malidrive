@@ -154,9 +154,9 @@ GTEST_TEST(LaneRoadMark, EqualityOperator) {
   lane_road_mark.s_offset = 2.;
   EXPECT_NE(kLaneRoadMark, lane_road_mark);
   lane_road_mark.s_offset = 1.;
-  lane_road_mark.type = LaneRoadMark::Type::kBroken;
-  EXPECT_NE(kLaneRoadMark, lane_road_mark);
   lane_road_mark.type = LaneRoadMark::Type::kSolid;
+  EXPECT_NE(kLaneRoadMark, lane_road_mark);
+  lane_road_mark.type = LaneRoadMark::Type::kBroken;
   lane_road_mark.weight = LaneRoadMark::Weight::kStandard;
   EXPECT_NE(kLaneRoadMark, lane_road_mark);
   lane_road_mark.weight = LaneRoadMark::Weight::kBold;
