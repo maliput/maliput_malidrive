@@ -112,6 +112,9 @@ struct TypeElementLine {
 
   /// Equality operator.
   bool operator==(const TypeElementLine& other) const;
+
+  /// Inequality operator
+  bool operator!=(const TypeElementLine& other) const { return !(*this == other); }
 };
 
 struct TypeElement {
@@ -132,6 +135,9 @@ struct TypeElement {
 
   /// Equality operator.
   bool operator==(const TypeElement& other) const;
+
+  /// Inequality operator
+  bool operator!=(const TypeElement& other) const { return !(*this == other); }
 };
 
 struct ExplicitElementLine {
@@ -161,6 +167,9 @@ struct ExplicitElementLine {
 
   /// Equality operator.
   bool operator==(const ExplicitElementLine& other) const;
+
+  /// Inequality operator
+  bool operator!=(const ExplicitElementLine& other) const { return !(*this == other); }
 };
 
 struct ExplicitElement {
@@ -172,6 +181,9 @@ struct ExplicitElement {
 
   /// Equality operator.
   bool operator==(const ExplicitElement& other) const;
+
+  /// Inequality operator
+  bool operator!=(const ExplicitElement& other) const { return !(*this == other); }
 };
 
 struct SwayElement {
