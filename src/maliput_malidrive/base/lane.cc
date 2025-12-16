@@ -90,7 +90,7 @@ using maliput::math::Vector3;
 Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
            const maliput::api::HBounds& elevation_bounds, const road_curve::RoadCurve* road_curve,
            std::unique_ptr<road_curve::Function> lane_width, std::unique_ptr<road_curve::Function> lane_offset,
-           double p0, double p1, double integrator_accuracy_multiplier)
+           double p0, double p1, double integrator_accuracy_multiplier, const std::string& lane_type)
     : maliput::geometry_base::Lane(id),
       xodr_track_(xodr_track),
       xodr_lane_id_(xodr_lane_id),
@@ -111,6 +111,11 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_width_->p1() - p1), 0., road_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_offset_->p0() - p0), 0., road_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_offset_->p1() - p1), 0., road_curve_->linear_tolerance());
+
+  auto it = str_to_type_map.find(lane_type);
+  if (it != str_to_type_map.end()) {
+    type_ = it->second;
+  }
 
   // @{ The following if clause introduces an implementation knowledge abuse.
   //    road_curve::RoadCurve::LMax() is the result of the summatory of
@@ -186,15 +191,6 @@ maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   bound_right = bound_right < tolerance ? tolerance : bound_right;
 
   return {-bound_right, bound_left};
-}
-
-void Lane::set_type(const std::string& type) {
-  maliput::api::LaneType lane_type = maliput::api::LaneType::kUnknown;
-  auto it = str_to_type_map.find(type);
-  if (it != str_to_type_map.end()) {
-    lane_type = it->second;
-  }
-  type_ = lane_type;
 }
 
 maliput::math::Vector3 Lane::DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const {
