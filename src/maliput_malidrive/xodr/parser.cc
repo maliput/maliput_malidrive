@@ -781,8 +781,12 @@ TypeElement NodeParser::As() const {
   // @{
   const auto name = attribute_parser.As<std::string>(TypeElement::kName);
   MALIDRIVE_THROW_UNLESS(name != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto width = attribute_parser.As<double>(TypeElement::kWidth);
-  MALIDRIVE_THROW_UNLESS(width != std::nullopt, maliput::common::road_network_description_parser_error);
+  auto width = attribute_parser.As<double>(TypeElement::kWidth);
+  if (parser_configuration_.allow_schema_errors && width == std::nullopt) {
+    width = 0.1;
+  } else if (width == std::nullopt) {
+    MALIDRIVE_THROW_UNLESS(width != std::nullopt, maliput::common::road_network_description_parser_error);
+  }
   // @}
 
   // Line elements
