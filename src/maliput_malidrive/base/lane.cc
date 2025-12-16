@@ -47,6 +47,42 @@ static constexpr bool kUseLaneBoundaries = true;
 static constexpr bool kUseSegmentBoundaries = !kUseLaneBoundaries;
 // @}
 
+const std::map<std::string, maliput::api::LaneType> str_to_type_map{
+    // Supported on OpenDRIVE 1.8.1
+    {"shoulder", maliput::api::LaneType::kShoulder},
+    {"border", maliput::api::LaneType::kBorder},
+    {"driving", maliput::api::LaneType::kDriving},
+    {"stop", maliput::api::LaneType::kStop},
+    {"restricted", maliput::api::LaneType::kRestricted},
+    {"parking", maliput::api::LaneType::kParking},
+    {"median", maliput::api::LaneType::kMedian},
+    {"biking", maliput::api::LaneType::kBiking},
+    {"walking", maliput::api::LaneType::kWalking},
+    {"curb", maliput::api::LaneType::kCurb},
+    {"entry", maliput::api::LaneType::kEntry},
+    {"exit", maliput::api::LaneType::kExit},
+    {"onRamp", maliput::api::LaneType::kOnRamp},
+    {"offRamp", maliput::api::LaneType::kOffRamp},
+    {"connectingRamp", maliput::api::LaneType::kConnectingRamp},
+    {"slipLane", maliput::api::LaneType::kSlipLane},
+    {"none", maliput::api::LaneType::kUnknown},
+    // Deprecated since OpenDRIVE 1.8.0
+    {"sidewalk", maliput::api::LaneType::kWalking},
+    {"bidirectional", maliput::api::LaneType::kDriving},
+    {"special1", maliput::api::LaneType::kUnknown},
+    {"special2", maliput::api::LaneType::kUnknown},
+    {"special3", maliput::api::LaneType::kUnknown},
+    {"roadworks", maliput::api::LaneType::kConstruction},
+    {"tram", maliput::api::LaneType::kRail},
+    {"rail", maliput::api::LaneType::kRail},
+    {"bus", maliput::api::LaneType::kBus},
+    {"taxi", maliput::api::LaneType::kTaxi},
+    {"hov", maliput::api::LaneType::kHov},
+    // Deprecated since OpenDRIVE 1.5.0
+    {"mwyEntry", maliput::api::LaneType::kEntry},
+    {"mwyExit", maliput::api::LaneType::kExit},
+};
+
 }  // namespace
 
 using maliput::math::Vector3;
@@ -150,6 +186,15 @@ maliput::api::RBounds Lane::do_segment_bounds(double s) const {
   bound_right = bound_right < tolerance ? tolerance : bound_right;
 
   return {-bound_right, bound_left};
+}
+
+void Lane::set_type(const std::string& type) {
+  maliput::api::LaneType lane_type = maliput::api::LaneType::kUnknown;
+  auto it = str_to_type_map.find(type);
+  if (it != str_to_type_map.end()) {
+    lane_type = it->second;
+  }
+  type_ = lane_type;
 }
 
 maliput::math::Vector3 Lane::DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const {

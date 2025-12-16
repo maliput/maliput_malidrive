@@ -117,6 +117,8 @@ class Lane : public maliput::geometry_base::Lane {
   // @returns The lane width evaluated at `p` (Track s coordinate).
   double lane_width_at(double p) const { return lane_width_->f(p); }
 
+  void set_type(const std::string& type) override;
+
   /// Converts `lane_s` coordinate in the LANE Frame to the TRACK Frame `s`
   /// coordinate the ODRM uses.
   ///
@@ -145,6 +147,7 @@ class Lane : public maliput::geometry_base::Lane {
   maliput::api::RBounds do_lane_bounds(double s) const override;
   maliput::api::RBounds do_segment_bounds(double s) const override;
   maliput::api::HBounds do_elevation_bounds(double, double) const override { return elevation_bounds_; }
+
   // @{
   // TODO(#43): Move this to the builder in favor of increased performance when
   //            querying the Lane.
