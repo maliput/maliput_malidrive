@@ -1280,12 +1280,12 @@ GTEST_TEST(DBManagerTest, GetRoadHeaders) {
   const Lane::Speed kLaneSpeedA{0.0 /* sOffset */, 45. /* max */, Unit::kMph /* unit */};
   const Lane::Speed kLaneSpeedB{0.5 /* sOffset */, 3. /* max */, Unit::kMs /* unit */};
   const Lane kLeftLane{
-      Lane::Id("1"), Lane::Type::kDriving, false, kLaneLinkA, std::vector<LaneWidth>{{0., 1., 2., 3., 4.}},
-      {kLaneSpeedA}};
+      Lane::Id("1"),       Lane::Type::kDriving, false, kLaneLinkA, std::vector<LaneWidth>{{0., 1., 2., 3., 4.}},
+      {} /* road marks */, {kLaneSpeedA}};
   const Lane kCenterLane{Lane::Id("0"), Lane::Type::kDriving, false, {}, {}};
   const Lane kRightLane{
-      Lane::Id("-1"), Lane::Type::kDriving, false, kLaneLinkB, std::vector<LaneWidth>{{5., 6., 7., 8., 9.}},
-      {kLaneSpeedB}};
+      Lane::Id("-1"),      Lane::Type::kDriving, false, kLaneLinkB, std::vector<LaneWidth>{{5., 6., 7., 8., 9.}},
+      {} /* road marks */, {kLaneSpeedB}};
   const LaneSection kLaneSection{0.5 /* s_0 */,
                                  std::nullopt /* single_side */,
                                  {kLeftLane} /* left_lanes */,
@@ -1474,12 +1474,13 @@ GTEST_TEST(DBManagerTest, Highway) {
 
   // lane section 0
   const Lane kCenterLane0{
-      Lane::Id("0"), Lane::Type::kNone, false, {}, {}, {}, LaneUserDataTravelDirTemplate("undirected")};
+      Lane::Id("0"), Lane::Type::kNone, false, {}, {}, {}, {}, LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane0_1{Lane::Id("-1"),
                            Lane::Type::kNone,
                            false,
                            {},
                            std::vector<LaneWidth>{{0., 6.3500000000000001e-1, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane0_2{Lane::Id("-2"),
@@ -1487,6 +1488,7 @@ GTEST_TEST(DBManagerTest, Highway) {
                            false,
                            kLaneLink0_2,
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection0{0. /* s_0 */,
@@ -1502,6 +1504,7 @@ GTEST_TEST(DBManagerTest, Highway) {
                            kLaneLink1_1,
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection1{1.0336660934588904e+1 /* s_0 */,
                                   std::nullopt /* single_side */,
@@ -1511,12 +1514,13 @@ GTEST_TEST(DBManagerTest, Highway) {
 
   // lane section 2
   const Lane kCenterLane2{
-      Lane::Id("0"), Lane::Type::kNone, false, {}, {}, {}, LaneUserDataTravelDirTemplate("undirected")};
+      Lane::Id("0"), Lane::Type::kNone, false, {}, {}, {}, {}, LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_1{Lane::Id("-1"),
                            Lane::Type::kNone,
                            false,
                            {},
                            std::vector<LaneWidth>{{0., 5.0e-1, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_2{Lane::Id("-2"),
@@ -1525,12 +1529,14 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {},
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_3{Lane::Id("-3"),
                            Lane::Type::kNone,
                            false,
                            {},
                            std::vector<LaneWidth>{{0., 5.0e-1, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_4{Lane::Id("-4"),
@@ -1539,6 +1545,7 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {},
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane2_5{Lane::Id("-5"),
                            Lane::Type::kNone,
@@ -1546,12 +1553,14 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {},
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane2_6{Lane::Id("-6"),
                            Lane::Type::kDriving,
                            false,
                            kLaneLink2_6,
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection2{
@@ -1563,12 +1572,13 @@ GTEST_TEST(DBManagerTest, Highway) {
 
   // lane section 3
   const Lane kCenterLane3{
-      Lane::Id("0"), Lane::Type::kNone, false, {}, {}, {}, LaneUserDataTravelDirTemplate("undirected")};
+      Lane::Id("0"), Lane::Type::kNone, false, {}, {}, {}, {}, LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_1{Lane::Id("-1"),
                            Lane::Type::kNone,
                            false,
                            {},
                            std::vector<LaneWidth>{{0., 5.0e-1, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_2{Lane::Id("-2"),
@@ -1577,12 +1587,14 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {},
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_3{Lane::Id("-3"),
                            Lane::Type::kNone,
                            false,
                            {},
                            std::vector<LaneWidth>{{0., 5.0e-1, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_4{Lane::Id("-4"),
@@ -1591,6 +1603,7 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {},
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane3_5{Lane::Id("-5"),
                            Lane::Type::kNone,
@@ -1598,12 +1611,14 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {},
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {},
+                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane3_6{Lane::Id("-6"),
                            Lane::Type::kDriving,
                            false,
                            kLaneLink3_6,
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
+                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection3{
