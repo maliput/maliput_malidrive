@@ -208,7 +208,7 @@ struct SwayElement {
   double d{};
 
   /// s-coordinate of start position of the <sway> element, relative to the @sOffset given in the <roadMark> element
-  double ds{};
+  double s_0{};
 
   /// Equality operator.
   bool operator==(const SwayElement& other) const;
@@ -299,14 +299,14 @@ struct LaneRoadMark {
   Color color{};
 
   /// Height of road mark above the road, i.e. thickness of the road mark [m]
-  double height{};
+  std::optional<double> height{std::nullopt};
 
   /// Allows a lane change in the indicated direction, taking into account that lanes are numbered in ascending
   /// order from right to left. If the attribute is missing, “both” is used as default.
   std::optional<LaneChange> lane_change{std::nullopt};
 
   /// Material of the road mark. Identifiers to be defined by the user, use "standard" as default value.
-  std::string material{};
+  std::optional<std::string> material{std::nullopt};
 
   /// Start position (s-coordinate) relative to the position of the preceding laneSection record.
   double s_offset{};
@@ -321,13 +321,13 @@ struct LaneRoadMark {
   std::optional<double> width{std::nullopt};
 
   /// Optional Type element for the roadMark
-  std::optional<TypeElement> type_elem{std::nullopt};
+  std::vector<TypeElement> type_elems{};
 
   /// Optional Explicit element for the roadMark
-  std::optional<ExplicitElement> explicit_elem{std::nullopt};
+  std::vector<ExplicitElement> explicit_elems{};
 
   /// Optional Sway element for the roadMark
-  std::optional<SwayElement> sway_elem{std::nullopt};
+  std::vector<SwayElement> sway_elems{};
 };
 
 }  // namespace xodr

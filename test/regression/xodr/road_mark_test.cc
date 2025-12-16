@@ -55,9 +55,9 @@ GTEST_TEST(SwayElement, EqualityOperator) {
   sway_element.d = 2.;
   EXPECT_NE(kSwayElement, sway_element);
   sway_element.d = 1.;
-  sway_element.ds = 2.;
+  sway_element.s_0 = 2.;
   EXPECT_NE(kSwayElement, sway_element);
-  sway_element.ds = 1.;
+  sway_element.s_0 = 1.;
   EXPECT_EQ(kSwayElement, sway_element);
 }
 

@@ -133,8 +133,8 @@ LaneRoadMark::Weight LaneRoadMark::str_to_weight(const std::string& weight) {
 bool LaneRoadMark::operator==(const LaneRoadMark& other) const {
   return color == other.color && height == other.height && lane_change == other.lane_change &&
          material == other.material && s_offset == other.s_offset && type == other.type && weight == other.weight &&
-         width == other.width && this->type_elem == other.type_elem && explicit_elem == other.explicit_elem &&
-         sway_elem == other.sway_elem;
+         width == other.width && this->type_elems == other.type_elems && explicit_elems == other.explicit_elems &&
+         sway_elems == other.sway_elems;
 }
 
 bool LaneRoadMark::operator!=(const LaneRoadMark& other) const { return !(*this == other); }
@@ -177,7 +177,7 @@ bool ExplicitElement::operator==(const ExplicitElement& other) const { return li
 /// SwayElement
 
 bool SwayElement::operator==(const SwayElement& other) const {
-  return a == other.a && b == other.b && c == other.c && d == other.d && ds == other.ds;
+  return a == other.a && b == other.b && c == other.c && d == other.d && s_0 == other.s_0;
 }
 
 }  // namespace xodr

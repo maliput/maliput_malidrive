@@ -34,6 +34,7 @@
 
 #include <maliput/common/logger.h>
 
+#include "maliput_malidrive/xodr/colors.h"
 #include "maliput_malidrive/xodr/connection.h"
 #include "maliput_malidrive/xodr/elevation_profile.h"
 #include "maliput_malidrive/xodr/geo_reference.h"
@@ -318,6 +319,48 @@ template <>
 std::optional<Unit> AttributeParser::As(const std::string& attribute_name) const {
   const std::optional<std::string> unit = As<std::string>(attribute_name);
   return unit.has_value() ? std::make_optional<Unit>(str_to_unit(unit.value())) : std::nullopt;
+}
+
+// Specialization to parse as `Color` the attribute's value.
+template <>
+std::optional<Color> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> color = As<std::string>(attribute_name);
+  return color.has_value() ? std::make_optional<Color>(str_to_color(color.value())) : std::nullopt;
+}
+
+// Specialization to parse as `LaneRoadMark::Type` the attribute's value.
+template <>
+std::optional<LaneRoadMark::Type> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> lane_road_mark_type = As<std::string>(attribute_name);
+  return lane_road_mark_type.has_value()
+             ? std::make_optional<LaneRoadMark::Type>(LaneRoadMark::str_to_type(lane_road_mark_type.value()))
+             : std::nullopt;
+}
+
+// Specialization to parse as `LaneRoadMark::LaneChange` the attribute's value.
+template <>
+std::optional<LaneRoadMark::LaneChange> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> lane_road_mark_lane_change = As<std::string>(attribute_name);
+  return lane_road_mark_lane_change.has_value()
+             ? std::make_optional<LaneRoadMark::LaneChange>(
+                   LaneRoadMark::str_to_lane_change(lane_road_mark_lane_change.value()))
+             : std::nullopt;
+}
+
+// Specialization to parse as `LaneRoadMark::Weight` the attribute's value.
+template <>
+std::optional<LaneRoadMark::Weight> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> lane_road_mark_weight = As<std::string>(attribute_name);
+  return lane_road_mark_weight.has_value()
+             ? std::make_optional<LaneRoadMark::Weight>(LaneRoadMark::str_to_weight(lane_road_mark_weight.value()))
+             : std::nullopt;
+}
+
+// Specialization to parse as `Rule` the attribute's value.
+template <>
+std::optional<Rule> AttributeParser::As(const std::string& attribute_name) const {
+  const std::optional<std::string> rule = As<std::string>(attribute_name);
+  return rule.has_value() ? std::make_optional<Rule>(str_to_rule(rule.value())) : std::nullopt;
 }
 
 // Specialization to parse `GeoReference`'s node.
@@ -637,6 +680,197 @@ Lane::Speed NodeParser::As() const {
   return speed;
 }
 
+// Specialization to parse `ExplicitElementLine`'s node.
+template <>
+SwayElement NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto a = attribute_parser.As<double>(SwayElement::kA);
+  MALIDRIVE_THROW_UNLESS(a != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto b = attribute_parser.As<double>(SwayElement::kB);
+  MALIDRIVE_THROW_UNLESS(b != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto c = attribute_parser.As<double>(SwayElement::kC);
+  MALIDRIVE_THROW_UNLESS(c != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto d = attribute_parser.As<double>(SwayElement::kD);
+  MALIDRIVE_THROW_UNLESS(d != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto ds = attribute_parser.As<double>(SwayElement::kDS);
+  MALIDRIVE_THROW_UNLESS(ds != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  return {a.value(), b.value(), c.value(), d.value(), ds.value()};
+}
+
+// Specialization to parse `ExplicitElementLine`'s node.
+template <>
+ExplicitElementLine NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto length = attribute_parser.As<double>(ExplicitElementLine::kLength);
+  MALIDRIVE_THROW_UNLESS(length != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto s_offset = attribute_parser.As<double>(ExplicitElementLine::kSOffset);
+  MALIDRIVE_THROW_UNLESS(s_offset != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto t_offset = attribute_parser.As<double>(ExplicitElementLine::kTOffset);
+  MALIDRIVE_THROW_UNLESS(t_offset != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  // Optional attributes.
+  // @{
+  const auto rule = attribute_parser.As<Rule>(ExplicitElementLine::kRule);
+  const auto width = attribute_parser.As<double>(ExplicitElementLine::kWidth);
+  // @}
+
+  return {length.value(), rule, s_offset.value(), t_offset.value(), width};
+}
+
+// Specialization to parse `ExplicitElement`'s node.
+template <>
+ExplicitElement NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Line elements
+  tinyxml2::XMLElement* explicit_element_line_xml =
+      element_->FirstChildElement(ExplicitElementLine::kExplicitElementLineTag);
+  std::vector<ExplicitElementLine> explicit_element_lines;
+  while (explicit_element_line_xml) {
+    auto explicit_element_line = NodeParser(explicit_element_line_xml, parser_configuration_).As<ExplicitElementLine>();
+    explicit_element_lines.push_back(explicit_element_line);
+    explicit_element_line_xml =
+        explicit_element_line_xml->NextSiblingElement(ExplicitElementLine::kExplicitElementLineTag);
+  }
+
+  return {explicit_element_lines};
+}
+
+// Specialization to parse `TypeElementLine`'s node.
+template <>
+TypeElementLine NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto length = attribute_parser.As<double>(TypeElementLine::kLength);
+  MALIDRIVE_THROW_UNLESS(length != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto s_offset = attribute_parser.As<double>(TypeElementLine::kSOffset);
+  MALIDRIVE_THROW_UNLESS(s_offset != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto space = attribute_parser.As<double>(TypeElementLine::kSpace);
+  MALIDRIVE_THROW_UNLESS(space != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto t_offset = attribute_parser.As<double>(TypeElementLine::kTOffset);
+  MALIDRIVE_THROW_UNLESS(t_offset != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  // Optional attributes.
+  // @{
+  const auto color = attribute_parser.As<Color>(TypeElementLine::kColor);
+  const auto rule = attribute_parser.As<Rule>(TypeElementLine::kRule);
+  const auto width = attribute_parser.As<double>(TypeElementLine::kWidth);
+  // @}
+
+  return {color, length.value(), rule, s_offset.value(), space.value(), t_offset.value(), width};
+}
+
+// Specialization to parse `TypeElement`'s node.
+template <>
+TypeElement NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto name = attribute_parser.As<std::string>(TypeElement::kName);
+  MALIDRIVE_THROW_UNLESS(name != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto width = attribute_parser.As<double>(TypeElement::kWidth);
+  MALIDRIVE_THROW_UNLESS(width != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  // Line elements
+  tinyxml2::XMLElement* type_element_line_xml = element_->FirstChildElement(TypeElementLine::kTypeLineTag);
+  std::vector<TypeElementLine> type_element_lines;
+  while (type_element_line_xml) {
+    auto type_element_line = NodeParser(type_element_line_xml, parser_configuration_).As<TypeElementLine>();
+    type_element_lines.push_back(type_element_line);
+    type_element_line_xml = type_element_line_xml->NextSiblingElement(LaneRoadMark::kLaneRoadMarkTag);
+  }
+
+  return {name.value(), width.value(), type_element_lines};
+}
+
+// Specialization to parse `LaneRoadkMark`'s node.
+template <>
+LaneRoadMark NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  auto color = attribute_parser.As<Color>(LaneRoadMark::kLaneRoadMarkColor);
+  if (parser_configuration_.allow_schema_errors && color == std::nullopt) {
+    color = Color::kWhite;
+  } else if (color == std::nullopt) {
+    MALIDRIVE_THROW_UNLESS(color != std::nullopt, maliput::common::road_network_description_parser_error);
+  }
+  const auto offset = attribute_parser.As<double>(LaneRoadMark::kOffset);
+  MALIDRIVE_THROW_UNLESS(offset != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto type = attribute_parser.As<LaneRoadMark::Type>(LaneRoadMark::kType);
+  MALIDRIVE_THROW_UNLESS(type != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  // Optional attributes.
+  // @{
+  const auto height = attribute_parser.As<double>(LaneRoadMark::kLaneRoadMarkHeight);
+  const auto lane_change = attribute_parser.As<LaneRoadMark::LaneChange>(LaneRoadMark::kLaneRoadMarkLaneChange);
+  const auto material = attribute_parser.As<std::string>(LaneRoadMark::kLaneRoadMarkMaterial);
+  const auto weight = attribute_parser.As<LaneRoadMark::Weight>(LaneRoadMark::kWeight);
+  const auto width = attribute_parser.As<double>(LaneRoadMark::kWidth);
+  // @}
+
+  // Elements
+  // Type
+  tinyxml2::XMLElement* road_mark_type_element_xml = element_->FirstChildElement(TypeElement::kTypeElementTag);
+  std::vector<TypeElement> road_mark_type_elements;
+  while (road_mark_type_element_xml) {
+    auto road_mark_type_element = NodeParser(road_mark_type_element_xml, parser_configuration_).As<TypeElement>();
+    road_mark_type_elements.push_back(road_mark_type_element);
+    road_mark_type_element_xml = road_mark_type_element_xml->NextSiblingElement(TypeElement::kTypeElementTag);
+  }
+
+  // Explicit
+  tinyxml2::XMLElement* road_mark_explicit_element_xml =
+      element_->FirstChildElement(ExplicitElement::kExplicitElementTag);
+  std::vector<ExplicitElement> road_mark_explicit_elements;
+  while (road_mark_explicit_element_xml) {
+    auto road_mark_explicit_element =
+        NodeParser(road_mark_explicit_element_xml, parser_configuration_).As<ExplicitElement>();
+    road_mark_explicit_elements.push_back(road_mark_explicit_element);
+    road_mark_explicit_element_xml =
+        road_mark_explicit_element_xml->NextSiblingElement(ExplicitElement::kExplicitElementTag);
+  }
+
+  // Sway
+  tinyxml2::XMLElement* sway_element_xml = element_->FirstChildElement(SwayElement::kSwayTag);
+  std::vector<SwayElement> sway_elements;
+  while (sway_element_xml) {
+    auto sway_element = NodeParser(sway_element_xml, parser_configuration_).As<SwayElement>();
+
+    AddPolynomialDescriptionToCollection(std::move(sway_element), Lane::kLaneTag,
+                                         parser_configuration_.allow_schema_errors, element_, &sway_elements);
+    sway_element_xml = sway_element_xml->NextSiblingElement(SwayElement::kSwayTag);
+  }
+
+  return {color.value(),
+          height,
+          lane_change,
+          material,
+          offset.value(),
+          type.value(),
+          weight,
+          width,
+          road_mark_type_elements,
+          road_mark_explicit_elements,
+          sway_elements};
+}
+
 // Specialization to parse `Lane`'s node.
 template <>
 Lane NodeParser::As() const {
@@ -678,7 +912,14 @@ Lane NodeParser::As() const {
     width_element = width_element->NextSiblingElement(LaneWidth::kLaneWidthTag);
   }
 
-  // RoadMark parsing would go here. It is an element of the Lane, the same as link and width
+  // roadMark
+  tinyxml2::XMLElement* road_marks_element_xml = element_->FirstChildElement(LaneRoadMark::kLaneRoadMarkTag);
+  std::vector<LaneRoadMark> road_marks;
+  while (road_marks_element_xml) {
+    auto road_mark = NodeParser(road_marks_element_xml, parser_configuration_).As<LaneRoadMark>();
+    road_marks.push_back(road_mark);
+    road_marks_element_xml = road_marks_element_xml->NextSiblingElement(LaneRoadMark::kLaneRoadMarkTag);
+  }
 
   // Only when schema errors are allowed is possible to find NaN values in the functions, otherwise
   // the NaN values would have caused an error when parsing the double value in the XODR file.
@@ -711,6 +952,7 @@ Lane NodeParser::As() const {
           level,
           lane_link,
           width_description,
+          road_marks,
           speeds,
           user_data,
           advisory,
