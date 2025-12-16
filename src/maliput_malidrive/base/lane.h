@@ -39,6 +39,7 @@
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/road_curve/road_curve_offset.h"
+#include "maliput_malidrive/xodr/lane.h"
 
 namespace malidrive {
 
@@ -91,7 +92,7 @@ class Lane : public maliput::geometry_base::Lane {
   Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id, const maliput::api::HBounds& elevation_bounds,
        const road_curve::RoadCurve* road_curve, std::unique_ptr<road_curve::Function> lane_width,
        std::unique_ptr<road_curve::Function> lane_offset, double p0, double p1, double integrator_accuracy_multiplier,
-       const std::string& lane_type);
+       xodr::Lane::Type lane_type);
 
   /// @return The OpenDRIVE Road Id, which is also referred to as Track Id. It
   ///         is a non-negative number.

@@ -326,7 +326,7 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   auto built_lane =
       std::make_unique<Lane>(lane_id, xodr_track_id, xodr_lane_id, elevation_bounds, segment->road_curve(),
                              std::move(lane_width), std::move(lane_offset), road_curve_p_0_lane, road_curve_p_1_lane,
-                             rg_config.integrator_accuracy_multiplier, lane->type_to_str(lane->type));
+                             rg_config.integrator_accuracy_multiplier, lane->type);
   return {segment, std::move(built_lane), {road_header, lane_section, xodr_lane_section_index, lane}};
 }
 

@@ -47,40 +47,44 @@ static constexpr bool kUseLaneBoundaries = true;
 static constexpr bool kUseSegmentBoundaries = !kUseLaneBoundaries;
 // @}
 
-const std::map<std::string, maliput::api::LaneType> str_to_type_map{
+// Map from XODR Lane Type to maliput::api::LaneType.
+// Some OpenDRIVE types do not match 1:1 to maliput's API, so those types are lost in the conversion.
+const std::map<xodr::Lane::Type, maliput::api::LaneType> xodr_type_to_lane_type_map{
     // Supported on OpenDRIVE 1.8.1
-    {"shoulder", maliput::api::LaneType::kShoulder},
-    {"border", maliput::api::LaneType::kBorder},
-    {"driving", maliput::api::LaneType::kDriving},
-    {"stop", maliput::api::LaneType::kStop},
-    {"restricted", maliput::api::LaneType::kRestricted},
-    {"parking", maliput::api::LaneType::kParking},
-    {"median", maliput::api::LaneType::kMedian},
-    {"biking", maliput::api::LaneType::kBiking},
-    {"walking", maliput::api::LaneType::kWalking},
-    {"curb", maliput::api::LaneType::kCurb},
-    {"entry", maliput::api::LaneType::kEntry},
-    {"exit", maliput::api::LaneType::kExit},
-    {"onRamp", maliput::api::LaneType::kOnRamp},
-    {"offRamp", maliput::api::LaneType::kOffRamp},
-    {"connectingRamp", maliput::api::LaneType::kConnectingRamp},
-    {"slipLane", maliput::api::LaneType::kSlipLane},
-    {"none", maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kNone, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kDriving, maliput::api::LaneType::kDriving},
+    {xodr::Lane::Type::kStop, maliput::api::LaneType::kStop},
+    {xodr::Lane::Type::kShoulder, maliput::api::LaneType::kShoulder},
+    {xodr::Lane::Type::kBiking, maliput::api::LaneType::kBiking},
+    {xodr::Lane::Type::kWalking, maliput::api::LaneType::kWalking},
+    {xodr::Lane::Type::kBorder, maliput::api::LaneType::kBorder},
+    {xodr::Lane::Type::kRestricted, maliput::api::LaneType::kRestricted},
+    {xodr::Lane::Type::kParking, maliput::api::LaneType::kParking},
+    {xodr::Lane::Type::kCurb, maliput::api::LaneType::kCurb},
+    {xodr::Lane::Type::kMedian, maliput::api::LaneType::kMedian},
+    {xodr::Lane::Type::kEntry, maliput::api::LaneType::kEntry},
+    {xodr::Lane::Type::kExit, maliput::api::LaneType::kExit},
+    {xodr::Lane::Type::kOnRamp, maliput::api::LaneType::kOnRamp},
+    {xodr::Lane::Type::kOffRamp, maliput::api::LaneType::kOffRamp},
+    {xodr::Lane::Type::kConnectingRamp, maliput::api::LaneType::kConnectingRamp},
+    {xodr::Lane::Type::kSlipLane, maliput::api::LaneType::kSlipLane},
+
     // Deprecated since OpenDRIVE 1.8.0
-    {"sidewalk", maliput::api::LaneType::kWalking},
-    {"bidirectional", maliput::api::LaneType::kDriving},
-    {"special1", maliput::api::LaneType::kUnknown},
-    {"special2", maliput::api::LaneType::kUnknown},
-    {"special3", maliput::api::LaneType::kUnknown},
-    {"roadworks", maliput::api::LaneType::kConstruction},
-    {"tram", maliput::api::LaneType::kRail},
-    {"rail", maliput::api::LaneType::kRail},
-    {"bus", maliput::api::LaneType::kBus},
-    {"taxi", maliput::api::LaneType::kTaxi},
-    {"hov", maliput::api::LaneType::kHov},
+    {xodr::Lane::Type::kRoadWorks, maliput::api::LaneType::kConstruction},
+    {xodr::Lane::Type::kTram, maliput::api::LaneType::kRail},
+    {xodr::Lane::Type::kRail, maliput::api::LaneType::kRail},
+    {xodr::Lane::Type::kBidirectional, maliput::api::LaneType::kDriving},
+    {xodr::Lane::Type::kSpecial1, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kSpecial2, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kSpecial3, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kBus, maliput::api::LaneType::kBus},
+    {xodr::Lane::Type::kTaxi, maliput::api::LaneType::kTaxi},
+    {xodr::Lane::Type::kHOV, maliput::api::LaneType::kHov},
+    {xodr::Lane::Type::kSidewalk, maliput::api::LaneType::kWalking},
+
     // Deprecated since OpenDRIVE 1.5.0
-    {"mwyEntry", maliput::api::LaneType::kEntry},
-    {"mwyExit", maliput::api::LaneType::kExit},
+    {xodr::Lane::Type::kMwyEntry, maliput::api::LaneType::kEntry},
+    {xodr::Lane::Type::kMwyExit, maliput::api::LaneType::kExit},
 };
 
 }  // namespace
@@ -90,7 +94,7 @@ using maliput::math::Vector3;
 Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
            const maliput::api::HBounds& elevation_bounds, const road_curve::RoadCurve* road_curve,
            std::unique_ptr<road_curve::Function> lane_width, std::unique_ptr<road_curve::Function> lane_offset,
-           double p0, double p1, double integrator_accuracy_multiplier, const std::string& lane_type)
+           double p0, double p1, double integrator_accuracy_multiplier, xodr::Lane::Type lane_type)
     : maliput::geometry_base::Lane(id),
       xodr_track_(xodr_track),
       xodr_lane_id_(xodr_lane_id),
@@ -112,8 +116,8 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_offset_->p0() - p0), 0., road_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_offset_->p1() - p1), 0., road_curve_->linear_tolerance());
 
-  auto it = str_to_type_map.find(lane_type);
-  if (it != str_to_type_map.end()) {
+  auto it = xodr_type_to_lane_type_map.find(lane_type);
+  if (it != xodr_type_to_lane_type_map.end()) {
     type_ = it->second;
   }
 
