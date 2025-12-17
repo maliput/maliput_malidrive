@@ -34,7 +34,9 @@
 
 #include <gtest/gtest.h>
 #include <maliput/api/compare.h>
+#include <maliput/api/lane_boundary.h>
 #include <maliput/api/lane_data.h>
+#include <maliput/api/lane_marking.h>
 #include <maliput/common/error.h>
 
 #include "assert_compare.h"
@@ -1388,6 +1390,320 @@ TEST_F(BranchPointDefaultTest, DefaultBranchPoint) {
   const auto default_lane_end = bp->GetDefaultBranch(lane_end);
   ASSERT_NE(default_lane_end, std::nullopt);
   EXPECT_EQ(default_lane_end->lane->id(), LaneId("5_0_-1"));
+}
+
+// Integration test for LaneBoundary API.
+// Tests that LaneBoundaries are correctly built from OpenDRIVE road marking data
+// and that the coordinate conversion from TRACK frame to LANE frame is correct.
+class LaneBoundaryIntegrationTest : public ::testing::Test {
+ protected:
+  // XODR with a single road, two driving lanes, and road markings.
+  // - Road length: 100m
+  // - Left lane (ID: 1): width 3.5m, solid white marking from 0-50m, broken yellow from 50-100m
+  // - Right lane (ID: -1): width 3.5m, solid white marking
+  // - Center lane (ID: 0): solid-solid double yellow marking (no passing zone)
+  static constexpr const char* kXodrWithRoadMarkings = R"R(
+<?xml version='1.0' standalone='yes'?>
+<OpenDRIVE>
+  <header revMajor="1" revMinor="4" name="RoadMarkingTest" version="1.0">
+  </header>
+  <road name="TestRoad" length="100.0" id="1" junction="-1" rule="RHT">
+    <planView>
+      <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="100.0">
+        <line/>
+      </geometry>
+    </planView>
+    <elevationProfile>
+      <elevation s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+    </elevationProfile>
+    <lateralProfile>
+      <superelevation s="0.0" a="0.0" b="0.0" c="0.0" d="0.0"/>
+    </lateralProfile>
+    <lanes>
+      <laneSection s="0.0">
+        <left>
+          <lane id="1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15">
+            </roadMark>
+            <roadMark sOffset="50.0" type="broken" weight="standard" color="yellow" width="0.15">
+            </roadMark>
+          </lane>
+        </left>
+        <center>
+          <lane id="0" type="none" level="false">
+            <roadMark sOffset="0.0" type="solid solid" weight="bold" color="yellow" width="0.30" laneChange="none">
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15">
+            </roadMark>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+  </road>
+</OpenDRIVE>
+)R";
+
+  static constexpr double kLinearTolerance{1e-6};
+  static constexpr double kAngularTolerance{1e-6};
+  static constexpr double kScaleLength{constants::kScaleLength};
+  static constexpr double kRoadLength{100.0};
+  static constexpr double kLaneWidth{3.5};
+
+  void SetUp() override {
+    // Load XODR from string.
+    const xodr::ParserConfiguration parser_config{kLinearTolerance};
+    manager_ = xodr::LoadDataBaseFromStr(kXodrWithRoadMarkings, parser_config);
+    ASSERT_NE(manager_, nullptr);
+
+    // Configure RoadGeometry.
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("LaneBoundaryTestRoadGeometry");
+    road_geometry_configuration_.tolerances.linear_tolerance = kLinearTolerance;
+    road_geometry_configuration_.tolerances.max_linear_tolerance = std::nullopt;
+    road_geometry_configuration_.tolerances.angular_tolerance = kAngularTolerance;
+    road_geometry_configuration_.scale_length = kScaleLength;
+    road_geometry_configuration_.inertial_to_backend_frame_translation = maliput::math::Vector3{0., 0., 0.};
+    road_geometry_configuration_.build_policy = BuildPolicy{BuildPolicy::Type::kSequential, std::nullopt};
+    road_geometry_configuration_.simplification_policy = RoadGeometryConfiguration::SimplificationPolicy::kNone;
+    road_geometry_configuration_.standard_strictness_policy =
+        RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive;
+    road_geometry_configuration_.omit_nondrivable_lanes = false;
+
+    // Build RoadGeometry.
+    rg_ = builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_)();
+    ASSERT_NE(rg_, nullptr);
+  }
+
+  RoadGeometryConfiguration road_geometry_configuration_;
+  std::unique_ptr<xodr::DBManager> manager_;
+  std::unique_ptr<const maliput::api::RoadGeometry> rg_;
+};
+
+// Tests that the Segment has the correct number of boundaries.
+TEST_F(LaneBoundaryIntegrationTest, SegmentHasCorrectNumberOfBoundaries) {
+  // Single junction with single segment.
+  ASSERT_EQ(rg_->num_junctions(), 1);
+  const maliput::api::Junction* junction = rg_->junction(0);
+  ASSERT_NE(junction, nullptr);
+  ASSERT_EQ(junction->num_segments(), 1);
+
+  const maliput::api::Segment* segment = junction->segment(0);
+  ASSERT_NE(segment, nullptr);
+
+  // For 2 lanes, we should have 3 boundaries.
+  EXPECT_EQ(segment->num_lanes(), 2);
+  EXPECT_EQ(segment->num_boundaries(), 3);
+}
+
+// Tests that boundaries have correct lane adjacency relationships.
+TEST_F(LaneBoundaryIntegrationTest, BoundaryLaneAdjacency) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+  ASSERT_NE(segment, nullptr);
+
+  // Get lanes.
+  const maliput::api::Lane* lane_0 = segment->lane(0);  // First lane (right in XODR).
+  const maliput::api::Lane* lane_1 = segment->lane(1);  // Second lane (left in XODR).
+  ASSERT_NE(lane_0, nullptr);
+  ASSERT_NE(lane_1, nullptr);
+
+  // Boundary 0 (rightmost) - should have lane_0 on left, nullptr on right.
+  const maliput::api::LaneBoundary* boundary_0 = segment->boundary(0);
+  ASSERT_NE(boundary_0, nullptr);
+  EXPECT_EQ(boundary_0->index(), 0);
+  EXPECT_EQ(boundary_0->segment(), segment);
+  EXPECT_EQ(boundary_0->lane_to_left(), lane_0);
+  EXPECT_EQ(boundary_0->lane_to_right(), nullptr);
+
+  // Boundary 1 (center) - should have lane_1 on left, lane_0 on right.
+  const maliput::api::LaneBoundary* boundary_1 = segment->boundary(1);
+  ASSERT_NE(boundary_1, nullptr);
+  EXPECT_EQ(boundary_1->index(), 1);
+  EXPECT_EQ(boundary_1->segment(), segment);
+  EXPECT_EQ(boundary_1->lane_to_left(), lane_1);
+  EXPECT_EQ(boundary_1->lane_to_right(), lane_0);
+
+  // Boundary 2 (leftmost) - should have nullptr on left, lane_1 on right.
+  const maliput::api::LaneBoundary* boundary_2 = segment->boundary(2);
+  ASSERT_NE(boundary_2, nullptr);
+  EXPECT_EQ(boundary_2->index(), 2);
+  EXPECT_EQ(boundary_2->segment(), segment);
+  EXPECT_EQ(boundary_2->lane_to_left(), nullptr);
+  EXPECT_EQ(boundary_2->lane_to_right(), lane_1);
+}
+
+// Tests GetMarkings() returns all markings for a boundary.
+TEST_F(LaneBoundaryIntegrationTest, GetMarkingsReturnsAllMarkings) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+
+  // Get the leftmost boundary (boundary 2) which corresponds to lane 1's left edge.
+  // This lane has two road marks: solid white from 0-50, broken yellow from 50-100.
+  const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+  ASSERT_NE(boundary, nullptr);
+
+  const auto markings = boundary->GetMarkings();
+  // Should have 2 markings (solid from 0-50, broken from 50-100).
+  ASSERT_EQ(markings.size(), 2u);
+
+  // First marking: solid white from s=0 to s=50.
+  EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+  EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite);
+  EXPECT_EQ(markings[0].marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  EXPECT_NEAR(markings[0].s_start, 0., kLinearTolerance);
+  EXPECT_NEAR(markings[0].s_end, 50., kLinearTolerance);
+
+  // Second marking: broken yellow from s=50 to s=100.
+  EXPECT_EQ(markings[1].marking.type, maliput::api::LaneMarkingType::kBroken);
+  EXPECT_EQ(markings[1].marking.color, maliput::api::LaneMarkingColor::kYellow);
+  EXPECT_EQ(markings[1].marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  EXPECT_NEAR(markings[1].s_start, 50., kLinearTolerance);
+  EXPECT_NEAR(markings[1].s_end, 100., kLinearTolerance);
+}
+
+// Tests GetMarking(s) returns the correct marking at specific s-coordinates.
+TEST_F(LaneBoundaryIntegrationTest, GetMarkingAtSpecificS) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+  const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+  ASSERT_NE(boundary, nullptr);
+
+  // At s=25 (within first marking range 0-50), should be solid white.
+  {
+    const auto result = boundary->GetMarking(25.);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->marking.type, maliput::api::LaneMarkingType::kSolid);
+    EXPECT_EQ(result->marking.color, maliput::api::LaneMarkingColor::kWhite);
+    // Verify s-range is also returned.
+    EXPECT_NEAR(result->s_start, 0., kLinearTolerance);
+    EXPECT_NEAR(result->s_end, 50., kLinearTolerance);
+  }
+
+  // At s=75 (within second marking range 50-100), should be broken yellow.
+  {
+    const auto result = boundary->GetMarking(75.);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->marking.type, maliput::api::LaneMarkingType::kBroken);
+    EXPECT_EQ(result->marking.color, maliput::api::LaneMarkingColor::kYellow);
+    // Verify s-range is also returned.
+    EXPECT_NEAR(result->s_start, 50., kLinearTolerance);
+    EXPECT_NEAR(result->s_end, 100., kLinearTolerance);
+  }
+
+  // At s=50 (boundary between markings), should be broken yellow (second marking starts at 50).
+  {
+    const auto result = boundary->GetMarking(50.);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_EQ(result->marking.type, maliput::api::LaneMarkingType::kBroken);
+  }
+}
+
+// Tests GetMarkings(s_start, s_end) returns markings within the specified range.
+TEST_F(LaneBoundaryIntegrationTest, GetMarkingsWithSRange) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+  const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+  ASSERT_NE(boundary, nullptr);
+
+  // Range [20, 80] should include both markings.
+  {
+    const auto markings = boundary->GetMarkings(20., 80.);
+    EXPECT_EQ(markings.size(), 2u);
+  }
+
+  // Range [0, 40] should only include the first marking (solid).
+  {
+    const auto markings = boundary->GetMarkings(0., 40.);
+    ASSERT_EQ(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+  }
+
+  // Range [60, 100] should only include the second marking (broken).
+  {
+    const auto markings = boundary->GetMarkings(60., 100.);
+    ASSERT_EQ(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kBroken);
+  }
+}
+
+// Tests the center lane boundary (solid-solid double line, no lane change).
+TEST_F(LaneBoundaryIntegrationTest, CenterLaneBoundaryMarking) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+
+  // Boundary 1 is the center boundary (between the two driving lanes).
+  const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+  ASSERT_NE(center_boundary, nullptr);
+
+  const auto markings = center_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // The center lane has solid-solid marking with lane_change=none.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kSolidSolid);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kYellow);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kBold);
+  EXPECT_EQ(marking.lane_change, maliput::api::LaneChangePermission::kProhibited);
+}
+
+// Tests the rightmost boundary (edge of right driving lane).
+TEST_F(LaneBoundaryIntegrationTest, RightEdgeBoundaryMarking) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+
+  // Boundary 0 is the rightmost boundary.
+  const maliput::api::LaneBoundary* right_boundary = segment->boundary(0);
+  ASSERT_NE(right_boundary, nullptr);
+
+  const auto markings = right_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // Right lane has solid white marking.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kSolid);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kWhite);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+}
+
+// Tests that boundary IDs are correctly formed.
+TEST_F(LaneBoundaryIntegrationTest, BoundaryIds) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+
+  for (int i = 0; i <= segment->num_lanes(); ++i) {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(i);
+    ASSERT_NE(boundary, nullptr);
+    // Verify the ID contains the segment ID and boundary index.
+    const std::string id_str = boundary->id().string();
+    EXPECT_TRUE(id_str.find(segment->id().string()) != std::string::npos);
+    EXPECT_TRUE(id_str.find("boundary") != std::string::npos);
+    EXPECT_TRUE(id_str.find(std::to_string(i)) != std::string::npos);
+  }
+}
+
+// Tests coordinate conversion from TRACK frame to LANE frame.
+// For a straight road with uniform lane width, TRACK and LANE s should be identical.
+TEST_F(LaneBoundaryIntegrationTest, CoordinateConversion) {
+  const maliput::api::Segment* segment = rg_->junction(0)->segment(0);
+  const maliput::api::Lane* lane = segment->lane(0);
+  ASSERT_NE(lane, nullptr);
+
+  // For a straight road, lane length should equal road length.
+  EXPECT_NEAR(lane->length(), kRoadLength, kLinearTolerance);
+
+  // The boundary markings s-coordinates should be in LANE frame.
+  // For this straight road, they should match the TRACK frame values.
+  const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+  ASSERT_NE(boundary, nullptr);
+
+  const auto markings = boundary->GetMarkings();
+  ASSERT_EQ(markings.size(), 2u);
+
+  // First marking should span s=0 to s=50 (LANE frame).
+  EXPECT_NEAR(markings[0].s_start, 0., kLinearTolerance);
+  EXPECT_NEAR(markings[0].s_end, 50., kLinearTolerance);
+
+  // Second marking should span s=50 to s=100 (LANE frame).
+  EXPECT_NEAR(markings[1].s_start, 50., kLinearTolerance);
+  EXPECT_NEAR(markings[1].s_end, 100., kLinearTolerance);
 }
 
 }  // namespace
