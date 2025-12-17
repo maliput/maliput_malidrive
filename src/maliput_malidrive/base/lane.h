@@ -77,7 +77,7 @@ class Lane : public maliput::geometry_base::Lane {
   /// RoadCurveOffset implementation.
   ///        Using 1.0 is expected for most cases, but it can be adjusted to increase or decrease the accuracy of the
   ///        integrator.
-  /// @param lane_type A string containing the type of lane described in an XODR.
+  /// @param lane_type The XODR lane type.
   /// @note When the ground curve's arc length in range `p1` - `p0` is less than
   ///       `road_curve->linear_tolerance()`, an instance will not host a
   ///       RoadCurveOffset to populate `p_from_s_` and `s_from_p_`. Instead,
