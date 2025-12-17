@@ -1107,6 +1107,17 @@ TEST_F(ParsingTests, NodeParserLane) {
   const std::vector<LaneWidth> kWidthDescription{
       {1.1 /* sOffset */, 2.2 /* a */, 3.3 /* b */, 4.4 /* c */, 5.5 /* d */},
       {6.6 /* sOffset */, 7.7 /* a */, 8.8 /* b */, 9.9 /* c */, 10.1 /* d */}};
+  const std::vector<LaneRoadMark> kRoadMarks{{Color::kBlack,
+                                              1.,
+                                              LaneRoadMark::LaneChange::kNone,
+                                              "material",
+                                              2.,
+                                              LaneRoadMark::Type::kSolid,
+                                              LaneRoadMark::Weight::kStandard,
+                                              3.,
+                                              {{}},
+                                              {{}},
+                                              {{}}}};
   const std::vector<Lane::Speed> kSpeed{{0.1 /* sOffset */, 45. /* max */, Unit::kMph /* unit */},
                                         {0.5 /* sOffset */, 3. /* max */, Unit::kMs /* unit */}};
   const std::optional<std::string> kUserData{"<userData/>\n"};
@@ -1121,7 +1132,7 @@ TEST_F(ParsingTests, NodeParserLane) {
       false /* level */,
       lane_link /* lane_link */,
       kWidthDescription /* widths */,
-      {} /* road marks */,
+      kRoadMarks /* road marks */,
       kSpeed /*speed*/,
       kUserData /* user_data */,
       kAdvisory /* advisory */,
@@ -1147,6 +1158,7 @@ TEST_F(ParsingTests, NodeParserLane) {
   EXPECT_EQ(kExpectedLane.type, lane.type);
   EXPECT_EQ(kExpectedLane.level, lane.level);
   EXPECT_EQ(kExpectedLane.speed, lane.speed);
+  EXPECT_EQ(kExpectedLane.road_marks, lane.road_marks);
   EXPECT_EQ(kExpectedLane.advisory, lane.advisory);
   EXPECT_EQ(kExpectedLane.direction, lane.direction);
   EXPECT_EQ(kExpectedLane.dynamic_lane_direction, lane.dynamic_lane_direction);
