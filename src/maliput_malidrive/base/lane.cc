@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include <maliput/api/lane_data.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/range_validator.h>
 #include <maliput/math/saturate.h>
