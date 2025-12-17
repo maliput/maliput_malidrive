@@ -1,7 +1,7 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
-// Copyright (c) 2020-2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2025, Woven Planet. All rights reserved.
+// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -40,7 +40,6 @@
 namespace malidrive {
 namespace xodr {
 
-/// Holds the values of a XODR Lane RoadMark.
 /// For example, a XML node describing a XODR's lane roadMark:
 /// @code{.xml}
 ///   <OpenDRIVE>
@@ -88,20 +87,20 @@ struct TypeElementLine {
   static constexpr const char* kTOffset = "tOffset";
   static constexpr const char* kWidth = "width";
 
-  /// Color of the road marking type line element
+  /// Color of the road marking type line element.
   std::optional<Color> color{std::nullopt};
 
-  /// Length of the visible part
+  /// Length of the visible part.
   double length;
 
-  /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute
-  /// ID to the lane with the higher absolute ID
+  /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute.
+  /// ID to the lane with the higher absolute ID.
   std::optional<Rule> rule{std::nullopt};
 
-  /// Initial longitudinal offset of the line definition from the start of the road mark definition
+  /// Initial longitudinal offset of the line definition from the start of the road mark definition.
   double s_offset{};
 
-  /// Length of the gap between the visible parts
+  /// Length of the gap between the visible parts.
   double space{};
 
   /// Lateral offset from the lane border.
@@ -153,22 +152,22 @@ struct ExplicitElementLine {
   double length{};
 
   /// Rule that must be observed when passing the line from inside, for example, from the lane with the lower absolute
-  /// ID to the lane with the higher absolute ID
+  /// ID to the lane with the higher absolute ID.
   std::optional<Rule> rule{std::nullopt};
 
-  /// Initial longitudinal offset of the line definition from the start of the road mark definition
+  /// Initial longitudinal offset of the line definition from the start of the road mark definition.
   double s_offset{};
 
   /// Lateral offset from the lane border.
   double t_offset{};
 
-  // Line width
+  // Line width.
   std::optional<double> width{std::nullopt};
 
   /// Equality operator.
   bool operator==(const ExplicitElementLine& other) const;
 
-  /// Inequality operator
+  /// Inequality operator.
   bool operator!=(const ExplicitElementLine& other) const { return !(*this == other); }
 };
 
@@ -182,7 +181,7 @@ struct ExplicitElement {
   /// Equality operator.
   bool operator==(const ExplicitElement& other) const;
 
-  /// Inequality operator
+  /// Inequality operator.
   bool operator!=(const ExplicitElement& other) const { return !(*this == other); }
 };
 
@@ -195,28 +194,29 @@ struct SwayElement {
   static constexpr const char* kD = "d";
   static constexpr const char* kDS = "ds";
 
-  /// Polynom parameter a, sway value at @s (ds=0)
+  /// Polynom parameter a, sway value at @s (ds=0).
   double a{};
 
-  /// Polynom parameter b
+  /// Polynom parameter b.
   double b{};
 
-  /// Polynom parameter c
+  /// Polynom parameter c.
   double c{};
 
-  /// Polynom parameter d
+  /// Polynom parameter d.
   double d{};
 
-  /// s-coordinate of start position of the <sway> element, relative to the @sOffset given in the <roadMark> element
+  /// s-coordinate of start position of the <sway> element, relative to the @sOffset given in the <roadMark> element.
   double s_0{};
 
   /// Equality operator.
   bool operator==(const SwayElement& other) const;
 
-  /// Inequality operator
+  /// Inequality operator.
   bool operator!=(const SwayElement& other) const { return !(*this == other); }
 };
 
+/// Holds the values of a XODR Lane RoadMark.
 struct LaneRoadMark {
   /// Convenient constants that hold the tag names in the XODR roadMark description.
   static constexpr const char* kLaneRoadMarkTag = "roadMark";
@@ -295,10 +295,10 @@ struct LaneRoadMark {
   /// Inequality operator.
   bool operator!=(const LaneRoadMark& other) const;
 
-  /// Color of the road marking
+  /// Color of the road marking.
   Color color{};
 
-  /// Height of road mark above the road, i.e. thickness of the road mark [m]
+  /// Height of road mark above the road, i.e. thickness of the road mark [m].
   std::optional<double> height{std::nullopt};
 
   /// Allows a lane change in the indicated direction, taking into account that lanes are numbered in ascending
@@ -311,7 +311,7 @@ struct LaneRoadMark {
   /// Start position (s-coordinate) relative to the position of the preceding laneSection record.
   double s_offset{};
 
-  /// Type of the road mark
+  /// Type of the road mark.
   Type type{};
 
   /// Weight of the road mark. This attribute is optional if detailed definition is given below.
@@ -320,13 +320,13 @@ struct LaneRoadMark {
   /// Width of the road mark. This attribute is optional if detailed definition is given by <line> element.
   std::optional<double> width{std::nullopt};
 
-  /// Optional Type element for the roadMark
+  /// Optional Type element for the roadMark.
   std::vector<TypeElement> type_elems{};
 
-  /// Optional Explicit element for the roadMark
+  /// Optional Explicit element for the roadMark.
   std::vector<ExplicitElement> explicit_elems{};
 
-  /// Optional Sway element for the roadMark
+  /// Optional Sway element for the roadMark.
   std::vector<SwayElement> sway_elems{};
 };
 
