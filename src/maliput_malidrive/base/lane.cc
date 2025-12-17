@@ -47,6 +47,46 @@ static constexpr bool kUseLaneBoundaries = true;
 static constexpr bool kUseSegmentBoundaries = !kUseLaneBoundaries;
 // @}
 
+// Map from XODR Lane Type to maliput::api::LaneType.
+// Some OpenDRIVE types do not match 1:1 to maliput's API, so those types are lost in the conversion.
+const std::map<xodr::Lane::Type, maliput::api::LaneType> xodr_type_to_lane_type_map{
+    // Supported on OpenDRIVE 1.8.1
+    {xodr::Lane::Type::kNone, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kDriving, maliput::api::LaneType::kDriving},
+    {xodr::Lane::Type::kStop, maliput::api::LaneType::kStop},
+    {xodr::Lane::Type::kShoulder, maliput::api::LaneType::kShoulder},
+    {xodr::Lane::Type::kBiking, maliput::api::LaneType::kBiking},
+    {xodr::Lane::Type::kWalking, maliput::api::LaneType::kWalking},
+    {xodr::Lane::Type::kBorder, maliput::api::LaneType::kBorder},
+    {xodr::Lane::Type::kRestricted, maliput::api::LaneType::kRestricted},
+    {xodr::Lane::Type::kParking, maliput::api::LaneType::kParking},
+    {xodr::Lane::Type::kCurb, maliput::api::LaneType::kCurb},
+    {xodr::Lane::Type::kMedian, maliput::api::LaneType::kMedian},
+    {xodr::Lane::Type::kEntry, maliput::api::LaneType::kEntry},
+    {xodr::Lane::Type::kExit, maliput::api::LaneType::kExit},
+    {xodr::Lane::Type::kOnRamp, maliput::api::LaneType::kOnRamp},
+    {xodr::Lane::Type::kOffRamp, maliput::api::LaneType::kOffRamp},
+    {xodr::Lane::Type::kConnectingRamp, maliput::api::LaneType::kConnectingRamp},
+    {xodr::Lane::Type::kSlipLane, maliput::api::LaneType::kSlipLane},
+
+    // Deprecated since OpenDRIVE 1.8.0
+    {xodr::Lane::Type::kRoadWorks, maliput::api::LaneType::kConstruction},
+    {xodr::Lane::Type::kTram, maliput::api::LaneType::kRail},
+    {xodr::Lane::Type::kRail, maliput::api::LaneType::kRail},
+    {xodr::Lane::Type::kBidirectional, maliput::api::LaneType::kDriving},
+    {xodr::Lane::Type::kSpecial1, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kSpecial2, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kSpecial3, maliput::api::LaneType::kUnknown},
+    {xodr::Lane::Type::kBus, maliput::api::LaneType::kBus},
+    {xodr::Lane::Type::kTaxi, maliput::api::LaneType::kTaxi},
+    {xodr::Lane::Type::kHOV, maliput::api::LaneType::kHov},
+    {xodr::Lane::Type::kSidewalk, maliput::api::LaneType::kWalking},
+
+    // Deprecated since OpenDRIVE 1.5.0
+    {xodr::Lane::Type::kMwyEntry, maliput::api::LaneType::kEntry},
+    {xodr::Lane::Type::kMwyExit, maliput::api::LaneType::kExit},
+};
+
 }  // namespace
 
 using maliput::math::Vector3;
@@ -54,7 +94,7 @@ using maliput::math::Vector3;
 Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
            const maliput::api::HBounds& elevation_bounds, const road_curve::RoadCurve* road_curve,
            std::unique_ptr<road_curve::Function> lane_width, std::unique_ptr<road_curve::Function> lane_offset,
-           double p0, double p1, double integrator_accuracy_multiplier)
+           double p0, double p1, double integrator_accuracy_multiplier, xodr::Lane::Type lane_type)
     : maliput::geometry_base::Lane(id),
       xodr_track_(xodr_track),
       xodr_lane_id_(xodr_lane_id),
@@ -75,6 +115,11 @@ Lane::Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id,
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_width_->p1() - p1), 0., road_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_offset_->p0() - p0), 0., road_curve_->linear_tolerance());
   MALIDRIVE_IS_IN_RANGE(std::abs(lane_offset_->p1() - p1), 0., road_curve_->linear_tolerance());
+
+  auto it = xodr_type_to_lane_type_map.find(lane_type);
+  if (it != xodr_type_to_lane_type_map.end()) {
+    type_ = it->second;
+  }
 
   // @{ The following if clause introduces an implementation knowledge abuse.
   //    road_curve::RoadCurve::LMax() is the result of the summatory of

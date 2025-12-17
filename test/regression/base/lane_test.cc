@@ -163,6 +163,8 @@ class LaneTest : public ::testing::Test {
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
+  xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
+  const maliput::api::LaneType kLaneType{maliput::api::LaneType::kDriving};
   const std::optional<double> kParserSTolerance{std::nullopt};  // Disables the check because it is not needed.
   const xodr::ParserConfiguration kParserConfiguration{kParserSTolerance};
   const bool kAssertContiguity{true};
@@ -174,7 +176,7 @@ TEST_F(LaneTest, Constructor) {
   EXPECT_NO_THROW(Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                       kRoadCurveOffsetIntegratorAccuracyMultiplier));
+                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType));
 }
 
 TEST_F(LaneTest, ConstructorAssertions) {
@@ -185,44 +187,45 @@ TEST_F(LaneTest, ConstructorAssertions) {
   EXPECT_THROW(
       Lane(kId, kXordTrackInvalid, kXodrLaneId, kElevationBounds, road_curve_.get(),
            MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
-           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
       maliput::common::road_geometry_construction_error);
   // Invalid lane_width.
-  EXPECT_THROW(
-      Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(), nullptr,
-           MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
-      maliput::common::road_geometry_construction_error);
+  EXPECT_THROW(Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(), nullptr,
+                    MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1,
+                    kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
+               maliput::common::road_geometry_construction_error);
   // Invalid lane_offset.
   EXPECT_THROW(Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
                     MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), nullptr, kP0, kP1,
-                    kRoadCurveOffsetIntegratorAccuracyMultiplier),
+                    kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
                maliput::common::road_geometry_construction_error);
   // Invalid road_curve.
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, nullptr, MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
-           MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+           MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier,
+           kXodrLaneType),
       maliput::common::road_geometry_construction_error);
   // Out of range lane_width.
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
            MakeZeroCubicPolynomial(kP0Off, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
-           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
       maliput::common::assertion_error);
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
            MakeZeroCubicPolynomial(kP0, kP1Off, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
-           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
       maliput::common::assertion_error);
   // Out of range lane_offset.
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
            MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0Off, kP1, kLinearTolerance),
-           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
       maliput::common::assertion_error);
   EXPECT_THROW(
       Lane(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
            MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), MakeZeroCubicPolynomial(kP0, kP1Off, kLinearTolerance),
-           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier),
+           kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType),
       maliput::common::assertion_error);
 }
 
@@ -230,7 +233,7 @@ TEST_F(LaneTest, BasicLaneAccessors) {
   const Lane dut(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
                  MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),
                  MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance), kP0, kP1,
-                 kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                 kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
 
   EXPECT_EQ(kXordTrack, dut.get_track());
   EXPECT_EQ(kXodrLaneId, dut.get_lane_id());
@@ -238,6 +241,7 @@ TEST_F(LaneTest, BasicLaneAccessors) {
   EXPECT_NEAR(kP1, dut.get_track_s_end(), kLinearTolerance);
   EXPECT_NEAR((kP1 - kP0) / 2., dut.TrackSFromLaneS(kDXy.norm() / 2.), kLinearTolerance);
   EXPECT_NEAR(kDXy.norm() / 2., dut.LaneSFromTrackS((kP1 - kP0) / 2.), kLinearTolerance);
+  EXPECT_EQ(kLaneType, dut.type());
 }
 
 // Template of a XODR description that contains only the xodr header.
@@ -303,7 +307,7 @@ class MalidriveFlatLineLaneFullyInitializedTest : public LaneTest {
           std::make_unique<Lane>(id, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                  MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                  MakeConstantCubicPolynomial(kLaneOffset + kWidth * i, kP0, kP1, kLinearTolerance), kP0,
-                                 kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                 kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
       constexpr bool kNotHideLane{false};
       dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     }
@@ -600,7 +604,7 @@ class MalidriveFlatLineLaneFullyInitializedWithInertialToBackendFrameTranslation
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                       kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -672,7 +676,7 @@ class MalidriveFlatArcLaneFullyInitializedTest : public LaneTest {
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                       kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -928,7 +932,7 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                       kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -956,6 +960,7 @@ class MalidriveFlatSLaneFullyInitializedTest : public ::testing::Test {
   const double kH{0};
   const double kWidth{5.};
   const double kLaneOffset{10.};
+  xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
   // First geometry.
   const double kP0A{20.};
   const double kP1A{120.};
@@ -1270,7 +1275,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                       kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -1289,6 +1294,7 @@ class MalidriveLineLaneWithElevationFullyInitializedTest : public ::testing::Tes
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
+  xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
   const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
@@ -1598,7 +1604,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                       kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -1622,6 +1628,7 @@ class MalidriveArcLaneWithElevationFullyInitializedTest : public ::testing::Test
   const Vector2 kXy0{10., 12.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
+  xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
   const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
@@ -1883,7 +1890,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
     auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
                                        MakeConstantCubicPolynomial(kWidth, kP0, kP1, kLinearTolerance),
                                        MakeConstantCubicPolynomial(kLaneOffset, kP0, kP1, kLinearTolerance), kP0, kP1,
-                                       kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -1910,6 +1917,7 @@ class MalidriveLineLaneWithSuperelevationFullyInitializedTest
   const Vector2 kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.};
   const double kWidth{5.};
   const double kLaneOffset{10.};
+  xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
   const std::optional<double> kUnarmedSToleranceParserTest{std::nullopt};
   const xodr::ParserConfiguration kParserConfiguration{kUnarmedSToleranceParserTest};
 
@@ -2229,9 +2237,9 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
             road_curve::LaneOffset::AdjacentLaneFunctions{adjacent_lane_offset_.get(), adjacent_lane_width_.get()}),
         lane_width.get(), reference_line_offset_ptr, road_curve::LaneOffset::kAtLeftFromCenterLane, kP0, kP1,
         kLinearTolerance);
-    auto lane =
-        std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr, std::move(lane_width),
-                               std::move(lane_offset), kP0, kP1, kRoadCurveOffsetIntegratorAccuracyMultiplier);
+    auto lane = std::make_unique<Lane>(kId, kXordTrack, kXodrLaneId, kElevationBounds, road_curve_ptr,
+                                       std::move(lane_width), std::move(lane_offset), kP0, kP1,
+                                       kRoadCurveOffsetIntegratorAccuracyMultiplier, kXodrLaneType);
     constexpr bool kNotHideLane{false};
     dut_ = segment->AddLane(std::move(lane), kNotHideLane);
     junction->AddSegment(std::move(segment));
@@ -2261,6 +2269,7 @@ class MalidriveFlatLineVariableWidthLaneFullyInitializedTest : public ::testing:
   const double kRLeft{0.5};
   const double kRRight{-0.5};
   const double kZeroH{0};
+  xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
   const Vector3 kInertialToBackendFrameTranslation{0., 0., 0.};
   const Lane* dut_{};
   const road_curve::Function* lane_width_{};
@@ -2437,7 +2446,8 @@ class BelowLinearToleranceLaneTest : public ::testing::Test {
                                                 std::move(elevation), std::move(superelevation), kAssertContiguity);
     dut_ = std::make_unique<Lane>(maliput::api::LaneId{"dut"}, /*xodr_track*/ 1, /*xodr_lane_id*/ 1,
                                   maliput::api::HBounds(0., 5.), road_curve_.get(), std::move(lane_width),
-                                  std::move(lane_offset), kP0, kP1Lane, kRoadCurveOffsetIntegratorAccuracyMultiplier);
+                                  std::move(lane_offset), kP0, kP1Lane, kRoadCurveOffsetIntegratorAccuracyMultiplier,
+                                  xodr::Lane::Type::kDriving);
   }
 
   std::unique_ptr<road_curve::RoadCurve> road_curve_;

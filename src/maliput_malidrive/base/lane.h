@@ -39,6 +39,7 @@
 #include "maliput_malidrive/road_curve/function.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/road_curve/road_curve_offset.h"
+#include "maliput_malidrive/xodr/lane.h"
 
 namespace malidrive {
 
@@ -76,6 +77,7 @@ class Lane : public maliput::geometry_base::Lane {
   /// RoadCurveOffset implementation.
   ///        Using 1.0 is expected for most cases, but it can be adjusted to increase or decrease the accuracy of the
   ///        integrator.
+  /// @param lane_type The XODR lane type.
   /// @note When the ground curve's arc length in range `p1` - `p0` is less than
   ///       `road_curve->linear_tolerance()`, an instance will not host a
   ///       RoadCurveOffset to populate `p_from_s_` and `s_from_p_`. Instead,
@@ -89,7 +91,8 @@ class Lane : public maliput::geometry_base::Lane {
   ///         `road_curve->linear_tolerance()` of [ @p p0, @p p1 ] range.
   Lane(const maliput::api::LaneId& id, int xodr_track, int xodr_lane_id, const maliput::api::HBounds& elevation_bounds,
        const road_curve::RoadCurve* road_curve, std::unique_ptr<road_curve::Function> lane_width,
-       std::unique_ptr<road_curve::Function> lane_offset, double p0, double p1, double integrator_accuracy_multiplier);
+       std::unique_ptr<road_curve::Function> lane_offset, double p0, double p1, double integrator_accuracy_multiplier,
+       xodr::Lane::Type lane_type);
 
   /// @return The OpenDRIVE Road Id, which is also referred to as Track Id. It
   ///         is a non-negative number.
@@ -145,6 +148,7 @@ class Lane : public maliput::geometry_base::Lane {
   maliput::api::RBounds do_lane_bounds(double s) const override;
   maliput::api::RBounds do_segment_bounds(double s) const override;
   maliput::api::HBounds do_elevation_bounds(double, double) const override { return elevation_bounds_; }
+
   // @{
   // TODO(#43): Move this to the builder in favor of increased performance when
   //            querying the Lane.
