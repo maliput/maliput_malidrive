@@ -1490,7 +1490,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kBlack, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kCurb, std::nullopt, 1.5239999999999998e-1}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane0_2{Lane::Id("-2"),
                            Lane::Type::kDriving,
@@ -1499,7 +1498,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kSolid, std::nullopt, 1.2500000000000000e-1}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection0{0. /* s_0 */,
@@ -1523,7 +1521,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kSolid, std::nullopt, 1.2500000000000000e-1}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection1{1.0336660934588904e+1 /* s_0 */,
@@ -1551,7 +1548,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kNone, std::nullopt, std::nullopt}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_2{Lane::Id("-2"),
                            Lane::Type::kNone,
@@ -1560,7 +1556,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kNone, std::nullopt, std::nullopt}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_3{Lane::Id("-3"),
@@ -1571,7 +1566,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kYellow, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kSolid, std::nullopt, 1.2500000000000000e-1}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane2_4{Lane::Id("-4"),
                            Lane::Type::kNone,
@@ -1580,7 +1574,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kBoth, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kBroken, std::nullopt, 1.2500000000000000e-1}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane2_5{Lane::Id("-5"),
@@ -1591,7 +1584,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kBoth, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kBroken, std::nullopt, 1.2500000000000000e-1}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane2_6{Lane::Id("-6"),
                            Lane::Type::kDriving,
@@ -1600,7 +1592,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kSolid, std::nullopt, 1.2500000000000000e-1}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection2{
@@ -1628,7 +1619,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kNone, std::nullopt, std::nullopt}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_2{Lane::Id("-2"),
                            Lane::Type::kNone,
@@ -1637,7 +1627,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kNone, std::nullopt, std::nullopt}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_3{Lane::Id("-3"),
@@ -1648,7 +1637,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kYellow, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kSolid, std::nullopt, 1.2500000000000000e-1}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("undirected")};
   const Lane kRightLane3_4{Lane::Id("-4"),
                            Lane::Type::kNone,
@@ -1657,7 +1645,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kBoth, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kBroken, std::nullopt, 1.2500000000000000e-1}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane3_5{Lane::Id("-5"),
@@ -1668,7 +1655,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kBoth, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kBroken, std::nullopt, 1.2500000000000000e-1}},
                            {},
-                           {},
                            LaneUserDataTravelDirTemplate("forward")};
   const Lane kRightLane3_6{Lane::Id("-6"),
                            Lane::Type::kDriving,
@@ -1677,7 +1663,6 @@ GTEST_TEST(DBManagerTest, Highway) {
                            std::vector<LaneWidth>{{0., 3.5, 0., 0., 0.}},
                            {{Color::kWhite, std::nullopt, LaneRoadMark::LaneChange::kNone, "standard",
                              0.0000000000000000e+0, LaneRoadMark::Type::kSolid, std::nullopt, 1.2500000000000000e-1}},
-                           {},
                            {},
                            LaneUserDataTravelDirTemplate("forward")};
   const LaneSection kLaneSection3{

@@ -79,7 +79,7 @@ class LaneBoundaryTest : public ::testing::Test {
     reference_lane_ = std::make_unique<Lane>(kLaneId, kXodrTrack, kXodrLaneId, kElevationBounds, road_curve_.get(),
                                              MakeConstantCubicPolynomial(kLaneWidth, kP0, kP1, kLinearTolerance),
                                              MakeZeroCubicPolynomial(kP0, kP1, kLinearTolerance),  // Zero offset
-                                             kP0, kP1, kIntegratorAccuracyMultiplier);
+                                             kP0, kP1, kIntegratorAccuracyMultiplier, kXodrLaneType);
   }
 
   const maliput::api::LaneBoundary::Id kBoundaryId{"test_boundary"};
@@ -102,6 +102,7 @@ class LaneBoundaryTest : public ::testing::Test {
   const int kXodrLaneId{-1};
   const maliput::api::HBounds kElevationBounds{0., 5.};
   const double kLaneWidth{3.5};
+  const xodr::Lane::Type kXodrLaneType{xodr::Lane::Type::kDriving};
   const double kIntegratorAccuracyMultiplier{1.};
 
   std::unique_ptr<road_curve::RoadCurve> road_curve_;
@@ -842,7 +843,7 @@ TEST_F(LaneBoundaryTest, AdjacentLanesNonNull) {
   auto adjacent_lane = std::make_unique<Lane>(kAdjacentLaneId, kXodrTrack, -2, kElevationBounds, road_curve_.get(),
                                               MakeConstantCubicPolynomial(kLaneWidth, kP0, kP1, kLinearTolerance),
                                               MakeConstantCubicPolynomial(-kLaneWidth, kP0, kP1, kLinearTolerance), kP0,
-                                              kP1, kIntegratorAccuracyMultiplier);
+                                              kP1, kIntegratorAccuracyMultiplier, kXodrLaneType);
 
   const std::vector<xodr::LaneRoadMark> road_marks{};
   const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, reference_lane_.get(), adjacent_lane.get(),
