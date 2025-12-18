@@ -841,8 +841,8 @@ TEST_F(LaneBoundaryTest, AdjacentLanesNonNull) {
   const maliput::api::LaneId kAdjacentLaneId{"adjacent_lane"};
   auto adjacent_lane = std::make_unique<Lane>(kAdjacentLaneId, kXodrTrack, -2, kElevationBounds, road_curve_.get(),
                                               MakeConstantCubicPolynomial(kLaneWidth, kP0, kP1, kLinearTolerance),
-                                              MakeConstantCubicPolynomial(-kLaneWidth, kP0, kP1, kLinearTolerance),
-                                              kP0, kP1, kIntegratorAccuracyMultiplier);
+                                              MakeConstantCubicPolynomial(-kLaneWidth, kP0, kP1, kLinearTolerance), kP0,
+                                              kP1, kIntegratorAccuracyMultiplier);
 
   const std::vector<xodr::LaneRoadMark> road_marks{};
   const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, reference_lane_.get(), adjacent_lane.get(),

@@ -2056,7 +2056,7 @@ TEST_F(TwoWayRoadWithDoubleYellowCurveTest, MarkingWidth) {
     const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
     const maliput::api::LaneBoundary* boundary = segment->boundary(0);
     const auto markings = boundary->GetMarkings();
-    ASSERT_GE(markings.size(), 1u); 
+    ASSERT_GE(markings.size(), 1u);
     EXPECT_NEAR(markings[0].marking.width, 0.15, 1e-6);
   }
 }

@@ -909,8 +909,8 @@ TEST_F(ParsingTests, NodeParserTypeElementMultipleLines) {
   const TypeElement kExpectedTypeElement{
       "solid_solid",
       0.30,
-      {{Color::kYellow, 0., Rule::kNone, 0., 0., 0.09, 0.12},    // Left solid line.
-       {Color::kYellow, 0., Rule::kNone, 0., 0., -0.09, 0.12}}}; // Right solid line.
+      {{Color::kYellow, 0., Rule::kNone, 0., 0., 0.09, 0.12},     // Left solid line.
+       {Color::kYellow, 0., Rule::kNone, 0., 0., -0.09, 0.12}}};  // Right solid line.
 
   // Build XML with two <line> elements.
   std::stringstream ss;
