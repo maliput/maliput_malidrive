@@ -677,6 +677,20 @@ std::optional<builder::RoadGeometryConfiguration> GetRoadGeometryConfigurationFo
            kOmitNondrivableLanes,
            kIntegratorAccuracyMultiplier,
            kUseUserDataTrafficDirection}},
+      {"TwoWayRoadWithDoubleYellowCurve.xodr",
+       builder::RoadGeometryConfiguration{
+           maliput::api::RoadGeometryId{"TwoWayRoadWithDoubleYellowCurve"},
+           {"TwoWayRoadWithDoubleYellowCurve.xodr"},
+           builder::RoadGeometryConfiguration::BuildTolerance{
+               5e-2 /* linear_tolerance */, 5e-2 /*max_linear_tolerance*/, 1e-3 /* angular_tolerance */},
+           constants::kScaleLength,
+           kZeroVector,
+           kBuildPolicy,
+           kSimplificationPolicy,
+           kStandardStrictnessPolicy,
+           kOmitNondrivableLanes,
+           kIntegratorAccuracyMultiplier,
+           kUseUserDataTrafficDirection}},
   };
   return kXodrConfigurations.find(xodr_file_name) != kXodrConfigurations.end()
              ? std::make_optional<builder::RoadGeometryConfiguration>(kXodrConfigurations.at(xodr_file_name))

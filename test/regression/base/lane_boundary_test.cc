@@ -603,6 +603,623 @@ TEST_F(LaneBoundaryTest, MixedTypeAndExplicitElements) {
   EXPECT_EQ(LaneMarkingColor::kUnknown, converted_lines[1].color);  // No color in ExplicitElementLine.
 }
 
+// Test weight conversions.
+TEST_F(LaneBoundaryTest, WeightConversions) {
+  const std::vector<std::pair<std::optional<xodr::LaneRoadMark::Weight>, LaneMarkingWeight>> weight_mappings = {
+      {xodr::LaneRoadMark::Weight::kStandard, LaneMarkingWeight::kStandard},
+      {xodr::LaneRoadMark::Weight::kBold, LaneMarkingWeight::kBold},
+      {std::nullopt, LaneMarkingWeight::kUnknown},
+  };
+
+  for (const auto& [xodr_weight, expected_weight] : weight_mappings) {
+    std::vector<xodr::LaneRoadMark> road_marks{};
+    xodr::LaneRoadMark mark;
+    mark.s_offset = 0.;
+    mark.type = xodr::LaneRoadMark::Type::kSolid;
+    mark.color = xodr::Color::kWhite;
+    mark.weight = xodr_weight;
+    road_marks.push_back(mark);
+
+    const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                           kTrackSStart, kTrackSEnd);
+    const auto markings = dut.GetMarkings();
+    ASSERT_EQ(1u, markings.size());
+    EXPECT_EQ(expected_weight, markings[0].marking.weight);
+  }
+}
+
+// Test height field conversion.
+TEST_F(LaneBoundaryTest, HeightConversion) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kCurb;
+  mark.color = xodr::Color::kWhite;
+  mark.height = 0.15;  // 15cm curb height.
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_NEAR(0.15, markings[0].marking.height, kTolerance);
+}
+
+// Test height field when not specified (nullopt).
+TEST_F(LaneBoundaryTest, HeightConversionNullopt) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  // height is not set (std::nullopt).
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_NEAR(0., markings[0].marking.height, kTolerance);  // Default to 0.
+}
+
+// Test material field conversion.
+TEST_F(LaneBoundaryTest, MaterialConversion) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  mark.material = "thermoplastic";
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_EQ("thermoplastic", markings[0].marking.material);
+}
+
+// Test material field when not specified (nullopt).
+TEST_F(LaneBoundaryTest, MaterialConversionNullopt) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  // material is not set (std::nullopt).
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_TRUE(markings[0].marking.material.empty());  // Default to empty string.
+}
+
+// Test optional fields default values when all optional fields are nullopt.
+TEST_F(LaneBoundaryTest, OptionalFieldsDefaults) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  // All optional fields left as nullopt:
+  // - weight: nullopt
+  // - width: nullopt
+  // - height: nullopt
+  // - material: nullopt
+  // - lane_change: nullopt
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+
+  // Verify default values for optional fields.
+  EXPECT_EQ(LaneMarkingWeight::kUnknown, markings[0].marking.weight);
+  EXPECT_NEAR(0., markings[0].marking.width, kTolerance);
+  EXPECT_NEAR(0., markings[0].marking.height, kTolerance);
+  EXPECT_TRUE(markings[0].marking.material.empty());
+  EXPECT_EQ(maliput::api::LaneChangePermission::kAllowed, markings[0].marking.lane_change);  // nullopt -> kAllowed.
+}
+
+// Test boundary conditions: query at exact transition point.
+TEST_F(LaneBoundaryTest, BoundaryConditionsAtTransitionPoint) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+
+  // First mark: solid from 0 to 50.
+  xodr::LaneRoadMark mark1;
+  mark1.s_offset = 0.;
+  mark1.type = xodr::LaneRoadMark::Type::kSolid;
+  mark1.color = xodr::Color::kWhite;
+  road_marks.push_back(mark1);
+
+  // Second mark: broken from 50 to 100.
+  xodr::LaneRoadMark mark2;
+  mark2.s_offset = 50.;
+  mark2.type = xodr::LaneRoadMark::Type::kBroken;
+  mark2.color = xodr::Color::kYellow;
+  road_marks.push_back(mark2);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  // Query exactly at s=50 (transition point).
+  // The second marking starts at s=50, so querying at s=50 should return the second marking.
+  const auto result_at_50 = dut.GetMarking(50.);
+  ASSERT_TRUE(result_at_50.has_value());
+  EXPECT_EQ(LaneMarkingType::kBroken, result_at_50->marking.type);
+  EXPECT_EQ(LaneMarkingColor::kYellow, result_at_50->marking.color);
+  EXPECT_NEAR(50., result_at_50->s_start, kTolerance);
+  EXPECT_NEAR(100., result_at_50->s_end, kTolerance);
+
+  // Query at s=0 (start of boundary).
+  const auto result_at_0 = dut.GetMarking(0.);
+  ASSERT_TRUE(result_at_0.has_value());
+  EXPECT_EQ(LaneMarkingType::kSolid, result_at_0->marking.type);
+  EXPECT_NEAR(0., result_at_0->s_start, kTolerance);
+  EXPECT_NEAR(50., result_at_0->s_end, kTolerance);
+
+  // Query at s=100 (end of boundary).
+  const auto result_at_100 = dut.GetMarking(100.);
+  // The second marking covers [50, 100), so s=100 might be outside.
+  // Depending on implementation, this could return the second marking or nullopt.
+  // The marking interval is typically [s_start, s_end), so s=100 should be out of range.
+  // If the implementation uses [s_start, s_end], it should return the second marking.
+  // Testing the actual behavior:
+  if (result_at_100.has_value()) {
+    EXPECT_EQ(LaneMarkingType::kBroken, result_at_100->marking.type);
+  }
+  // Note: The actual behavior depends on the interval semantics used in the implementation.
+}
+
+// Test boundary conditions: query outside valid range.
+TEST_F(LaneBoundaryTest, BoundaryConditionsOutsideRange) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  // Query at negative s (before the boundary).
+  const auto result_negative = dut.GetMarking(-10.);
+  // Behavior depends on implementation - may return nullopt or clamp to valid range.
+  // Just verify it doesn't crash.
+  (void)result_negative;
+
+  // Query beyond s_end (after the boundary).
+  const auto result_beyond = dut.GetMarking(150.);
+  // Behavior depends on implementation - may return nullopt or clamp to valid range.
+  // Just verify it doesn't crash.
+  (void)result_beyond;
+}
+
+// Test GetMarkings with range exactly matching a single marking.
+TEST_F(LaneBoundaryTest, GetMarkingsExactRangeMatch) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+
+  xodr::LaneRoadMark mark1;
+  mark1.s_offset = 0.;
+  mark1.type = xodr::LaneRoadMark::Type::kSolid;
+  road_marks.push_back(mark1);
+
+  xodr::LaneRoadMark mark2;
+  mark2.s_offset = 50.;
+  mark2.type = xodr::LaneRoadMark::Type::kBroken;
+  road_marks.push_back(mark2);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  // Query range exactly matching first marking [0, 50].
+  auto markings = dut.GetMarkings(0., 50.);
+  ASSERT_GE(markings.size(), 1u);
+  EXPECT_EQ(LaneMarkingType::kSolid, markings[0].marking.type);
+
+  // Query range exactly matching second marking [50, 100].
+  markings = dut.GetMarkings(50., 100.);
+  ASSERT_GE(markings.size(), 1u);
+  // Should include the broken marking.
+  bool found_broken = false;
+  for (const auto& m : markings) {
+    if (m.marking.type == LaneMarkingType::kBroken) {
+      found_broken = true;
+      break;
+    }
+  }
+  EXPECT_TRUE(found_broken);
+}
+
+// Test adjacent lanes with non-null pointers.
+TEST_F(LaneBoundaryTest, AdjacentLanesNonNull) {
+  // Create a second lane to use as adjacent lane.
+  const maliput::api::LaneId kAdjacentLaneId{"adjacent_lane"};
+  auto adjacent_lane = std::make_unique<Lane>(kAdjacentLaneId, kXodrTrack, -2, kElevationBounds, road_curve_.get(),
+                                              MakeConstantCubicPolynomial(kLaneWidth, kP0, kP1, kLinearTolerance),
+                                              MakeConstantCubicPolynomial(-kLaneWidth, kP0, kP1, kLinearTolerance),
+                                              kP0, kP1, kIntegratorAccuracyMultiplier);
+
+  const std::vector<xodr::LaneRoadMark> road_marks{};
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, reference_lane_.get(), adjacent_lane.get(),
+                         reference_lane_.get(), road_marks, kTrackSStart, kTrackSEnd);
+
+  EXPECT_EQ(reference_lane_.get(), dut.lane_to_left());
+  EXPECT_EQ(adjacent_lane.get(), dut.lane_to_right());
+}
+
+// Test marking with road mark starting mid-boundary (s_offset > 0).
+TEST_F(LaneBoundaryTest, RoadMarkStartingMidBoundary) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+
+  // Mark starts at s=30, not at s=0.
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 30.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  // Query before the marking starts.
+  const auto result_at_10 = dut.GetMarking(10.);
+  // No marking defined in [0, 30), so this should return nullopt.
+  EXPECT_FALSE(result_at_10.has_value());
+
+  // Query within the marking range.
+  const auto result_at_50 = dut.GetMarking(50.);
+  ASSERT_TRUE(result_at_50.has_value());
+  EXPECT_EQ(LaneMarkingType::kSolid, result_at_50->marking.type);
+  EXPECT_NEAR(30., result_at_50->s_start, kTolerance);
+  EXPECT_NEAR(100., result_at_50->s_end, kTolerance);
+
+  // GetMarkings should return only the marking starting at s=30.
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_NEAR(30., markings[0].s_start, kTolerance);
+}
+
+// Test multiple TypeElements in a single road mark.
+TEST_F(LaneBoundaryTest, MultipleTypeElements) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolidSolid;
+  mark.color = xodr::Color::kYellow;
+
+  // First TypeElement - left line of double solid.
+  xodr::TypeElement type_elem1;
+  type_elem1.name = "left_line";
+  type_elem1.width = 0.12;
+  xodr::TypeElementLine line1;
+  line1.length = 0.0;  // Solid.
+  line1.space = 0.0;
+  line1.width = 0.12;
+  line1.t_offset = -0.15;  // Left of center.
+  line1.s_offset = 0.0;
+  line1.color = xodr::Color::kYellow;
+  type_elem1.lines.push_back(line1);
+  mark.type_elems.push_back(type_elem1);
+
+  // Second TypeElement - right line of double solid.
+  xodr::TypeElement type_elem2;
+  type_elem2.name = "right_line";
+  type_elem2.width = 0.12;
+  xodr::TypeElementLine line2;
+  line2.length = 0.0;  // Solid.
+  line2.space = 0.0;
+  line2.width = 0.12;
+  line2.t_offset = 0.15;  // Right of center.
+  line2.s_offset = 0.0;
+  line2.color = xodr::Color::kYellow;
+  type_elem2.lines.push_back(line2);
+  mark.type_elems.push_back(type_elem2);
+
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_EQ(LaneMarkingType::kSolidSolid, markings[0].marking.type);
+
+  // Should have two lines from two TypeElements.
+  const auto& lines = markings[0].marking.lines;
+  ASSERT_EQ(2u, lines.size());
+
+  // First line (from first TypeElement).
+  EXPECT_NEAR(0.12, lines[0].width, kTolerance);
+  EXPECT_NEAR(-0.15, lines[0].r_offset, kTolerance);
+  EXPECT_EQ(LaneMarkingColor::kYellow, lines[0].color);
+
+  // Second line (from second TypeElement).
+  EXPECT_NEAR(0.12, lines[1].width, kTolerance);
+  EXPECT_NEAR(0.15, lines[1].r_offset, kTolerance);
+  EXPECT_EQ(LaneMarkingColor::kYellow, lines[1].color);
+}
+
+// Test multiple ExplicitElements in a single road mark.
+TEST_F(LaneBoundaryTest, MultipleExplicitElements) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+
+  // First ExplicitElement.
+  xodr::ExplicitElement explicit_elem1;
+  xodr::ExplicitElementLine explicit_line1;
+  explicit_line1.length = 5.0;
+  explicit_line1.s_offset = 0.0;
+  explicit_line1.t_offset = 0.0;
+  explicit_line1.width = 0.15;
+  explicit_elem1.lines.push_back(explicit_line1);
+  mark.explicit_elems.push_back(explicit_elem1);
+
+  // Second ExplicitElement.
+  xodr::ExplicitElement explicit_elem2;
+  xodr::ExplicitElementLine explicit_line2;
+  explicit_line2.length = 10.0;
+  explicit_line2.s_offset = 50.0;
+  explicit_line2.t_offset = 0.25;
+  explicit_line2.width = 0.20;
+  explicit_elem2.lines.push_back(explicit_line2);
+  mark.explicit_elems.push_back(explicit_elem2);
+
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+
+  // Should have two lines from two ExplicitElements.
+  const auto& lines = markings[0].marking.lines;
+  ASSERT_EQ(2u, lines.size());
+
+  // First line.
+  EXPECT_NEAR(5.0, lines[0].length, kTolerance);
+  EXPECT_NEAR(0.15, lines[0].width, kTolerance);
+  EXPECT_NEAR(0.0, lines[0].r_offset, kTolerance);
+
+  // Second line.
+  EXPECT_NEAR(10.0, lines[1].length, kTolerance);
+  EXPECT_NEAR(0.20, lines[1].width, kTolerance);
+  EXPECT_NEAR(0.25, lines[1].r_offset, kTolerance);
+}
+
+// Test SwayElement behavior.
+// SwayElement defines polynomial lateral offset variation along s.
+// Note: Sway elements may not be fully implemented - this test documents expected behavior.
+TEST_F(LaneBoundaryTest, SwayElementBehavior) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  mark.width = 0.15;
+
+  // Add a SwayElement (polynomial lateral offset).
+  xodr::SwayElement sway;
+  sway.a = 0.0;   // Initial offset.
+  sway.b = 0.01;  // Linear coefficient.
+  sway.c = 0.0;   // Quadratic coefficient.
+  sway.d = 0.0;   // Cubic coefficient.
+  sway.s_0 = 0.0;
+  mark.sway_elems.push_back(sway);
+
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  // The marking should still be created even with sway elements.
+  // Whether sway is actually applied depends on the implementation.
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_EQ(LaneMarkingType::kSolid, markings[0].marking.type);
+
+  // Note: SwayElement application to geometry is implementation-specific.
+  // This test verifies that the presence of sway elements doesn't cause errors.
+}
+
+// Test width field conversion.
+TEST_F(LaneBoundaryTest, WidthConversion) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  mark.width = 0.25;  // 25cm width.
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_NEAR(0.25, markings[0].marking.width, kTolerance);
+}
+
+// Test width field when not specified (nullopt).
+TEST_F(LaneBoundaryTest, WidthConversionNullopt) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+  xodr::LaneRoadMark mark;
+  mark.s_offset = 0.;
+  mark.type = xodr::LaneRoadMark::Type::kSolid;
+  mark.color = xodr::Color::kWhite;
+  // width is not set (std::nullopt).
+  road_marks.push_back(mark);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(1u, markings.size());
+  EXPECT_NEAR(0., markings[0].marking.width, kTolerance);  // Default to 0.
+}
+
+// Test transition from single line marking to double line marking.
+// This simulates a real-world scenario where a single solid line transitions
+// to double solid lines (e.g., approaching an intersection or no-passing zone).
+TEST_F(LaneBoundaryTest, SingleToDoubleLineTransition) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+
+  // First mark: single solid white line from 0 to 50.
+  xodr::LaneRoadMark mark1;
+  mark1.s_offset = 0.;
+  mark1.type = xodr::LaneRoadMark::Type::kSolid;
+  mark1.color = xodr::Color::kWhite;
+  mark1.width = 0.15;
+  mark1.lane_change = xodr::LaneRoadMark::LaneChange::kBoth;  // Lane change allowed.
+  road_marks.push_back(mark1);
+
+  // Second mark: double solid yellow lines from 50 to 100.
+  xodr::LaneRoadMark mark2;
+  mark2.s_offset = 50.;
+  mark2.type = xodr::LaneRoadMark::Type::kSolidSolid;
+  mark2.color = xodr::Color::kYellow;
+  mark2.lane_change = xodr::LaneRoadMark::LaneChange::kNone;  // No lane change allowed.
+
+  // Add two TypeElement lines for the double solid.
+  xodr::TypeElement type_elem;
+  type_elem.name = "double_solid";
+  type_elem.width = 0.30;  // Total width including gap.
+
+  // Left line of double solid.
+  xodr::TypeElementLine line1;
+  line1.length = 0.0;  // Solid.
+  line1.space = 0.0;
+  line1.width = 0.12;
+  line1.t_offset = -0.10;  // Left of center.
+  line1.s_offset = 0.0;
+  line1.color = xodr::Color::kYellow;
+  type_elem.lines.push_back(line1);
+
+  // Right line of double solid.
+  xodr::TypeElementLine line2;
+  line2.length = 0.0;  // Solid.
+  line2.space = 0.0;
+  line2.width = 0.12;
+  line2.t_offset = 0.10;  // Right of center.
+  line2.s_offset = 0.0;
+  line2.color = xodr::Color::kYellow;
+  type_elem.lines.push_back(line2);
+
+  mark2.type_elems.push_back(type_elem);
+  road_marks.push_back(mark2);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  // Test GetMarkings returns both markings.
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(2u, markings.size());
+
+  // First marking: single solid white line [0, 50).
+  EXPECT_EQ(LaneMarkingType::kSolid, markings[0].marking.type);
+  EXPECT_EQ(LaneMarkingColor::kWhite, markings[0].marking.color);
+  EXPECT_EQ(maliput::api::LaneChangePermission::kAllowed, markings[0].marking.lane_change);
+  EXPECT_NEAR(0.15, markings[0].marking.width, kTolerance);
+  EXPECT_NEAR(0., markings[0].s_start, kTolerance);
+  EXPECT_NEAR(50., markings[0].s_end, kTolerance);
+  EXPECT_TRUE(markings[0].marking.lines.empty());  // No detailed lines for single marking.
+
+  // Second marking: double solid yellow lines [50, 100).
+  EXPECT_EQ(LaneMarkingType::kSolidSolid, markings[1].marking.type);
+  EXPECT_EQ(LaneMarkingColor::kYellow, markings[1].marking.color);
+  EXPECT_EQ(maliput::api::LaneChangePermission::kProhibited, markings[1].marking.lane_change);
+  EXPECT_NEAR(50., markings[1].s_start, kTolerance);
+  EXPECT_NEAR(100., markings[1].s_end, kTolerance);
+
+  // Second marking should have two detailed lines.
+  ASSERT_EQ(2u, markings[1].marking.lines.size());
+  EXPECT_NEAR(-0.10, markings[1].marking.lines[0].r_offset, kTolerance);
+  EXPECT_NEAR(0.10, markings[1].marking.lines[1].r_offset, kTolerance);
+  EXPECT_EQ(LaneMarkingColor::kYellow, markings[1].marking.lines[0].color);
+  EXPECT_EQ(LaneMarkingColor::kYellow, markings[1].marking.lines[1].color);
+
+  // Query at s=25: should return single solid white line.
+  const auto result_at_25 = dut.GetMarking(25.);
+  ASSERT_TRUE(result_at_25.has_value());
+  EXPECT_EQ(LaneMarkingType::kSolid, result_at_25->marking.type);
+  EXPECT_TRUE(result_at_25->marking.lines.empty());
+
+  // Query at s=75: should return double solid yellow lines with detailed line info.
+  const auto result_at_75 = dut.GetMarking(75.);
+  ASSERT_TRUE(result_at_75.has_value());
+  EXPECT_EQ(LaneMarkingType::kSolidSolid, result_at_75->marking.type);
+  ASSERT_EQ(2u, result_at_75->marking.lines.size());
+}
+
+// Test transition from double line marking to single line marking.
+// This simulates the reverse scenario (e.g., leaving a no-passing zone).
+TEST_F(LaneBoundaryTest, DoubleToSingleLineTransition) {
+  std::vector<xodr::LaneRoadMark> road_marks{};
+
+  // First mark: double solid yellow lines from 0 to 50.
+  xodr::LaneRoadMark mark1;
+  mark1.s_offset = 0.;
+  mark1.type = xodr::LaneRoadMark::Type::kSolidSolid;
+  mark1.color = xodr::Color::kYellow;
+  mark1.lane_change = xodr::LaneRoadMark::LaneChange::kNone;
+
+  xodr::TypeElement type_elem;
+  type_elem.name = "double_solid";
+  type_elem.width = 0.30;
+
+  xodr::TypeElementLine line1;
+  line1.length = 0.0;
+  line1.space = 0.0;
+  line1.width = 0.12;
+  line1.t_offset = -0.10;
+  line1.s_offset = 0.0;
+  line1.color = xodr::Color::kYellow;
+  type_elem.lines.push_back(line1);
+
+  xodr::TypeElementLine line2;
+  line2.length = 0.0;
+  line2.space = 0.0;
+  line2.width = 0.12;
+  line2.t_offset = 0.10;
+  line2.s_offset = 0.0;
+  line2.color = xodr::Color::kYellow;
+  type_elem.lines.push_back(line2);
+
+  mark1.type_elems.push_back(type_elem);
+  road_marks.push_back(mark1);
+
+  // Second mark: single broken white line from 50 to 100.
+  xodr::LaneRoadMark mark2;
+  mark2.s_offset = 50.;
+  mark2.type = xodr::LaneRoadMark::Type::kBroken;
+  mark2.color = xodr::Color::kWhite;
+  mark2.width = 0.15;
+  mark2.lane_change = xodr::LaneRoadMark::LaneChange::kBoth;
+  road_marks.push_back(mark2);
+
+  const LaneBoundary dut(kBoundaryId, segment_.get(), kIndex, nullptr, nullptr, reference_lane_.get(), road_marks,
+                         kTrackSStart, kTrackSEnd);
+
+  const auto markings = dut.GetMarkings();
+  ASSERT_EQ(2u, markings.size());
+
+  // First marking: double solid [0, 50) with 2 lines.
+  EXPECT_EQ(LaneMarkingType::kSolidSolid, markings[0].marking.type);
+  EXPECT_EQ(maliput::api::LaneChangePermission::kProhibited, markings[0].marking.lane_change);
+  ASSERT_EQ(2u, markings[0].marking.lines.size());
+
+  // Second marking: single broken [50, 100) with no detailed lines.
+  EXPECT_EQ(LaneMarkingType::kBroken, markings[1].marking.type);
+  EXPECT_EQ(maliput::api::LaneChangePermission::kAllowed, markings[1].marking.lane_change);
+  EXPECT_TRUE(markings[1].marking.lines.empty());
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace malidrive

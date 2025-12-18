@@ -30,6 +30,7 @@
 
 #include <algorithm>
 
+#include <maliput/common/logger.h>
 #include <maliput/common/maliput_throw.h>
 
 namespace malidrive {
@@ -184,9 +185,12 @@ maliput::api::LaneMarking LaneBoundary::ConvertRoadMark(const xodr::LaneRoadMark
     }
   }
 
-  // Note: Sway elements (road_mark.sway_elems) define polynomial lateral offset variations.
+  // Sway elements (road_mark.sway_elems) define polynomial lateral offset variations.
   // These are not currently supported by the maliput LaneMarking API as they represent
   // OpenDRIVE-specific geometric features (lateral position as a polynomial function of s).
+  if (!road_mark.sway_elems.empty()) {
+    maliput::log()->warn("LaneBoundary: Sway elements are not supported and will be ignored.");
+  }
 
   return marking;
 }

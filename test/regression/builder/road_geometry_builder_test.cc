@@ -1706,6 +1706,487 @@ TEST_F(LaneBoundaryIntegrationTest, CoordinateConversion) {
   EXPECT_NEAR(markings[1].s_end, 100., kLinearTolerance);
 }
 
+// Integration test for LaneBoundary API using TwoWayRoadWithDoubleYellowCurve.xodr.
+// This XODR file represents a two-way road with a 180° curve and realistic marking transitions:
+//
+// Road Layout:
+// - Total length: ~314m (100m straight + ~114m arc + 100m straight)
+// - Two lanes: lane 1 (left, oncoming) and lane -1 (right, travel direction)
+// - 5 lane sections with different center markings:
+//   * [0, 70): Broken WHITE - passing allowed both directions
+//   * [70, 100): Broken-Solid (white/yellow) - lane 1 can pass, lane -1 cannot
+//   * [100, 214.159): Solid-Solid YELLOW - no passing (curve)
+//   * [214.159, 244): Solid-Broken (yellow/white) - lane -1 can pass, lane 1 cannot
+//   * [244, 314.159): Broken WHITE - passing allowed both directions
+//
+// Geometry:
+// - Geometry 1: Straight line (0 to 100m)
+// - Geometry 2: Arc with ~36.28m radius, 180° turn (~114m arc length)
+// - Geometry 3: Straight line (100m)
+class TwoWayRoadWithDoubleYellowCurveTest : public ::testing::Test {
+ protected:
+  static constexpr double kLinearTolerance{5e-2};
+  static constexpr double kAngularTolerance{1e-3};
+  static constexpr double kScaleLength{constants::kScaleLength};
+  static constexpr double kRoadLength{314.159265};
+  static constexpr double kLaneWidth{3.5};
+
+  // Lane section boundaries (s-coordinates in TRACK frame).
+  static constexpr double kSection1End{70.0};
+  static constexpr double kSection2End{100.0};
+  static constexpr double kSection3End{214.159265};
+  static constexpr double kSection4End{244.0};
+
+  void SetUp() override {
+    road_geometry_configuration_ = GetRoadGeometryConfigurationFor("TwoWayRoadWithDoubleYellowCurve.xodr").value();
+    const std::string kMalidriveResourceFolder = DEF_MALIDRIVE_RESOURCES;
+    const xodr::ParserConfiguration parser_config{kLinearTolerance};
+    manager_ = xodr::LoadDataBaseFromFile(kMalidriveResourceFolder + road_geometry_configuration_.opendrive_file,
+                                          parser_config);
+    ASSERT_NE(manager_, nullptr);
+
+    rg_ = builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_)();
+    ASSERT_NE(rg_, nullptr);
+  }
+
+  RoadGeometryConfiguration road_geometry_configuration_;
+  std::unique_ptr<xodr::DBManager> manager_;
+  std::unique_ptr<const maliput::api::RoadGeometry> rg_;
+};
+
+// Tests the road geometry has the correct structure: 5 junctions (one per lane section).
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, RoadGeometryStructure) {
+  // The XODR has 5 lane sections, each becomes a junction.
+  EXPECT_EQ(rg_->num_junctions(), 5);
+
+  // Each junction should have 1 segment with 2 lanes.
+  for (int i = 0; i < rg_->num_junctions(); ++i) {
+    const maliput::api::Junction* junction = rg_->junction(i);
+    ASSERT_NE(junction, nullptr);
+    ASSERT_EQ(junction->num_segments(), 1);
+
+    const maliput::api::Segment* segment = junction->segment(0);
+    ASSERT_NE(segment, nullptr);
+    EXPECT_EQ(segment->num_lanes(), 2);
+    // 2 lanes means 3 boundaries.
+    EXPECT_EQ(segment->num_boundaries(), 3);
+  }
+}
+
+// Tests Section 1 [0, 70): Broken WHITE center line - passing allowed both directions.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, Section1CenterBoundaryBrokenWhite) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
+  ASSERT_NE(segment, nullptr);
+
+  // Center boundary is boundary(1).
+  const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+  ASSERT_NE(center_boundary, nullptr);
+
+  const auto markings = center_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // Should be broken white with both directions allowed.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kBroken);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kWhite);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  EXPECT_EQ(marking.lane_change, maliput::api::LaneChangePermission::kAllowed);
+}
+
+// Tests Section 1: Edge boundaries should be solid white.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, Section1EdgeBoundariesSolidWhite) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
+  ASSERT_NE(segment, nullptr);
+
+  // Left edge boundary (boundary 2).
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite);
+  }
+
+  // Right edge boundary (boundary 0).
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(0);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite);
+  }
+}
+
+// Tests Section 2 [70, 100): Broken-Solid center line.
+// Lane 1 (left) can pass (broken white), lane -1 (right) cannot (solid yellow).
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, Section2CenterBoundaryBrokenSolid) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_1"));
+  ASSERT_NE(segment, nullptr);
+
+  const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+  ASSERT_NE(center_boundary, nullptr);
+
+  const auto markings = center_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // Should be broken-solid type (first word describes left side, second describes right side).
+  // laneChange="decrease" means lane 1 can change toward lane -1.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kBrokenSolid);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kYellow);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  // laneChange="decrease" means change allowed toward lower lane IDs (lane 1 -> lane -1).
+  EXPECT_EQ(marking.lane_change, maliput::api::LaneChangePermission::kToRight);
+}
+
+// Tests Section 3 [100, 214.159): Double solid YELLOW center line - no passing.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, Section3CenterBoundarySolidSolid) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_2"));
+  ASSERT_NE(segment, nullptr);
+
+  const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+  ASSERT_NE(center_boundary, nullptr);
+
+  const auto markings = center_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // Should be solid-solid yellow with no lane change.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kSolidSolid);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kYellow);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  EXPECT_EQ(marking.lane_change, maliput::api::LaneChangePermission::kProhibited);
+}
+
+// Tests Section 4 [214.159, 244): Solid-Broken center line.
+// Lane -1 (right) can pass (broken white), lane 1 (left) cannot (solid yellow).
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, Section4CenterBoundarySolidBroken) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_3"));
+  ASSERT_NE(segment, nullptr);
+
+  const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+  ASSERT_NE(center_boundary, nullptr);
+
+  const auto markings = center_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // Should be solid-broken type.
+  // laneChange="increase" means lane -1 can change toward lane 1.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kSolidBroken);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kYellow);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  // laneChange="increase" means change allowed toward higher lane IDs (lane -1 -> lane 1).
+  EXPECT_EQ(marking.lane_change, maliput::api::LaneChangePermission::kToLeft);
+}
+
+// Tests Section 5 [244, 314.159): Broken WHITE center line - passing allowed both directions.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, Section5CenterBoundaryBrokenWhite) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_4"));
+  ASSERT_NE(segment, nullptr);
+
+  const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+  ASSERT_NE(center_boundary, nullptr);
+
+  const auto markings = center_boundary->GetMarkings();
+  ASSERT_GE(markings.size(), 1u);
+
+  // Should be broken white with both directions allowed.
+  const auto& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, maliput::api::LaneMarkingType::kBroken);
+  EXPECT_EQ(marking.color, maliput::api::LaneMarkingColor::kWhite);
+  EXPECT_EQ(marking.weight, maliput::api::LaneMarkingWeight::kStandard);
+  EXPECT_EQ(marking.lane_change, maliput::api::LaneChangePermission::kAllowed);
+}
+
+// Tests that all edge boundaries across all sections are solid white.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, AllEdgeBoundariesAreSolidWhite) {
+  const std::vector<std::string> segment_ids = {"1_0", "1_1", "1_2", "1_3", "1_4"};
+
+  for (const auto& seg_id : segment_ids) {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId(seg_id));
+    ASSERT_NE(segment, nullptr) << "Segment " << seg_id << " not found";
+
+    // Left edge (boundary 2).
+    {
+      const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+      ASSERT_NE(boundary, nullptr);
+      const auto markings = boundary->GetMarkings();
+      ASSERT_GE(markings.size(), 1u) << "No markings for left edge in segment " << seg_id;
+      EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid)
+          << "Left edge in segment " << seg_id << " is not solid";
+      EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite)
+          << "Left edge in segment " << seg_id << " is not white";
+    }
+
+    // Right edge (boundary 0).
+    {
+      const maliput::api::LaneBoundary* boundary = segment->boundary(0);
+      ASSERT_NE(boundary, nullptr);
+      const auto markings = boundary->GetMarkings();
+      ASSERT_GE(markings.size(), 1u) << "No markings for right edge in segment " << seg_id;
+      EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid)
+          << "Right edge in segment " << seg_id << " is not solid";
+      EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite)
+          << "Right edge in segment " << seg_id << " is not white";
+    }
+  }
+}
+
+// Tests boundary lane adjacency relationships for all segments.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, BoundaryLaneAdjacency) {
+  const std::vector<std::string> segment_ids = {"1_0", "1_1", "1_2", "1_3", "1_4"};
+
+  for (const auto& seg_id : segment_ids) {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId(seg_id));
+    ASSERT_NE(segment, nullptr) << "Segment " << seg_id << " not found";
+
+    ASSERT_EQ(segment->num_lanes(), 2) << "Segment " << seg_id << " doesn't have 2 lanes";
+    ASSERT_EQ(segment->num_boundaries(), 3) << "Segment " << seg_id << " doesn't have 3 boundaries";
+
+    const maliput::api::Lane* lane_0 = segment->lane(0);  // Right lane (XODR lane -1).
+    const maliput::api::Lane* lane_1 = segment->lane(1);  // Left lane (XODR lane 1).
+
+    // Boundary 0 (rightmost): lane_0 on left, nullptr on right.
+    const maliput::api::LaneBoundary* boundary_0 = segment->boundary(0);
+    EXPECT_EQ(boundary_0->lane_to_left(), lane_0) << "Segment " << seg_id << " boundary 0";
+    EXPECT_EQ(boundary_0->lane_to_right(), nullptr) << "Segment " << seg_id << " boundary 0";
+
+    // Boundary 1 (center): lane_1 on left, lane_0 on right.
+    const maliput::api::LaneBoundary* boundary_1 = segment->boundary(1);
+    EXPECT_EQ(boundary_1->lane_to_left(), lane_1) << "Segment " << seg_id << " boundary 1";
+    EXPECT_EQ(boundary_1->lane_to_right(), lane_0) << "Segment " << seg_id << " boundary 1";
+
+    // Boundary 2 (leftmost): nullptr on left, lane_1 on right.
+    const maliput::api::LaneBoundary* boundary_2 = segment->boundary(2);
+    EXPECT_EQ(boundary_2->lane_to_left(), nullptr) << "Segment " << seg_id << " boundary 2";
+    EXPECT_EQ(boundary_2->lane_to_right(), lane_1) << "Segment " << seg_id << " boundary 2";
+  }
+}
+
+// Tests that marking s-coordinates are correctly converted to LANE frame.
+// Each lane section has a single marking that spans the entire section length.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, MarkingSCoordinates) {
+  // Section 1: [0, 70) in TRACK frame.
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
+    ASSERT_NE(segment, nullptr);
+    const maliput::api::Lane* lane = segment->lane(0);
+    const double lane_length = lane->length();
+
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+
+    // Marking should span from 0 to approximately lane_length.
+    EXPECT_NEAR(markings[0].s_start, 0., kLinearTolerance);
+    EXPECT_NEAR(markings[0].s_end, lane_length, kLinearTolerance);
+  }
+
+  // Section 3 (curve): The curve section contains an arc geometry.
+  // The boundary marking coordinates may use a reference lane's coordinate system.
+  // Due to lane offsets in curves, the lane lengths differ from the reference line arc length.
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_2"));
+    ASSERT_NE(segment, nullptr);
+
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+
+    // Marking should start at 0.
+    EXPECT_NEAR(markings[0].s_start, 0., kLinearTolerance);
+    // The marking s_end should be positive and represent a reasonable portion of the boundary length.
+    EXPECT_GT(markings[0].s_end, 100.0);  // At least 100m (arc is ~114m at reference line).
+  }
+}
+
+// Tests GetMarking(s) returns the correct marking at various s-coordinates within a section.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, GetMarkingAtSpecificS) {
+  // Test Section 3 (curve with double solid yellow).
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_2"));
+  ASSERT_NE(segment, nullptr);
+
+  const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+  ASSERT_NE(boundary, nullptr);
+
+  // Get the actual marking range to test within valid coordinates.
+  const auto all_markings = boundary->GetMarkings();
+  ASSERT_GE(all_markings.size(), 1u);
+  const double marking_s_end = all_markings[0].s_end;
+
+  // Test at start, middle, and near end of the marking range (not lane length).
+  const std::vector<double> test_s_values = {0.0, marking_s_end / 4.0, marking_s_end / 2.0, 3.0 * marking_s_end / 4.0,
+                                             marking_s_end - kLinearTolerance};
+
+  for (double s : test_s_values) {
+    const auto result = boundary->GetMarking(s);
+    ASSERT_TRUE(result.has_value()) << "No marking at s=" << s;
+    EXPECT_EQ(result->marking.type, maliput::api::LaneMarkingType::kSolidSolid) << "Wrong type at s=" << s;
+    EXPECT_EQ(result->marking.color, maliput::api::LaneMarkingColor::kYellow) << "Wrong color at s=" << s;
+    EXPECT_EQ(result->marking.lane_change, maliput::api::LaneChangePermission::kProhibited)
+        << "Wrong lane_change at s=" << s;
+  }
+}
+
+// Tests the width field is correctly propagated from XODR.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, MarkingWidth) {
+  // Section 1: Center boundary should have width 0.12 (from XODR).
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_NEAR(markings[0].marking.width, 0.12, 1e-6);
+  }
+
+  // Section 3: Center boundary should have width 0.30 (from XODR).
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_2"));
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_NEAR(markings[0].marking.width, 0.30, 1e-6);
+  }
+
+  // Edge boundaries should have width 0.15 (from XODR).
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
+    const maliput::api::LaneBoundary* boundary = segment->boundary(0);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u); 
+    EXPECT_NEAR(markings[0].marking.width, 0.15, 1e-6);
+  }
+}
+
+// Tests that LaneMarkingLine details are correctly populated from XODR <type>/<line> elements.
+// The XODR file has detailed line definitions for center markings:
+// - Section 1: Single broken white line (length=3.0, space=9.0)
+// - Section 2: Broken-Solid (two lines: broken white left, solid yellow right)
+// - Section 3: Double solid yellow (two solid lines)
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, MarkingLinesDetails) {
+  // Section 1: Center boundary has single broken white line.
+  // XODR: <line length="3.0" space="9.0" width="0.12" sOffset="0.0" tOffset="0.0" color="white"/>
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_0"));
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+
+    const auto& lines = markings[0].marking.lines;
+    ASSERT_EQ(lines.size(), 1u) << "Section 1 center should have 1 line definition";
+
+    // Verify the broken line pattern: length=3.0, space=9.0.
+    EXPECT_NEAR(lines[0].length, 3.0, 1e-6);
+    EXPECT_NEAR(lines[0].space, 9.0, 1e-6);
+    EXPECT_NEAR(lines[0].width, 0.12, 1e-6);
+    EXPECT_NEAR(lines[0].r_offset, 0.0, 1e-6);  // tOffset=0.0 in XODR.
+    EXPECT_EQ(lines[0].color, maliput::api::LaneMarkingColor::kWhite);
+  }
+
+  // Section 2: Center boundary has broken-solid (two lines).
+  // XODR:
+  //   <line length="3.0" space="9.0" width="0.12" sOffset="0.0" tOffset="0.09" color="white"/>  (broken on left)
+  //   <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="-0.09" color="yellow"/> (solid on right)
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_1"));
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+
+    const auto& lines = markings[0].marking.lines;
+    ASSERT_EQ(lines.size(), 2u) << "Section 2 center should have 2 line definitions";
+
+    // First line: broken white on left side (positive tOffset -> positive r_offset).
+    EXPECT_NEAR(lines[0].length, 3.0, 1e-6);
+    EXPECT_NEAR(lines[0].space, 9.0, 1e-6);
+    EXPECT_NEAR(lines[0].width, 0.12, 1e-6);
+    EXPECT_NEAR(lines[0].r_offset, 0.09, 1e-6);  // tOffset=0.09 in XODR.
+    EXPECT_EQ(lines[0].color, maliput::api::LaneMarkingColor::kWhite);
+
+    // Second line: solid yellow on right side (negative tOffset -> negative r_offset).
+    EXPECT_NEAR(lines[1].length, 0.0, 1e-6);  // Solid line: length=0.
+    EXPECT_NEAR(lines[1].space, 0.0, 1e-6);   // Solid line: space=0.
+    EXPECT_NEAR(lines[1].width, 0.12, 1e-6);
+    EXPECT_NEAR(lines[1].r_offset, -0.09, 1e-6);  // tOffset=-0.09 in XODR.
+    EXPECT_EQ(lines[1].color, maliput::api::LaneMarkingColor::kYellow);
+  }
+
+  // Section 3: Center boundary has double solid yellow (two solid lines).
+  // XODR:
+  //   <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="0.09" color="yellow"/>
+  //   <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="-0.09" color="yellow"/>
+  {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("1_2"));
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+
+    const auto& lines = markings[0].marking.lines;
+    ASSERT_EQ(lines.size(), 2u) << "Section 3 center should have 2 line definitions";
+
+    // Both lines are solid yellow.
+    for (size_t i = 0; i < lines.size(); ++i) {
+      EXPECT_NEAR(lines[i].length, 0.0, 1e-6) << "Line " << i << " should be solid (length=0)";
+      EXPECT_NEAR(lines[i].space, 0.0, 1e-6) << "Line " << i << " should be solid (space=0)";
+      EXPECT_NEAR(lines[i].width, 0.12, 1e-6) << "Line " << i << " width";
+      EXPECT_EQ(lines[i].color, maliput::api::LaneMarkingColor::kYellow) << "Line " << i << " color";
+    }
+
+    // Check the offsets.
+    EXPECT_NEAR(lines[0].r_offset, 0.09, 1e-6);   // Left line (positive offset).
+    EXPECT_NEAR(lines[1].r_offset, -0.09, 1e-6);  // Right line (negative offset).
+  }
+}
+
+// Summary test: Verifies the complete marking transition sequence along the road.
+TEST_F(TwoWayRoadWithDoubleYellowCurveTest, CompleteMarkingTransitionSequence) {
+  // Expected center marking sequence:
+  // Section 1: Broken WHITE, laneChange=both
+  // Section 2: Broken-Solid YELLOW, laneChange=decrease (toward right)
+  // Section 3: Solid-Solid YELLOW, laneChange=none (prohibited)
+  // Section 4: Solid-Broken YELLOW, laneChange=increase (toward left)
+  // Section 5: Broken WHITE, laneChange=both
+
+  struct ExpectedMarking {
+    std::string segment_id;
+    maliput::api::LaneMarkingType type;
+    maliput::api::LaneMarkingColor color;
+    maliput::api::LaneChangePermission lane_change;
+  };
+
+  const std::vector<ExpectedMarking> expected = {
+      {"1_0", maliput::api::LaneMarkingType::kBroken, maliput::api::LaneMarkingColor::kWhite,
+       maliput::api::LaneChangePermission::kAllowed},
+      {"1_1", maliput::api::LaneMarkingType::kBrokenSolid, maliput::api::LaneMarkingColor::kYellow,
+       maliput::api::LaneChangePermission::kToRight},
+      {"1_2", maliput::api::LaneMarkingType::kSolidSolid, maliput::api::LaneMarkingColor::kYellow,
+       maliput::api::LaneChangePermission::kProhibited},
+      {"1_3", maliput::api::LaneMarkingType::kSolidBroken, maliput::api::LaneMarkingColor::kYellow,
+       maliput::api::LaneChangePermission::kToLeft},
+      {"1_4", maliput::api::LaneMarkingType::kBroken, maliput::api::LaneMarkingColor::kWhite,
+       maliput::api::LaneChangePermission::kAllowed},
+  };
+
+  for (const auto& exp : expected) {
+    const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId(exp.segment_id));
+    ASSERT_NE(segment, nullptr) << "Segment " << exp.segment_id << " not found";
+
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    ASSERT_NE(boundary, nullptr);
+
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u) << "No markings in segment " << exp.segment_id;
+
+    const auto& marking = markings[0].marking;
+    EXPECT_EQ(marking.type, exp.type) << "Type mismatch in segment " << exp.segment_id;
+    EXPECT_EQ(marking.color, exp.color) << "Color mismatch in segment " << exp.segment_id;
+    EXPECT_EQ(marking.lane_change, exp.lane_change) << "LaneChange mismatch in segment " << exp.segment_id;
+  }
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
