@@ -159,7 +159,7 @@ bool Lane::operator==(const Lane& other) const {
          width_description == other.width_description && speed == other.speed && user_data == other.user_data &&
          advisory == other.advisory && direction == other.direction &&
          dynamic_lane_direction == other.dynamic_lane_direction && dynamic_lane_type == other.dynamic_lane_type &&
-         road_works == other.road_works;
+         road_works == other.road_works && road_marks == other.road_marks;
 }
 
 bool Lane::operator!=(const Lane& other) const { return !(*this == other); }

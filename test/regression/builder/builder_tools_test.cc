@@ -661,6 +661,7 @@ struct GetLaneSpeedPropertiesTest : public ::testing::Test {
                          false,
                          {},
                          std::vector<xodr::LaneWidth>{{0., 1., 2., 3., 4.}},
+                         {},
                          {kLaneSpeed0, kLaneSpeed1, kLaneSpeed2}};
 };
 

@@ -3,6 +3,7 @@
 ##############################################################################
 add_library(xodr
   connection.cc
+  colors.cc
   db_manager.cc
   elevation_profile.cc
   geo_reference.cc
@@ -13,6 +14,7 @@ add_library(xodr
   lanes.cc
   lane_offset.cc
   lane_section.cc
+  lane_road_mark.cc
   lane_width.cc
   lateral_profile.cc
   parser.cc

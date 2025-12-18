@@ -30,7 +30,7 @@ LaneSection | Lane | Right | :green_circle:
 LaneSection | Lane | LaneLink | :green_circle:
 LaneSection | Lane | LaneWidth | :green_circle:
 LaneSection | Lane | LaneBorder | :red_circle:
-LaneSection | Lane | RoadMark | :red_circle:
+LaneSection | Lane | RoadMark | :green_circle:
 LaneSection | Lane | LaneMaterial | :red_circle:
 LaneSection | Lane | LaneVisibility | :red_circle:
 LaneSection | Lane | LaneSpeed | :green_circle:

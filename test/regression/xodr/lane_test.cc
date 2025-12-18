@@ -189,6 +189,7 @@ GTEST_TEST(Lane, EqualityOperator) {
       false /* level */,
       lane_link /* lane_link */,
       {{1.1 /* sOffset */, 2.2 /* a */}, {6.6 /* sOffset */, 7.7 /* a */}} /* widths */,
+      {} /* road marks */,
       {{0. /* sOffset */, 15. /* max */, Unit::kMph /* unit */}} /* speed */,
       std::nullopt /* userData */,
       Lane::Advisory::kOuter /* advisory */,

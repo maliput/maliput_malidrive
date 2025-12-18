@@ -797,6 +797,187 @@ TEST_F(ParsingTests, NodeParserLaneWidth) {
   EXPECT_EQ(kExpectedLaneWidth, lane_width);
 }
 
+// Get a XML description that contains a XODR roadMark node.
+std::string GetLaneRoadMark(std::string color, double height, std::string lane_change, std::string material,
+                            double offset, std::string type, std::string weight, double width) {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<roadMark color='" << color << "' height='" << height << "' laneChange='" << lane_change << "' material='"
+     << material << "' sOffset='" << offset << "' type='" << type << "' weight='" << weight << "' width='" << width
+     << "'>";
+  ss << "<type name='"
+     << "my_type_name"
+     << "' width='" << 1. << "'>";
+  ss << "<line color='"
+     << "black"
+     << "' length='" << 2. << "' rule='"
+     << "none"
+     << "' sOffset='" << 3. << "' space='" << 4. << "' tOffset='" << 5. << "' width='" << 6. << "'/>";
+  ss << "</type>";
+  ss << "<explicit>";
+  ss << "<line length='" << 1. << "' rule='"
+     << "none"
+     << "' sOffset='" << 2. << "' tOffset='" << 3. << "' width='" << 4. << "'/>";
+  ss << "</explicit>";
+  ss << "<sway ds='" << 5. << "' a='" << 1. << "' b='" << 2. << "' c='" << 3. << "' d='" << 4. << "' />";
+  ss << "</roadMark>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `LaneRoadMark` parsing, simple roadMark with no elements.
+TEST_F(ParsingTests, NodeParserSimpleLaneRoadMark) {
+  const LaneRoadMark kExpectedLaneRoadMark{Color::kBlack,
+                                           1.,
+                                           LaneRoadMark::LaneChange::kNone,
+                                           "material",
+                                           2.,
+                                           LaneRoadMark::Type::kSolid,
+                                           LaneRoadMark::Weight::kStandard,
+                                           3.,
+                                           {{"my_type_name", 1., {{Color::kBlack, 2., Rule::kNone, 3., 4., 5., 6.}}}},
+                                           {{{{1., Rule::kNone, 2., 3., 4.}}}},
+                                           {{1., 2., 3., 4., 5.}}};
+
+  const std::string xml_description = GetLaneRoadMark("black", 1., "none", "material", 2., "solid", "standard", 3.);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, LaneRoadMark::kLaneRoadMarkTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(LaneRoadMark::kLaneRoadMarkTag, dut.GetName());
+  const LaneRoadMark lane_road_mark = dut.As<LaneRoadMark>();
+  EXPECT_EQ(kExpectedLaneRoadMark, lane_road_mark);
+}
+
+// Get a XML description that contains a XODR type element line node.
+std::string GetTypeElementLine(std::string color, double length, std::string rule, double s_offset, double space,
+                               double t_offset, double width) {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<line color='" << color << "' length='" << length << "' rule='" << rule << "' sOffset='" << s_offset
+     << "' space='" << space << "' tOffset='" << t_offset << "' width='" << width << "'/>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `TypeElementLine` parsing,
+TEST_F(ParsingTests, NodeParserTypeElementLine) {
+  const TypeElementLine kExpectedTypeElementLine{
+      Color::kBlack, 1., Rule::kNone, 2., 3., 4., 5.,
+  };
+
+  const std::string xml_description = GetTypeElementLine("black", 1., "none", 2., 3., 4., 5.);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, TypeElementLine::kTypeLineTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(TypeElementLine::kTypeLineTag, dut.GetName());
+  const TypeElementLine type_element_line = dut.As<TypeElementLine>();
+  EXPECT_EQ(kExpectedTypeElementLine, type_element_line);
+}
+
+std::string GetTypeElement(std::string name, double width) {
+  std::stringstream ss;
+  // Build a type element that contains a generic TypeElementLine
+  ss << "<root>";
+  ss << "<type name='" << name << "' width='" << width << "'>";
+  ss << "<line color='"
+     << "black"
+     << "' length='" << 1. << "' rule='"
+     << "none"
+     << "' sOffset='" << 2. << "' space='" << 3. << "' tOffset='" << 4. << "' width='" << 5. << "'/>";
+  ss << "</type>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `TypeElement` parsing,
+TEST_F(ParsingTests, NodeParserTypeElement) {
+  const TypeElement kExpectedTypeElement{"my_type", 1., {{Color::kBlack, 1., Rule::kNone, 2., 3., 4., 5.}}};
+
+  const std::string xml_description = GetTypeElement("my_type", 1.);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, TypeElement::kTypeElementTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(TypeElement::kTypeElementTag, dut.GetName());
+  const TypeElement type_element = dut.As<TypeElement>();
+  EXPECT_EQ(kExpectedTypeElement, type_element);
+}
+
+// Get a XML description that contains a XODR explicit element line node.
+std::string GetExplicitElementLine(double length, std::string rule, double s_offset, double t_offset, double width) {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<line length='" << length << "' rule='" << rule << "' sOffset='" << s_offset << "' tOffset='" << t_offset
+     << "' width='" << width << "'/>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `ExplicitElementLine` parsing,
+TEST_F(ParsingTests, NodeParserExplicitElementLine) {
+  const ExplicitElementLine kExpectedTExplicitElementLine{
+      1., Rule::kNone, 2., 3., 4.,
+  };
+
+  const std::string xml_description = GetExplicitElementLine(1., "none", 2., 3., 4.);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, ExplicitElementLine::kExplicitElementLineTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(ExplicitElementLine::kExplicitElementLineTag, dut.GetName());
+  const ExplicitElementLine explicit_element_line = dut.As<ExplicitElementLine>();
+  EXPECT_EQ(kExpectedTExplicitElementLine, explicit_element_line);
+}
+
+// Get a XML description that contains a XODR explicit element node.
+std::string GetExplicitElement() {
+  std::stringstream ss;
+  // Build a type element that contains a generic TypeElementLine
+  ss << "<root>";
+  ss << "<explicit>";
+  ss << "<line length='" << 1. << "' rule='"
+     << "none"
+     << "' sOffset='" << 2. << "' tOffset='" << 3. << "' width='" << 4. << "'/>";
+  ss << "</explicit>";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `ExplicitElement` parsing,
+TEST_F(ParsingTests, NodeParserExplicitElement) {
+  const ExplicitElement kExpectedExplicitElement{{{1., Rule::kNone, 2., 3., 4.}}};
+
+  const std::string xml_description = GetExplicitElement();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, ExplicitElement::kExplicitElementTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(ExplicitElement::kExplicitElementTag, dut.GetName());
+  const ExplicitElement explicit_element = dut.As<ExplicitElement>();
+  EXPECT_EQ(kExpectedExplicitElement, explicit_element);
+}
+
+// Get a XML description that contains a XODR sway node.
+std::string GetSwayElement(double s_offset, double a, double b, double c, double d) {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<sway ds='" << s_offset << "' a='" << a << "' b='" << b << "' c='" << c << "' d='" << d << "' />";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `SwayElement` parsing.
+TEST_F(ParsingTests, NodeParserSwayElement) {
+  const SwayElement kExpectedSwayElement{1.1, 2.2, 3.3, 4.4, 5.5};
+
+  const std::string xml_description =
+      GetSwayElement(kExpectedSwayElement.s_0, kExpectedSwayElement.a, kExpectedSwayElement.b, kExpectedSwayElement.c,
+                     kExpectedSwayElement.d);
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SwayElement::kSwayTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SwayElement::kSwayTag, dut.GetName());
+  const SwayElement sway_element = dut.As<SwayElement>();
+  EXPECT_EQ(kExpectedSwayElement, sway_element);
+}
+
 // Get a XML description that contains a XODR Lane::Speed.
 // @param s_offset The s_offset value.
 // @param max The max value.
@@ -912,6 +1093,17 @@ std::string GetLane(const std::string& id, const std::string& type, const std::s
   ss << "<width sOffset='6.6' a='7.7' b='8.8' c='9.9' d='10.1'/>";
   ss << "<speed sOffset='0.1' max='45.' unit='mph'/>";
   ss << "<speed sOffset='0.5' max='3.'/>";
+  ss << "<roadMark color='"
+     << "black"
+     << "' height='" << 1. << "' laneChange='"
+     << "none"
+     << "' material='"
+     << "material"
+     << "' sOffset='" << 2. << "' type='"
+     << "solid"
+     << "' weight='"
+     << "standard"
+     << "' width='" << 3. << "'/>";
   ss << user_data;
   ss << "</lane>";
   ss << "</root>";
@@ -926,6 +1118,8 @@ TEST_F(ParsingTests, NodeParserLane) {
   const std::vector<LaneWidth> kWidthDescription{
       {1.1 /* sOffset */, 2.2 /* a */, 3.3 /* b */, 4.4 /* c */, 5.5 /* d */},
       {6.6 /* sOffset */, 7.7 /* a */, 8.8 /* b */, 9.9 /* c */, 10.1 /* d */}};
+  const std::vector<LaneRoadMark> kRoadMarks{{Color::kBlack, 1., LaneRoadMark::LaneChange::kNone, "material", 2.,
+                                              LaneRoadMark::Type::kSolid, LaneRoadMark::Weight::kStandard, 3.}};
   const std::vector<Lane::Speed> kSpeed{{0.1 /* sOffset */, 45. /* max */, Unit::kMph /* unit */},
                                         {0.5 /* sOffset */, 3. /* max */, Unit::kMs /* unit */}};
   const std::optional<std::string> kUserData{"<userData/>\n"};
@@ -940,6 +1134,7 @@ TEST_F(ParsingTests, NodeParserLane) {
       false /* level */,
       lane_link /* lane_link */,
       kWidthDescription /* widths */,
+      kRoadMarks /* road marks */,
       kSpeed /*speed*/,
       kUserData /* user_data */,
       kAdvisory /* advisory */,
@@ -965,6 +1160,7 @@ TEST_F(ParsingTests, NodeParserLane) {
   EXPECT_EQ(kExpectedLane.type, lane.type);
   EXPECT_EQ(kExpectedLane.level, lane.level);
   EXPECT_EQ(kExpectedLane.speed, lane.speed);
+  EXPECT_EQ(kExpectedLane.road_marks, lane.road_marks);
   EXPECT_EQ(kExpectedLane.advisory, lane.advisory);
   EXPECT_EQ(kExpectedLane.direction, lane.direction);
   EXPECT_EQ(kExpectedLane.dynamic_lane_direction, lane.dynamic_lane_direction);
@@ -987,6 +1183,8 @@ TEST_F(ParsingTests, NodeParserLaneNoUserData) {
   const std::optional<std::string> kUserData{"<userData/>\n"};
   const std::optional<Lane::Advisory> kAdvisory{Lane::Advisory::kInner};
   const std::optional<Lane::Direction> kDirection{Lane::Direction::kStandard};
+  const std::vector<LaneRoadMark> kRoadMarks{{Color::kBlack, 1., LaneRoadMark::LaneChange::kNone, "material", 2.,
+                                              LaneRoadMark::Type::kSolid, LaneRoadMark::Weight::kStandard, 3.}};
   const std::optional<bool> kDynamicLaneDirection{true};
   const std::optional<bool> kDynamicLaneType{false};
   const std::optional<bool> kRoadWorks{false};
@@ -996,6 +1194,7 @@ TEST_F(ParsingTests, NodeParserLaneNoUserData) {
       false /* level */,
       lane_link /* lane_link */,
       kWidthDescription /* widths */,
+      kRoadMarks /* road marks */,
       kSpeed /*speed*/,
       std::nullopt /* user_data */,
       kAdvisory /* advisory */,
@@ -1403,16 +1602,13 @@ TEST_F(ParsingTests, NodeParserRoadHeader) {
   const LaneOffset kLaneOffset2{1.5 /* s */, 2.2 /* a */, 3.3 /* b */, 4.4 /* c */, 5.5 /* d */};
   const Lane::Speed kLaneSpeedA{0.0 /* sOffset */, 45. /* max */, Unit::kMph /* unit */};
   const Lane::Speed kLaneSpeedB{0.5 /* sOffset */, 3. /* max */, Unit::kMs /* unit */};
-  const Lane kLeftLane{Lane::Id("1"),
-                       Lane::Type::kDriving,
-                       false,
-                       kLaneLinkA,
-                       std::vector<LaneWidth>{{0., 1., 2., 3., 4.}},
-                       {kLaneSpeedA, kLaneSpeedB}};
+  const Lane kLeftLane{
+      Lane::Id("1"),       Lane::Type::kDriving,      false, kLaneLinkA, std::vector<LaneWidth>{{0., 1., 2., 3., 4.}},
+      {} /* road marks */, {kLaneSpeedA, kLaneSpeedB}};
   const Lane kCenterLane{Lane::Id("0"), Lane::Type::kDriving, false, {}, {}};
   const Lane kRightLane{
-      Lane::Id("-1"), Lane::Type::kDriving, false, kLaneLinkB, std::vector<LaneWidth>{{5., 6., 7., 8., 9.}},
-      {kLaneSpeedB}};
+      Lane::Id("-1"),      Lane::Type::kDriving, false, kLaneLinkB, std::vector<LaneWidth>{{5., 6., 7., 8., 9.}},
+      {} /* road marks */, {kLaneSpeedB}};
   const LaneSection kLaneSection1{0. /* s_0 */,
                                   std::nullopt /* single_side */,
                                   {kLeftLane} /* left_lanes */,
@@ -1702,6 +1898,7 @@ TEST_F(LaneRepeatedWidthDescriptionsParsingTests, AllowingSchemaErrors) {
       std::nullopt /* level */,
       {std::nullopt, std::nullopt} /* lane_link */,
       {kExpectedLaneWidth0, kExpectedLaneWidth1} /* widths */,
+      {} /* road marks */,
       {} /* speed */,
       std::nullopt /* user_data */
   };
@@ -1926,6 +2123,7 @@ TEST_F(LaneWithNanWidthDescriptionsParsingTests, AllowingSchemaErrorsSameStartPo
       std::nullopt /* level */,
       {std::nullopt, std::nullopt} /* lane_link */,
       {kExpectedLaneWidth0, kExpectedLaneWidth1} /* widths */,
+      {} /* road marks */,
       {} /* speed */,
       std::nullopt /* user_data */
   };

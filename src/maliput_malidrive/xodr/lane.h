@@ -35,6 +35,7 @@
 #include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/xodr/lane_link.h"
+#include "maliput_malidrive/xodr/lane_road_mark.h"
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/unit.h"
 
@@ -234,6 +235,8 @@ struct Lane {
   LaneLink lane_link{std::nullopt, std::nullopt};
   /// Widths of the lane.
   std::vector<LaneWidth> width_description{};
+  /// Road markings of the lane
+  std::vector<LaneRoadMark> road_marks{};
   /// Speed records of the lane.
   std::vector<Speed> speed{};
   /// Contains ancillary data in XML format. It holds the entire userData node.
