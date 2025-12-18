@@ -324,9 +324,10 @@ RoadGeometryBuilder::LaneConstructionResult RoadGeometryBuilder::BuildLane(
   adjacent_lane_functions->width = lane_width.get();
   adjacent_lane_functions->offset = lane_offset.get();
   maliput::log()->trace("Building lane id ", lane_id.string());
-  auto built_lane = std::make_unique<Lane>(
-      lane_id, xodr_track_id, xodr_lane_id, elevation_bounds, segment->road_curve(), std::move(lane_width),
-      std::move(lane_offset), road_curve_p_0_lane, road_curve_p_1_lane, rg_config.integrator_accuracy_multiplier);
+  auto built_lane =
+      std::make_unique<Lane>(lane_id, xodr_track_id, xodr_lane_id, elevation_bounds, segment->road_curve(),
+                             std::move(lane_width), std::move(lane_offset), road_curve_p_0_lane, road_curve_p_1_lane,
+                             rg_config.integrator_accuracy_multiplier, lane->type);
   return {segment, std::move(built_lane), {road_header, lane_section, xodr_lane_section_index, lane}};
 }
 

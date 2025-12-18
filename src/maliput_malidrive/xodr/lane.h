@@ -107,6 +107,7 @@ struct Lane {
     kStop,
     kShoulder,
     kBiking,
+    kWalking,
     kSidewalk,
     kBorder,
     kRestricted,
@@ -127,6 +128,7 @@ struct Lane {
     kOffRamp,
     kOnRamp,
     kConnectingRamp,
+    kSlipLane,
     kBus,
     kTaxi,
     /// High-occupancy vehicle / carpool vehicle.
