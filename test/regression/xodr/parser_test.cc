@@ -1093,6 +1093,17 @@ std::string GetLane(const std::string& id, const std::string& type, const std::s
   ss << "<width sOffset='6.6' a='7.7' b='8.8' c='9.9' d='10.1'/>";
   ss << "<speed sOffset='0.1' max='45.' unit='mph'/>";
   ss << "<speed sOffset='0.5' max='3.'/>";
+  ss << "<roadMark color='"
+     << "black"
+     << "' height='" << 1. << "' laneChange='"
+     << "none"
+     << "' material='"
+     << "material"
+     << "' sOffset='" << 2. << "' type='"
+     << "solid"
+     << "' weight='"
+     << "standard"
+     << "' width='" << 3. << "'/>";
   ss << user_data;
   ss << "</lane>";
   ss << "</root>";
@@ -1107,17 +1118,8 @@ TEST_F(ParsingTests, NodeParserLane) {
   const std::vector<LaneWidth> kWidthDescription{
       {1.1 /* sOffset */, 2.2 /* a */, 3.3 /* b */, 4.4 /* c */, 5.5 /* d */},
       {6.6 /* sOffset */, 7.7 /* a */, 8.8 /* b */, 9.9 /* c */, 10.1 /* d */}};
-  const std::vector<LaneRoadMark> kRoadMarks{{Color::kBlack,
-                                              1.,
-                                              LaneRoadMark::LaneChange::kNone,
-                                              "material",
-                                              2.,
-                                              LaneRoadMark::Type::kSolid,
-                                              LaneRoadMark::Weight::kStandard,
-                                              3.,
-                                              {{}},
-                                              {{}},
-                                              {{}}}};
+  const std::vector<LaneRoadMark> kRoadMarks{{Color::kBlack, 1., LaneRoadMark::LaneChange::kNone, "material", 2.,
+                                              LaneRoadMark::Type::kSolid, LaneRoadMark::Weight::kStandard, 3.}};
   const std::vector<Lane::Speed> kSpeed{{0.1 /* sOffset */, 45. /* max */, Unit::kMph /* unit */},
                                         {0.5 /* sOffset */, 3. /* max */, Unit::kMs /* unit */}};
   const std::optional<std::string> kUserData{"<userData/>\n"};
@@ -1181,6 +1183,8 @@ TEST_F(ParsingTests, NodeParserLaneNoUserData) {
   const std::optional<std::string> kUserData{"<userData/>\n"};
   const std::optional<Lane::Advisory> kAdvisory{Lane::Advisory::kInner};
   const std::optional<Lane::Direction> kDirection{Lane::Direction::kStandard};
+  const std::vector<LaneRoadMark> kRoadMarks{{Color::kBlack, 1., LaneRoadMark::LaneChange::kNone, "material", 2.,
+                                              LaneRoadMark::Type::kSolid, LaneRoadMark::Weight::kStandard, 3.}};
   const std::optional<bool> kDynamicLaneDirection{true};
   const std::optional<bool> kDynamicLaneType{false};
   const std::optional<bool> kRoadWorks{false};
@@ -1190,7 +1194,7 @@ TEST_F(ParsingTests, NodeParserLaneNoUserData) {
       false /* level */,
       lane_link /* lane_link */,
       kWidthDescription /* widths */,
-      {} /* road marks */,
+      kRoadMarks /* road marks */,
       kSpeed /*speed*/,
       std::nullopt /* user_data */,
       kAdvisory /* advisory */,

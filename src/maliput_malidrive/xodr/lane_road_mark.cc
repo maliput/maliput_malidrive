@@ -133,7 +133,7 @@ LaneRoadMark::Weight LaneRoadMark::str_to_weight(const std::string& weight) {
 bool LaneRoadMark::operator==(const LaneRoadMark& other) const {
   return color == other.color && height == other.height && lane_change == other.lane_change &&
          material == other.material && s_offset == other.s_offset && type == other.type && weight == other.weight &&
-         width == other.width && this->type_elems == other.type_elems && explicit_elems == other.explicit_elems &&
+         width == other.width && type_elems == other.type_elems && explicit_elems == other.explicit_elems &&
          sway_elems == other.sway_elems;
 }
 
