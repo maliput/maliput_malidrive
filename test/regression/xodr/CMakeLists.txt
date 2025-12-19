@@ -9,6 +9,8 @@ set(TEST_TYPE UNIT_XODR)
 # Tests
 ##############################################################################
 
+add_subdirectory(object)
+
 set(UNIT_TEST_XODR_SOURCES
   connection_test.cc
   db_manager_test.cc
