@@ -370,7 +370,7 @@ std::vector<maliput::api::LaneMarkingResult> LaneBoundary::DoGetMarkings(double 
   std::vector<maliput::api::LaneMarkingResult> results;
   for (const auto& [interval, marking] : interval_marking_map_) {
     // Check if the marking overlaps with the requested range.
-    if (interval.s_end > s_start && interval.s_start < s_end) {
+    if (interval.s_end >= s_start && interval.s_start < s_end) {
       maliput::api::LaneMarkingResult result;
       result.marking = marking;
       result.s_start = interval.s_start;
