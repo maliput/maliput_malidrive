@@ -902,6 +902,43 @@ TEST_F(ParsingTests, NodeParserTypeElement) {
   EXPECT_EQ(kExpectedTypeElement, type_element);
 }
 
+// Tests `TypeElement` parsing with multiple line elements.
+// This verifies that all <line> elements within a <type> element are parsed correctly.
+TEST_F(ParsingTests, NodeParserTypeElementMultipleLines) {
+  // Expected type element with two lines (like double solid yellow).
+  const TypeElement kExpectedTypeElement{
+      "solid_solid",
+      0.30,
+      {{Color::kYellow, 0., Rule::kNone, 0., 0., 0.09, 0.12},     // Left solid line.
+       {Color::kYellow, 0., Rule::kNone, 0., 0., -0.09, 0.12}}};  // Right solid line.
+
+  // Build XML with two <line> elements.
+  std::stringstream ss;
+  ss << "<root>";
+  ss << "<type name='solid_solid' width='0.30'>";
+  ss << "<line color='yellow' length='0.' rule='none' sOffset='0.' space='0.' tOffset='0.09' width='0.12'/>";
+  ss << "<line color='yellow' length='0.' rule='none' sOffset='0.' space='0.' tOffset='-0.09' width='0.12'/>";
+  ss << "</type>";
+  ss << "</root>";
+  const std::string xml_description = ss.str();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, TypeElement::kTypeElementTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(TypeElement::kTypeElementTag, dut.GetName());
+  const TypeElement type_element = dut.As<TypeElement>();
+
+  // Verify the type element properties.
+  EXPECT_EQ(kExpectedTypeElement.name, type_element.name);
+  EXPECT_DOUBLE_EQ(kExpectedTypeElement.width, type_element.width);
+
+  // Verify all lines are parsed correctly.
+  ASSERT_EQ(kExpectedTypeElement.lines.size(), type_element.lines.size())
+      << "Expected " << kExpectedTypeElement.lines.size() << " lines, got " << type_element.lines.size();
+  for (size_t i = 0; i < kExpectedTypeElement.lines.size(); ++i) {
+    EXPECT_EQ(kExpectedTypeElement.lines[i], type_element.lines[i]) << "Line " << i << " mismatch";
+  }
+}
+
 // Get a XML description that contains a XODR explicit element line node.
 std::string GetExplicitElementLine(double length, std::string rule, double s_offset, double t_offset, double width) {
   std::stringstream ss;

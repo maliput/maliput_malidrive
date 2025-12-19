@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ BSD 3-Clause License
+
+ Copyright (c) 2025, Woven Planet. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ * Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+-->
+<!--
+  Two-way road with no-passing zones near curves.
+
+  Road Layout:
+  - Total length: ~314m (100m straight + ~114m arc + 100m straight)
+  - Two lanes: one in each direction (lane -1 and lane 1)
+  - Center lane boundary markings change along the road:
+    * [0, 70): Single broken WHITE line - passing allowed in both directions
+    * [70, 100): Solid-Broken lines - transition into curve:
+        - Solid YELLOW on lane -1 side (entering curve) - NO passing
+        - Broken WHITE on lane 1 side - passing allowed
+    * [100, 214): Double solid YELLOW lines - NO passing for either direction (curve)
+    * [214, 244): Solid-Broken lines - transition out of curve:
+        - Broken WHITE on lane -1 side - passing allowed
+        - Solid YELLOW on lane 1 side (entering curve from other direction) - NO passing
+    * [244, 314): Single broken WHITE line - passing allowed in both directions
+
+  Geometry:
+  - Section 1: Straight line (0 to 100m)
+  - Section 2: Arc with 36.28m radius, ~180° turn (~114m arc length)
+  - Section 3: Straight line (100m)
+
+  Color convention:
+  - Broken lines are WHITE (passing allowed)
+  - Solid lines are YELLOW (no passing)
+
+  This demonstrates a realistic scenario where the curve itself has double yellow
+  (no passing for anyone), with transition zones before and after allowing
+  vehicles leaving the curve to pass while those entering cannot.
+-->
+<OpenDRIVE>
+  <header revMajor="1" revMinor="4" name="TwoWayRoadWithNoPassingZone" version="1.0" date="2025-01-01">
+    <geoReference><![CDATA[+proj=utm +zone=10 +datum=WGS84]]></geoReference>
+  </header>
+
+  <road name="TwoWayRoadWithCurve" length="314.159265" id="1" junction="-1">
+    <link/>
+    <planView>
+      <!-- Geometry 1: Straight line going in +X direction for 100m -->
+      <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="100.0">
+        <line/>
+      </geometry>
+      <!-- Geometry 2: Arc (180 degree turn to the left) -->
+      <!-- Using radius = 36.275987 to get exactly pi arc length for 180 degree turn -->
+      <!-- Arc length = radius * pi = 36.275987 * pi = 113.974226 -->
+      <!-- Curvature = 1/radius = 0.02756644 -->
+      <geometry s="100.0" x="100.0" y="0.0" hdg="0.0" length="113.974226">
+        <arc curvature="0.02756644"/>
+      </geometry>
+      <!-- Geometry 3: Straight line going in -X direction for 100m -->
+      <!-- After exact 180 degree turn, endpoint is at (100, 2*radius) = (100, 72.551974) -->
+      <geometry s="213.974226" x="100.0" y="72.551974" hdg="3.14159265358979" length="100.185039">
+        <line/>
+      </geometry>
+    </planView>
+    <elevationProfile>
+    </elevationProfile>
+    <lateralProfile>
+    </lateralProfile>
+    <lanes>
+      <!--
+        Lane Section 1: [0, 70) - Passing allowed
+        Single broken white center line
+      -->
+      <laneSection s="0.0">
+        <left>
+          <!-- Lane 1: Oncoming traffic lane (left side of reference line) -->
+          <lane id="1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15">
+              <!-- Outer edge line -->
+            </roadMark>
+          </lane>
+        </left>
+        <center>
+          <!-- Center lane (lane 0) - contains the center line marking -->
+          <lane id="0" type="none" level="false">
+            <!-- Single broken white line - passing allowed -->
+            <roadMark sOffset="0.0" type="broken" weight="standard" color="white" width="0.12" laneChange="both">
+              <type name="broken" width="0.12">
+                <line length="3.0" space="9.0" width="0.12" sOffset="0.0" tOffset="0.0" color="white"/>
+              </type>
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <!-- Lane -1: Travel lane (right side of reference line) -->
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15">
+              <!-- Outer edge line -->
+            </roadMark>
+          </lane>
+        </right>
+      </laneSection>
+      <!--
+        Lane Section 2: [70, 100) - Transition into curve
+        Solid-Broken: solid yellow on lane -1 side (no passing), broken white on lane 1 side (can pass)
+        Lane 1 (coming from curve direction) can pass, Lane -1 (entering curve) cannot pass
+      -->
+      <laneSection s="70.0">
+        <left>
+          <lane id="1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </left>
+        <center>
+          <lane id="0" type="none" level="false">
+            <!-- Solid-Broken: solid yellow on right (lane -1), broken white on left (lane 1) -->
+            <!-- laneChange="decrease" means lane 1 (positive) can change toward lane -1, but not vice versa -->
+            <roadMark sOffset="0.0" type="broken solid" weight="standard" color="yellow" width="0.30" laneChange="decrease">
+              <type name="broken_solid" width="0.30">
+                <!-- Broken WHITE line on the left (lane 1 side) - they can pass -->
+                <line length="3.0" space="9.0" width="0.12" sOffset="0.0" tOffset="0.09" color="white"/>
+                <!-- Solid YELLOW line on the right (lane -1 side) - they cannot pass -->
+                <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="-0.09" color="yellow"/>
+              </type>
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </right>
+      </laneSection>
+      <!--
+        Lane Section 3: [100, 214.159) - Arc/Curve section
+        Double solid YELLOW lines - NO passing for either direction
+      -->
+      <laneSection s="100.0">
+        <left>
+          <lane id="1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </left>
+        <center>
+          <lane id="0" type="none" level="false">
+            <!-- Double solid YELLOW lines - no passing for either direction -->
+            <roadMark sOffset="0.0" type="solid solid" weight="standard" color="yellow" width="0.30" laneChange="none">
+              <type name="solid_solid" width="0.30">
+                <!-- Two parallel solid yellow lines -->
+                <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="0.09" color="yellow"/>
+                <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="-0.09" color="yellow"/>
+              </type>
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </right>
+      </laneSection>
+      <!--
+        Lane Section 4: [213.974, 244) - Transition out of curve
+        Broken-Solid: broken white on lane -1 side (can pass), solid yellow on lane 1 side (no passing)
+      -->
+      <laneSection s="213.974226">
+        <left>
+          <lane id="1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </left>
+        <center>
+          <lane id="0" type="none" level="false">
+            <!-- Broken-Solid: broken white on right (lane -1), solid yellow on left (lane 1) -->
+            <!-- laneChange="increase" means lane -1 can change toward lane 1, but not vice versa -->
+            <roadMark sOffset="0.0" type="solid broken" weight="standard" color="yellow" width="0.30" laneChange="increase">
+              <type name="solid_broken" width="0.30">
+                <!-- Solid YELLOW line on the left (lane 1 side) - they cannot pass -->
+                <line length="0.0" space="0.0" width="0.12" sOffset="0.0" tOffset="0.09" color="yellow"/>
+                <!-- Broken WHITE line on the right (lane -1 side) - they can pass -->
+                <line length="3.0" space="9.0" width="0.12" sOffset="0.0" tOffset="-0.09" color="white"/>
+              </type>
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </right>
+      </laneSection>
+      <!--
+        Lane Section 5: [244, 314.159) - Passing allowed again
+        Single broken white center line
+      -->
+      <laneSection s="244.0">
+        <left>
+          <lane id="1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </left>
+        <center>
+          <lane id="0" type="none" level="false">
+            <!-- Single broken white line - passing allowed again -->
+            <roadMark sOffset="0.0" type="broken" weight="standard" color="white" width="0.12" laneChange="both">
+              <type name="broken" width="0.12">
+                <line length="3.0" space="9.0" width="0.12" sOffset="0.0" tOffset="0.0" color="white"/>
+              </type>
+            </roadMark>
+          </lane>
+        </center>
+        <right>
+          <lane id="-1" type="driving" level="false">
+            <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+            <roadMark sOffset="0.0" type="solid" weight="standard" color="white" width="0.15"/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+  </road>
+</OpenDRIVE>

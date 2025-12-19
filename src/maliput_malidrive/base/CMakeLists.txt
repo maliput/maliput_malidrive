@@ -3,6 +3,7 @@
 ##############################################################################
 add_library(base
   lane.cc
+  lane_boundary.cc
   road_geometry.cc
 )
 add_library(maliput_malidrive::base ALIAS base)

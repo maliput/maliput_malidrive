@@ -40,6 +40,7 @@
 #include <maliput/geometry_base/junction.h>
 #include <maliput/utility/thread_pool.h>
 
+#include "maliput_malidrive/base/lane_boundary.h"
 #include "maliput_malidrive/builder/determine_tolerance.h"
 #include "maliput_malidrive/builder/road_curve_factory.h"
 #include "maliput_malidrive/builder/simplify_geometries.h"
@@ -404,6 +405,135 @@ void RoadGeometryBuilder::FillSegmentsWithLanes(RoadGeometry* rg) {
   }
 }
 
+void RoadGeometryBuilder::BuildLaneBoundaries(RoadGeometry* rg) {
+  MALIDRIVE_THROW_UNLESS(rg != nullptr, maliput::common::road_geometry_construction_error);
+  maliput::log()->trace("Building LaneBoundaries...");
+
+  // Iterate through all junctions and their segments.
+  for (int j = 0; j < rg->num_junctions(); ++j) {
+    const maliput::api::Junction* junction = rg->junction(j);
+    for (int seg_idx = 0; seg_idx < junction->num_segments(); ++seg_idx) {
+      const maliput::api::Segment* api_segment = junction->segment(seg_idx);
+      Segment* segment = const_cast<Segment*>(static_cast<const Segment*>(api_segment));
+
+      const int num_lanes = segment->num_lanes();
+      if (num_lanes == 0) {
+        continue;
+      }
+
+      // For N lanes, we need N+1 boundaries.
+      // Boundaries are indexed from 0 (rightmost) to N (leftmost).
+      // Boundary i is between lane i-1 (right) and lane i (left).
+      for (int boundary_idx = 0; boundary_idx <= num_lanes; ++boundary_idx) {
+        // Determine the lanes adjacent to this boundary.
+        const maliput::api::Lane* lane_to_right = (boundary_idx > 0) ? segment->lane(boundary_idx - 1) : nullptr;
+        const maliput::api::Lane* lane_to_left = (boundary_idx < num_lanes) ? segment->lane(boundary_idx) : nullptr;
+
+        // Get the road marking data from the appropriate lane.
+        // For boundary i, we use the road marks from lane i-1's left side (which is the same as lane i's right side).
+        // In OpenDRIVE, road marks are defined on the lane's outer edge (away from center).
+        // - For right lanes (negative IDs), road marks are on the right edge.
+        // - For left lanes (positive IDs), road marks are on the left edge.
+        // Special case: For the center boundary (between lanes on opposite sides), use the center lane's road marks.
+        std::vector<xodr::LaneRoadMark> road_marks;
+        const Lane* reference_lane = nullptr;
+        double track_s_start = 0.;
+        double track_s_end = 0.;
+
+        // Check if this is a center boundary (boundary between lanes on opposite sides of the road).
+        // A center boundary has lane_to_left with positive XODR ID and lane_to_right with negative XODR ID.
+        bool is_center_boundary = false;
+        if (lane_to_left != nullptr && lane_to_right != nullptr) {
+          const Lane* left_lane = static_cast<const Lane*>(lane_to_left);
+          const Lane* right_lane = static_cast<const Lane*>(lane_to_right);
+          // In OpenDRIVE: positive lane IDs are left of center, negative are right of center.
+          is_center_boundary = (left_lane->get_lane_id() > 0) && (right_lane->get_lane_id() < 0);
+        }
+
+        if (is_center_boundary && lane_to_left != nullptr) {
+          // Use the center lane's road marks for the center boundary.
+          reference_lane = static_cast<const Lane*>(lane_to_left);
+          auto it = lane_xodr_lane_properties_.find(lane_to_left->id());
+          if (it != lane_xodr_lane_properties_.end()) {
+            // Get the center lane's road marks from the lane section.
+            const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
+            road_marks = lane_section->center_lane.road_marks;
+            // Get track frame s-coordinates from the lane section.
+            const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
+            track_s_start = lane_section->s_0;
+            // Calculate track_s_end from next lane section or road length.
+            const int lane_section_idx = it->second.xodr_lane.lane_section_index;
+            const auto& lane_sections = road_header->lanes.lanes_section;
+            if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
+              track_s_end = lane_sections[lane_section_idx + 1].s_0;
+            } else {
+              track_s_end = road_header->length;
+            }
+          }
+        } else if (lane_to_left != nullptr) {
+          // Use the lane to the left as reference.
+          reference_lane = static_cast<const Lane*>(lane_to_left);
+          // Look up the XODR lane properties.
+          auto it = lane_xodr_lane_properties_.find(lane_to_left->id());
+          if (it != lane_xodr_lane_properties_.end()) {
+            road_marks = it->second.xodr_lane.lane->road_marks;
+            // Get track frame s-coordinates from the lane section.
+            const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
+            const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
+            track_s_start = lane_section->s_0;
+            // Calculate track_s_end from next lane section or road length.
+            const int lane_section_idx = it->second.xodr_lane.lane_section_index;
+            const auto& lane_sections = road_header->lanes.lanes_section;
+            if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
+              track_s_end = lane_sections[lane_section_idx + 1].s_0;
+            } else {
+              track_s_end = road_header->length;
+            }
+          }
+        } else if (lane_to_right != nullptr) {
+          // This is the leftmost boundary, use the lane to the right.
+          reference_lane = static_cast<const Lane*>(lane_to_right);
+          auto it = lane_xodr_lane_properties_.find(lane_to_right->id());
+          if (it != lane_xodr_lane_properties_.end()) {
+            road_marks = it->second.xodr_lane.lane->road_marks;
+            // Get track frame s-coordinates from the lane section.
+            const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
+            const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
+            track_s_start = lane_section->s_0;
+            // Calculate track_s_end from next lane section or road length.
+            const int lane_section_idx = it->second.xodr_lane.lane_section_index;
+            const auto& lane_sections = road_header->lanes.lanes_section;
+            if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
+              track_s_end = lane_sections[lane_section_idx + 1].s_0;
+            } else {
+              track_s_end = road_header->length;
+            }
+          }
+        }
+
+        // Skip if no reference lane found.
+        if (reference_lane == nullptr) {
+          maliput::log()->warn("No reference lane found for boundary in segment ", segment->id().string(),
+                               " at boundary index ", boundary_idx);
+          continue;
+        }
+
+        // Create the boundary ID.
+        const std::string boundary_id_str = segment->id().string() + "_boundary_" + std::to_string(boundary_idx);
+        const maliput::api::LaneBoundary::Id boundary_id{boundary_id_str};
+
+        // Create the LaneBoundary with track frame coordinates for conversion.
+        auto boundary = std::make_unique<LaneBoundary>(boundary_id, segment, boundary_idx, lane_to_left, lane_to_right,
+                                                       reference_lane, road_marks, track_s_start, track_s_end);
+
+        maliput::log()->trace("Built LaneBoundary ID: ", boundary_id.string());
+        segment->AddBoundary(std::move(boundary));
+      }
+    }
+  }
+  maliput::log()->trace("LaneBoundaries built.");
+}
+
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator()() {
   maliput::log()->trace("Starting to build malidrive::RoadGeometry.");
 
@@ -583,6 +713,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
     }
   }
   FillSegmentsWithLanes(rg.get());
+  BuildLaneBoundaries(rg.get());
 
   BuildBranchPointsForLanes(rg.get());
   SetDefaultsToBranchPoints();

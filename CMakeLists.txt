@@ -179,6 +179,7 @@ install (FILES resources/ArcLane.xodr
                resources/Town07.xodr
                resources/TShapeRoad.xodr
                resources/TShapeRoad.yaml
+               resources/TwoWayRoadWithDoubleYellowCurve.xodr
          DESTINATION ${OPENDRIVE_SAMPLES_PATH})
 
 install (FILES resources/cloverleaf/cloverleaf.xodr

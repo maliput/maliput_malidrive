@@ -10,6 +10,7 @@ set(TEST_TYPE UNIT)
 ##############################################################################
 
 set(UNIT_BASE_TEST_SOURCES
+  lane_boundary_test.cc
   lane_test.cc
   road_geometry_test.cc
   segment_test.cc

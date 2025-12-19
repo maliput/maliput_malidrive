@@ -795,7 +795,7 @@ TypeElement NodeParser::As() const {
   while (type_element_line_xml) {
     auto type_element_line = NodeParser(type_element_line_xml, parser_configuration_).As<TypeElementLine>();
     type_element_lines.push_back(type_element_line);
-    type_element_line_xml = type_element_line_xml->NextSiblingElement(LaneRoadMark::kLaneRoadMarkTag);
+    type_element_line_xml = type_element_line_xml->NextSiblingElement(TypeElementLine::kTypeLineTag);
   }
 
   return {name.value(), width.value(), type_element_lines};

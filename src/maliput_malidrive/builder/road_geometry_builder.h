@@ -404,6 +404,15 @@ class RoadGeometryBuilder {
   // @throws maliput::common::assertion_error When `rg` is nullptr.
   void FillSegmentsWithLanes(RoadGeometry* rg);
 
+  // Builds all the LaneBoundaries for each Segment in the RoadGeometry.
+  // For each segment, N+1 boundaries are created where N is the number of visible lanes.
+  // Each boundary is assigned the road marking information from the adjacent lane.
+  //
+  // `rg` Is a pointer to the RoadGeometry.
+  //
+  // @throws maliput::common::assertion_error When `rg` is nullptr.
+  void BuildLaneBoundaries(RoadGeometry* rg);
+
   // Executes the build process itself.
   //
   // Visits nodes in the xodr map via DBManager to build Junctions, Segments and
