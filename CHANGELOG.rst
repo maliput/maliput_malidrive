@@ -2,6 +2,15 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.15.0 (2025-12-19)
+-------------------
+* Implement LaneBoundary. (`#379 <https://github.com/maliput/maliput_malidrive/issues/379>`_)
+* roadMarker xodr parser (`#376 <https://github.com/maliput/maliput_malidrive/issues/376>`_)
+* Implement LaneType API. (`#377 <https://github.com/maliput/maliput_malidrive/issues/377>`_)
+* Update macOS runner version to macos-14 (`#378 <https://github.com/maliput/maliput_malidrive/issues/378>`_)
+* Remove pull requests from triage process. (`#369 <https://github.com/maliput/maliput_malidrive/issues/369>`_)
+* Contributors: Franco Cipollone, Juan Carosella, Santiago Lopez
+
 0.14.0 (2025-12-10)
 -------------------
 * Use angular_tolerance for C1 continuity checks. (`#363 <https://github.com/maliput/maliput_malidrive/issues/363>`_)
