@@ -34,6 +34,8 @@
 #include <string>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/object/outlines.h"
+#include "maliput_malidrive/xodr/object/repeat.h"
 
 namespace malidrive {
 namespace xodr {
@@ -42,7 +44,7 @@ namespace object {
 /// Holds the values of a XODR Object.
 struct Object {
   /// Convenient constants that hold the tag names in the XODR object description.
-  static constexpr const char* kObject = "object";
+  static constexpr const char* kObjectTag = "object";
   static constexpr const char* kDynamic = "dynamic";
   static constexpr const char* kHdg = "hdg";
   static constexpr const char* kHeight = "height";
@@ -168,6 +170,11 @@ struct Object {
   std::optional<double> width{std::nullopt};
   /// z-offset of object’s origin relative to the elevation of the road reference line
   double z_offset{};
+
+  /// Repeated elements
+  std::optional<Repeat> repeats{std::nullopt};
+  /// Outlines elements
+  std::optional<Outlines> outlines{std::nullopt};
 };
 
 }  // namespace object

@@ -20,6 +20,7 @@ add_library(xodr
   parser.cc
   offset.cc
   object/object.cc
+  object/outlines.cc
   object/repeat.cc
   road_header.cc
   road_link.cc

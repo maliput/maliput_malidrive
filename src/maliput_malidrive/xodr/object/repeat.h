@@ -38,6 +38,7 @@ namespace object {
 /// Holds the values of a XODR Object Repeat element.
 struct Repeat {
   /// Convenient constants that hold the tag names in the XODR object repeat description.
+  static constexpr const char* kRepeatTag = "repeat";
   static constexpr const char* kDetachFromReferenceLine = "detachFromReferenceLine";
   static constexpr const char* kDistance = "distance";
   static constexpr const char* kHeightEnd = "heightEnd";
