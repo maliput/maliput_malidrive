@@ -19,6 +19,9 @@ add_library(xodr
   lateral_profile.cc
   parser.cc
   offset.cc
+  object/object.cc
+  object/outlines.cc
+  object/repeat.cc
   road_header.cc
   road_link.cc
   road_type.cc
