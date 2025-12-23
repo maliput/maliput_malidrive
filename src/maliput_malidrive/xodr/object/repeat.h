@@ -59,35 +59,35 @@ struct Repeat {
   /// If true, the start and end positions are connected as a straight line which does not follow the road reference
   /// line.
   std::optional<bool> detach_from_reference_line{std::nullopt};
-  /// Distance between two instances of the object
+  /// Distance between two instances of the object.
   double distance{};
-  /// Height of the object at @s + @length
+  /// Height of the object at @s + @length.
   double height_end{};
-  /// Height of the object at @s
+  /// Height of the object at @s.
   double height_start{};
-  /// Length of the object at @s + @length
+  /// Length of the object at @s + @length.
   std::optional<double> length_end{std::nullopt};
-  /// Length of the object at @s
+  /// Length of the object at @s.
   std::optional<double> length_start{std::nullopt};
   /// Length of the repeat area, along the road reference line in s-direction.
   double length{};
-  /// Radius of the object at @s + @length
+  /// Radius of the object at @s + @length.
   std::optional<double> radius_end{std::nullopt};
-  /// Radius of the object at @s
+  /// Radius of the object at @s.
   std::optional<double> radius_start{std::nullopt};
-  /// s-coordinate of start position, overrides the corresponding argument in the original <object> record
+  /// s-coordinate of start position, overrides the corresponding argument in the original <object> record.
   double s{};
-  /// Lateral offset of object’s reference point at @s + @length
+  /// Lateral offset of object’s reference point at @s + @length.
   double t_end{};
-  /// Lateral offset of objects reference point at @s
+  /// Lateral offset of objects reference point at @s.
   double t_start{};
-  /// Width of the object at @s + @length
+  /// Width of the object at @s + @length.
   std::optional<double> width_end{std::nullopt};
-  /// Width of the object at @s
+  /// Width of the object at @s.
   std::optional<double> width_start{std::nullopt};
-  /// z-offset of the object at @s + @length, relative to the elevation of the road reference line
+  /// z-offset of the object at @s + @length, relative to the elevation of the road reference line.
   double z_offset_end{};
-  /// z-offset of the object at @s, relative to the elevation of the road reference line
+  /// z-offset of the object at @s, relative to the elevation of the road reference line.
   double z_offset_start{};
 
   bool operator==(const Repeat& other) const;
