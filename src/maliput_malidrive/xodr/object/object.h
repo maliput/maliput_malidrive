@@ -131,49 +131,49 @@ struct Object {
   /// Indicates whether the object is dynamic or static, default value is “no” (static). Dynamic object cannot change
   /// its position.
   std::optional<bool> dynamic{std::nullopt};
-  /// Heading angle of the object relative to road direction
+  /// Heading angle of the object relative to road direction.
   std::optional<double> hdg{std::nullopt};
-  /// Height of the object’s bounding box, defined in the local coordinate system u/v along the z-axis
+  /// Height of the object’s bounding box, defined in the local coordinate system u/v along the z-axis.
   std::optional<double> height{std::nullopt};
-  /// Unique ID within database
+  /// Unique ID within database.
   std::string id{};
   /// Length of the object’s bounding box, alternative to @radius, defined in the local coordinate system u/v along the
-  /// u-axis
+  /// u-axis.
   std::optional<double> length{std::nullopt};
   /// Name of the object. May be chosen freely.
   std::optional<std::string> name{std::nullopt};
   /// "+" = valid in positive s-direction, "-" = valid in negative s-direction, "none" = valid in both directions (does
-  /// not affect the heading)
+  /// not affect the heading).
   std::optional<Orientation> orientation{std::nullopt};
   /// Alternative to @pitch and @roll. If true, the object is vertically perpendicular to the road surface at all points
   /// and @pitch and @roll are ignored.
   std::optional<bool> perp_to_road{std::nullopt};
-  /// Pitch angle relative to the x/y-plane
+  /// Pitch angle relative to the x/y-plane.
   std::optional<double> pitch{std::nullopt};
   /// radius of the circular object’s bounding box, alternative to @length and @width. @radius is defined in the local
-  /// coordinate system u/v
+  /// coordinate system u/v.
   std::optional<double> radius{std::nullopt};
-  /// Roll angle relative to the x/y-plane
+  /// Roll angle relative to the x/y-plane.
   std::optional<double> roll{std::nullopt};
-  /// s-coordinate of object’s origin
+  /// s-coordinate of object’s origin.
   double s{};
-  /// Variant of a type
+  /// Variant of a type.
   std::optional<std::string> subtype{std::nullopt};
-  /// t-coordinate of object’s origin
+  /// t-coordinate of object’s origin.
   double t{};
   /// Type of object.
   std::optional<ObjectType> type{std::nullopt};
-  /// Validity of object along s-axis (0.0 for point object)
+  /// Validity of object along s-axis (0.0 for point object).
   std::optional<double> valid_length{std::nullopt};
   /// Width of the object’s bounding box, alternative to @radius,  defined in the local coordinate system u/v along the
-  /// v-axis
+  /// v-axis.
   std::optional<double> width{std::nullopt};
-  /// z-offset of object’s origin relative to the elevation of the road reference line
+  /// z-offset of object’s origin relative to the elevation of the road reference line.
   double z_offset{};
 
-  /// Repeated elements
+  /// Repeated elements.
   std::optional<Repeat> repeats{std::nullopt};
-  /// Outlines elements
+  /// Outlines elements.
   std::optional<Outlines> outlines{std::nullopt};
 };
 
