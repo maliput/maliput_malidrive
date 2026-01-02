@@ -49,15 +49,15 @@ struct CornerLocal {
   static constexpr const char* kV = "v";
   static constexpr const char* kZ = "z";
 
-  /// Height of the object at this corner, along the z-axis
+  /// Height of the object at this corner, along the z-axis.
   double height{};
   /// ID of the outline point. Shall be unique within one outline.
   std::optional<int> id{std::nullopt};
-  /// Local u-coordinate of the corner
+  /// Local u-coordinate of the corner.
   double u{};
-  /// Local v-coordinate of the corner
+  /// Local v-coordinate of the corner.
   double v{};
-  /// Local z-coordinate of the corner
+  /// Local z-coordinate of the corner.
   double z{};
 
   bool operator==(const CornerLocal& other) const;
@@ -73,15 +73,15 @@ struct CornerRoad {
   static constexpr const char* kS = "s";
   static constexpr const char* kT = "t";
 
-  /// dz of the corner relative to road reference line
+  /// dz of the corner relative to road reference line.
   double dz{};
-  /// Height of the object at this corner, along the z-axis
+  /// Height of the object at this corner, along the z-axis.
   double height{};
-  /// ID of the outline point. Must be unique within one outline
+  /// ID of the outline point. Must be unique within one outline.
   std::optional<int> id{std::nullopt};
-  /// s-coordinate of the corner
+  /// s-coordinate of the corner.
   double s{};
-  /// t-coordinate of the corner
+  /// t-coordinate of the corner.
   double t{};
 
   bool operator==(const CornerRoad& other) const;
@@ -113,7 +113,7 @@ struct Outline {
   /// @returns A string that matches with `fill_type`.
   static std::string fill_type_to_str(FillType fill_type);
 
-  /// Matches a FillType with a string
+  /// Matches a FillType with a string.
   /// @param fill_type Is a string.
   /// @returns A FillType that matches with `fill_type`.
   /// @throw maliput::common::assertion_error When `fill_type` doesn't match with a FillType.
@@ -122,15 +122,15 @@ struct Outline {
   bool operator==(const Outline& other) const;
   bool operator!=(const Outline& other) const;
 
-  /// If true, the outline describes an area, not a linear feature
+  /// If true, the outline describes an area, not a linear feature.
   std::optional<bool> closed{std::nullopt};
-  /// Type used to fill the area inside the outline
+  /// Type used to fill the area inside the outline.
   std::optional<FillType> fill_type{std::nullopt};
   /// ID of the outline. Must be unique within one object.
   std::optional<int> id{std::nullopt};
-  /// Describes the lane type of the outline
+  /// Describes the lane type of the outline.
   std::optional<Lane::Type> lane_type{std::nullopt};
-  /// Defines if outline is an outer outline of the object
+  /// Defines if outline is an outer outline of the object.
   std::optional<bool> outer{std::nullopt};
 
   /// Used to describe non-linear forms of objects. They are mutually exclusive with <cornerLocal> elements.

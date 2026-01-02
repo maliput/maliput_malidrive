@@ -34,8 +34,13 @@
 #include <string>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/object/markings.h"
+#include "maliput_malidrive/xodr/object/material.h"
 #include "maliput_malidrive/xodr/object/outlines.h"
+#include "maliput_malidrive/xodr/object/parking_space.h"
 #include "maliput_malidrive/xodr/object/repeat.h"
+#include "maliput_malidrive/xodr/object/skeleton.h"
+#include "maliput_malidrive/xodr/object/validity.h"
 
 namespace malidrive {
 namespace xodr {
@@ -175,6 +180,16 @@ struct Object {
   std::optional<Repeat> repeats{std::nullopt};
   /// Outlines elements.
   std::optional<Outlines> outlines{std::nullopt};
+  /// Skeleton element.
+  std::optional<Skeleton> skeleton{std::nullopt};
+  /// Material element.
+  std::optional<Material> material{std::nullopt};
+  /// Validity element.
+  std::optional<Validity> validity{std::nullopt};
+  /// ParkingSpace element.
+  std::optional<ParkingSpace> parking_space{std::nullopt};
+  /// Markings element.
+  std::optional<Markings> markings{std::nullopt};
 };
 
 }  // namespace object
