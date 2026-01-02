@@ -27,7 +27,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/markings.h"
+#include "maliput_malidrive/xodr/object/borders.h"
 
 namespace malidrive {
 namespace xodr {
@@ -35,47 +35,39 @@ namespace object {
 
 namespace {
 
-const std::map<Marking::Side, std::string> side_to_str_map{
-    {Marking::Side::kLeft, "left"},
-    {Marking::Side::kRight, "right"},
-    {Marking::Side::kFront, "front"},
-    {Marking::Side::kRear, "rear"},
+const std::map<Border::Type, std::string> border_type_to_str_map{
+    {Border::Type::kConcrete, "concrete"},
+    {Border::Type::kCurb, "curb"},
+    {Border::Type::kPaint, "paint"},
 };
 
-const std::map<std::string, Marking::Side> str_to_side_map{
-    {"left", Marking::Side::kLeft},
-    {"right", Marking::Side::kRight},
-    {"front", Marking::Side::kFront},
-    {"rear", Marking::Side::kRear},
+const std::map<std::string, Border::Type> str_to_border_type_map{
+    {"concrete", Border::Type::kConcrete},
+    {"curb", Border::Type::kCurb},
+    {"paint", Border::Type::kPaint},
 };
 
 }  // namespace
 
-std::string Marking::side_to_str(Marking::Side side) { return side_to_str_map.at(side); }
+std::string Border::border_type_to_str(Border::Type border_type) { return border_type_to_str_map.at(border_type); }
 
-Marking::Side Marking::str_to_side(const std::string& side) {
-  if (str_to_side_map.find(side) == str_to_side_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(side + " marking side is not available.");
+Border::Type Border::str_to_border_type(const std::string& border_type) {
+  if (str_to_border_type_map.find(border_type) == str_to_border_type_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(border_type + " border type is not available.");
   }
-  return str_to_side_map.at(side);
+  return str_to_border_type_map.at(border_type);
 }
 
-bool Marking::operator==(const Marking& other) const {
-  return color == other.color && line_length == other.line_length && side == other.side &&
-         space_length == other.space_length && start_offset == other.start_offset && stop_offset == other.stop_offset &&
-         weight == other.weight && width == other.width && z_offset == other.z_offset &&
-         corner_reference == other.corner_reference;
+bool Border::operator==(const Border& other) const {
+  return outline_id == other.outline_id && type == other.type && use_complete_outline == other.use_complete_outline &&
+         width == other.width;
 }
 
-bool Marking::operator!=(const Marking& other) const { return !(*this == other); }
+bool Border::operator!=(const Border& other) const { return !(*this == other); }
 
-bool Markings::operator==(const Markings& other) const { return markings == other.markings; }
+bool Borders::operator==(const Borders& other) const { return borders == other.borders; }
 
-bool Markings::operator!=(const Markings& other) const { return !(*this == other); }
-
-bool CornerReference::operator==(const CornerReference& other) const { return id == other.id; }
-
-bool CornerReference::operator!=(const CornerReference& other) const { return !(*this == other); }
+bool Borders::operator!=(const Borders& other) const { return !(*this == other); }
 
 }  // namespace object
 }  // namespace xodr

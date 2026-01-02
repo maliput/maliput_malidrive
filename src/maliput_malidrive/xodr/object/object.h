@@ -34,12 +34,18 @@
 #include <string>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/object/borders.h"
+#include "maliput_malidrive/xodr/object/bridge.h"
+#include "maliput_malidrive/xodr/object/common.h"
 #include "maliput_malidrive/xodr/object/markings.h"
 #include "maliput_malidrive/xodr/object/material.h"
+#include "maliput_malidrive/xodr/object/object_reference.h"
 #include "maliput_malidrive/xodr/object/outlines.h"
 #include "maliput_malidrive/xodr/object/parking_space.h"
 #include "maliput_malidrive/xodr/object/repeat.h"
 #include "maliput_malidrive/xodr/object/skeleton.h"
+#include "maliput_malidrive/xodr/object/surface.h"
+#include "maliput_malidrive/xodr/object/tunnel.h"
 #include "maliput_malidrive/xodr/object/validity.h"
 
 namespace malidrive {
@@ -68,12 +74,6 @@ struct Object {
   static constexpr const char* kValidLength = "validLength";
   static constexpr const char* kWidth = "width";
   static constexpr const char* kZOffset = "zOffset";
-
-  enum class Orientation {
-    kPositive,
-    kNegative,
-    kNone,
-  };
 
   enum class ObjectType {
     kBarrier,
@@ -104,17 +104,6 @@ struct Object {
     kVegetation,
     kWind,
   };
-
-  /// Matches string with a Orientation.
-  /// @param orientation Is a Orientation.
-  /// @returns A string that matches with `orientation`.
-  static std::string orientation_to_str(Orientation orientation);
-
-  /// Matches Orientation with a string.
-  /// @param orientation Is a string.
-  /// @returns A Orientation that matches with `orientation`.
-  /// @throw maliput::common::assertion_error When `orientation` doesn't match with a Orientation.
-  static Orientation str_to_orientation(const std::string& orientation);
 
   /// Matches string with a ObjectType.
   /// @param object_type Is a ObjectType.
@@ -190,6 +179,16 @@ struct Object {
   std::optional<ParkingSpace> parking_space{std::nullopt};
   /// Markings element.
   std::optional<Markings> markings{std::nullopt};
+  /// Borders element.
+  std::optional<Borders> borders{std::nullopt};
+  /// ObjectReference element.
+  std::optional<ObjectReference> object_reference{std::nullopt};
+  /// Tunnel element.
+  std::optional<Tunnel> tunnel{std::nullopt};
+  /// Bridge element.
+  std::optional<Bridge> bridge{std::nullopt};
+  /// Surface element.
+  std::optional<Surface> surface{std::nullopt};
 };
 
 }  // namespace object
