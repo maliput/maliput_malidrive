@@ -35,6 +35,7 @@
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/object/borders.h"
+#include "maliput_malidrive/xodr/object/bridge.h"
 #include "maliput_malidrive/xodr/object/common.h"
 #include "maliput_malidrive/xodr/object/markings.h"
 #include "maliput_malidrive/xodr/object/material.h"
@@ -183,6 +184,8 @@ struct Object {
   std::optional<ObjectReference> object_reference{std::nullopt};
   /// Tunnel element.
   std::optional<Tunnel> tunnel{std::nullopt};
+  /// Bridge element.
+  std::optional<Bridge> bridge{std::nullopt};
 };
 
 }  // namespace object
