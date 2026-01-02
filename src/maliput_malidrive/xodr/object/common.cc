@@ -27,7 +27,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/markings.h"
+#include "maliput_malidrive/xodr/object/common.h"
 
 namespace malidrive {
 namespace xodr {
@@ -35,47 +35,28 @@ namespace object {
 
 namespace {
 
-const std::map<Marking::Side, std::string> side_to_str_map{
-    {Marking::Side::kLeft, "left"},
-    {Marking::Side::kRight, "right"},
-    {Marking::Side::kFront, "front"},
-    {Marking::Side::kRear, "rear"},
+const std::map<Orientation, std::string> orientation_to_str_map{
+    {Orientation::kPositive, "+"},
+    {Orientation::kNegative, "-"},
+    {Orientation::kNone, "none"},
 };
 
-const std::map<std::string, Marking::Side> str_to_side_map{
-    {"left", Marking::Side::kLeft},
-    {"right", Marking::Side::kRight},
-    {"front", Marking::Side::kFront},
-    {"rear", Marking::Side::kRear},
+const std::map<std::string, Orientation> str_to_orientation_map{
+    {"+", Orientation::kPositive},
+    {"-", Orientation::kNegative},
+    {"none", Orientation::kNone},
 };
 
 }  // namespace
 
-std::string Marking::side_to_str(Marking::Side side) { return side_to_str_map.at(side); }
+std::string orientation_to_str(Orientation orientation) { return orientation_to_str_map.at(orientation); }
 
-Marking::Side Marking::str_to_side(const std::string& side) {
-  if (str_to_side_map.find(side) == str_to_side_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(side + " marking side is not available.");
+Orientation str_to_orientation(const std::string& orientation) {
+  if (str_to_orientation_map.find(orientation) == str_to_orientation_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(orientation + " Object orientation is not available.");
   }
-  return str_to_side_map.at(side);
+  return str_to_orientation_map.at(orientation);
 }
-
-bool Marking::operator==(const Marking& other) const {
-  return color == other.color && line_length == other.line_length && side == other.side &&
-         space_length == other.space_length && start_offset == other.start_offset && stop_offset == other.stop_offset &&
-         weight == other.weight && width == other.width && z_offset == other.z_offset &&
-         corner_reference == other.corner_reference;
-}
-
-bool Marking::operator!=(const Marking& other) const { return !(*this == other); }
-
-bool Markings::operator==(const Markings& other) const { return markings == other.markings; }
-
-bool Markings::operator!=(const Markings& other) const { return !(*this == other); }
-
-bool CornerReference::operator==(const CornerReference& other) const { return id == other.id; }
-
-bool CornerReference::operator!=(const CornerReference& other) const { return !(*this == other); }
 
 }  // namespace object
 }  // namespace xodr

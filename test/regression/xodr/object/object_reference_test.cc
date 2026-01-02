@@ -27,56 +27,52 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/markings.h"
+#include "maliput_malidrive/xodr/object/object_reference.h"
+
+#include <gtest/gtest.h>
+#include <maliput/common/error.h>
 
 namespace malidrive {
 namespace xodr {
 namespace object {
-
+namespace test {
 namespace {
 
-const std::map<Marking::Side, std::string> side_to_str_map{
-    {Marking::Side::kLeft, "left"},
-    {Marking::Side::kRight, "right"},
-    {Marking::Side::kFront, "front"},
-    {Marking::Side::kRear, "rear"},
-};
+GTEST_TEST(ObjectReference, EqualityOperator) {
+  const ObjectReference kObjectReference{
+      .id = "test",
+      .orientation = Orientation::kNegative,
+      .s = 1.0,
+      .t = 2.0,
+      .valid_length = 3.0,
+      .z_offset = 4.0,
+  };
 
-const std::map<std::string, Marking::Side> str_to_side_map{
-    {"left", Marking::Side::kLeft},
-    {"right", Marking::Side::kRight},
-    {"front", Marking::Side::kFront},
-    {"rear", Marking::Side::kRear},
-};
+  ObjectReference object_reference = kObjectReference;
+
+  EXPECT_EQ(kObjectReference, object_reference);
+  // Test inequality
+  object_reference.id = "test2";
+  EXPECT_NE(kObjectReference, object_reference);
+  object_reference.id = "test";
+  object_reference.orientation = Orientation::kPositive;
+  EXPECT_NE(kObjectReference, object_reference);
+  object_reference.orientation = Orientation::kNegative;
+  object_reference.s = 2.0;
+  EXPECT_NE(kObjectReference, object_reference);
+  object_reference.s = 1.0;
+  object_reference.t = 3.0;
+  EXPECT_NE(kObjectReference, object_reference);
+  object_reference.t = 2.0;
+  object_reference.valid_length = 4.0;
+  EXPECT_NE(kObjectReference, object_reference);
+  object_reference.valid_length = 3.0;
+  object_reference.z_offset = 5.0;
+  EXPECT_NE(kObjectReference, object_reference);
+}
 
 }  // namespace
-
-std::string Marking::side_to_str(Marking::Side side) { return side_to_str_map.at(side); }
-
-Marking::Side Marking::str_to_side(const std::string& side) {
-  if (str_to_side_map.find(side) == str_to_side_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(side + " marking side is not available.");
-  }
-  return str_to_side_map.at(side);
-}
-
-bool Marking::operator==(const Marking& other) const {
-  return color == other.color && line_length == other.line_length && side == other.side &&
-         space_length == other.space_length && start_offset == other.start_offset && stop_offset == other.stop_offset &&
-         weight == other.weight && width == other.width && z_offset == other.z_offset &&
-         corner_reference == other.corner_reference;
-}
-
-bool Marking::operator!=(const Marking& other) const { return !(*this == other); }
-
-bool Markings::operator==(const Markings& other) const { return markings == other.markings; }
-
-bool Markings::operator!=(const Markings& other) const { return !(*this == other); }
-
-bool CornerReference::operator==(const CornerReference& other) const { return id == other.id; }
-
-bool CornerReference::operator!=(const CornerReference& other) const { return !(*this == other); }
-
+}  // namespace test
 }  // namespace object
 }  // namespace xodr
 }  // namespace malidrive
