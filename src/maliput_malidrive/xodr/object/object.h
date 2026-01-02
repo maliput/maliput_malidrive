@@ -44,6 +44,7 @@
 #include "maliput_malidrive/xodr/object/parking_space.h"
 #include "maliput_malidrive/xodr/object/repeat.h"
 #include "maliput_malidrive/xodr/object/skeleton.h"
+#include "maliput_malidrive/xodr/object/surface.h"
 #include "maliput_malidrive/xodr/object/tunnel.h"
 #include "maliput_malidrive/xodr/object/validity.h"
 
@@ -186,6 +187,8 @@ struct Object {
   std::optional<Tunnel> tunnel{std::nullopt};
   /// Bridge element.
   std::optional<Bridge> bridge{std::nullopt};
+  /// Surface element.
+  std::optional<Surface> surface{std::nullopt};
 };
 
 }  // namespace object

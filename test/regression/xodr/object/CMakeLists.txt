@@ -11,6 +11,7 @@ set(UNIT_TEST_XODR_OBJECT_SOURCES
   object_reference_test.cc
   tunnel_test.cc
   bridge_test.cc
+  surface_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_TEST_XODR_OBJECT_SOURCES})
