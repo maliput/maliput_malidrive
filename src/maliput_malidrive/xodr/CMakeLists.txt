@@ -31,6 +31,7 @@ add_library(xodr
   object/common.cc
   object/tunnel.cc
   object/object_reference.cc
+  object/bridge.cc
   road_header.cc
   road_link.cc
   road_type.cc
