@@ -29,6 +29,7 @@ add_library(xodr
   object/repeat.cc
   object/borders.cc
   object/common.cc
+  object/tunnel.cc
   object/object_reference.cc
   road_header.cc
   road_link.cc

@@ -43,6 +43,7 @@
 #include "maliput_malidrive/xodr/object/parking_space.h"
 #include "maliput_malidrive/xodr/object/repeat.h"
 #include "maliput_malidrive/xodr/object/skeleton.h"
+#include "maliput_malidrive/xodr/object/tunnel.h"
 #include "maliput_malidrive/xodr/object/validity.h"
 
 namespace malidrive {
@@ -180,6 +181,8 @@ struct Object {
   std::optional<Borders> borders{std::nullopt};
   /// ObjectReference element.
   std::optional<ObjectReference> object_reference{std::nullopt};
+  /// Tunnel element.
+  std::optional<Tunnel> tunnel{std::nullopt};
 };
 
 }  // namespace object
