@@ -27,6 +27,9 @@ add_library(xodr
   object/parking_space.cc
   object/markings.cc
   object/repeat.cc
+  object/borders.cc
+  object/common.cc
+  object/object_reference.cc
   road_header.cc
   road_link.cc
   road_type.cc

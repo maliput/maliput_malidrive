@@ -35,18 +35,6 @@ namespace object {
 
 namespace {
 
-const std::map<Object::Orientation, std::string> orientation_to_str_map{
-    {Object::Orientation::kPositive, "+"},
-    {Object::Orientation::kNegative, "-"},
-    {Object::Orientation::kNone, "none"},
-};
-
-const std::map<std::string, Object::Orientation> str_to_orientation_map{
-    {"+", Object::Orientation::kPositive},
-    {"-", Object::Orientation::kNegative},
-    {"none", Object::Orientation::kNone},
-};
-
 const std::map<Object::ObjectType, std::string> object_type_to_str_map{
     {Object::ObjectType::kBarrier, "barrier"},
     {Object::ObjectType::kBike, "bike"},
@@ -109,18 +97,11 @@ const std::map<std::string, Object::ObjectType> str_to_object_type_map{
 
 }  // namespace
 
-std::string orientation_to_str(Object::Orientation orientation) { return orientation_to_str_map.at(orientation); }
-
-Object::Orientation str_to_orientation(const std::string& orientation) {
-  if (str_to_orientation_map.find(orientation) == str_to_orientation_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(orientation + " Object orientation is not available.");
-  }
-  return str_to_orientation_map.at(orientation);
+std::string Object::object_type_to_str(Object::ObjectType object_type) {
+  return object_type_to_str_map.at(object_type);
 }
 
-std::string object_type_to_str(Object::ObjectType object_type) { return object_type_to_str_map.at(object_type); }
-
-Object::ObjectType str_to_object_type(const std::string& object_type) {
+Object::ObjectType Object::str_to_object_type(const std::string& object_type) {
   if (str_to_object_type_map.find(object_type) == str_to_object_type_map.end()) {
     MALIDRIVE_THROW_MESSAGE(object_type + " Object type is not available.");
   }
