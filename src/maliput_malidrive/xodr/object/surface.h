@@ -48,7 +48,7 @@ struct CRG {
 
   /// Name of the file containing the CRG data.
   std::string file{};
-  /// Determines if the object CRG hides the road surface CRG.
+  /// Determines if the object CRG (Curved Regular Grid) hides the road surface CRG.
   bool hide_road_surface_crg{};
   /// z-scale factor for the surface description.
   double z_scale{};

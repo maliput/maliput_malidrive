@@ -62,7 +62,7 @@ struct Bridge {
   double length;
   /// Name of the tunnel. May be chosen freely.
   std::optional<std::string> name{std::nullopt};
-  /// s-coordinate.
+  /// Starting coordinate.
   double s;
   /// Type of tunnel.
   Type type;
