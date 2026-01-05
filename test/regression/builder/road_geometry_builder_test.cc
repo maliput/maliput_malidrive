@@ -1706,6 +1706,116 @@ TEST_F(LaneBoundaryIntegrationTest, CoordinateConversion) {
   EXPECT_NEAR(markings[1].s_end, 100., kLinearTolerance);
 }
 
+// Integration test for LaneBoundary API using MultipleLanesRoadDifferentMarkings.xodr.
+// This XODR file represents a multiple lanes road with different lane marking's type and color on each lane boundary.
+//
+// Road Layout:
+// - Main road (Road 0): straight, 100m long.
+//   - Lane 3: None WHITE.
+//   - Lane 2: Broken ORANGE.
+//   - Lane 1: Solid BLUE.
+//   - Lane 0: Solid-Solid YELLOW (center lane).
+//   - Lane -1: Solid-Broken RED.
+//   - Lane -2: Curb VIOLET.
+//   - Lane -3: Grass GREEN.
+class MultipleLanesRoadDifferentMarkingsTest : public ::testing::Test {
+ protected:
+  static constexpr double kLinearTolerance{5e-2};
+  static constexpr double kScaleLength{constants::kScaleLength};
+
+  void SetUp() override {
+    road_geometry_configuration_ = GetRoadGeometryConfigurationFor("MultipleLanesRoadDifferentMarkings.xodr").value();
+    const std::string kMalidriveResourceFolder = DEF_MALIDRIVE_RESOURCES;
+    const xodr::ParserConfiguration parser_config{kLinearTolerance};
+    manager_ = xodr::LoadDataBaseFromFile(kMalidriveResourceFolder + road_geometry_configuration_.opendrive_file,
+                                          parser_config);
+    ASSERT_NE(manager_, nullptr);
+
+    rg_ = builder::RoadGeometryBuilder(std::move(manager_), road_geometry_configuration_)();
+    ASSERT_NE(rg_, nullptr);
+  }
+
+  RoadGeometryConfiguration road_geometry_configuration_;
+  std::unique_ptr<xodr::DBManager> manager_;
+  std::unique_ptr<const maliput::api::RoadGeometry> rg_;
+};
+
+TEST_F(MultipleLanesRoadDifferentMarkingsTest, LaneMarkingTypesFromSegment) {
+  const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("0_0"));
+  ASSERT_NE(segment, nullptr);
+
+  // Right-most edge boundary, lane -3.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(0);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kGrass);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kGreen);
+  }
+
+  // Lane -2 boundary.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kCurb);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kViolet);
+  }
+
+  // Lane -1 boundary.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolidBroken);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kRed);
+  }
+
+  // Lane 0 boundary.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(3);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolidSolid);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kYellow);
+  }
+
+  // Lane 1 boundary.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(4);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kBlue);
+  }
+
+  // Lane 2 boundary.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(5);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kBroken);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kOrange);
+  }
+
+  // Left-most edge boundary (lane 3).
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(6);
+    ASSERT_NE(boundary, nullptr);
+    const auto markings = boundary->GetMarkings();
+    ASSERT_GE(markings.size(), 1u);
+    EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kNone);
+    EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite);
+  }
+
+}
+
 // Integration test for LaneBoundary API using TwoWayRoadWithDoubleYellowCurve.xodr.
 // This XODR file represents a two-way road with a 180° curve and realistic marking transitions:
 //
