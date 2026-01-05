@@ -40,7 +40,8 @@ struct Validity {
   static constexpr const char* kFromLane = "fromLane";
   static constexpr const char* kToLane = "toLane";
 
-  /// Minimum ID of the lanes for which the object is valid.
+  /// Minimum ID of the lanes for which the object is valid. The value of the @fromLane attribute shall be lower than or
+  /// equal to the value of the @toLane attribute.
   int from_lane{};
   /// Maximum ID of the lanes for which the object is valid.
   int to_lane{};
