@@ -27,55 +27,43 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/markings.h"
+#include "maliput_malidrive/xodr/object/bridge.h"
 
 namespace malidrive {
 namespace xodr {
 namespace object {
 
 namespace {
-
-const std::map<Marking::Side, std::string> side_to_str_map{
-    {Marking::Side::kLeft, "left"},
-    {Marking::Side::kRight, "right"},
-    {Marking::Side::kFront, "front"},
-    {Marking::Side::kRear, "rear"},
+const std::map<Bridge::Type, std::string> bridge_type_to_str_map = {
+    {Bridge::Type::kBrick, "brick"},
+    {Bridge::Type::kConcrete, "concrete"},
+    {Bridge::Type::kSteel, "steel"},
+    {Bridge::Type::kWood, "wood"},
 };
 
-const std::map<std::string, Marking::Side> str_to_side_map{
-    {"left", Marking::Side::kLeft},
-    {"right", Marking::Side::kRight},
-    {"front", Marking::Side::kFront},
-    {"rear", Marking::Side::kRear},
+const std::map<std::string, Bridge::Type> str_to_bridge_type_map = {
+    {"brick", Bridge::Type::kBrick},
+    {"concrete", Bridge::Type::kConcrete},
+    {"steel", Bridge::Type::kSteel},
+    {"wood", Bridge::Type::kWood},
 };
-
 }  // namespace
 
-std::string Marking::side_to_str(Marking::Side side) { return side_to_str_map.at(side); }
+std::string Bridge::type_to_str(Bridge::Type type) { return bridge_type_to_str_map.at(type); }
 
-Marking::Side Marking::str_to_side(const std::string& side) {
-  if (str_to_side_map.find(side) == str_to_side_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(side + " marking side is not available.");
+Bridge::Type Bridge::str_to_type(const std::string& type) {
+  if (str_to_bridge_type_map.find(type) == str_to_bridge_type_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(type + " Tunnel type is not available.");
   }
-  return str_to_side_map.at(side);
+  return str_to_bridge_type_map.at(type);
 }
 
-bool Marking::operator==(const Marking& other) const {
-  return color == other.color && line_length == other.line_length && side == other.side &&
-         space_length == other.space_length && start_offset == other.start_offset && stop_offset == other.stop_offset &&
-         weight == other.weight && width == other.width && z_offset == other.z_offset &&
-         corner_reference == other.corner_reference;
+bool Bridge::operator==(const Bridge& other) const {
+  return id == other.id && length == other.length && name == other.name && s == other.s && type == other.type &&
+         validity == other.validity;
 }
 
-bool Marking::operator!=(const Marking& other) const { return !(*this == other); }
-
-bool Markings::operator==(const Markings& other) const { return markings == other.markings; }
-
-bool Markings::operator!=(const Markings& other) const { return !(*this == other); }
-
-bool CornerReference::operator==(const CornerReference& other) const { return id == other.id; }
-
-bool CornerReference::operator!=(const CornerReference& other) const { return !(*this == other); }
+bool Bridge::operator!=(const Bridge& other) const { return !(*this == other); }
 
 }  // namespace object
 }  // namespace xodr

@@ -27,55 +27,47 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/markings.h"
+#pragma once
+
+#include <optional>
+#include <string>
+
+#include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
 namespace xodr {
 namespace object {
 
-namespace {
+/// Holds the values of a XODR Object surface CRG element.
+struct CRG {
+  /// Convenient constants that hold the tag names in the XODR element attributes description.
+  static constexpr const char* kCRGTag = "crg";
+  static constexpr const char* kFile = "file";
+  static constexpr const char* kHideRoadSurfaceCRG = "hideRoadSurfaceCRG";
+  static constexpr const char* kZScale = "zScale";
 
-const std::map<Marking::Side, std::string> side_to_str_map{
-    {Marking::Side::kLeft, "left"},
-    {Marking::Side::kRight, "right"},
-    {Marking::Side::kFront, "front"},
-    {Marking::Side::kRear, "rear"},
+  /// Name of the file containing the CRG data.
+  std::string file{};
+  /// Determines if the object CRG (Curved Regular Grid) hides the road surface CRG.
+  bool hide_road_surface_crg{};
+  /// z-scale factor for the surface description.
+  double z_scale{};
+
+  bool operator==(const CRG& other) const;
+  bool operator!=(const CRG& other) const;
 };
 
-const std::map<std::string, Marking::Side> str_to_side_map{
-    {"left", Marking::Side::kLeft},
-    {"right", Marking::Side::kRight},
-    {"front", Marking::Side::kFront},
-    {"rear", Marking::Side::kRear},
+/// Holds the values of a XODR Object surface element.
+struct Surface {
+  /// Convenient constants that hold the tag names in the XODR element attributes description.
+  static constexpr const char* kSurfaceTag = "surface";
+
+  /// Elevation data.
+  std::optional<CRG> crg{std::nullopt};
+
+  bool operator==(const Surface& other) const;
+  bool operator!=(const Surface& other) const;
 };
-
-}  // namespace
-
-std::string Marking::side_to_str(Marking::Side side) { return side_to_str_map.at(side); }
-
-Marking::Side Marking::str_to_side(const std::string& side) {
-  if (str_to_side_map.find(side) == str_to_side_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(side + " marking side is not available.");
-  }
-  return str_to_side_map.at(side);
-}
-
-bool Marking::operator==(const Marking& other) const {
-  return color == other.color && line_length == other.line_length && side == other.side &&
-         space_length == other.space_length && start_offset == other.start_offset && stop_offset == other.stop_offset &&
-         weight == other.weight && width == other.width && z_offset == other.z_offset &&
-         corner_reference == other.corner_reference;
-}
-
-bool Marking::operator!=(const Marking& other) const { return !(*this == other); }
-
-bool Markings::operator==(const Markings& other) const { return markings == other.markings; }
-
-bool Markings::operator!=(const Markings& other) const { return !(*this == other); }
-
-bool CornerReference::operator==(const CornerReference& other) const { return id == other.id; }
-
-bool CornerReference::operator!=(const CornerReference& other) const { return !(*this == other); }
 
 }  // namespace object
 }  // namespace xodr

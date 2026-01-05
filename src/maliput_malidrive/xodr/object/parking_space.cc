@@ -59,9 +59,9 @@ const std::map<std::string, ParkingSpace::Access> str_to_access_map{
 
 }  // namespace
 
-std::string access_to_str(ParkingSpace::Access access) { return access_to_str_map.at(access); }
+std::string ParkingSpace::access_to_str(ParkingSpace::Access access) { return access_to_str_map.at(access); }
 
-ParkingSpace::Access str_to_access(const std::string& access) {
+ParkingSpace::Access ParkingSpace::str_to_access(const std::string& access) {
   if (str_to_access_map.find(access) == str_to_access_map.end()) {
     MALIDRIVE_THROW_MESSAGE(access + " parking space access is not available.");
   }
