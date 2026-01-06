@@ -464,7 +464,7 @@ void RoadGeometryBuilder::BuildLaneBoundaries(RoadGeometry* rg) {
 
           SetRoadMarkProperties(inner_lane, false, road_marks, track_s_start, track_s_end);
         } else if (lane_to_left != nullptr) {
-          // Rightmost boundary, use the rightmost lane on the left.
+          // Rightmost boundary, use the lane to the left.
           reference_lane = static_cast<const Lane*>(lane_to_left);
           SetRoadMarkProperties(lane_to_left, false, road_marks, track_s_start, track_s_end);
         } else if (lane_to_right != nullptr) {
