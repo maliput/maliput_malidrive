@@ -453,62 +453,24 @@ void RoadGeometryBuilder::BuildLaneBoundaries(RoadGeometry* rg) {
         if (is_center_boundary && lane_to_left != nullptr) {
           // Use the center lane's road marks for the center boundary.
           reference_lane = static_cast<const Lane*>(lane_to_left);
-          auto it = lane_xodr_lane_properties_.find(lane_to_left->id());
-          if (it != lane_xodr_lane_properties_.end()) {
-            // Get the center lane's road marks from the lane section.
-            const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
-            road_marks = lane_section->center_lane.road_marks;
-            // Get track frame s-coordinates from the lane section.
-            const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
-            track_s_start = lane_section->s_0;
-            // Calculate track_s_end from next lane section or road length.
-            const int lane_section_idx = it->second.xodr_lane.lane_section_index;
-            const auto& lane_sections = road_header->lanes.lanes_section;
-            if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
-              track_s_end = lane_sections[lane_section_idx + 1].s_0;
-            } else {
-              track_s_end = road_header->length;
-            }
-          }
+          SetRoadMarkProperties(lane_to_left, true, road_marks, track_s_start, track_s_end);
+        } else if (lane_to_left != nullptr && lane_to_right != nullptr) {
+          // Boundary between two lanes on the same side of center.
+          // Not a center boundary (already handled above), so both lanes are on the same side.
+          // Use the inner lane's marks (closer to center).
+          const Lane* right_lane = static_cast<const Lane*>(lane_to_right);
+          const maliput::api::Lane* inner_lane = (right_lane->get_lane_id() > 0) ? lane_to_right : lane_to_left;
+          reference_lane = static_cast<const Lane*>(inner_lane);
+
+          SetRoadMarkProperties(inner_lane, false, road_marks, track_s_start, track_s_end);
         } else if (lane_to_left != nullptr) {
-          // Use the lane to the left as reference.
+          // Rightmost boundary, use the rightmost lane on the left.
           reference_lane = static_cast<const Lane*>(lane_to_left);
-          // Look up the XODR lane properties.
-          auto it = lane_xodr_lane_properties_.find(lane_to_left->id());
-          if (it != lane_xodr_lane_properties_.end()) {
-            road_marks = it->second.xodr_lane.lane->road_marks;
-            // Get track frame s-coordinates from the lane section.
-            const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
-            const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
-            track_s_start = lane_section->s_0;
-            // Calculate track_s_end from next lane section or road length.
-            const int lane_section_idx = it->second.xodr_lane.lane_section_index;
-            const auto& lane_sections = road_header->lanes.lanes_section;
-            if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
-              track_s_end = lane_sections[lane_section_idx + 1].s_0;
-            } else {
-              track_s_end = road_header->length;
-            }
-          }
+          SetRoadMarkProperties(lane_to_left, false, road_marks, track_s_start, track_s_end);
         } else if (lane_to_right != nullptr) {
           // This is the leftmost boundary, use the lane to the right.
           reference_lane = static_cast<const Lane*>(lane_to_right);
-          auto it = lane_xodr_lane_properties_.find(lane_to_right->id());
-          if (it != lane_xodr_lane_properties_.end()) {
-            road_marks = it->second.xodr_lane.lane->road_marks;
-            // Get track frame s-coordinates from the lane section.
-            const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
-            const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
-            track_s_start = lane_section->s_0;
-            // Calculate track_s_end from next lane section or road length.
-            const int lane_section_idx = it->second.xodr_lane.lane_section_index;
-            const auto& lane_sections = road_header->lanes.lanes_section;
-            if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
-              track_s_end = lane_sections[lane_section_idx + 1].s_0;
-            } else {
-              track_s_end = road_header->length;
-            }
-          }
+          SetRoadMarkProperties(lane_to_right, false, road_marks, track_s_start, track_s_end);
         }
 
         // Skip if no reference lane found.
@@ -532,6 +494,28 @@ void RoadGeometryBuilder::BuildLaneBoundaries(RoadGeometry* rg) {
     }
   }
   maliput::log()->trace("LaneBoundaries built.");
+}
+
+void RoadGeometryBuilder::SetRoadMarkProperties(const maliput::api::Lane* lane, bool is_center_lane,
+                                                std::vector<xodr::LaneRoadMark>& road_marks, double& track_s_start,
+                                                double& track_s_end) {
+  // Look up the XODR lane properties.
+  auto it = lane_xodr_lane_properties_.find(lane->id());
+  if (it != lane_xodr_lane_properties_.end()) {
+    const xodr::LaneSection* lane_section = it->second.xodr_lane.lane_section;
+    road_marks = is_center_lane ? lane_section->center_lane.road_marks : it->second.xodr_lane.lane->road_marks;
+    // Get track frame s-coordinates from the lane section.
+    const xodr::RoadHeader* road_header = it->second.xodr_lane.road_header;
+    track_s_start = lane_section->s_0;
+    // Calculate track_s_end from next lane section or road length.
+    const int lane_section_idx = it->second.xodr_lane.lane_section_index;
+    const auto& lane_sections = road_header->lanes.lanes_section;
+    if (static_cast<size_t>(lane_section_idx + 1) < lane_sections.size()) {
+      track_s_end = lane_sections[lane_section_idx + 1].s_0;
+    } else {
+      track_s_end = road_header->length;
+    }
+  }
 }
 
 std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::operator()() {

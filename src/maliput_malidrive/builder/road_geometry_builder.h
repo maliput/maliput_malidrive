@@ -301,6 +301,17 @@ class RoadGeometryBuilder {
                                          const maliput::api::LaneId& lane_id, double xodr_lane_length,
                                          double linear_tolerance, bool allow_negative_width);
 
+  // Sets the road mark properties of `lane` into `road_marks`.
+  // Also updates `track_s_start` and `track_s_end` accordingly.
+  //
+  // `lane` the lane whose road marks will be extracted.
+  // `is_center_lane` indicates whether `lane` is the center lane of its lane section.
+  // `road_marks` the vector where the road marks will be stored.
+  // `track_s_start` the starting s coordinate of the lane, will be updated.
+  // `track_s_end` the ending s coordinate of the lane, will be updated.
+  void SetRoadMarkProperties(const maliput::api::Lane* lane, bool is_center_lane,
+                             std::vector<xodr::LaneRoadMark>& road_marks, double& track_s_start, double& track_s_end);
+
   // Builds a RoadCurve.
   //
   // `road_header` contains the geometry description of the curve model.
