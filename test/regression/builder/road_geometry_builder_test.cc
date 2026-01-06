@@ -1740,6 +1740,122 @@ class MultipleLanesRoadDifferentMarkingsTest : public ::testing::Test {
   std::unique_ptr<const maliput::api::RoadGeometry> rg_;
 };
 
+TEST_F(MultipleLanesRoadDifferentMarkingsTest, LaneMarkingTypesFromLanes) {
+  {
+    const maliput::api::Lane* lane = rg_->ById().GetLane(maliput::api::LaneId("0_0_-3"));
+    ASSERT_NE(lane, nullptr);
+
+    const maliput::api::LaneBoundary* left_boundary = lane->left_boundary();
+    const maliput::api::LaneBoundary* right_boundary = lane->right_boundary();
+    std::vector<maliput::api::LaneMarkingResult> left_markings = left_boundary->GetMarkings();
+    ASSERT_EQ(left_markings.size(), 1);
+    ASSERT_EQ(left_markings[0].marking.type, maliput::api::LaneMarkingType::kCurb);
+    ASSERT_EQ(left_markings[0].marking.color, maliput::api::LaneMarkingColor::kViolet);
+    ASSERT_EQ(left_markings[0].marking.material, "standard");
+
+    std::vector<maliput::api::LaneMarkingResult> right_markings = right_boundary->GetMarkings();
+    ASSERT_EQ(right_markings.size(), 1);
+    ASSERT_EQ(right_markings[0].marking.type, maliput::api::LaneMarkingType::kGrass);
+    ASSERT_EQ(right_markings[0].marking.color, maliput::api::LaneMarkingColor::kGreen);
+    ASSERT_EQ(right_markings[0].marking.material, "standard");
+  }
+
+  {
+    const maliput::api::Lane* lane = rg_->ById().GetLane(maliput::api::LaneId("0_0_-2"));
+    ASSERT_NE(lane, nullptr);
+
+    const maliput::api::LaneBoundary* left_boundary = lane->left_boundary();
+    const maliput::api::LaneBoundary* right_boundary = lane->right_boundary();
+    std::vector<maliput::api::LaneMarkingResult> left_markings = left_boundary->GetMarkings();
+    ASSERT_EQ(left_markings.size(), 1);
+    ASSERT_EQ(left_markings[0].marking.type, maliput::api::LaneMarkingType::kSolidBroken);
+    ASSERT_EQ(left_markings[0].marking.color, maliput::api::LaneMarkingColor::kRed);
+    ASSERT_EQ(left_markings[0].marking.material, "standard");
+
+    std::vector<maliput::api::LaneMarkingResult> right_markings = right_boundary->GetMarkings();
+    ASSERT_EQ(right_markings.size(), 1);
+    ASSERT_EQ(right_markings[0].marking.type, maliput::api::LaneMarkingType::kCurb);
+    ASSERT_EQ(right_markings[0].marking.color, maliput::api::LaneMarkingColor::kViolet);
+    ASSERT_EQ(right_markings[0].marking.material, "standard");
+  }
+
+  {
+    const maliput::api::Lane* lane = rg_->ById().GetLane(maliput::api::LaneId("0_0_-1"));
+    ASSERT_NE(lane, nullptr);
+
+    const maliput::api::LaneBoundary* left_boundary = lane->left_boundary();
+    const maliput::api::LaneBoundary* right_boundary = lane->right_boundary();
+    std::vector<maliput::api::LaneMarkingResult> left_markings = left_boundary->GetMarkings();
+    ASSERT_EQ(left_markings.size(), 1);
+    ASSERT_EQ(left_markings[0].marking.type, maliput::api::LaneMarkingType::kSolidSolid);
+    ASSERT_EQ(left_markings[0].marking.color, maliput::api::LaneMarkingColor::kYellow);
+    ASSERT_EQ(left_markings[0].marking.material, "standard");
+
+    std::vector<maliput::api::LaneMarkingResult> right_markings = right_boundary->GetMarkings();
+    ASSERT_EQ(right_markings.size(), 1);
+    ASSERT_EQ(right_markings[0].marking.type, maliput::api::LaneMarkingType::kSolidBroken);
+    ASSERT_EQ(right_markings[0].marking.color, maliput::api::LaneMarkingColor::kRed);
+    ASSERT_EQ(right_markings[0].marking.material, "standard");
+  }
+
+  {
+    const maliput::api::Lane* lane = rg_->ById().GetLane(maliput::api::LaneId("0_0_1"));
+    ASSERT_NE(lane, nullptr);
+
+    const maliput::api::LaneBoundary* left_boundary = lane->left_boundary();
+    const maliput::api::LaneBoundary* right_boundary = lane->right_boundary();
+    std::vector<maliput::api::LaneMarkingResult> left_markings = left_boundary->GetMarkings();
+    ASSERT_EQ(left_markings.size(), 1);
+    ASSERT_EQ(left_markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+    ASSERT_EQ(left_markings[0].marking.color, maliput::api::LaneMarkingColor::kBlue);
+    ASSERT_EQ(left_markings[0].marking.material, "standard");
+
+    std::vector<maliput::api::LaneMarkingResult> right_markings = right_boundary->GetMarkings();
+    ASSERT_EQ(right_markings.size(), 1);
+    ASSERT_EQ(right_markings[0].marking.type, maliput::api::LaneMarkingType::kSolidSolid);
+    ASSERT_EQ(right_markings[0].marking.color, maliput::api::LaneMarkingColor::kYellow);
+    ASSERT_EQ(right_markings[0].marking.material, "standard");
+  }
+
+  {
+    const maliput::api::Lane* lane = rg_->ById().GetLane(maliput::api::LaneId("0_0_2"));
+    ASSERT_NE(lane, nullptr);
+
+    const maliput::api::LaneBoundary* left_boundary = lane->left_boundary();
+    const maliput::api::LaneBoundary* right_boundary = lane->right_boundary();
+    std::vector<maliput::api::LaneMarkingResult> left_markings = left_boundary->GetMarkings();
+    ASSERT_EQ(left_markings.size(), 1);
+    ASSERT_EQ(left_markings[0].marking.type, maliput::api::LaneMarkingType::kBroken);
+    ASSERT_EQ(left_markings[0].marking.color, maliput::api::LaneMarkingColor::kOrange);
+    ASSERT_EQ(left_markings[0].marking.material, "standard");
+
+    std::vector<maliput::api::LaneMarkingResult> right_markings = right_boundary->GetMarkings();
+    ASSERT_EQ(right_markings.size(), 1);
+    ASSERT_EQ(right_markings[0].marking.type, maliput::api::LaneMarkingType::kSolid);
+    ASSERT_EQ(right_markings[0].marking.color, maliput::api::LaneMarkingColor::kBlue);
+    ASSERT_EQ(right_markings[0].marking.material, "standard");
+  }
+
+  {
+    const maliput::api::Lane* lane = rg_->ById().GetLane(maliput::api::LaneId("0_0_3"));
+    ASSERT_NE(lane, nullptr);
+
+    const maliput::api::LaneBoundary* left_boundary = lane->left_boundary();
+    const maliput::api::LaneBoundary* right_boundary = lane->right_boundary();
+    std::vector<maliput::api::LaneMarkingResult> left_markings = left_boundary->GetMarkings();
+    ASSERT_EQ(left_markings.size(), 1);
+    ASSERT_EQ(left_markings[0].marking.type, maliput::api::LaneMarkingType::kNone);
+    ASSERT_EQ(left_markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite);
+    ASSERT_EQ(left_markings[0].marking.material, "standard");
+
+    std::vector<maliput::api::LaneMarkingResult> right_markings = right_boundary->GetMarkings();
+    ASSERT_EQ(right_markings.size(), 1);
+    ASSERT_EQ(right_markings[0].marking.type, maliput::api::LaneMarkingType::kBroken);
+    ASSERT_EQ(right_markings[0].marking.color, maliput::api::LaneMarkingColor::kOrange);
+    ASSERT_EQ(right_markings[0].marking.material, "standard");
+  }
+}
+
 TEST_F(MultipleLanesRoadDifferentMarkingsTest, LaneMarkingTypesFromSegment) {
   const maliput::api::Segment* segment = rg_->ById().GetSegment(SegmentId("0_0"));
   ASSERT_NE(segment, nullptr);
@@ -1813,7 +1929,6 @@ TEST_F(MultipleLanesRoadDifferentMarkingsTest, LaneMarkingTypesFromSegment) {
     EXPECT_EQ(markings[0].marking.type, maliput::api::LaneMarkingType::kNone);
     EXPECT_EQ(markings[0].marking.color, maliput::api::LaneMarkingColor::kWhite);
   }
-
 }
 
 // Integration test for LaneBoundary API using TwoWayRoadWithDoubleYellowCurve.xodr.
