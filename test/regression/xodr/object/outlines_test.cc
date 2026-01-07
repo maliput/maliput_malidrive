@@ -97,7 +97,7 @@ GTEST_TEST(Outlines_CornerRoad, EqualityOperator) {
   corner_road.height = 3.;
   EXPECT_NE(kCornerRoad, corner_road);
   corner_road.height = 2.;
-  corner_road.id = object::CornerRoad::Id("test");
+  corner_road.id = object::CornerRoad::Id("test2");
   EXPECT_NE(kCornerRoad, corner_road);
   corner_road.id = object::CornerRoad::Id("test");
   corner_road.s = 5.;
