@@ -22,6 +22,7 @@ add_library(xodr
   object/common.cc
   object/markings.cc
   object/material.cc
+  object/object_parser.cc
   object/object_reference.cc
   object/object.cc
   object/outlines.cc

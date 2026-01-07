@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 
+#include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
@@ -42,6 +44,9 @@ namespace object {
 
 /// Holds the values of a XODR Object Border element.
 struct Border {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Border>;
+
   /// Convenient constants that hold the tag names in the XODR element attributes description.
   static constexpr const char* kBorderTag = "border";
   static constexpr const char* kOutlineId = "outlineId";
@@ -52,7 +57,7 @@ struct Border {
   enum class Type { kConcrete, kCurb, kPaint };
 
   /// ID of the outline to use.
-  int outline_id{};
+  Id outline_id{"none"};
   /// Appearance of border.
   Type type{};
   /// Use all outline points for border. “true” is used as default.

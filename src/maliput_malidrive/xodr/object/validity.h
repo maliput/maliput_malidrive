@@ -29,22 +29,27 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <maliput/api/type_specific_identifier.h>
+
 namespace malidrive {
 namespace xodr {
 namespace object {
 
 /// Holds the values of a XODR Object validity element.
 struct Validity {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Validity>;
+
   /// Convenient constants that hold the tag names in the XODR object validity description.
-  static constexpr const char* kMaterialTag = "validity";
+  static constexpr const char* kValidityTag = "validity";
   static constexpr const char* kFromLane = "fromLane";
   static constexpr const char* kToLane = "toLane";
 
   /// Minimum ID of the lanes for which the object is valid. The value of the @fromLane attribute shall be lower than or
   /// equal to the value of the @toLane attribute.
-  int from_lane{};
+  Id from_lane{"none"};
   /// Maximum ID of the lanes for which the object is valid.
-  int to_lane{};
+  Id to_lane{"none"};
 
   /// Equality operator.
   bool operator==(const Validity& other) const;
