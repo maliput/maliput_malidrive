@@ -2,6 +2,16 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.15.1 (2026-01-07)
+-------------------
+* Map lane boundaries correctly. (`#385 <https://github.com/maliput/maliput_malidrive/issues/385>`_)
+* Adding rest of xodr object elements modules (`#383 <https://github.com/maliput/maliput_malidrive/issues/383>`_)
+  * XODR Object parsing final elements. (`#384 <https://github.com/maliput/maliput_malidrive/issues/384>`_)
+  ---------
+* Jcarosella xodr object parsing (`#382 <https://github.com/maliput/maliput_malidrive/issues/382>`_)
+* Add copilot instructions. (`#380 <https://github.com/maliput/maliput_malidrive/issues/380>`_)
+* Contributors: Franco Cipollone, Juan Carosella, Santiago Lopez
+
 0.15.0 (2025-12-19)
 -------------------
 * Implement LaneBoundary. (`#379 <https://github.com/maliput/maliput_malidrive/issues/379>`_)
