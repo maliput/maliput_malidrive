@@ -60,7 +60,7 @@ Bridge::Type Bridge::str_to_type(const std::string& type) {
 
 bool Bridge::operator==(const Bridge& other) const {
   return id == other.id && length == other.length && name == other.name && s == other.s && type == other.type &&
-         validity == other.validity;
+         validities == other.validities;
 }
 
 bool Bridge::operator!=(const Bridge& other) const { return !(*this == other); }

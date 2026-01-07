@@ -32,12 +32,17 @@
 #include <optional>
 #include <vector>
 
+#include <maliput/api/type_specific_identifier.h>
+
 namespace malidrive {
 namespace xodr {
 namespace object {
 
 /// Holds the values of a XODR Object skeleton polyline vertexRoad element.
 struct VertexRoad {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct VertexRoad>;
+
   /// Convenient constants that hold the tag names in the XODR object skeleton polyline vertexRoad description.
   static constexpr const char* kVertexRoadTag = "vertexRoad";
   static constexpr const char* kId = "id";
@@ -50,7 +55,7 @@ struct VertexRoad {
   /// dz of the polyline point relative to road reference line parallel to z.
   double dz{};
   /// ID of the vertex point. Must be unique within one polyline.
-  std::optional<int> id{std::nullopt};
+  std::optional<Id> id{std::nullopt};
   /// Vertex point is intersecting the ground. "false" is used as default.
   std::optional<bool> intersection_point{std::nullopt};
   /// Local radius of the object at this vertex point, along the polyline.
@@ -69,6 +74,9 @@ struct VertexRoad {
 
 /// Holds the values of a XODR Object skeleton polyline vertexLocal element.
 struct VertexLocal {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct VertexLocal>;
+
   /// Convenient constants that hold the tag names in the XODR object skeleton polyline vertexLocal description.
   static constexpr const char* kVertexLocalTag = "vertexLocal";
   static constexpr const char* kId = "id";
@@ -79,7 +87,7 @@ struct VertexLocal {
   static constexpr const char* kZ = "z";
 
   /// ID of the vertex point. Must be unique within one polyline.
-  std::optional<int> id{std::nullopt};
+  std::optional<Id> id{std::nullopt};
   /// Vertex point is intersecting the ground. "false" is used as default.
   std::optional<bool> intersection_point{std::nullopt};
   /// Local radius of the object at this vertex point, along the polyline.
@@ -100,12 +108,15 @@ struct VertexLocal {
 
 /// Holds the values of a XODR Object skeleton polyline element.
 struct Polyline {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Polyline>;
+
   /// Convenient constants that hold the tag names in the XODR object skeleton polyline description.
   static constexpr const char* kPolylinesTag = "polyline";
   static constexpr const char* kId = "id";
 
   /// ID of the polyline. Must be unique within one object.
-  std::optional<int> id{std::nullopt};
+  std::optional<Id> id{std::nullopt};
   /// Used to describe a more detailed form of objects inside their bounding box. They are mutually exclusive with
   /// <vertexLocal> elements. <vertexRoad> elements describe a skeleton polyline of objects relative to the road
   /// reference line with their s- and t-coordinates.

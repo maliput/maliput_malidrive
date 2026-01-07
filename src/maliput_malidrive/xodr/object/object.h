@@ -32,6 +32,9 @@
 #include <map>
 #include <optional>
 #include <string>
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/object/borders.h"
@@ -54,6 +57,9 @@ namespace object {
 
 /// Holds the values of a XODR Object.
 struct Object {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Object>;
+
   /// Convenient constants that hold the tag names in the XODR object description.
   static constexpr const char* kObjectTag = "object";
   static constexpr const char* kDynamic = "dynamic";
@@ -130,7 +136,7 @@ struct Object {
   /// Height of the object’s bounding box, defined in the local coordinate system u/v along the z-axis.
   std::optional<double> height{std::nullopt};
   /// Unique ID within database.
-  std::string id{};
+  Id id{"none"};
   /// Length of the object’s bounding box, alternative to @radius, defined in the local coordinate system u/v along the
   /// u-axis.
   std::optional<double> length{std::nullopt};
@@ -166,15 +172,15 @@ struct Object {
   double z_offset{};
 
   /// Repeated elements.
-  std::optional<Repeat> repeats{std::nullopt};
+  std::vector<Repeat> repeats{};
   /// Outlines elements.
   std::optional<Outlines> outlines{std::nullopt};
   /// Skeleton element.
   std::optional<Skeleton> skeleton{std::nullopt};
   /// Material element.
-  std::optional<Material> material{std::nullopt};
+  std::vector<Material> materials{};
   /// Validity element.
-  std::optional<Validity> validity{std::nullopt};
+  std::vector<Validity> validities{};
   /// ParkingSpace element.
   std::optional<ParkingSpace> parking_space{std::nullopt};
   /// Markings element.
@@ -182,11 +188,11 @@ struct Object {
   /// Borders element.
   std::optional<Borders> borders{std::nullopt};
   /// ObjectReference element.
-  std::optional<ObjectReference> object_reference{std::nullopt};
+  std::vector<ObjectReference> object_references{};
   /// Tunnel element.
-  std::optional<Tunnel> tunnel{std::nullopt};
+  std::vector<Tunnel> tunnels{};
   /// Bridge element.
-  std::optional<Bridge> bridge{std::nullopt};
+  std::vector<Bridge> bridges{};
   /// Surface element.
   std::optional<Surface> surface{std::nullopt};
 };

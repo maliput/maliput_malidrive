@@ -40,7 +40,7 @@ namespace {
 
 GTEST_TEST(ObjectReference, EqualityOperator) {
   const ObjectReference kObjectReference{
-      .id = "test",
+      .id = object::ObjectReference::Id("test"),
       .orientation = Orientation::kNegative,
       .s = 1.0,
       .t = 2.0,
@@ -52,9 +52,9 @@ GTEST_TEST(ObjectReference, EqualityOperator) {
 
   EXPECT_EQ(kObjectReference, object_reference);
   // Test inequality
-  object_reference.id = "test2";
+  object_reference.id = object::ObjectReference::Id("test2");
   EXPECT_NE(kObjectReference, object_reference);
-  object_reference.id = "test";
+  object_reference.id = object::ObjectReference::Id("test");
   object_reference.orientation = Orientation::kPositive;
   EXPECT_NE(kObjectReference, object_reference);
   object_reference.orientation = Orientation::kNegative;

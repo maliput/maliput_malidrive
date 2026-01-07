@@ -40,7 +40,7 @@ namespace {
 
 GTEST_TEST(Bridge, EqualityOperator) {
   const Bridge kBridge{
-      .id = "test",
+      .id = object::Bridge::Id("test"),
       .length = 1.,
       .name = "test2",
       .s = 3.,
@@ -50,9 +50,9 @@ GTEST_TEST(Bridge, EqualityOperator) {
 
   EXPECT_EQ(kBridge, bridge);
   // Test inequality
-  bridge.id = "test3";
+  bridge.id = object::Bridge::Id("test3");
   EXPECT_NE(kBridge, bridge);
-  bridge.id = "test";
+  bridge.id = object::Bridge::Id("test");
   bridge.length = 2.;
   EXPECT_NE(kBridge, bridge);
   bridge.length = 1.;

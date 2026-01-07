@@ -33,6 +33,8 @@
 #include <optional>
 #include <vector>
 
+#include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/colors.h"
 #include "maliput_malidrive/xodr/lane_road_mark.h"
@@ -43,12 +45,15 @@ namespace object {
 
 /// Holds the values of a XODR Object cornerReference element.
 struct CornerReference {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct CornerReference>;
+
   /// Convenient constants that hold the tag names in the XODR element attributes description.
   static constexpr const char* kCornerReferenceTag = "cornerReference";
   static constexpr const char* kId = "id";
 
   /// Identifier of the referenced outline point.
-  int id{};
+  Id id{"none"};
 
   bool operator==(const CornerReference& other) const;
   bool operator!=(const CornerReference& other) const;

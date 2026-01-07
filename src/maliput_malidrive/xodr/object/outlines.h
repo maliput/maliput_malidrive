@@ -34,6 +34,8 @@
 #include <string>
 #include <vector>
 
+#include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/xodr/lane.h"
 
 namespace malidrive {
@@ -41,6 +43,9 @@ namespace xodr {
 namespace object {
 
 struct CornerLocal {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct CornerLocal>;
+
   /// Convenient constants that hold the tag names in the XODR object's Outline cornerRoad description.
   static constexpr const char* kCornerLocalTag = "cornerLocal";
   static constexpr const char* kId = "id";
@@ -52,7 +57,7 @@ struct CornerLocal {
   /// Height of the object at this corner, along the z-axis.
   double height{};
   /// ID of the outline point. Shall be unique within one outline.
-  std::optional<int> id{std::nullopt};
+  std::optional<Id> id{std::nullopt};
   /// Local u-coordinate of the corner.
   double u{};
   /// Local v-coordinate of the corner.
@@ -65,6 +70,9 @@ struct CornerLocal {
 };
 
 struct CornerRoad {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct CornerRoad>;
+
   /// Convenient constants that hold the tag names in the XODR object's Outline cornerRoad description.
   static constexpr const char* kCornerRoadTag = "cornerRoad";
   static constexpr const char* kDz = "dz";
@@ -78,7 +86,7 @@ struct CornerRoad {
   /// Height of the object at this corner, along the z-axis.
   double height{};
   /// ID of the outline point. Must be unique within one outline.
-  std::optional<int> id{std::nullopt};
+  std::optional<Id> id{std::nullopt};
   /// s-coordinate of the corner.
   double s{};
   /// t-coordinate of the corner.
@@ -89,6 +97,9 @@ struct CornerRoad {
 };
 
 struct Outline {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Outline>;
+
   /// Convenient constants that hold the tag names in the XODR object outline description.
   static constexpr const char* kOutlineTag = "outline";
   static constexpr const char* kClosed = "closed";
@@ -127,7 +138,7 @@ struct Outline {
   /// Type used to fill the area inside the outline.
   std::optional<FillType> fill_type{std::nullopt};
   /// ID of the outline. Must be unique within one object.
-  std::optional<int> id{std::nullopt};
+  std::optional<Id> id{std::nullopt};
   /// Describes the lane type of the outline.
   std::optional<Lane::Type> lane_type{std::nullopt};
   /// Defines if outline is an outer outline of the object.
