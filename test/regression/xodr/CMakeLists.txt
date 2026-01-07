@@ -34,6 +34,8 @@ set(UNIT_TEST_XODR_SOURCES
   road_link_test.cc
   road_mark_test.cc
   road_type_test.cc
+  signal_test.cc
+  signals_test.cc
   tools_test.cc
   unit_test.cc
   xodr_extract_test.cc
