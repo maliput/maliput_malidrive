@@ -2,37 +2,37 @@
 # xodr
 ##############################################################################
 add_library(xodr
-  connection.cc
   colors.cc
+  connection.cc
   db_manager.cc
   elevation_profile.cc
   geo_reference.cc
   geometry.cc
   header.cc
   junction.cc
+  lane_offset.cc
+  lane_road_mark.cc
+  lane_section.cc
+  lane_width.cc
   lane.cc
   lanes.cc
-  lane_offset.cc
-  lane_section.cc
-  lane_road_mark.cc
-  lane_width.cc
   lateral_profile.cc
-  parser.cc
-  offset.cc
+  object/borders.cc
+  object/bridge.cc
+  object/common.cc
+  object/markings.cc
+  object/material.cc
+  object/object_reference.cc
   object/object.cc
   object/outlines.cc
-  object/skeleton.cc
-  object/material.cc
-  object/validity.cc
   object/parking_space.cc
-  object/markings.cc
   object/repeat.cc
-  object/borders.cc
-  object/common.cc
-  object/tunnel.cc
-  object/object_reference.cc
-  object/bridge.cc
+  object/skeleton.cc
   object/surface.cc
+  object/tunnel.cc
+  object/validity.cc
+  offset.cc
+  parser.cc
   road_header.cc
   road_link.cc
   road_type.cc
