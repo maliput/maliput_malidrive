@@ -197,6 +197,18 @@ struct Object {
   std::optional<Surface> surface{std::nullopt};
 };
 
+/// Holds the values of a XODR Objects element.
+struct Objects {
+  /// Convenient constants that hold the tag names in the XODR element attributes description.
+  static constexpr const char* kObjectsTag = "objects";
+
+  /// Container for all objects along a road.
+  std::vector<Object> objects{};
+
+  bool operator==(const Objects& other) const;
+  bool operator!=(const Objects& other) const;
+};
+
 }  // namespace object
 }  // namespace xodr
 }  // namespace malidrive

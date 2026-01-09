@@ -48,6 +48,7 @@
 #include "maliput_malidrive/xodr/lane_width.h"
 #include "maliput_malidrive/xodr/lanes.h"
 #include "maliput_malidrive/xodr/lateral_profile.h"
+#include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/offset.h"
 #include "maliput_malidrive/xodr/plan_view.h"
 #include "maliput_malidrive/xodr/road_header.h"
@@ -1304,6 +1305,15 @@ RoadHeader NodeParser::As() const {
   MALIDRIVE_TRACE("Parsing lanes.");
   const NodeParser lanes(element_->FirstChildElement(Lanes::kLanesTag), parser_configuration_);
   road_header.lanes = Lanes{lanes.As<Lanes>()};
+  // @}
+
+  // Get Objects.
+  // @{
+  MALIDRIVE_TRACE("Parsing Objects.");
+  tinyxml2::XMLElement* objects_element(element_->FirstChildElement(object::Objects::kObjectsTag));
+  if (objects_element) {
+    road_header.objects = NodeParser(objects_element, parser_configuration_).As<object::Objects>();
+  }
   // @}
 
   return road_header;

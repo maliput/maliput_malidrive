@@ -37,6 +37,7 @@
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/lanes.h"
+#include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/reference_geometry.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
@@ -181,6 +182,8 @@ struct RoadHeader {
   ReferenceGeometry reference_geometry{};
   /// Holds the road's lanes.
   Lanes lanes{};
+  /// Holds the road's objects.
+  std::optional<object::Objects> objects{};
 };
 
 /// Streams a string representation of @p road_header into @p out. Returns

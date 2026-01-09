@@ -122,6 +122,10 @@ bool Object::operator==(const Object& other) const {
 
 bool Object::operator!=(const Object& other) const { return !(*this == other); }
 
+bool Objects::operator==(const Objects& other) const { return objects == other.objects; }
+
+bool Objects::operator!=(const Objects& other) const { return !(*this == other); }
+
 }  // namespace object
 }  // namespace xodr
 }  // namespace malidrive

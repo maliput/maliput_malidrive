@@ -860,5 +860,22 @@ object::Object NodeParser::As() const {
           surface};
 }
 
+// Specialization to parse `object::Objects`'s node.
+template <>
+object::Objects NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Object elements
+  tinyxml2::XMLElement* objects_element_xml = element_->FirstChildElement(object::Object::kObjectTag);
+  std::vector<object::Object> objects;
+  while (objects_element_xml) {
+    auto object = NodeParser(objects_element_xml, parser_configuration_).As<object::Object>();
+    objects.push_back(object);
+    objects_element_xml = objects_element_xml->NextSiblingElement(object::Object::kObjectTag);
+  }
+
+  return {objects};
+}
+
 }  // namespace xodr
 }  // namespace malidrive
