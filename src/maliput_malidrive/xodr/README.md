@@ -19,7 +19,7 @@ Road | ElevationProfile | Elevation | :green_circle:
 Road | LateralProfile | Superelevation | :green_circle:
 Road | LateralProfile | Crossfall | :red_circle:
 Road | LateralProfile | Road Shape | :red_circle:
-Road | Road Objects | Road Shape | :red_circle:
+Road | Road Objects | Road Shape | :green_circle:
 Road | Road Signals | Road Shape | :red_circle:
 Road | Surface | OpenCRG | :red_circle:
 Road | Railroad Elements | RailRoad Switches | :red_circle:
