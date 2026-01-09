@@ -273,6 +273,165 @@ TEST_F(ObjectParsingTests, NodeParserObject) {
   EXPECT_EQ(kExpectedObject, obj);
 }
 
+// Get a XML description that contains a complex XODR object node.
+std::string GetComplexObject() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<object type="building"
+        subtype="building"
+        name="complex_house"
+        id="10"
+        s="10."
+        t="20."
+        zOffset="30."
+        orientation="none"
+        length="40."
+        width="50."
+        height="60."
+        hdg="70."
+        pitch="80."
+        roll="90.">
+    <material surface="asphalt" friction="0.8" roughness="0.02" roadMarkColor="white"/>
+    <validity fromLane="1" toLane="3"/>
+    <tunnel id="1" s="10." length="100." name="MyTunnel" type="standard" daylight="0.5" lighting="0.8">
+        <validity fromLane="-1" toLane="1"/>
+    </tunnel>
+</object>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `object::Object` parsing with nested elements.
+TEST_F(ObjectParsingTests, NodeParserComplexObject) {
+  const object::Object kExpectedObject{
+      std::nullopt,                                              // dynamic
+      70.,                                                       // hdg
+      60.,                                                       // height
+      object::Object::Id("10"),                                  // id
+      40.,                                                       // length
+      "complex_house",                                           // name
+      object::Orientation::kNone,                                // orientation
+      std::nullopt,                                              // perp_to_road
+      80.,                                                       // pitch
+      std::nullopt,                                              // radius
+      90.,                                                       // roll
+      10.,                                                       // s
+      "building",                                                // subtype
+      20.,                                                       // t
+      object::Object::ObjectType::kBuilding,                     // type
+      std::nullopt,                                              // valid_length
+      50.,                                                       // width
+      30.,                                                       // z_offset
+      {},                                                        // repeats
+      std::nullopt,                                              // outlines
+      std::nullopt,                                              // skeleton
+      {{0.8, Color::kWhite, 0.02, "asphalt"}},                   // materials
+      {{object::Validity::Id("1"), object::Validity::Id("3")}},  // validities
+      std::nullopt,                                              // parking_space
+      std::nullopt,                                              // markings
+      std::nullopt,                                              // borders
+      {},                                                        // object_references
+      {{0.5,
+        object::Tunnel::Id("1"),
+        100.,
+        0.8,
+        "MyTunnel",
+        10.,
+        object::Tunnel::Type::kStandard,
+        {{object::Validity::Id("-1"), object::Validity::Id("1")}}}},  // tunnels
+  };
+
+  const std::string xml_description = GetComplexObject();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, object::Object::kObjectTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(object::Object::kObjectTag, dut.GetName());
+  const object::Object obj = dut.As<object::Object>();
+  EXPECT_EQ(kExpectedObject, obj);
+}
+
+// Get a XML description that contains an object with repeat, bridge and surface elements.
+std::string GetObjectWithRepeatBridgesAndSurface() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<object type="building"
+        name="object_with_children"
+        id="20"
+        s="5."
+        t="15."
+        zOffset="25.">
+    <repeat s="1." length="2." distance="3." tStart="4." tEnd="5." heightStart="6." heightEnd="7." zOffsetStart="8." zOffsetEnd="9."/>
+    <bridge id="1" s="200." length="50." name="MyBridge" type="concrete">
+        <validity fromLane="-1" toLane="1"/>
+    </bridge>
+    <bridge id="2" s="300." length="75." name="AnotherBridge" type="steel">
+        <validity fromLane="-2" toLane="2"/>
+    </bridge>
+    <surface>
+        <crg file="my_crg_file.crg" zScale="1.0" hideRoadSurfaceCRG="false"/>
+    </surface>
+</object>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `object::Object` parsing with repeat, bridge and surface elements.
+TEST_F(ObjectParsingTests, NodeParserObjectWithRepeatBridgesAndSurface) {
+  const object::Object kExpectedObject{
+      std::nullopt,                           // dynamic
+      std::nullopt,                           // hdg
+      std::nullopt,                           // height
+      object::Object::Id("20"),               // id
+      std::nullopt,                           // length
+      "object_with_children",                 // name
+      std::nullopt,                           // orientation
+      std::nullopt,                           // perp_to_road
+      std::nullopt,                           // pitch
+      std::nullopt,                           // radius
+      std::nullopt,                           // roll
+      5.,                                     // s
+      std::nullopt,                           // subtype
+      15.,                                    // t
+      object::Object::ObjectType::kBuilding,  // type
+      std::nullopt,                           // valid_length
+      std::nullopt,                           // width
+      25.,                                    // z_offset
+      {{std::nullopt, 3., 7., 6., std::nullopt, std::nullopt, 2., std::nullopt, std::nullopt, 1., 5., 4., std::nullopt,
+        std::nullopt, 9., 8.}},  // repeats
+      std::nullopt,              // outlines
+      std::nullopt,              // skeleton
+      {},                        // materials
+      {},                        // validities
+      std::nullopt,              // parking_space
+      std::nullopt,              // markings
+      std::nullopt,              // borders
+      {},                        // object_references
+      {},                        // tunnels
+      {{object::Bridge::Id("1"),
+        50.,
+        "MyBridge",
+        200.,
+        object::Bridge::Type::kConcrete,
+        {{object::Validity::Id("-1"), object::Validity::Id("1")}}},
+       {object::Bridge::Id("2"),
+        75.,
+        "AnotherBridge",
+        300.,
+        object::Bridge::Type::kSteel,
+        {{object::Validity::Id("-2"), object::Validity::Id("2")}}}},  // bridges
+      {{{{
+          "my_crg_file.crg",
+          false,
+          1.0,
+      }}}},  // surface
+  };
+  const std::string xml_description = GetObjectWithRepeatBridgesAndSurface();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, object::Object::kObjectTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const object::Object obj = dut.As<object::Object>();
+  EXPECT_EQ(kExpectedObject, obj);
+}
+
 // Tests `object::Repeat` parsing.
 TEST_F(ObjectParsingTests, NodeParserRepeat) {
   const object::Repeat kExpectedRepeat{
