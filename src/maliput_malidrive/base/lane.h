@@ -153,6 +153,7 @@ class Lane : public maliput::geometry_base::Lane {
   // TODO(#43): Move this to the builder in favor of increased performance when
   //            querying the Lane.
   maliput::math::Vector3 DoToBackendPosition(const maliput::api::LanePosition& lane_pos) const override;
+  double DoGetCurvature(const maliput::api::LanePosition& lane_pos) const override;
   void DoToLanePositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,
                                maliput::math::Vector3* nearest_backend_pos, double* distance) const override;
   void DoToSegmentPositionBackend(const maliput::math::Vector3& backend_pos, maliput::api::LanePosition* lane_position,

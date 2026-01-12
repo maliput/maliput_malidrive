@@ -1445,6 +1445,141 @@ TEST_F(ShortStraightLanesMaliputRoadPositionToOpenScenarioLanePosition, AtSEnd) 
   EXPECT_EQ(xodr_lane_pos.offset, 0.);
 }
 
+// Tests GetCurvature method on an arc lane from ArcLane.xodr.
+// The ArcLane.xodr file defines an arc with:
+//   - Reference line curvature: κ₀ = 0.025 (radius = 40m, turning left)
+//   - Lane width: 2.0m
+//   - Three lanes: id=1 (left), id=0 (center), id=-1 (right)
+//
+// For a parallel curve, the curvature at lateral offset r from the reference line is:
+//   κ(r) = κ₀ / (1 + r * κ₀)
+//
+// In this road, lane 1_0_1 (left of reference) and lane 1_0_-1 (right of reference)
+// have their centerlines at different distances from the center of curvature.
+class ArcLaneGetCurvatureTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("ArcLane");
+    road_geometry_configuration_.opendrive_file = utility::FindResourceInPath("ArcLane.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+
+  // Reference line curvature from the XODR file.
+  static constexpr double kReferenceCurvature{0.025};
+  // Lane width from the XODR file.
+  static constexpr double kLaneWidth{2.0};
+
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+// Tests that GetCurvature returns the expected curvature at the lane centerline.
+// The curvature follows the parallel curve formula: κ(r) = κ₀ / (1 + r * κ₀)
+// Based on the observed behavior:
+//   - Left lane (1_0_1) centerline has higher curvature ≈ 0.0256 (r_total ≈ -1 from reference)
+//   - Right lane (1_0_-1) centerline has lower curvature ≈ 0.0244 (r_total ≈ +1 from reference)
+TEST_F(ArcLaneGetCurvatureTest, CurvatureAtCenterline) {
+  const auto* rg = road_network_->road_geometry();
+  const double tolerance = rg->linear_tolerance();
+
+  // Test left lane (1_0_1)
+  // The left lane centerline is at r_total = -1 from the reference line.
+  // Expected curvature: κ = 0.025 / (1 + (-1) * 0.025) = 0.025 / 0.975 ≈ 0.0256
+  {
+    const auto* lane = rg->ById().GetLane(maliput::api::LaneId("1_0_1"));
+    ASSERT_NE(lane, nullptr);
+
+    const double r_total = -1.0;  // Left lane centerline offset from reference
+    const double expected_curvature = kReferenceCurvature / (1.0 + r_total * kReferenceCurvature);
+
+    // Test at various s positions along the lane.
+    const double s_mid = lane->length() / 2.0;
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({0.0, 0.0, 0.0}), tolerance);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({s_mid, 0.0, 0.0}), tolerance);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({lane->length(), 0.0, 0.0}), tolerance);
+  }
+
+  // Test right lane (1_0_-1)
+  // The right lane centerline is at r_total = +1 from the reference line.
+  // Expected curvature: κ = 0.025 / (1 + 1 * 0.025) = 0.025 / 1.025 ≈ 0.0244
+  {
+    const auto* lane = rg->ById().GetLane(maliput::api::LaneId("1_0_-1"));
+    ASSERT_NE(lane, nullptr);
+
+    const double r_total = 1.0;  // Right lane centerline offset from reference
+    const double expected_curvature = kReferenceCurvature / (1.0 + r_total * kReferenceCurvature);
+
+    const double s_mid = lane->length() / 2.0;
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({0.0, 0.0, 0.0}), tolerance);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({s_mid, 0.0, 0.0}), tolerance);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({lane->length(), 0.0, 0.0}), tolerance);
+  }
+}
+
+// Tests that GetCurvature correctly accounts for the r-coordinate (lateral offset within the lane).
+// For a parallel curve at lateral offset r_total from the reference line:
+//   κ(r_total) = κ₀ / (1 + r_total * κ₀)
+TEST_F(ArcLaneGetCurvatureTest, CurvatureWithLateralOffset) {
+  const auto* rg = road_network_->road_geometry();
+  const double tolerance = rg->linear_tolerance();
+
+  const auto* lane = rg->ById().GetLane(maliput::api::LaneId("1_0_-1"));
+  ASSERT_NE(lane, nullptr);
+
+  const double s_mid = lane->length() / 2.0;
+  // Right lane centerline is at r_total = +1 from reference line
+  const double lane_centerline_offset = 1.0;
+
+  // Test at r = 0 (lane centerline)
+  {
+    const double r = 0.0;
+    const double r_total = lane_centerline_offset + r;
+    const double expected_curvature = kReferenceCurvature / (1.0 + r_total * kReferenceCurvature);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({s_mid, r, 0.0}), tolerance);
+  }
+
+  // Test at r = +0.5 (toward the left in lane frame)
+  {
+    const double r = 0.5;
+    const double r_total = lane_centerline_offset + r;
+    const double expected_curvature = kReferenceCurvature / (1.0 + r_total * kReferenceCurvature);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({s_mid, r, 0.0}), tolerance);
+  }
+
+  // Test at r = -0.5 (toward the right in lane frame)
+  {
+    const double r = -0.5;
+    const double r_total = lane_centerline_offset + r;
+    const double expected_curvature = kReferenceCurvature / (1.0 + r_total * kReferenceCurvature);
+    EXPECT_NEAR(expected_curvature, lane->GetCurvature({s_mid, r, 0.0}), tolerance);
+  }
+}
+
+// Tests that curvature varies correctly with lateral position.
+// For positive reference curvature κ₀ = 0.025 (turning left), the center of curvature is to the left.
+// The parallel curve formula κ(r) = κ₀ / (1 + r * κ₀) shows that:
+//   - Points farther from center of curvature (higher r) have lower curvature
+//   - Points closer to center of curvature (lower r) have higher curvature
+TEST_F(ArcLaneGetCurvatureTest, CurvatureVariesWithLateralPosition) {
+  const auto* rg = road_network_->road_geometry();
+
+  const auto* left_lane = rg->ById().GetLane(maliput::api::LaneId("1_0_1"));
+  const auto* right_lane = rg->ById().GetLane(maliput::api::LaneId("1_0_-1"));
+  ASSERT_NE(left_lane, nullptr);
+  ASSERT_NE(right_lane, nullptr);
+
+  const double s_mid_left = left_lane->length() / 2.0;
+  const double s_mid_right = right_lane->length() / 2.0;
+
+  const double curvature_left = left_lane->GetCurvature({s_mid_left, 0.0, 0.0});
+  const double curvature_right = right_lane->GetCurvature({s_mid_right, 0.0, 0.0});
+
+  // The left lane (closer to center of curvature) should have higher curvature than the right lane.
+  // This is because its r_total is more negative (closer to the center of curvature).
+  EXPECT_GT(curvature_left, curvature_right);
+}
+
 }  // namespace
 }  // namespace tests
 }  // namespace malidrive

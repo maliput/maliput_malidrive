@@ -272,6 +272,100 @@ void Lane::InertialToLaneSegmentPositionBackend(bool use_lane_boundaries, const 
   *distance = (backend_pos - *nearest_backend_pos).norm();
 }
 
+double Lane::DoGetCurvature(const maliput::api::LanePosition& lane_pos) const {
+  // Computes 3D path curvature using finite differences on the tangent vector.
+  //
+  // The curvature κ measures how fast the tangent direction changes per unit arc length:
+  //   κ = |dT/ds|
+  // where T is the unit tangent vector and s is the arc length along the path.
+  //
+  // This 3D approach accounts for:
+  //   - Ground curve geometry (arcs, spirals, etc.)
+  //   - Elevation profile changes
+  //   - Superelevation (banking)
+  //   - Lane offset variations
+  //   - Lateral offset (r) within the lane
+  //
+  // The finite-difference method is used because:
+  //   - The RoadCurve API doesn't provide second derivatives needed for analytical computation.
+  //   - It automatically incorporates all 3D transformations through WDot().
+  //   - Approximation error is O(δ²) for central differences, negligible for typical geometries.
+  //
+  const double s = s_range_validation_(lane_pos.s());
+  const double p = p_from_s_(s);
+  const double r = lane_pos.r();
+  const double h = lane_pos.h();
+  const double r_total = to_reference_r(p, r);
+
+  // Use linear_tolerance as delta for finite differences.
+  const double delta = road_curve_->linear_tolerance();
+
+  // Compute p values for finite difference, staying within lane bounds.
+  // At boundaries, this degrades from central to one-sided differences (reduced accuracy but still valid).
+  const double p_minus = std::max(p0_, p - delta);
+  const double p_plus = std::min(p1_, p + delta);
+  const double dp = p_plus - p_minus;
+
+  // Guard against very short lanes where dp would be too small for reliable finite differences.
+  // This can happen when the lane's total p-range (p1_ - p0_) is smaller than delta.
+  // In such cases:
+  //   1. The finite difference approximation error grows as O(1/dp), becoming unreliable.
+  //   2. Division by a near-zero dp would amplify numerical noise.
+  //   3. For lanes shorter than linear_tolerance, curvature is geometrically ill-defined anyway.
+  // The threshold of delta/10 ensures we have at least 10% of the intended step size for a meaningful result.
+  if (dp < delta / 10.0) {
+    maliput::log()->debug("Lane {} is too short to compute reliable curvature at s = {}. Returning curvature = 0.0.",
+                          id().string(), s);
+    return 0.0;
+  }
+
+  // Get tangent vectors at the two points.
+  // We need to account for how r_total changes with p if lane_offset varies,
+  // but for simplicity we evaluate at constant r_total (which is exact for constant lane offsets).
+  const maliput::math::Vector3 tangent_minus = road_curve_->WDot({p_minus, r_total, h}, lane_offset_.get());
+  const maliput::math::Vector3 tangent_plus = road_curve_->WDot({p_plus, r_total, h}, lane_offset_.get());
+
+  const double norm_minus = tangent_minus.norm();
+  const double norm_plus = tangent_plus.norm();
+
+  // Guard against degenerate tangent vectors.
+  if (norm_minus < delta || norm_plus < delta) {
+    return 0.0;
+  }
+
+  // Compute unit tangent vectors.
+  const maliput::math::Vector3 T_minus = tangent_minus / norm_minus;
+  const maliput::math::Vector3 T_plus = tangent_plus / norm_plus;
+
+  // Compute dT/dp.
+  const maliput::math::Vector3 dT_dp = (T_plus - T_minus) / dp;
+
+  // Convert to dT/ds using ds/dp = |WDot| at the evaluation point.
+  // For the central point, use average of the norms.
+  const double ds_dp = (norm_minus + norm_plus) / 2.0;
+
+  // Compute unsigned curvature magnitude: κ = |dT/ds| = |dT/dp| / (ds/dp).
+  const double curvature_magnitude = dT_dp.norm() / ds_dp;
+
+  // Compute the sign of the curvature using the cross product of the tangent with its derivative.
+  // The sign is determined by projecting (T × dT/dp) onto the local vertical (h_hat) direction:
+  //   - Positive: turning left (counter-clockwise when viewed from above)
+  //   - Negative: turning right (clockwise when viewed from above)
+  // This 3D approach correctly handles banked/superelevated roads.
+  const maliput::math::Vector3 T_center = (T_minus + T_plus) / 2.0;
+  const maliput::math::Vector3 cross = T_center.cross(dT_dp);
+
+  // Get the h_hat (local vertical) direction at the evaluation point.
+  const maliput::math::Vector3 prh_center{p, r_total, h};
+  const maliput::math::Vector3 s_hat = road_curve_->SHat(prh_center);
+  const maliput::math::Vector3 h_hat = road_curve_->HHat(p, s_hat);
+
+  // Project cross product onto h_hat to determine sign.
+  const double sign = (cross.dot(h_hat) >= 0.0) ? 1.0 : -1.0;
+
+  return sign * curvature_magnitude;
+}
+
 maliput::api::Rotation Lane::DoGetOrientation(const maliput::api::LanePosition& lane_pos) const {
   const double p = p_from_s_(s_range_validation_(lane_pos.s()));
   const maliput::math::RollPitchYaw rpy =
