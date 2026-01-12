@@ -55,8 +55,13 @@ std::optional<object::Object::ObjectType> AttributeParser::As(const std::string&
   const std::optional<std::string> type = As<std::string>(attribute_name);
   // Special check for some parsers
   if (type.has_value()) {
-    if (parser_configuration_.allow_schema_errors && type.value() == "-1") {
-      return std::optional<object::Object::ObjectType>(object::Object::ObjectType::kNone);
+    if (parser_configuration_.allow_schema_errors) {
+      if (type.value() == "-1") {
+        return std::optional<object::Object::ObjectType>(object::Object::ObjectType::kNone);
+      }
+      if (type.value() == "") {
+        return std::nullopt;
+      }
     }
     return object::Object::str_to_object_type(type.value());
   } else {
