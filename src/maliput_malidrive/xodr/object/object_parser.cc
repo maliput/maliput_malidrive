@@ -842,7 +842,7 @@ object::Object NodeParser::As() const {
           s.value(),
           subtype,
           t.value(),
-          type.value(),
+          type,
           valid_length,
           width,
           z_offset.value(),
