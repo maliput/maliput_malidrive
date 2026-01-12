@@ -890,26 +890,34 @@ TEST_F(MalidriveFlatArcLaneFullyInitializedTest, GetOrientation) {
 
 TEST_F(MalidriveFlatArcLaneFullyInitializedTest, GetCurvature) {
   // GetCurvature computes 3D path curvature using finite differences on the tangent vector.
-  // For a flat arc (no elevation, no superelevation), the 3D curvature should be positive
-  // and proportional to the ground curve curvature.
+  // For a flat arc (no elevation, no superelevation), the 3D curvature magnitude should be
+  // proportional to the ground curve curvature.
   //
-  // The curvature at different lateral offsets should vary based on the parallel curve relationship:
-  // - For negative kCurvature (-0.025), left offsets (r > 0) should have higher curvature
-  // - Right offsets (r < 0) should have lower curvature
+  // The sign convention is:
+  //   - Positive curvature: turning left (counter-clockwise when viewed from above)
+  //   - Negative curvature: turning right (clockwise when viewed from above)
   //
-  // We verify the curvature is positive and has the correct relative ordering.
+  // Since kCurvature = -0.025 (negative), this arc turns right, so the signed curvature
+  // should be negative.
+  //
+  // The curvature magnitude at different lateral offsets should vary based on the parallel curve
+  // relationship. For a right turn (negative curvature), the center of the turn is to the right:
+  // - Left offsets (r > 0) are on the outside of the curve → lower magnitude
+  // - Right offsets (r < 0) are on the inside of the curve → higher magnitude
 
-  // Curvature at centerline
+  // Curvature at centerline - should be negative (turning right)
   const double curvature_center = dut_->GetCurvature({kSHalf, kRCenterline, kH});
-  EXPECT_GT(curvature_center, 0.);
+  EXPECT_LT(curvature_center, 0.);
 
-  // Curvature to the left (should be higher due to parallel curve relationship for negative kCurvature)
+  // Curvature to the left - should be negative (turning right), lower magnitude (outside of curve)
   const double curvature_left = dut_->GetCurvature({kSHalf, kRLeft, kH});
-  EXPECT_GT(curvature_left, 0.);
+  EXPECT_LT(curvature_left, 0.);
+  EXPECT_GT(curvature_left, curvature_center);  // Less negative = lower magnitude (outside)
 
-  // Curvature to the right (should be lower due to parallel curve relationship for negative kCurvature)
+  // Curvature to the right - should be negative (turning right), higher magnitude (inside of curve)
   const double curvature_right = dut_->GetCurvature({kSHalf, kRRight, kH});
-  EXPECT_GT(curvature_right, 0.);
+  EXPECT_LT(curvature_right, 0.);
+  EXPECT_LT(curvature_right, curvature_center);  // More negative = higher magnitude (inside)
 
   // Verify curvature is approximately consistent along the lane (should be similar for uniform arc).
   // The finite difference approximation introduces some numerical variation at lane boundaries.
@@ -1221,33 +1229,40 @@ TEST_F(MalidriveFlatSLaneFullyInitializedTest, GetOrientation) {
 TEST_F(MalidriveFlatSLaneFullyInitializedTest, GetCurvature) {
   // GetCurvature computes 3D path curvature using finite differences on the tangent vector.
   // The S-lane is composed of three segments:
-  // - First arc (A): curvature = kACurvature = 1/50 = 0.02
+  // - First arc (A): curvature = kACurvature = 1/50 = 0.02 (positive = turning left)
   // - Straight line (B): curvature = 0
-  // - Second arc (C): curvature = kCCurvature = -1/50 = -0.02
+  // - Second arc (C): curvature = kCCurvature = -1/50 = -0.02 (negative = turning right)
   //
-  // At kSStart, we are in the first arc (A).
-  // At kSHalf, we are in the third arc (C).
-  // At kSEnd, we are at the end of the third arc (C).
+  // Sign convention:
+  //   - Positive curvature: turning left (counter-clockwise when viewed from above)
+  //   - Negative curvature: turning right (clockwise when viewed from above)
   //
-  // We verify the curvature is positive in arc regions and the behavior is consistent.
+  // At kSStart, we are in the first arc (A) - should have positive curvature (left turn).
+  // At kSHalf, we are in the third arc (C) - should have negative curvature (right turn).
+  // At kSEnd, we are at the end of the third arc (C) - should have negative curvature (right turn).
 
-  // At centerline - Start (in arc A): curvature should be positive
+  // At centerline - Start (in arc A): curvature should be positive (turning left)
   const double curvature_start = dut_->GetCurvature({kSStart, kRCenterline, kH});
   EXPECT_GT(curvature_start, 0.);
 
-  // At centerline - Half (in arc C): curvature should be positive
+  // At centerline - Half (in arc C): curvature should be negative (turning right)
   const double curvature_half = dut_->GetCurvature({kSHalf, kRCenterline, kH});
-  EXPECT_GT(curvature_half, 0.);
+  EXPECT_LT(curvature_half, 0.);
 
-  // At centerline - End (in arc C): curvature should be positive
+  // At centerline - End (in arc C): curvature should be negative (turning right)
   const double curvature_end = dut_->GetCurvature({kSEnd, kRCenterline, kH});
-  EXPECT_GT(curvature_end, 0.);
+  EXPECT_LT(curvature_end, 0.);
 
-  // Curvature at different lateral offsets should also be positive
+  // Verify the curvatures have opposite signs in the two arcs (left turn vs right turn)
+  EXPECT_LT(curvature_start * curvature_half, 0.);  // Product negative means different signs
+
+  // Curvature at different lateral offsets in arc A (left turn) should be positive
   EXPECT_GT(dut_->GetCurvature({kSStart, kRLeft, kH}), 0.);
   EXPECT_GT(dut_->GetCurvature({kSStart, kRRight, kH}), 0.);
-  EXPECT_GT(dut_->GetCurvature({kSEnd, kRLeft, kH}), 0.);
-  EXPECT_GT(dut_->GetCurvature({kSEnd, kRRight, kH}), 0.);
+
+  // Curvature at different lateral offsets in arc C (right turn) should be negative
+  EXPECT_LT(dut_->GetCurvature({kSEnd, kRLeft, kH}), 0.);
+  EXPECT_LT(dut_->GetCurvature({kSEnd, kRRight, kH}), 0.);
 }
 
 TEST_F(MalidriveFlatSLaneFullyInitializedTest, EvalMotionDerivatives) {
@@ -1897,16 +1912,21 @@ TEST_P(MalidriveArcLaneWithElevationFullyInitializedTest, GetCurvature) {
   // - Curvature from the arc geometry
   // - Additional curvature from elevation profile changes
   //
-  // We verify that curvature is always positive for arcs.
+  // Sign convention:
+  //   - Positive curvature: turning left (counter-clockwise when viewed from above)
+  //   - Negative curvature: turning right (clockwise when viewed from above)
+  //
+  // Since kCurvature = -0.025 (negative), this arc turns right, so the signed curvature
+  // should be negative (dominated by the horizontal turn direction).
 
-  // Curvature should be positive at all positions
-  EXPECT_GT(dut_->GetCurvature({kSStart, kRCenterline, kZeroH}), 0.);
-  EXPECT_GT(dut_->GetCurvature({kSHalf, kRCenterline, kZeroH}), 0.);
-  EXPECT_GT(dut_->GetCurvature({kSEnd, kRCenterline, kZeroH}), 0.);
+  // Curvature should be negative at all positions (turning right)
+  EXPECT_LT(dut_->GetCurvature({kSStart, kRCenterline, kZeroH}), 0.);
+  EXPECT_LT(dut_->GetCurvature({kSHalf, kRCenterline, kZeroH}), 0.);
+  EXPECT_LT(dut_->GetCurvature({kSEnd, kRCenterline, kZeroH}), 0.);
 
-  // Curvature at lateral offsets should also be positive
-  EXPECT_GT(dut_->GetCurvature({kSHalf, kRLeft, kZeroH}), 0.);
-  EXPECT_GT(dut_->GetCurvature({kSHalf, kRRight, kZeroH}), 0.);
+  // Curvature at lateral offsets should also be negative (same turn direction)
+  EXPECT_LT(dut_->GetCurvature({kSHalf, kRLeft, kZeroH}), 0.);
+  EXPECT_LT(dut_->GetCurvature({kSHalf, kRRight, kZeroH}), 0.);
 }
 
 // TODO(francocipollone): Add tests for GetOrientation method.
@@ -2268,19 +2288,27 @@ TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, GetOrientation) 
 }
 
 TEST_P(MalidriveLineLaneWithSuperelevationFullyInitializedTest, GetCurvature) {
-  // GetCurvature computes 3D path curvature using finite differences on the tangent vector.
+  // GetCurvature computes signed 3D path curvature using finite differences on the tangent vector.
   // For a straight line with superelevation:
   // - The 3D curvature accounts for the twisting road surface
   // - For constant superelevation, the 3D curvature is zero everywhere
   // - For changing superelevation, paths at r ≠ 0 may have non-zero curvature
+  // - The sign depends on the direction of the twist (superelevation rate)
   //
-  // We verify that curvature is always non-negative.
+  // Verify that curvature values are computed (finite and reasonable).
+  // The values can be positive or negative depending on the geometry.
+  const double curvature_start = dut_->GetCurvature({s_start, kRCenterline, kZeroH});
+  const double curvature_half = dut_->GetCurvature({s_half, kRCenterline, kZeroH});
+  const double curvature_end = dut_->GetCurvature({s_end, kRCenterline, kZeroH});
+  const double curvature_left = dut_->GetCurvature({s_half, kRLeft, kZeroH});
+  const double curvature_right = dut_->GetCurvature({s_half, kRRight, kZeroH});
 
-  EXPECT_GE(dut_->GetCurvature({s_start, kRCenterline, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({s_half, kRCenterline, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({s_end, kRCenterline, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({s_half, kRLeft, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({s_half, kRRight, kZeroH}), 0.);
+  // All curvature values should be finite.
+  EXPECT_TRUE(std::isfinite(curvature_start));
+  EXPECT_TRUE(std::isfinite(curvature_half));
+  EXPECT_TRUE(std::isfinite(curvature_end));
+  EXPECT_TRUE(std::isfinite(curvature_left));
+  EXPECT_TRUE(std::isfinite(curvature_right));
 }
 
 // TODO(malidrive#536): Improve these tests by computing with another method
