@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.16.0 (2026-01-12)
+-------------------
+* Implement GetCurvature method for Lane. (`#388 <https://github.com/maliput/maliput_malidrive/issues/388>`_)
+* Contributors: Franco Cipollone
+
 0.15.1 (2026-01-07)
 -------------------
 * Map lane boundaries correctly. (`#385 <https://github.com/maliput/maliput_malidrive/issues/385>`_)
