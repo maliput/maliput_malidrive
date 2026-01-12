@@ -314,8 +314,8 @@ double Lane::DoGetCurvature(const maliput::api::LanePosition& lane_pos) const {
   //   3. For lanes shorter than linear_tolerance, curvature is geometrically ill-defined anyway.
   // The threshold of delta/10 ensures we have at least 10% of the intended step size for a meaningful result.
   if (dp < delta / 10.0) {
-    maliput::log()->debug(
-        "Lane {} is too short to compute reliable curvature at s = {}. Returning curvature = 0.0.", id().string(), s);
+    maliput::log()->debug("Lane {} is too short to compute reliable curvature at s = {}. Returning curvature = 0.0.",
+                          id().string(), s);
     return 0.0;
   }
 
