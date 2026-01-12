@@ -53,7 +53,7 @@ std::optional<object::Orientation> AttributeParser::As(const std::string& attrib
 template <>
 std::optional<object::Object::ObjectType> AttributeParser::As(const std::string& attribute_name) const {
   const std::optional<std::string> type = As<std::string>(attribute_name);
-  // Special check given for some parsets
+  // Special check for some parsers
   if (type.has_value()) {
     if (parser_configuration_.allow_schema_errors && type.value() == "-1") {
       return std::optional<object::Object::ObjectType>(object::Object::ObjectType::kNone);
