@@ -252,4 +252,4 @@ endmacro()
 ##############################################################################
 
 add_subdirectory(integration)
-# add_subdirectory(regression)
+add_subdirectory(regression)
