@@ -51,7 +51,7 @@ GTEST_TEST(Signal, EqualityOperator) {
       std::make_optional("signal_country_revision") /* country_revision */,
       "signal_type" /* type */,
       "signal_subtype" /* subtype */,
-      std::make_optional(SignalValue{1.0, "signal_unit"}) /* value */,
+      std::make_optional(Signal::Value{1.0, "signal_unit"}) /* value */,
       std::make_optional(1.0) /* height */,
       std::make_optional(1.0) /* width */,
       std::make_optional(1.0) /* h_offset */,
@@ -67,10 +67,10 @@ GTEST_TEST(Signal, EqualityOperator) {
   EXPECT_NE(kSignal, signal);
 }
 
-GTEST_TEST(SignalValue, EqualityOperator) {
-  const SignalValue kSignalValue{40.0, "km/h"};
+GTEST_TEST(Value, EqualityOperator) {
+  const Signal::Value kSignalValue{40.0, "km/h"};
 
-  SignalValue signal_value = kSignalValue;
+  Signal::Value signal_value = kSignalValue;
   EXPECT_EQ(kSignalValue, signal_value);
   signal_value.value = 60.0;
   EXPECT_NE(kSignalValue, signal_value);
