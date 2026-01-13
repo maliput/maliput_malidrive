@@ -54,6 +54,8 @@
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
+#include "maliput_malidrive/xodr/signal.h"
+#include "maliput_malidrive/xodr/signals.h"
 #include "maliput_malidrive/xodr/unit.h"
 
 namespace malidrive {
@@ -1234,6 +1236,77 @@ PlanView NodeParser::As() const {
   return {geometries};
 }
 
+// Specialization to parse `Signal`'s node.
+template <>
+Signal NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+  // Non-optional attributes.
+  // @{
+  const double s = ValidateDouble(attribute_parser.As<double>(Signal::kS), kDontAllowNan);
+  MALIDRIVE_THROW_UNLESS(s >= 0.0, maliput::common::road_network_description_parser_error);
+  const double t = ValidateDouble(attribute_parser.As<double>(Signal::kT), kDontAllowNan);
+  const auto id = attribute_parser.As<std::string>(Signal::kId);
+  MALIDRIVE_THROW_UNLESS(id != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto dynamic_str = attribute_parser.As<std::string>(Signal::kDynamic);
+  MALIDRIVE_THROW_UNLESS(dynamic_str != std::nullopt, maliput::common::road_network_description_parser_error);
+  const bool dynamic = dynamic_str.value() != "no";
+  const auto orientation = attribute_parser.As<std::string>(Signal::kOrientation);
+  MALIDRIVE_THROW_UNLESS(orientation != std::nullopt, maliput::common::road_network_description_parser_error);
+  const double z_offset = ValidateDouble(attribute_parser.As<double>(Signal::kZOffset), kDontAllowNan);
+  const auto type = attribute_parser.As<std::string>(Signal::kType);
+  MALIDRIVE_THROW_UNLESS(type != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto subtype = attribute_parser.As<std::string>(Signal::kSubtype);
+  MALIDRIVE_THROW_UNLESS(subtype != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  // Optional attributes.
+  // @{
+  const auto name = attribute_parser.As<std::string>(Signal::kName);
+  const auto country = attribute_parser.As<std::string>(Signal::kCountry);
+  const auto country_revision = attribute_parser.As<std::string>(Signal::kCountryRevision);
+  const auto value_value = attribute_parser.As<double>(Signal::kValue);
+  const auto value_unit = attribute_parser.As<std::string>(Signal::kUnit);
+  if (value_value.has_value() && !value_unit.has_value()) {
+    MALIDRIVE_THROW_MESSAGE(
+        "Signal with id '" + id.value() + "' has 'value' attribute but is missing the 'unit' attribute.",
+        maliput::common::road_network_description_parser_error);
+  }
+  const std::optional<Signal::Value> value =
+      (value_value.has_value() && value_unit.has_value())
+          ? std::make_optional<Signal::Value>(Signal::Value{value_value.value(), value_unit.value()})
+          : std::nullopt;
+  const auto height = attribute_parser.As<double>(Signal::kHeight);
+  const auto width = attribute_parser.As<double>(Signal::kWidth);
+  const auto h_offset = attribute_parser.As<double>(Signal::kHOffset);
+  const auto length = attribute_parser.As<double>(Signal::kLength);
+  const auto pitch = attribute_parser.As<double>(Signal::kPitch);
+  const auto roll = attribute_parser.As<double>(Signal::kRoll);
+  const auto text = attribute_parser.As<std::string>(Signal::kText);
+  // @}
+
+  return {s,        t,       id.value(),       name,         dynamic,         orientation.value(),
+          z_offset, country, country_revision, type.value(), subtype.value(), value,
+          height,   width,   h_offset,         length,       pitch,           roll,
+          text};
+}
+
+// Specialization to parse `Signals`'s node.
+template <>
+Signals NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Signal elements.
+  tinyxml2::XMLElement* signals_element_xml = element_->FirstChildElement(Signal::kSignalTag);
+  std::vector<Signal> signals;
+  while (signals_element_xml) {
+    auto signal = NodeParser(signals_element_xml, parser_configuration_).As<Signal>();
+    signals.push_back(signal);
+    signals_element_xml = signals_element_xml->NextSiblingElement(Signal::kSignalTag);
+  }
+
+  return {signals};
+}
+
 // Specialization to parse `Road`'s node.
 template <>
 RoadHeader NodeParser::As() const {
@@ -1315,6 +1388,15 @@ RoadHeader NodeParser::As() const {
   tinyxml2::XMLElement* objects_element(element_->FirstChildElement(object::Objects::kObjectsTag));
   if (objects_element) {
     road_header.objects = NodeParser(objects_element, parser_configuration_).As<object::Objects>();
+  }
+  // @}
+
+  // Get Signals.
+  // @{
+  MALIDRIVE_TRACE("Parsing Signals.");
+  tinyxml2::XMLElement* signals_elements(element_->FirstChildElement(Signals::kSignalsTag));
+  if (signals_elements) {
+    road_header.signals = NodeParser(signals_elements, parser_configuration_).As<Signals>();
   }
   // @}
 

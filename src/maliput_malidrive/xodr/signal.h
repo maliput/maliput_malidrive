@@ -94,7 +94,11 @@ struct Signal {
   static constexpr const char* kUnit = "unit";
   static constexpr const char* kHeight = "height";
   static constexpr const char* kWidth = "width";
-  static constexpr const char* khOffset = "hOffset";
+  static constexpr const char* kHOffset = "hOffset";
+  static constexpr const char* kLength = "length";
+  static constexpr const char* kPitch = "pitch";
+  static constexpr const char* kRoll = "roll";
+  static constexpr const char* kText = "text";
 
   /// Equality operator.
   bool operator==(const Signal& other) const;
