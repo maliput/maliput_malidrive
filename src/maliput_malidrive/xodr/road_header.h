@@ -41,6 +41,7 @@
 #include "maliput_malidrive/xodr/reference_geometry.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
+#include "maliput_malidrive/xodr/signals.h"
 
 namespace malidrive {
 namespace xodr {
@@ -184,6 +185,8 @@ struct RoadHeader {
   Lanes lanes{};
   /// Holds the road's objects.
   std::optional<object::Objects> objects{};
+  /// Holds the road's signals.
+  Signals signals{};
 };
 
 /// Streams a string representation of @p road_header into @p out. Returns

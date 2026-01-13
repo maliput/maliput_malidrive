@@ -134,7 +134,7 @@ double RoadHeader::s1() const {
 bool RoadHeader::operator==(const RoadHeader& other) const {
   return name == other.name && length == other.length && id == other.id && junction == other.junction &&
          rule == other.rule && road_link == other.road_link && road_types == other.road_types &&
-         reference_geometry == other.reference_geometry && lanes == other.lanes;
+         reference_geometry == other.reference_geometry && lanes == other.lanes && signals == other.signals;
 }
 
 bool RoadHeader::operator!=(const RoadHeader& other) const { return !(*this == other); }
