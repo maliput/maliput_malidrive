@@ -35,20 +35,6 @@
 namespace malidrive {
 namespace xodr {
 
-/// Holds the value and unit of a XODR Signal.
-/// If @value is given, @unit is mandatory.
-struct SignalValue {
-  /// Equality operator.
-  bool operator==(const SignalValue& other) const { return value == other.value && unit == other.unit; }
-  /// Inequality operator.
-  bool operator!=(const SignalValue& other) const { return !(*this == other); }
-
-  /// Value of the signal.
-  double value{};
-  /// Unit of @value.
-  std::string unit{};
-};
-
 /// Holds the values of a XODR Signal Offset.
 /// For example, a XML node describing a XODR's signal offset:
 /// @code{.xml}
@@ -77,6 +63,20 @@ struct SignalValue {
 ///   </OpenDRIVE>
 /// @endcode
 struct Signal {
+  /// Holds the value and unit of a XODR Signal.
+  /// If @value is given, @unit is mandatory.
+  struct Value {
+    /// Equality operator.
+    bool operator==(const Value& other) const { return value == other.value && unit == other.unit; }
+    /// Inequality operator.
+    bool operator!=(const Value& other) const { return !(*this == other); }
+
+    /// Value of the signal.
+    double value{};
+    /// Unit of @value.
+    std::string unit{};
+  };
+
   /// Convenient constants that hold the tag names in the XODR signal description.
   static constexpr const char* kSignalTag = "signal";
   static constexpr const char* kS = "s";
@@ -137,7 +137,7 @@ struct Signal {
   std::string subtype{};
 
   /// Value of the signal, if value is given, unit is mandatory.
-  std::optional<SignalValue> value{std::nullopt};
+  std::optional<Value> value{std::nullopt};
 
   /// Height of the signal, measured from bottom edge of the signal.
   std::optional<double> height{std::nullopt};
