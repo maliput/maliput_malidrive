@@ -40,7 +40,7 @@ namespace {
 
 GTEST_TEST(Border, EqualityOperator) {
   const Border kBorder{
-      .outline_id = 1,
+      .outline_id = object::Border::Id("test"),
       .type = Border::Type::kConcrete,
       .use_complete_outline = true,
       .width = 2.,
@@ -49,9 +49,9 @@ GTEST_TEST(Border, EqualityOperator) {
 
   EXPECT_EQ(kBorder, border);
   // Test inequality
-  border.outline_id = 2;
+  border.outline_id = object::Border::Id("test2");
   EXPECT_NE(kBorder, border);
-  border.outline_id = 1;
+  border.outline_id = object::Border::Id("test");
   border.type = Border::Type::kCurb;
   EXPECT_NE(kBorder, border);
   border.type = Border::Type::kConcrete;
@@ -67,7 +67,7 @@ GTEST_TEST(Borders, EqualityOperator) {
       .borders =
           {
               {
-                  .outline_id = 1,
+                  .outline_id = object::Border::Id("test"),
                   .type = Border::Type::kConcrete,
                   .use_complete_outline = true,
                   .width = 2.,

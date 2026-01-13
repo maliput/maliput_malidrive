@@ -39,12 +39,12 @@ namespace test {
 namespace {
 
 GTEST_TEST(CornerRoad, EqualityOperator) {
-  const CornerReference kCornerReference{1};
+  const CornerReference kCornerReference{object::CornerReference::Id("test")};
   CornerReference corner_reference = kCornerReference;
 
   EXPECT_EQ(kCornerReference, corner_reference);
   // Test inequality
-  corner_reference.id = 2;
+  corner_reference.id = object::CornerReference::Id("test2");
   EXPECT_NE(kCornerReference, corner_reference);
 }
 

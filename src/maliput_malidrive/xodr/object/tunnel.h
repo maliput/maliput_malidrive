@@ -31,6 +31,9 @@
 
 #include <optional>
 #include <string>
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/object/validity.h"
@@ -41,6 +44,9 @@ namespace object {
 
 /// Holds the values of a XODR Object tunnel element.
 struct Tunnel {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Tunnel>;
+
   /// Convenient constants that hold the tag names in the XODR element attributes description.
   static constexpr const char* kTunnelTag = "tunnel";
   static constexpr const char* kDayLight = "daylight";
@@ -59,7 +65,7 @@ struct Tunnel {
   /// Degree of daylight intruding the tunnel. Depends on the application.
   std::optional<double> daylight{std::nullopt};
   /// Unique ID within database.
-  std::string id;
+  Id id{"none"};
   /// Length of the tunnel (in s-direction).
   double length;
   /// Degree of artificial tunnel lighting. Depends on the application.
@@ -72,7 +78,7 @@ struct Tunnel {
   Type type;
 
   /// Lane validities restrict signals and objects to specific lanes.
-  std::optional<Validity> validity{std::nullopt};
+  std::vector<Validity> validities{};
 
   /// Matches string with a Type.
   /// @param type Is a Type.

@@ -139,8 +139,14 @@ cc_library(
 
 cc_library(
     name = "xodr",
-    srcs = glob(["src/maliput_malidrive/xodr/*.cc"]),
-    hdrs = glob(["src/maliput_malidrive/xodr/*.h"]),
+    srcs = glob([
+        "src/maliput_malidrive/xodr/*.cc",
+        "src/maliput_malidrive/xodr/object/*.cc",
+    ]),
+    hdrs = glob([
+        "src/maliput_malidrive/xodr/*.h",
+        "src/maliput_malidrive/xodr/object/*.h",
+    ]),
     strip_include_prefix = "src",
     copts = COPTS,
     visibility = ["//visibility:public"],

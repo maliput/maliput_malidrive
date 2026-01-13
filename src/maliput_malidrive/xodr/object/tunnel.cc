@@ -56,7 +56,7 @@ Tunnel::Type Tunnel::str_to_type(const std::string& type) {
 
 bool Tunnel::operator==(const Tunnel& other) const {
   return daylight == other.daylight && id == other.id && length == other.length && lighting == other.lighting &&
-         name == other.name && s == other.s && type == other.type && validity == other.validity;
+         name == other.name && s == other.s && type == other.type && validities == other.validities;
 }
 
 bool Tunnel::operator!=(const Tunnel& other) const { return !(*this == other); }

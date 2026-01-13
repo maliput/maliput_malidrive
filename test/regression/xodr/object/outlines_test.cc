@@ -39,7 +39,8 @@ namespace test {
 namespace {
 
 GTEST_TEST(Outlines, EqualityOperator) {
-  const Outline kOutline{false, Outline::FillType::kCobble, 1, Lane::Type::kNone, false, {}, {}};
+  const Outline kOutline{false, Outline::FillType::kCobble, object::Outline::Id("test"), Lane::Type::kNone, false, {},
+                         {}};
   const Outlines kOutlines{{kOutline}};
 
   Outlines outlines = kOutlines;
@@ -52,9 +53,9 @@ GTEST_TEST(Outlines, EqualityOperator) {
   outlines.outlines[0].fill_type = Outline::FillType::kConcrete;
   EXPECT_NE(kOutlines, outlines);
   outlines.outlines[0].fill_type = Outline::FillType::kCobble;
-  outlines.outlines[0].id = 2;
+  outlines.outlines[0].id = object::Outline::Id("test2");
   EXPECT_NE(kOutlines, outlines);
-  outlines.outlines[0].id = 1;
+  outlines.outlines[0].id = object::Outline::Id("test");
   outlines.outlines[0].lane_type = Lane::Type::kDriving;
   EXPECT_NE(kOutlines, outlines);
   outlines.outlines[0].lane_type = Lane::Type::kNone;
@@ -63,7 +64,7 @@ GTEST_TEST(Outlines, EqualityOperator) {
 }
 
 GTEST_TEST(Outlines_CornerLocal, EqualityOperator) {
-  const CornerLocal kCornerLocal{1., 2, 3., 4., 5.};
+  const CornerLocal kCornerLocal{1., object::CornerLocal::Id("test"), 3., 4., 5.};
   CornerLocal corner_local = kCornerLocal;
 
   EXPECT_EQ(kCornerLocal, corner_local);
@@ -71,9 +72,9 @@ GTEST_TEST(Outlines_CornerLocal, EqualityOperator) {
   corner_local.height = 2.;
   EXPECT_NE(kCornerLocal, corner_local);
   corner_local.height = 1.;
-  corner_local.id = 3;
+  corner_local.id = object::CornerLocal::Id("test2");
   EXPECT_NE(kCornerLocal, corner_local);
-  corner_local.id = 2;
+  corner_local.id = object::CornerLocal::Id("test");
   corner_local.u = 4.;
   EXPECT_NE(kCornerLocal, corner_local);
   corner_local.u = 3.;
@@ -85,7 +86,7 @@ GTEST_TEST(Outlines_CornerLocal, EqualityOperator) {
 }
 
 GTEST_TEST(Outlines_CornerRoad, EqualityOperator) {
-  const CornerRoad kCornerRoad{1., 2., 3, 4., 5.};
+  const CornerRoad kCornerRoad{1., 2., object::CornerRoad::Id("test"), 4., 5.};
   CornerRoad corner_road = kCornerRoad;
 
   EXPECT_EQ(kCornerRoad, corner_road);
@@ -96,9 +97,9 @@ GTEST_TEST(Outlines_CornerRoad, EqualityOperator) {
   corner_road.height = 3.;
   EXPECT_NE(kCornerRoad, corner_road);
   corner_road.height = 2.;
-  corner_road.id = 4;
+  corner_road.id = object::CornerRoad::Id("test2");
   EXPECT_NE(kCornerRoad, corner_road);
-  corner_road.id = 3;
+  corner_road.id = object::CornerRoad::Id("test");
   corner_road.s = 5.;
   EXPECT_NE(kCornerRoad, corner_road);
   corner_road.s = 4.;

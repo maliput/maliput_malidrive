@@ -31,6 +31,9 @@
 
 #include <optional>
 #include <string>
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/object/validity.h"
@@ -41,6 +44,9 @@ namespace object {
 
 /// Holds the values of a XODR Object bridge element.
 struct Bridge {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Bridge>;
+
   /// Convenient constants that hold the tag names in the XODR element attributes description.
   static constexpr const char* kBridgeTag = "bridge";
   static constexpr const char* kId = "id";
@@ -57,7 +63,7 @@ struct Bridge {
   };
 
   /// Unique ID within database.
-  std::string id;
+  Id id{"none"};
   /// Length of the tunnel (in s-direction).
   double length;
   /// Name of the tunnel. May be chosen freely.
@@ -68,7 +74,7 @@ struct Bridge {
   Type type;
 
   /// Lane validities restrict signals and objects to specific lanes.
-  std::optional<Validity> validity{std::nullopt};
+  std::vector<Validity> validities{};
 
   /// Matches string with a Type.
   /// @param type Is a Type.

@@ -31,6 +31,9 @@
 
 #include <optional>
 #include <string>
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/object/common.h"
@@ -42,6 +45,9 @@ namespace object {
 
 /// Holds the values of a XODR Object objectReference element.
 struct ObjectReference {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct ObjectReference>;
+
   /// Convenient constants that hold the tag names in the XODR element attributes description.
   static constexpr const char* kObjectReferenceTag = "objectReference";
   static constexpr const char* kId = "id";
@@ -52,7 +58,7 @@ struct ObjectReference {
   static constexpr const char* kZOffset = "zOffset";
 
   /// Unique ID of the referred object within the database.
-  std::string id{};
+  Id id{"none"};
   /// Orientation.
   Orientation orientation{};
   /// m	s-coordinate.
@@ -65,7 +71,7 @@ struct ObjectReference {
   std::optional<double> z_offset{std::nullopt};
 
   /// Lane validities restrict signals and objects to specific lanes.
-  std::optional<Validity> validity{std::nullopt};
+  std::vector<Validity> validities{};
 
   bool operator==(const ObjectReference& other) const;
   bool operator!=(const ObjectReference& other) const;

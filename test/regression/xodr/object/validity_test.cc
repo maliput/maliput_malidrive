@@ -39,15 +39,15 @@ namespace test {
 namespace {
 
 GTEST_TEST(Validity, EqualityOperator) {
-  const Validity kValidity{1, 2};
+  const Validity kValidity{object::Validity::Id("test"), object::Validity::Id("test2")};
   Validity validity = kValidity;
 
   EXPECT_EQ(kValidity, validity);
   // Test inequality
-  validity.from_lane = 2;
+  validity.from_lane = object::Validity::Id("test2");
   EXPECT_NE(kValidity, validity);
-  validity.from_lane = 1;
-  validity.to_lane = 3;
+  validity.from_lane = object::Validity::Id("test");
+  validity.to_lane = object::Validity::Id("test3");
   EXPECT_NE(kValidity, validity);
 }
 

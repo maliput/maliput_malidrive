@@ -41,7 +41,7 @@ namespace {
 GTEST_TEST(Tunnel, EqualityOperator) {
   const Tunnel kTunnel{
       .daylight = 0.,
-      .id = "test",
+      .id = object::Tunnel::Id("test"),
       .length = 1.,
       .lighting = 2.,
       .name = "test2",
@@ -55,9 +55,9 @@ GTEST_TEST(Tunnel, EqualityOperator) {
   tunnel.daylight = 1.;
   EXPECT_NE(kTunnel, tunnel);
   tunnel.daylight = 0.;
-  tunnel.id = "test3";
+  tunnel.id = object::Tunnel::Id("test2");
   EXPECT_NE(kTunnel, tunnel);
-  tunnel.id = "test";
+  tunnel.id = object::Tunnel::Id("test");
   tunnel.length = 2.;
   EXPECT_NE(kTunnel, tunnel);
   tunnel.length = 1.;

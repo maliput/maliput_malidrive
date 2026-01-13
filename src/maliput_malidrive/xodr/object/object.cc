@@ -109,10 +109,22 @@ Object::ObjectType Object::str_to_object_type(const std::string& object_type) {
 }
 
 bool Object::operator==(const Object& other) const {
-  // TODO
+  return dynamic == other.dynamic && hdg == other.hdg && height == other.height && id == other.id &&
+         length == other.length && name == other.name && orientation == other.orientation &&
+         perp_to_road == other.perp_to_road && pitch == other.pitch && radius == other.radius && roll == other.roll &&
+         s == other.s && subtype == other.subtype && t == other.t && type == other.type &&
+         valid_length == other.valid_length && width == other.width && z_offset == other.z_offset &&
+         repeats == other.repeats && outlines == other.outlines && skeleton == other.skeleton &&
+         materials == other.materials && validities == other.validities && parking_space == other.parking_space &&
+         markings == other.markings && borders == other.borders && object_references == other.object_references &&
+         tunnels == other.tunnels && bridges == other.bridges && surface == other.surface;
 }
 
 bool Object::operator!=(const Object& other) const { return !(*this == other); }
+
+bool Objects::operator==(const Objects& other) const { return objects == other.objects; }
+
+bool Objects::operator!=(const Objects& other) const { return !(*this == other); }
 
 }  // namespace object
 }  // namespace xodr

@@ -39,7 +39,7 @@ namespace test {
 namespace {
 
 GTEST_TEST(VertexRoad, EqualityOperator) {
-  const VertexRoad kVertexRoad{1., 2, false, 3., 4., 5.};
+  const VertexRoad kVertexRoad{1., object::VertexRoad::Id("test"), false, 3., 4., 5.};
   VertexRoad vertex_road = kVertexRoad;
 
   EXPECT_EQ(kVertexRoad, vertex_road);
@@ -47,9 +47,9 @@ GTEST_TEST(VertexRoad, EqualityOperator) {
   vertex_road.dz = 2.;
   EXPECT_NE(kVertexRoad, vertex_road);
   vertex_road.dz = 1.;
-  vertex_road.id = 3;
+  vertex_road.id = object::VertexRoad::Id("test2");
   EXPECT_NE(kVertexRoad, vertex_road);
-  vertex_road.id = 2;
+  vertex_road.id = object::VertexRoad::Id("test");
   vertex_road.s = 5.;
   EXPECT_NE(kVertexRoad, vertex_road);
   vertex_road.s = 4.;
@@ -64,7 +64,7 @@ GTEST_TEST(VertexRoad, EqualityOperator) {
 }
 
 GTEST_TEST(VertexLocal, EqualityOperator) {
-  const VertexLocal kVertexLocal{1, false, 2., 3., 4., 5.};
+  const VertexLocal kVertexLocal{object::VertexLocal::Id("test"), false, 2., 3., 4., 5.};
 
   VertexLocal vertex_local = kVertexLocal;
 
@@ -85,17 +85,19 @@ GTEST_TEST(VertexLocal, EqualityOperator) {
   vertex_local.z = 4.;
   EXPECT_NE(kVertexLocal, vertex_local);
   vertex_local.z = 5.;
-  vertex_local.id = 6;
+  vertex_local.id = object::VertexLocal::Id("test2");
   EXPECT_NE(kVertexLocal, vertex_local);
 }
 
 GTEST_TEST(Polyline, EqualityOperator) {
-  const Polyline kPolyline{1, {{1., 2, false, 3., 4., 5.}}, {{1, false, 2., 3., 4., 5.}}};
+  const Polyline kPolyline{object::Polyline::Id("test"),
+                           {{1., object::VertexRoad::Id("test"), false, 3., 4., 5.}},
+                           {{object::VertexLocal::Id("test"), false, 2., 3., 4., 5.}}};
   Polyline polyline = kPolyline;
 
   EXPECT_EQ(kPolyline, polyline);
   // Test inequality
-  polyline.id = 2;
+  polyline.id = object::Polyline::Id("test2");
   EXPECT_NE(kPolyline, polyline);
 }
 
