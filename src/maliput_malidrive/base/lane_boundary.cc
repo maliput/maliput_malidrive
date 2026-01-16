@@ -64,7 +64,8 @@ LaneBoundary::LaneBoundary(const maliput::api::LaneBoundary::Id& id, const malip
                            const maliput::api::Lane* lane_to_left, const maliput::api::Lane* lane_to_right,
                            const Lane* reference_lane, const std::vector<xodr::LaneRoadMark>& road_marks,
                            double track_s_start, double track_s_end)
-    : id_(id),
+    : maliput::geometry_base::LaneBoundary(id),
+      id_(id),
       segment_(segment),
       index_(index),
       lane_to_left_(lane_to_left),

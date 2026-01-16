@@ -32,8 +32,8 @@
 #include <optional>
 #include <vector>
 
-#include <maliput/api/lane_boundary.h>
 #include <maliput/api/lane_marking.h>
+#include <maliput/geometry_base/lane_boundary.h>
 
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/common/macros.h"
@@ -50,7 +50,7 @@ namespace malidrive {
 /// This implementation converts XODR LaneRoadMark data to maliput's LaneMarking
 /// format, handling the mapping between OpenDRIVE's marking types, colors,
 /// weights, and lane change rules to the maliput equivalents.
-class LaneBoundary : public maliput::api::LaneBoundary {
+class LaneBoundary : public maliput::geometry_base::LaneBoundary {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(LaneBoundary)
 
