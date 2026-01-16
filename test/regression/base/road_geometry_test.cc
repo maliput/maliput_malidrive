@@ -1601,7 +1601,8 @@ class RoadGeometryGetLaneBoundaryByIdTest : public ::testing::TestWithParam<Lane
  protected:
   void SetUp() override {
     road_geometry_configuration_.id = maliput::api::RoadGeometryId("road_geometry");
-    road_geometry_configuration_.opendrive_file = utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder);
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder);
     road_network_ =
         ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
   }
