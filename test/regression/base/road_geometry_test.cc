@@ -1580,6 +1580,52 @@ TEST_F(ArcLaneGetCurvatureTest, CurvatureVariesWithLateralPosition) {
   EXPECT_GT(curvature_left, curvature_right);
 }
 
+// Holds the input and expected output for the GetLaneBoundaryById test.
+struct LaneBoundaryInfoParams {
+  std::string lane_id;
+  bool is_left_boundary;
+  std::string boundary_id;
+  int boundary_index;
+};
+
+std::vector<LaneBoundaryInfoParams> InstanciateLaneBoundaryParameters() {
+  return {
+      {"1_0_-1", false, "1_0_boundary_0", 0},
+      {"1_0_-1", true, "1_0_boundary_1", 1},
+      {"1_0_1", false, "1_0_boundary_1", 1},
+      {"1_0_1", true, "1_0_boundary_2", 2},
+  };
+}
+
+class RoadGeometryGetLaneBoundaryByIdTest : public ::testing::TestWithParam<LaneBoundaryInfoParams> {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("road_geometry");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_P(RoadGeometryGetLaneBoundaryByIdTest, GetLaneBoundaryById) {
+  const auto param = GetParam();
+  const auto* rg = road_network_->road_geometry();
+
+  // First check against the boundary from the segment.
+  const auto* result_boundary = rg->ById().GetLaneBoundary(maliput::api::LaneBoundary::Id(param.boundary_id));
+  EXPECT_EQ(rg->junction(0)->segment(0)->boundary(param.boundary_index), result_boundary);
+  // Then check against the boundary from the lane.
+  const auto* lane = rg->ById().GetLane(maliput::api::LaneId(param.lane_id));
+  const auto* boundary = param.is_left_boundary ? lane->left_boundary() : lane->right_boundary();
+  EXPECT_EQ(boundary, result_boundary);
+}
+
+INSTANTIATE_TEST_CASE_P(RoadGeometryGetLaneBoundaryByIdTestGroup, RoadGeometryGetLaneBoundaryByIdTest,
+                        ::testing::ValuesIn(InstanciateLaneBoundaryParameters()));
+
 }  // namespace
 }  // namespace tests
 }  // namespace malidrive

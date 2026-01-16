@@ -107,29 +107,7 @@ class Segment : public maliput::geometry_base::Segment {
     return raw_pointer;
   }
 
-  /// Adds a LaneBoundary to this segment.
-  ///
-  /// @param boundary The boundary to add. It must not be nullptr.
-  /// @returns The raw pointer to the added boundary.
-  ///
-  /// @throws maliput::common::assertion_error When @p boundary is nullptr.
-  LaneBoundary* AddBoundary(std::unique_ptr<LaneBoundary> boundary) {
-    MALIDRIVE_THROW_UNLESS(boundary != nullptr);
-    LaneBoundary* raw_pointer = boundary.get();
-    boundaries_.push_back(std::move(boundary));
-    return raw_pointer;
-  }
-
  private:
-  const maliput::api::LaneBoundary* do_boundary(int index) const override {
-    if (index < 0 || index >= static_cast<int>(boundaries_.size())) {
-      return nullptr;
-    }
-    return boundaries_[index].get();
-  }
-
-  int do_num_boundaries() const override { return static_cast<int>(boundaries_.size()); }
-
   const road_curve::RoadCurve* road_curve_;
   const road_curve::Function* reference_line_offset_;
   const double p0_{};
@@ -137,8 +115,6 @@ class Segment : public maliput::geometry_base::Segment {
   // When RoadCurveConfiguration::omit_nondriveable_lanes is true the non-drivable lanes should be omitted
   // but their creation is neccesary to be consistent with other lanes.
   std::vector<std::unique_ptr<Lane>> hidden_lanes_;
-  // Lane boundaries for this segment.
-  std::vector<std::unique_ptr<LaneBoundary>> boundaries_;
 };
 
 }  // namespace malidrive
