@@ -2,6 +2,12 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.17.0 (2026-01-19)
+-------------------
+* Migrate behavior to maliput::geometry_base. (`#391 <https://github.com/maliput/maliput_malidrive/issues/391>`_)
+* XODR Object parsing. (`#387 <https://github.com/maliput/maliput_malidrive/issues/387>`_)
+* Contributors: Juan Carosella, Santiago Lopez
+
 0.16.0 (2026-01-12)
 -------------------
 * Implement GetCurvature method for Lane. (`#388 <https://github.com/maliput/maliput_malidrive/issues/388>`_)
