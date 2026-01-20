@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.17.2 (2026-01-20)
+-------------------
+* Fixing object xodr bool parsing (`#396 <https://github.com/maliput/maliput_malidrive/issues/396>`_)
+* Contributors: Juan Carosella
+
 0.17.1 (2026-01-20)
 -------------------
 * Add BCR maintainers. (`#393 <https://github.com/maliput/maliput_malidrive/issues/393>`_)
