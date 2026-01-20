@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.17.1 (2026-01-20)
+-------------------
+* Add BCR maintainers. (`#393 <https://github.com/maliput/maliput_malidrive/issues/393>`_)
+* Contributors: Santiago Lopez
+
 0.17.0 (2026-01-19)
 -------------------
 * Migrate behavior to maliput::geometry_base. (`#391 <https://github.com/maliput/maliput_malidrive/issues/391>`_)
