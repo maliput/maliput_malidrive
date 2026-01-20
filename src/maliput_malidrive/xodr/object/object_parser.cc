@@ -247,7 +247,7 @@ object::Outline NodeParser::As() const {
 
   // Optional attributes.
   // @{
-  const auto dynamic = attribute_parser.As<bool>(object::Outline::kClosed);
+  const auto closed = attribute_parser.As<bool>(object::Outline::kClosed);
   const auto fill_type = attribute_parser.As<object::Outline::FillType>(object::Outline::kFillType);
   const auto id = attribute_parser.As<std::string>(object::Outline::kId);
   const auto lane_type = attribute_parser.As<Lane::Type>(object::Outline::kLaneType);
@@ -272,7 +272,7 @@ object::Outline NodeParser::As() const {
     corner_local_element_xml = corner_local_element_xml->NextSiblingElement(object::CornerLocal::kCornerLocalTag);
   }
 
-  return {dynamic, fill_type, object::Outline::Id(id.value_or("none")), lane_type, outer, corner_roads, corner_locals};
+  return {closed, fill_type, object::Outline::Id(id.value_or("none")), lane_type, outer, corner_roads, corner_locals};
 }
 
 // Specialization to parse `object::Outlines`'s node.

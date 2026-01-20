@@ -199,16 +199,18 @@ std::optional<std::string> AttributeParser::As(const std::string& attribute_name
 template <>
 std::optional<bool> AttributeParser::As(const std::string& attribute_name) const {
   const std::string kTrueStr = "true";
+  const std::string kTrueYes = "yes";
   const std::string kTrueNum = "1";
   const std::string kFalseStr = "false";
+  const std::string kFalseNo = "no";
   const std::string kFalseNum = "0";
   const char* attribute_as_str_ptr = element_->Attribute(attribute_name.c_str());
   if (attribute_as_str_ptr == nullptr) return std::nullopt;
   const std::string attribute_value = static_cast<std::string>(attribute_as_str_ptr);
   MALIDRIVE_THROW_UNLESS(attribute_value == kTrueStr || attribute_value == kTrueNum || attribute_value == kFalseStr ||
-                             attribute_value == kFalseNum,
+                             attribute_value == kFalseNum || attribute_value == kFalseNo || attribute_value == kTrueYes,
                          maliput::common::road_network_description_parser_error);
-  return attribute_value == kTrueStr || attribute_value == kTrueNum;
+  return attribute_value == kTrueStr || attribute_value == kTrueNum || attribute_value == kTrueYes;
 }
 
 // Specialization to parse as `Lane::Type` the attribute's value.

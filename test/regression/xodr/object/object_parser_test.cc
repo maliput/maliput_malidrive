@@ -85,7 +85,8 @@ std::string GetBasicObject() {
         height="6."
         hdg="7."
         pitch="8."
-        roll="9.">
+        roll="9."
+        dynamic="yes">
 </object>)R";
   ss << "</root>";
   return ss.str();
@@ -243,7 +244,7 @@ std::string GetSurface() {
 // Tests `object::Object` parsing.
 TEST_F(ObjectParsingTests, NodeParserObject) {
   const object::Object kExpectedObject{
-      std::nullopt,                           // dynamic
+      true,                                   // dynamic
       7.,                                     // hdg
       6.,                                     // height
       object::Object::Id("0"),                // id
