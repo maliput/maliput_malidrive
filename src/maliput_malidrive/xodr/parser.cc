@@ -1247,9 +1247,8 @@ Signal NodeParser::As() const {
   const double t = ValidateDouble(attribute_parser.As<double>(Signal::kT), kDontAllowNan);
   const auto id = attribute_parser.As<std::string>(Signal::kId);
   MALIDRIVE_THROW_UNLESS(id != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto dynamic_str = attribute_parser.As<std::string>(Signal::kDynamic);
-  MALIDRIVE_THROW_UNLESS(dynamic_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  const bool dynamic = dynamic_str.value() != "no";
+  const auto dynamic = attribute_parser.As<bool>(Signal::kDynamic);
+  MALIDRIVE_THROW_UNLESS(dynamic != std::nullopt, maliput::common::road_network_description_parser_error);
   const auto orientation = attribute_parser.As<std::string>(Signal::kOrientation);
   MALIDRIVE_THROW_UNLESS(orientation != std::nullopt, maliput::common::road_network_description_parser_error);
   const double z_offset = ValidateDouble(attribute_parser.As<double>(Signal::kZOffset), kDontAllowNan);
@@ -1284,7 +1283,7 @@ Signal NodeParser::As() const {
   const auto text = attribute_parser.As<std::string>(Signal::kText);
   // @}
 
-  return {s,        t,       id.value(),       name,         dynamic,         orientation.value(),
+  return {s,        t,       id.value(),       name,         dynamic.value(), orientation.value(),
           z_offset, country, country_revision, type.value(), subtype.value(), value,
           height,   width,   h_offset,         length,       pitch,           roll,
           text};
