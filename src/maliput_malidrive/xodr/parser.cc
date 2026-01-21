@@ -1266,7 +1266,7 @@ Signal NodeParser::As() const {
   const auto country_revision = attribute_parser.As<std::string>(Signal::kCountryRevision);
   const auto value_value = attribute_parser.As<double>(Signal::kValue);
   const auto value_unit = attribute_parser.As<std::string>(Signal::kUnit);
-  if (value_value.has_value() && !value_unit.has_value()) {
+  if (value_value.has_value() && !value_unit.has_value() && !parser_configuration_.allow_schema_errors) {
     MALIDRIVE_THROW_MESSAGE(
         "Signal with id '" + id.value() + "' has 'value' attribute but is missing the 'unit' attribute.",
         maliput::common::road_network_description_parser_error);
