@@ -79,6 +79,12 @@ GTEST_TEST(Value, EqualityOperator) {
   EXPECT_NE(kSignalValue, signal_value);
 }
 
+GTEST_TEST(Value, EqualityOperatorEmptyUnit) {
+  const Signal::Value kSignalValue{40.0, {}};
+  Signal::Value signal_value = kSignalValue;
+  EXPECT_EQ(kSignalValue, signal_value);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace xodr

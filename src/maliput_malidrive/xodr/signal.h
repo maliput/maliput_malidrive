@@ -56,7 +56,11 @@ namespace xodr {
 ///                   unit="km/h"
 ///                   height="0.77"
 ///                   width="0.77"
-///                   hOffset="5.7595865">
+///                   hOffset="5.7595865"
+///                   length="1.50"
+///                   pitch="0.77"
+///                   roll="0.77"
+///                   text="custom signal text">
 ///           </signal>
 ///       </signals>
 ///       ...
@@ -66,6 +70,8 @@ struct Signal {
   /// Holds the value and unit of a XODR Signal.
   /// If @value is given, @unit is mandatory.
   struct Value {
+    static constexpr const char* kValue = "value";
+    static constexpr const char* kUnit = "unit";
     /// Equality operator.
     bool operator==(const Value& other) const { return value == other.value && unit == other.unit; }
     /// Inequality operator.
@@ -91,7 +97,6 @@ struct Signal {
   static constexpr const char* kType = "type";
   static constexpr const char* kSubtype = "subtype";
   static constexpr const char* kValue = "value";
-  static constexpr const char* kUnit = "unit";
   static constexpr const char* kHeight = "height";
   static constexpr const char* kWidth = "width";
   static constexpr const char* kHOffset = "hOffset";

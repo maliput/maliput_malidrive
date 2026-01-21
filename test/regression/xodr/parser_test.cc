@@ -1677,6 +1677,146 @@ TEST_F(ParsingTests, NodeParserRoadHeader) {
   EXPECT_EQ(kExpectedRoadHeader, dut.As<RoadHeader>());
 }
 
+// Get a XML description that contains a XODR Signals.
+// @returns A string that contains a XML description of a XODR Signals.
+std::string GetSignals() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(
+      <signals>
+          <signal s="100.10"
+              t="-1.5"
+              id="12345"
+              name="Test Signal"
+              dynamic="no"
+              orientation="+"
+              zOffset="2.22"
+              country="DE"
+              countryRevision="2017"
+              type="274"
+              subtype="100"
+              value="100"
+              unit="km/h"
+              height="0.5"
+              width="1.0"
+              hOffset="0.5"
+              length="1.5"
+              pitch="0.1"
+              roll="0.2"
+              text="Sample Text">
+          </signal>
+      </signals>
+  )R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(ParsingTests, NodeParserSignals) {
+  const Signal kExpectedSignal{
+      100.10 /* s */,
+      -1.5 /* t */,
+      "12345" /* id */,
+      "Test Signal" /* name */,
+      false /* dynamic */,
+      "+" /* orientation */,
+      2.22 /* z_offset */,
+      "DE" /* country */,
+      "2017" /* country_revision */,
+      "274" /* type */,
+      "100" /* subtype */,
+      Signal::Value{100, "km/h"} /* value */,
+      0.5 /* height */,
+      1.0 /* width */,
+      0.5 /* h_offset */,
+      1.5 /* length */,
+      0.1 /* pitch */,
+      0.2 /* roll */,
+      "Sample Text" /* text */
+  };
+
+  const std::string xml_description = GetSignals();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Signals::kSignalsTag),
+                       {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Signals::kSignalsTag, dut.GetName());
+  const Signals signals = dut.As<Signals>();
+  ASSERT_EQ(1u, signals.signals.size());
+  EXPECT_EQ(kExpectedSignal, signals.signals[0]);
+}
+
+// Get a XML description that contains a XODR Signal with a Value but without a Unit.
+// @returns A string that contains a XML description of a XODR Signal.
+std::string GetSignalMissingUnit() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(
+      <signal s="100.10"
+          t="-1.5"
+          id="12345"
+          name="Test Signal"
+          dynamic="no"
+          orientation="+"
+          zOffset="2.22"
+          country="DE"
+          countryRevision="2017"
+          type="274"
+          subtype="100"
+          value="100"
+          height="0.5"
+          width="1.0"
+          hOffset="0.5"
+          length="1.5"
+          pitch="0.1"
+          roll="0.2"
+          text="Sample Text">
+      </signal>
+  )R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(ParsingTests, NodeParserSignalMissingUnitThrows) {
+  const std::string xml_description = GetSignalMissingUnit();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Signal::kSignalTag),
+                       {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Signal::kSignalTag, dut.GetName());
+  EXPECT_ANY_THROW(dut.As<Signal>());
+}
+
+TEST_F(ParsingTests, NodeParserSignalMissingUnitAllowingSchemaError) {
+  const Signal kExpectedSignal{
+      100.10 /* s */,
+      -1.5 /* t */,
+      "12345" /* id */,
+      "Test Signal" /* name */,
+      false /* dynamic */,
+      "+" /* orientation */,
+      2.22 /* z_offset */,
+      "DE" /* country */,
+      "2017" /* country_revision */,
+      "274" /* type */,
+      "100" /* subtype */,
+      Signal::Value{100, {}} /* value */,
+      0.5 /* height */,
+      1.0 /* width */,
+      0.5 /* h_offset */,
+      1.5 /* length */,
+      0.1 /* pitch */,
+      0.2 /* roll */,
+      "Sample Text" /* text */
+  };
+
+  const std::string xml_description = GetSignalMissingUnit();
+
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Signal::kSignalTag),
+                       {kStrictParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Signal::kSignalTag, dut.GetName());
+  const Signal signal = dut.As<Signal>();
+  std::cout << "signal unit:" << signal.value.value().unit << std::endl;
+  EXPECT_EQ(kExpectedSignal, signal);
+}
+
 // Get a XML description that contains a XODR Connection.
 // @param id The id value.
 // @param incoming_road The incoming_road value.

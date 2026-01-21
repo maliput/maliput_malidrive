@@ -1263,17 +1263,17 @@ Signal NodeParser::As() const {
   const auto name = attribute_parser.As<std::string>(Signal::kName);
   const auto country = attribute_parser.As<std::string>(Signal::kCountry);
   const auto country_revision = attribute_parser.As<std::string>(Signal::kCountryRevision);
-  const auto value_value = attribute_parser.As<double>(Signal::kValue);
-  const auto value_unit = attribute_parser.As<std::string>(Signal::kUnit);
+  const auto value_value = attribute_parser.As<double>(Signal::Value::kValue);
+  const auto value_unit = attribute_parser.As<std::string>(Signal::Value::kUnit);
   if (value_value.has_value() && !value_unit.has_value() && !parser_configuration_.allow_schema_errors) {
     MALIDRIVE_THROW_MESSAGE(
         "Signal with id '" + id.value() + "' has 'value' attribute but is missing the 'unit' attribute.",
         maliput::common::road_network_description_parser_error);
   }
   const std::optional<Signal::Value> value =
-      (value_value.has_value() && value_unit.has_value())
-          ? std::make_optional<Signal::Value>(Signal::Value{value_value.value(), value_unit.value()})
-          : std::nullopt;
+      value_value.has_value() ? std::make_optional<Signal::Value>(Signal::Value{
+                                    value_value.value(), value_unit.has_value() ? value_unit.value() : std::string{}})
+                              : std::nullopt;
   const auto height = attribute_parser.As<double>(Signal::kHeight);
   const auto width = attribute_parser.As<double>(Signal::kWidth);
   const auto h_offset = attribute_parser.As<double>(Signal::kHOffset);
