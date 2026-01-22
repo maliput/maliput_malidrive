@@ -215,6 +215,14 @@ impl RoadGeometryBuilder {
             let lanes_data = &road.lanes;
 
             for (section_idx, lane_section) in lanes_data.lane_sections.iter().enumerate() {
+                // Calculate section s-range (p0 and p1 for the segment)
+                let section_start = lane_section.s;
+                let section_end = if section_idx + 1 < lanes_data.lane_sections.len() {
+                    lanes_data.lane_sections[section_idx + 1].s
+                } else {
+                    road.length
+                };
+
                 // Compute junction ID - use XODR junction ID if road belongs to junction
                 let junction_id = if road.junction != "-1" {
                     road.junction.clone()
@@ -239,11 +247,21 @@ impl RoadGeometryBuilder {
                 let junction_dyn_weak: Weak<dyn maliput::api::Junction> = 
                     Weak::<MalidriveJunction>::new() as Weak<dyn maliput::api::Junction>; // Placeholder for now
 
+                // Create reference line offset function
+                // TODO: Parse from XODR LaneOffset data. For now, use a zero constant function.
+                let reference_line_offset: Arc<dyn Function> = Arc::new(
+                    CubicPolynomial::constant(0.0, section_start, section_end)
+                );
+
                 // First build the lanes for this segment (we need them to add to segment)
                 let segment_placeholder: Arc<MalidriveSegment> = Arc::new(MalidriveSegment::new(
                     SegmentId::new(segment_id.clone()),
                     junction_dyn_weak.clone(),
-                ));
+                    Arc::clone(road_curve),
+                    Arc::clone(&reference_line_offset),
+                    section_start,
+                    section_end,
+                )?);
                 
                 // Build lanes for this section
                 let lane_infos = self.build_lanes_for_segment(
@@ -258,11 +276,15 @@ impl RoadGeometryBuilder {
                 let mut segment = MalidriveSegment::new(
                     SegmentId::new(segment_id.clone()),
                     junction_dyn_weak,
-                );
+                    Arc::clone(road_curve),
+                    reference_line_offset,
+                    section_start,
+                    section_end,
+                )?;
                 
-                // Add lanes to segment
+                // Add lanes to segment (hide_lane = false for drivable lanes)
                 for lane_info in &lane_infos {
-                    segment.add_lane(Arc::clone(&lane_info.lane) as Arc<dyn maliput::api::Lane>);
+                    segment.add_lane(Arc::clone(&lane_info.lane) as Arc<dyn maliput::api::Lane>, false);
                 }
                 
                 let segment_arc = Arc::new(segment);
