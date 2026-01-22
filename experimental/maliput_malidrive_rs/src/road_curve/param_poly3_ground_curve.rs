@@ -580,4 +580,146 @@ mod tests {
         assert!(curve.g(-1.0).is_err());
         assert!(curve.g(101.0).is_err());
     }
+
+    // Additional tests for ParamPoly3GroundCurve
+    #[test]
+    fn test_param_poly3_g_inverse_straight_line() {
+        // Straight line: u = t, v = 0
+        let curve = ParamPoly3GroundCurve::new(
+            0.001,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            100.0,
+            0.0,
+            100.0,
+            [0.0, 100.0, 0.0, 0.0], // u = 100*t (so u goes 0 to 100 as t goes 0 to 1)
+            [0.0, 0.0, 0.0, 0.0],   // v = 0
+            ParamPoly3Range::Normalized,
+        );
+
+        // Test g_inverse at start
+        let p = curve.g_inverse(&Vector2::new(0.0, 0.0)).unwrap();
+        assert_relative_eq!(p, 0.0, epsilon = 1.0);
+
+        // Test g_inverse at midpoint
+        let p = curve.g_inverse(&Vector2::new(50.0, 0.0)).unwrap();
+        assert_relative_eq!(p, 50.0, epsilon = 1.0);
+
+        // Test g_inverse at end
+        let p = curve.g_inverse(&Vector2::new(100.0, 0.0)).unwrap();
+        assert_relative_eq!(p, 100.0, epsilon = 1.0);
+    }
+
+    #[test]
+    fn test_param_poly3_curved_path() {
+        // A curve that bends: u = t, v = t^2
+        let curve = ParamPoly3GroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            100.0,
+            0.0,
+            100.0,
+            [0.0, 1.0, 0.0, 0.0], // u = t
+            [0.0, 0.0, 1.0, 0.0], // v = t^2
+            ParamPoly3Range::Normalized,
+        );
+
+        // At t=0: u=0, v=0
+        let pos = curve.g(0.0).unwrap();
+        assert_relative_eq!(pos.x, 0.0, epsilon = 1e-9);
+        assert_relative_eq!(pos.y, 0.0, epsilon = 1e-9);
+
+        // At t=0.5 (p=50): u=0.5, v=0.25
+        let pos = curve.g(50.0).unwrap();
+        assert_relative_eq!(pos.x, 0.5, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 0.25, epsilon = 1e-6);
+
+        // At t=1 (p=100): u=1, v=1
+        let pos = curve.g(100.0).unwrap();
+        assert_relative_eq!(pos.x, 1.0, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 1.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_param_poly3_heading_dot() {
+        // Straight line: du/dt = 1, dv/dt = 0, so no heading change
+        let curve = ParamPoly3GroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            100.0,
+            0.0,
+            100.0,
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+            ParamPoly3Range::Normalized,
+        );
+
+        // heading_dot should be 0 for a straight line
+        assert_relative_eq!(curve.heading_dot(50.0).unwrap(), 0.0, epsilon = 1e-9);
+    }
+
+    #[test]
+    fn test_param_poly3_is_g1_contiguous() {
+        let curve = ParamPoly3GroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            100.0,
+            0.0,
+            100.0,
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+            ParamPoly3Range::Normalized,
+        );
+
+        assert!(curve.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_param_poly3_properties() {
+        let curve = ParamPoly3GroundCurve::new(
+            0.01,
+            Vector2::new(10.0, 20.0),
+            PI / 4.0,
+            50.0,
+            100.0,
+            150.0,
+            [0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0],
+            ParamPoly3Range::ArcLength,
+        );
+
+        assert_relative_eq!(curve.p0(), 100.0);
+        assert_relative_eq!(curve.p1(), 150.0);
+        assert_relative_eq!(curve.arc_length(), 50.0);
+        assert_relative_eq!(curve.linear_tolerance(), 0.01);
+    }
+
+    #[test]
+    fn test_param_poly3_cubic_coefficients() {
+        // Full cubic: u = t^3, v = t^2
+        let curve = ParamPoly3GroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            100.0,
+            0.0,
+            100.0,
+            [0.0, 0.0, 0.0, 1.0], // u = t^3
+            [0.0, 0.0, 1.0, 0.0], // v = t^2
+            ParamPoly3Range::Normalized,
+        );
+
+        // At t=0.5 (p=50): u=0.125, v=0.25
+        let pos = curve.g(50.0).unwrap();
+        assert_relative_eq!(pos.x, 0.125, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 0.25, epsilon = 1e-6);
+
+        // At t=1 (p=100): u=1, v=1
+        let pos = curve.g(100.0).unwrap();
+        assert_relative_eq!(pos.x, 1.0, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 1.0, epsilon = 1e-6);
+    }
 }

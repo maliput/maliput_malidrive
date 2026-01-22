@@ -481,4 +481,115 @@ mod tests {
         assert_relative_eq!(r, 0.0, epsilon = TOLERANCE);
         assert_relative_eq!(h, 3.0, epsilon = TOLERANCE);
     }
+
+    // Additional tests based on C++ patterns
+    #[test]
+    fn test_road_curve_rotation() {
+        let rc = make_simple_road_curve();
+
+        // For a flat road heading east, rotation should be identity-ish
+        let rotation = rc.rotation(50.0).unwrap();
+
+        // The rotation matrix should transform (1,0,0) to (1,0,0) approximately
+        // since the road is flat and heading east
+        let forward = rotation * Vector3::new(1.0, 0.0, 0.0);
+        assert_relative_eq!(forward.x, 1.0, epsilon = 1e-6);
+        assert_relative_eq!(forward.y, 0.0, epsilon = 1e-6);
+        assert_relative_eq!(forward.z, 0.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_road_curve_with_arc_ground_curve() {
+        // Create a road with an arc ground curve
+        let arc_length = PI * 10.0 / 2.0; // 90-degree turn with radius 10
+        let ground_curve = Arc::new(
+            crate::road_curve::ArcGroundCurve::new(
+                TOLERANCE,
+                Vector2::new(0.0, 0.0),
+                0.0, // heading east
+                0.1, // radius = 10, turning left
+                arc_length,
+                0.0,
+                arc_length,
+            )
+            .unwrap(),
+        );
+        let elevation = Arc::new(ConstantFunction::zero(0.0, arc_length));
+        let superelevation = Arc::new(ConstantFunction::zero(0.0, arc_length));
+
+        let rc = RoadCurve::new(ground_curve, elevation, superelevation, TOLERANCE, 1.0);
+
+        // At the end of the arc, position should be at approximately (10, 10)
+        let pos = rc.w(arc_length, 0.0, 0.0).unwrap();
+        assert_relative_eq!(pos.x, 10.0, epsilon = 0.01);
+        assert_relative_eq!(pos.y, 10.0, epsilon = 0.01);
+        assert_relative_eq!(pos.z, 0.0, epsilon = 1e-9);
+
+        // Curvature should be 0.1 (1/radius)
+        let curvature = rc.curvature(arc_length / 2.0).unwrap();
+        assert_relative_eq!(curvature, 0.1, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_road_curve_diagonal_heading() {
+        // Road heading diagonally (45 degrees)
+        let ground_curve = Arc::new(
+            LineGroundCurve::from_heading(
+                TOLERANCE,
+                Vector2::new(0.0, 0.0),
+                PI / 4.0, // heading NE
+                100.0,
+                0.0,
+                100.0,
+            )
+            .unwrap(),
+        );
+        let elevation = Arc::new(ConstantFunction::zero(0.0, 100.0));
+        let superelevation = Arc::new(ConstantFunction::zero(0.0, 100.0));
+
+        let rc = RoadCurve::new(ground_curve, elevation, superelevation, TOLERANCE, 1.0);
+
+        // At s=50, with lateral offset r=10
+        // The lateral direction is perpendicular to heading, so (-sin(45°), cos(45°)) = (-0.707, 0.707)
+        // Position should be:
+        // x = 50*cos(45°) + 10*(-sin(45°)) = 35.355 - 7.071 ≈ 28.28
+        // y = 50*sin(45°) + 10*(cos(45°)) = 35.355 + 7.071 ≈ 42.43
+        let pos = rc.w(50.0, 10.0, 0.0).unwrap();
+        let expected_x = 50.0 * (PI / 4.0).cos() + 10.0 * (-(PI / 4.0).sin());
+        let expected_y = 50.0 * (PI / 4.0).sin() + 10.0 * (PI / 4.0).cos();
+        assert_relative_eq!(pos.x, expected_x, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, expected_y, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_road_curve_parameter_range() {
+        let rc = make_simple_road_curve();
+
+        // Parameters at bounds should work
+        assert!(rc.w(0.0, 0.0, 0.0).is_ok());
+        assert!(rc.w(100.0, 0.0, 0.0).is_ok());
+    }
+
+    #[test]
+    fn test_road_curve_combined_elevation_and_superelevation() {
+        // Create a road with both elevation and superelevation
+        let ground_curve = Arc::new(
+            LineGroundCurve::from_heading(TOLERANCE, Vector2::new(0.0, 0.0), 0.0, 100.0, 0.0, 100.0)
+                .unwrap(),
+        );
+        // 10% grade
+        let elevation = Arc::new(crate::road_curve::CubicPolynomial::linear(0.0, 0.1, 0.0, 100.0));
+        // 5% superelevation
+        let superelevation = Arc::new(ConstantFunction::new(0.05, 0.0, 100.0));
+
+        let rc = RoadCurve::new(ground_curve, elevation, superelevation, TOLERANCE, 1.0);
+
+        // At s=50, elevation = 5m
+        let centerline = rc.w(50.0, 0.0, 0.0).unwrap();
+        assert_relative_eq!(centerline.z, 5.0, epsilon = 1e-6);
+
+        // Elevation slope should be atan(0.1) ≈ 0.0997 rad
+        let slope = rc.elevation_slope(50.0).unwrap();
+        assert_relative_eq!(slope, 0.1_f64.atan(), epsilon = 1e-9);
+    }
 }

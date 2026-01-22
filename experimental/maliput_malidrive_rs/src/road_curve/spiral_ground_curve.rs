@@ -489,4 +489,212 @@ mod tests {
         assert!(spiral.g(-1.0).is_err());
         assert!(spiral.g(101.0).is_err());
     }
+
+    // Additional tests based on C++ test patterns
+    #[test]
+    fn test_spiral_accessors() {
+        let linear_tolerance = 1e-9;
+        let xy0 = Vector2::new(1.0, 0.0);
+        let start_heading = 1.23;
+        let start_curvature = 0.1;
+        let end_curvature = 0.01;
+        let arc_length = 100.0;
+        let p0 = 1.0;
+        let p1 = 10.0;
+
+        let spiral = SpiralGroundCurve::new(
+            linear_tolerance,
+            xy0,
+            start_heading,
+            start_curvature,
+            end_curvature,
+            arc_length,
+            p0,
+            p1,
+        );
+
+        assert_relative_eq!(spiral.linear_tolerance(), linear_tolerance);
+        assert_relative_eq!(spiral.p0(), p0);
+        assert_relative_eq!(spiral.p1(), p1);
+        assert_relative_eq!(spiral.arc_length(), arc_length);
+        assert!(spiral.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_spiral_curvature_at_endpoints() {
+        let start_curv = 0.1;
+        let end_curv = 0.01;
+        let arc_length = 100.0;
+
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            start_curv,
+            end_curv,
+            arc_length,
+            0.0,
+            arc_length,
+        );
+
+        assert_relative_eq!(spiral.curvature_at(0.0), start_curv);
+        assert_relative_eq!(spiral.curvature_at(arc_length), end_curv);
+    }
+
+    #[test]
+    fn test_spiral_symmetry_with_reversed_curvature() {
+        // Test spiral that goes from 0.1 curvature to 0.0 (clothoid exit)
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.1, // start curvature
+            0.0, // end curvature
+            100.0,
+            0.0,
+            100.0,
+        );
+
+        // Curvature should decrease linearly
+        assert_relative_eq!(spiral.curvature_at(0.0), 0.1);
+        assert_relative_eq!(spiral.curvature_at(50.0), 0.05);
+        assert_relative_eq!(spiral.curvature_at(100.0), 0.0);
+    }
+
+    #[test]
+    fn test_spiral_negative_curvature() {
+        // Spiral with negative curvature (curving right)
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.0,
+            -0.1, // negative end curvature
+            100.0,
+            0.0,
+            100.0,
+        );
+
+        // Curvature rate should be negative
+        assert_relative_eq!(spiral.curvature_rate(), -0.001);
+        assert_relative_eq!(spiral.curvature_at(100.0), -0.1);
+    }
+
+    #[test]
+    fn test_spiral_with_initial_offset() {
+        // Spiral with p0 != 0
+        let p0 = 50.0;
+        let p1 = 150.0;
+        let arc_length = 100.0;
+
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(10.0, 20.0),
+            PI / 4.0,
+            0.0,
+            0.1,
+            arc_length,
+            p0,
+            p1,
+        );
+
+        // Start point should be at the specified position
+        let start = spiral.g(p0).unwrap();
+        assert_relative_eq!(start.x, 10.0, epsilon = 1e-9);
+        assert_relative_eq!(start.y, 20.0, epsilon = 1e-9);
+
+        // Start heading should be preserved
+        let hdg = spiral.heading(p0).unwrap();
+        assert_relative_eq!(hdg, PI / 4.0, epsilon = 1e-9);
+    }
+
+    #[test]
+    fn test_spiral_heading_derivative_equals_curvature() {
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.02, // start curvature
+            0.08, // end curvature
+            100.0,
+            0.0,
+            100.0,
+        );
+
+        // heading_dot should equal curvature at each point
+        for p in [0.0, 25.0, 50.0, 75.0, 100.0] {
+            let hdg_dot = spiral.heading_dot(p).unwrap();
+            let curv = spiral.curvature_at(p);
+            assert_relative_eq!(hdg_dot, curv, epsilon = 1e-12);
+        }
+    }
+
+    #[test]
+    fn test_spiral_arc_length_approximation() {
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.0,
+            0.1,
+            100.0,
+            0.0,
+            100.0,
+        );
+
+        // Compute arc length by summing segment lengths
+        let num_segments = 1000;
+        let dp = 100.0 / (num_segments as f64);
+        let mut computed_length = 0.0;
+        let mut prev_pos = spiral.g(0.0).unwrap();
+
+        for i in 1..=num_segments {
+            let p = dp * (i as f64);
+            let pos = spiral.g(p).unwrap();
+            computed_length += (pos - prev_pos).norm();
+            prev_pos = pos;
+        }
+
+        // Arc length should be approximately 100 (within numerical tolerance)
+        assert_relative_eq!(computed_length, 100.0, epsilon = 1.0);
+    }
+
+    #[test]
+    fn test_spiral_g_inverse_at_start() {
+        let spiral = SpiralGroundCurve::new(
+            TOLERANCE,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.0,
+            0.1,
+            100.0,
+            0.0,
+            100.0,
+        );
+
+        // g_inverse at the start point should return 0
+        let p = spiral.g_inverse(&Vector2::new(0.0, 0.0)).unwrap();
+        assert_relative_eq!(p, 0.0, epsilon = 0.1);
+    }
+
+    #[test]
+    fn test_spiral_g_inverse_consistency() {
+        let spiral = SpiralGroundCurve::new(
+            1e-3,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.0,
+            0.05,
+            100.0,
+            0.0,
+            100.0,
+        );
+
+        // Test that g_inverse(g(p)) ≈ p for various points
+        for p_original in [10.0, 25.0, 50.0, 75.0, 90.0] {
+            let pos = spiral.g(p_original).unwrap();
+            let p_recovered = spiral.g_inverse(&pos).unwrap();
+            assert_relative_eq!(p_recovered, p_original, epsilon = 1.0);
+        }
+    }
 }

@@ -458,4 +458,98 @@ mod tests {
         let p = curve.g_inverse(&Vector2::new(100.0, 0.0)).unwrap();
         assert_relative_eq!(p, 100.0, epsilon = TOLERANCE);
     }
+
+    // Additional tests for PiecewiseGroundCurve
+    #[test]
+    fn test_piecewise_is_g1_contiguous_single_segment() {
+        let seg = make_line(0.0, 0.0, 0.0, 100.0, 0.0);
+        let curve = PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg]).unwrap();
+        assert!(curve.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_piecewise_is_g1_contiguous_connected() {
+        // Two lines that connect smoothly (same position and heading)
+        let seg1 = make_line(0.0, 0.0, 0.0, 50.0, 0.0);  // Goes east for 50m
+        let seg2 = make_line(50.0, 0.0, 0.0, 50.0, 50.0); // Continues east for another 50m
+        let curve = PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg1, seg2]).unwrap();
+        assert!(curve.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_piecewise_is_not_g1_heading_discontinuity() {
+        // Two lines with different headings at the junction
+        let seg1 = make_line(0.0, 0.0, 0.0, 100.0, 0.0);        // Goes east
+        let seg2 = make_line(100.0, 0.0, PI / 4.0, 50.0, 100.0); // Goes NE (different heading)
+        let curve = PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg1, seg2]).unwrap();
+        assert!(!curve.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_piecewise_g_inverse_multi_segment() {
+        // Two connected segments going east then north
+        let seg1 = make_line(0.0, 0.0, 0.0, 100.0, 0.0);
+        let seg2 = make_line(100.0, 0.0, PI / 2.0, 50.0, 100.0);
+        let curve = PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg1, seg2]).unwrap();
+
+        // Point in first segment
+        let p = curve.g_inverse(&Vector2::new(50.0, 0.0)).unwrap();
+        assert_relative_eq!(p, 50.0, epsilon = 1.0);
+
+        // Point at junction
+        let p = curve.g_inverse(&Vector2::new(100.0, 0.0)).unwrap();
+        assert_relative_eq!(p, 100.0, epsilon = 1.0);
+
+        // Point in second segment
+        let p = curve.g_inverse(&Vector2::new(100.0, 25.0)).unwrap();
+        assert_relative_eq!(p, 125.0, epsilon = 1.0);
+    }
+
+    #[test]
+    fn test_piecewise_heading_dot() {
+        let seg = make_line(0.0, 0.0, 0.0, 100.0, 0.0);
+        let curve = PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg]).unwrap();
+
+        // Lines have zero heading_dot
+        assert_relative_eq!(curve.heading_dot(50.0).unwrap(), 0.0, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_piecewise_three_segments() {
+        // L-shaped path: east, then north, then east again
+        let seg1 = make_line(0.0, 0.0, 0.0, 50.0, 0.0);
+        let seg2 = make_line(50.0, 0.0, PI / 2.0, 50.0, 50.0);
+        let seg3 = make_line(50.0, 50.0, 0.0, 50.0, 100.0);
+
+        let curve =
+            PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg1, seg2, seg3]).unwrap();
+
+        assert_eq!(curve.num_segments(), 3);
+        assert_relative_eq!(curve.arc_length(), 150.0);
+        assert_relative_eq!(curve.p0(), 0.0);
+        assert_relative_eq!(curve.p1(), 150.0);
+
+        // Check position at end of each segment
+        let pos = curve.g(50.0).unwrap();
+        assert_relative_eq!(pos.x, 50.0, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 0.0, epsilon = 1e-6);
+
+        let pos = curve.g(100.0).unwrap();
+        assert_relative_eq!(pos.x, 50.0, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 50.0, epsilon = 1e-6);
+
+        let pos = curve.g(150.0).unwrap();
+        assert_relative_eq!(pos.x, 100.0, epsilon = 1e-6);
+        assert_relative_eq!(pos.y, 50.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_piecewise_properties() {
+        let seg = make_line(0.0, 0.0, 0.0, 100.0, 0.0);
+        let curve = PiecewiseGroundCurve::from_segments(TOLERANCE, vec![seg]).unwrap();
+
+        assert_relative_eq!(curve.linear_tolerance(), TOLERANCE);
+        // p_from_xodr_p should return the same value
+        assert_relative_eq!(curve.p_from_xodr_p(50.0).unwrap(), 50.0);
+    }
 }

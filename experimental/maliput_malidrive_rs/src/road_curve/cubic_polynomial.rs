@@ -362,4 +362,107 @@ mod tests {
         let piecewise = PiecewiseCubicPolynomial::new(vec![seg1, seg2]);
         assert!(!piecewise.is_g1_contiguous());
     }
+
+    // Additional tests for OpenDRIVE-style polynomial (f(p) = a + b*(p-p0) + c*(p-p0)^2 + d*(p-p0)^3)
+    #[test]
+    fn test_cubic_polynomial_opendrive_style() {
+        // OpenDRIVE polynomial: f(p) = 1 + 2*(p-0.25) + 3*(p-0.25)^2 + 4*(p-0.25)^3
+        // at p = 0.25 (p0): f = 1
+        // at p = 0.5: dp = 0.25, f = 1 + 2*0.25 + 3*0.25^2 + 4*0.25^3 = 1 + 0.5 + 0.1875 + 0.0625 = 1.75
+        let poly = CubicPolynomial::new(1.0, 2.0, 3.0, 4.0, 0.25, 50.0);
+
+        // At p = p0 = 0.25
+        assert_relative_eq!(poly.evaluate(0.25), 1.0, epsilon = 1e-12);
+        assert_relative_eq!(poly.evaluate_dot(0.25), 2.0, epsilon = 1e-12);
+        assert_relative_eq!(poly.evaluate_dot_dot(0.25), 6.0, epsilon = 1e-12); // 2*c = 2*3 = 6
+
+        // At p = 0.5 (dp = 0.25)
+        let dp = 0.25;
+        let expected_f = 1.0 + 2.0 * dp + 3.0 * dp * dp + 4.0 * dp * dp * dp;
+        assert_relative_eq!(poly.evaluate(0.5), expected_f, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_cubic_polynomial_value_at_endpoints() {
+        // f(p) = 5 + 0.1*(p-10), starting at p0 = 10, ending at p1 = 110
+        let poly = CubicPolynomial::linear(5.0, 0.1, 10.0, 110.0);
+
+        assert_relative_eq!(poly.value_at_start(), 5.0);
+        // At p1 = 110: f = 5 + 0.1*(110-10) = 5 + 10 = 15
+        assert_relative_eq!(poly.value_at_end(), 15.0, epsilon = 1e-12);
+        assert_relative_eq!(poly.slope_at_start(), 0.1);
+        assert_relative_eq!(poly.slope_at_end(), 0.1);
+    }
+
+    #[test]
+    fn test_cubic_polynomial_second_derivative() {
+        // f(p) = 1 + 0.5*(p-0)^2 (quadratic starting at 0)
+        // f''(p) = 2*0.5 = 1.0
+        let poly = CubicPolynomial::quadratic(1.0, 0.0, 0.5, 0.0, 100.0);
+
+        // Second derivative should be constant for quadratic
+        assert_relative_eq!(poly.evaluate_dot_dot(0.0), 1.0);
+        assert_relative_eq!(poly.evaluate_dot_dot(50.0), 1.0);
+        assert_relative_eq!(poly.evaluate_dot_dot(100.0), 1.0);
+    }
+
+    #[test]
+    fn test_cubic_polynomial_characteristics() {
+        let constant = CubicPolynomial::constant(5.0, 0.0, 100.0);
+        let linear = CubicPolynomial::linear(5.0, 1.0, 0.0, 100.0);
+        let quadratic = CubicPolynomial::quadratic(5.0, 1.0, 0.5, 0.0, 100.0);
+        let cubic = CubicPolynomial::new(5.0, 1.0, 0.5, 0.1, 0.0, 100.0);
+
+        // Check constant
+        assert!(constant.is_constant());
+        assert!(constant.is_linear());
+        assert!(constant.is_quadratic());
+
+        // Check linear
+        assert!(!linear.is_constant());
+        assert!(linear.is_linear());
+        assert!(linear.is_quadratic());
+
+        // Check quadratic
+        assert!(!quadratic.is_constant());
+        assert!(!quadratic.is_linear());
+        assert!(quadratic.is_quadratic());
+
+        // Check cubic
+        assert!(!cubic.is_constant());
+        assert!(!cubic.is_linear());
+        assert!(!cubic.is_quadratic());
+    }
+
+    #[test]
+    fn test_piecewise_polynomial_g1_slope_continuity() {
+        // Two segments that are value-continuous but NOT slope-continuous
+        // First: f(p) = p for p in [0, 50]
+        // Second: f(p) = 50 + 2*(p-50) for p in [50, 100] (slope changes from 1 to 2)
+        let seg1 = CubicPolynomial::linear(0.0, 1.0, 0.0, 50.0);
+        let seg2 = CubicPolynomial::linear(50.0, 2.0, 50.0, 100.0);
+
+        let piecewise = PiecewiseCubicPolynomial::new(vec![seg1, seg2]);
+
+        // Values match at p=50 (50 = 50), but slopes don't (1 ≠ 2)
+        assert!(!piecewise.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_piecewise_polynomial_empty() {
+        let piecewise = PiecewiseCubicPolynomial::new(vec![]);
+        assert!(piecewise.is_empty());
+        assert_eq!(piecewise.num_segments(), 0);
+        assert!(piecewise.is_g1_contiguous());
+    }
+
+    #[test]
+    fn test_piecewise_polynomial_single_segment() {
+        let poly = PiecewiseCubicPolynomial::single(CubicPolynomial::linear(0.0, 1.0, 0.0, 100.0));
+        assert_eq!(poly.num_segments(), 1);
+        assert!(!poly.is_empty());
+        assert!(poly.is_g1_contiguous());
+        assert_relative_eq!(poly.p0(), 0.0);
+        assert_relative_eq!(poly.p1(), 100.0);
+    }
 }

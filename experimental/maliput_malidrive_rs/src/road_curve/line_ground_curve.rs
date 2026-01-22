@@ -411,4 +411,157 @@ mod tests {
 
         assert!(curve.is_g1_contiguous());
     }
+
+    // Additional tests based on C++ test patterns
+    #[test]
+    fn test_line_ground_curve_with_nonzero_p0() {
+        // Test with p0=10, p1=20 as in C++ tests
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let xy0 = Vector2::new(0.0, 0.0);
+        let dxy = Vector2::new(1.0, 0.0);
+
+        let curve = LineGroundCurve::new(linear_tolerance, xy0, dxy, p0, p1).unwrap();
+
+        assert_relative_eq!(curve.p0(), p0);
+        assert_relative_eq!(curve.p1(), p1);
+        assert_relative_eq!(curve.arc_length(), 1.0);
+
+        // G at p0 should be xy0
+        let g_p0 = curve.g(p0).unwrap();
+        assert_relative_eq!(g_p0.x, 0.0, epsilon = 1e-12);
+        assert_relative_eq!(g_p0.y, 0.0, epsilon = 1e-12);
+
+        // G at p1 should be xy0 + dxy
+        let g_p1 = curve.g(p1).unwrap();
+        assert_relative_eq!(g_p1.x, 1.0, epsilon = 1e-12);
+        assert_relative_eq!(g_p1.y, 0.0, epsilon = 1e-12);
+
+        // G at midpoint
+        let p_mid = (p0 + p1) / 2.0; // 15.0
+        let g_mid = curve.g(p_mid).unwrap();
+        assert_relative_eq!(g_mid.x, 0.5, epsilon = 1e-12);
+        assert_relative_eq!(g_mid.y, 0.0, epsilon = 1e-12);
+
+        // GDot = dxy / (p1 - p0) = (1, 0) / 10 = (0.1, 0)
+        let g_dot = curve.g_dot(p0).unwrap();
+        assert_relative_eq!(g_dot.x, 0.1, epsilon = 1e-12);
+        assert_relative_eq!(g_dot.y, 0.0, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_line_ground_curve_quadrant1() {
+        // Line in quadrant 1 direction: (3, 4) from (1, 0)
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let xy0 = Vector2::new(1.0, 0.0);
+        let dxy = Vector2::new(3.0, 4.0);
+
+        let curve = LineGroundCurve::new(linear_tolerance, xy0, dxy, p0, p1).unwrap();
+
+        assert_relative_eq!(curve.arc_length(), 5.0, epsilon = 1e-12);
+
+        // G at p0
+        let g_p0 = curve.g(p0).unwrap();
+        assert_relative_eq!(g_p0.x, 1.0, epsilon = 1e-12);
+        assert_relative_eq!(g_p0.y, 0.0, epsilon = 1e-12);
+
+        // G at p1
+        let g_p1 = curve.g(p1).unwrap();
+        assert_relative_eq!(g_p1.x, 4.0, epsilon = 1e-12);
+        assert_relative_eq!(g_p1.y, 4.0, epsilon = 1e-12);
+
+        // G at midpoint
+        let g_mid = curve.g(15.0).unwrap();
+        assert_relative_eq!(g_mid.x, 2.5, epsilon = 1e-12);
+        assert_relative_eq!(g_mid.y, 2.0, epsilon = 1e-12);
+
+        // GDot = dxy / (p1 - p0) = (3, 4) / 10 = (0.3, 0.4)
+        let g_dot = curve.g_dot(p0).unwrap();
+        assert_relative_eq!(g_dot.x, 0.3, epsilon = 1e-12);
+        assert_relative_eq!(g_dot.y, 0.4, epsilon = 1e-12);
+
+        // Heading: atan2(4, 3) ≈ 0.9272952180016122
+        let heading = curve.heading(p0).unwrap();
+        assert_relative_eq!(heading, 0.9272952180016122, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_line_ground_curve_quadrant3() {
+        // Line in quadrant 3 direction: (-4, -3) from (10, 9)
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let xy0 = Vector2::new(10.0, 9.0);
+        let dxy = Vector2::new(-4.0, -3.0);
+
+        let curve = LineGroundCurve::new(linear_tolerance, xy0, dxy, p0, p1).unwrap();
+
+        assert_relative_eq!(curve.arc_length(), 5.0, epsilon = 1e-12);
+
+        // G at p0
+        let g_p0 = curve.g(p0).unwrap();
+        assert_relative_eq!(g_p0.x, 10.0, epsilon = 1e-12);
+        assert_relative_eq!(g_p0.y, 9.0, epsilon = 1e-12);
+
+        // G at p1
+        let g_p1 = curve.g(p1).unwrap();
+        assert_relative_eq!(g_p1.x, 6.0, epsilon = 1e-12);
+        assert_relative_eq!(g_p1.y, 6.0, epsilon = 1e-12);
+
+        // G at midpoint
+        let g_mid = curve.g(15.0).unwrap();
+        assert_relative_eq!(g_mid.x, 8.0, epsilon = 1e-12);
+        assert_relative_eq!(g_mid.y, 7.5, epsilon = 1e-12);
+
+        // GDot = dxy / (p1 - p0) = (-4, -3) / 10 = (-0.4, -0.3)
+        let g_dot = curve.g_dot(p0).unwrap();
+        assert_relative_eq!(g_dot.x, -0.4, epsilon = 1e-12);
+        assert_relative_eq!(g_dot.y, -0.3, epsilon = 1e-12);
+
+        // Heading: atan2(-3, -4) ≈ -2.498091544796509
+        let heading = curve.heading(p0).unwrap();
+        assert_relative_eq!(heading, -2.498091544796509, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_line_ground_curve_parameter_tolerance() {
+        // Test that parameters slightly outside range but within tolerance are accepted
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let xy0 = Vector2::new(0.0, 0.0);
+        let dxy = Vector2::new(1.0, 0.0);
+
+        let curve = LineGroundCurve::new(linear_tolerance, xy0, dxy, p0, p1).unwrap();
+
+        // Within tolerance
+        assert!(curve.g(9.995).is_ok());
+        assert!(curve.g(20.005).is_ok());
+
+        // Outside tolerance - exceeds linear_tolerance + GROUND_CURVE_EPSILON
+        assert!(curve.g(9.98).is_err());
+        assert!(curve.g(20.02).is_err());
+    }
+
+    #[test]
+    fn test_line_ground_curve_p_from_xodr_p() {
+        let curve = LineGroundCurve::new(
+            0.01,
+            Vector2::new(0.0, 0.0),
+            Vector2::new(100.0, 0.0),
+            0.0,
+            100.0,
+        )
+        .unwrap();
+
+        // p_from_xodr_p should validate and return the same p
+        assert_relative_eq!(curve.p_from_xodr_p(50.0).unwrap(), 50.0);
+
+        // Should fail for out of range values
+        assert!(curve.p_from_xodr_p(-1.0).is_err());
+        assert!(curve.p_from_xodr_p(101.0).is_err());
+    }
 }

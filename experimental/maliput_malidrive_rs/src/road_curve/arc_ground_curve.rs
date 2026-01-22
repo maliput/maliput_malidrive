@@ -454,4 +454,206 @@ mod tests {
         assert_relative_eq!(normalize_angle(-2.0 * PI), 0.0, epsilon = 1e-10);
         assert_relative_eq!(normalize_angle(3.0 * PI), PI, epsilon = 1e-10);
     }
+
+    // Additional tests based on C++ test patterns
+    #[test]
+    fn test_arc_ground_curve_with_nonzero_p0() {
+        // Test with p0=10, p1=20 as in C++ tests
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let arc_length = PI * 8.0; // 90-degree turn with radius 16
+
+        let curve = ArcGroundCurve::new(
+            linear_tolerance,
+            Vector2::new(0.0, 0.0),
+            0.0,                             // heading = 0 (going east)
+            (PI / 2.0) / arc_length,         // curvature for 90-degree left turn
+            arc_length,
+            p0,
+            p1,
+        )
+        .unwrap();
+
+        assert_relative_eq!(curve.p0(), p0);
+        assert_relative_eq!(curve.p1(), p1);
+        assert_relative_eq!(curve.arc_length(), arc_length, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_arc_left_turn_90_deg() {
+        // 90-degree left turn (positive curvature)
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let arc_length = PI * 8.0; // Makes a 90-degree turn
+        let curvature = (PI / 2.0) / arc_length; // curvature = angle / arc_length
+
+        let curve = ArcGroundCurve::new(
+            linear_tolerance,
+            Vector2::new(0.0, 0.0),
+            0.0, // start heading east
+            curvature,
+            arc_length,
+            p0,
+            p1,
+        )
+        .unwrap();
+
+        // Start point should be at (0, 0)
+        let g_p0 = curve.g(p0).unwrap();
+        assert_relative_eq!(g_p0.x, 0.0, epsilon = 1e-10);
+        assert_relative_eq!(g_p0.y, 0.0, epsilon = 1e-10);
+
+        // Heading at start should be 0
+        let heading_p0 = curve.heading(p0).unwrap();
+        assert_relative_eq!(heading_p0, 0.0, epsilon = 1e-10);
+
+        // Heading at end should be ~PI/2 (facing north)
+        let heading_p1 = curve.heading(p1).unwrap();
+        assert_relative_eq!(heading_p1, PI / 2.0, epsilon = 1e-6);
+
+        // Heading dot should be constant = curvature * arc_length / (p1 - p0)
+        let heading_dot = curve.heading_dot(p0).unwrap();
+        let expected_heading_dot = arc_length * curvature / (p1 - p0);
+        assert_relative_eq!(heading_dot, expected_heading_dot, epsilon = 1e-12);
+    }
+
+    #[test]
+    fn test_arc_right_turn_90_deg() {
+        // 90-degree right turn (negative curvature)
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let arc_length = PI * 8.0;
+        let curvature = -(PI / 2.0) / arc_length; // negative curvature for right turn
+
+        let curve = ArcGroundCurve::new(
+            linear_tolerance,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            curvature,
+            arc_length,
+            p0,
+            p1,
+        )
+        .unwrap();
+
+        // Start heading should be 0
+        let heading_p0 = curve.heading(p0).unwrap();
+        assert_relative_eq!(heading_p0, 0.0, epsilon = 1e-10);
+
+        // Heading at end should be -PI/2 (facing south)
+        let heading_p1 = curve.heading(p1).unwrap();
+        assert_relative_eq!(heading_p1, -PI / 2.0, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_arc_u_turn() {
+        // 180-degree turn (U-turn)
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let arc_length = PI * 8.0;
+        let curvature = PI / arc_length; // 180-degree turn
+
+        let curve = ArcGroundCurve::new(
+            linear_tolerance,
+            Vector2::new(1.0, 0.0),
+            PI / 3.0, // start heading
+            curvature,
+            arc_length,
+            p0,
+            p1,
+        )
+        .unwrap();
+
+        // Heading at end should be start_heading + PI
+        let heading_p1 = curve.heading(p1).unwrap();
+        let expected_heading = normalize_angle(PI / 3.0 + PI);
+        assert_relative_eq!(heading_p1, expected_heading, epsilon = 1e-6);
+    }
+
+    #[test]
+    fn test_arc_ground_curve_parameter_tolerance() {
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+
+        let curve = ArcGroundCurve::new(
+            linear_tolerance,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            0.1,
+            5.0,
+            p0,
+            p1,
+        )
+        .unwrap();
+
+        // Within tolerance
+        assert!(curve.g(9.995).is_ok());
+        assert!(curve.g(20.005).is_ok());
+
+        // Outside tolerance - exceeds linear_tolerance + GROUND_CURVE_EPSILON
+        assert!(curve.g(9.98).is_err());
+        assert!(curve.g(20.02).is_err());
+    }
+
+    #[test]
+    fn test_arc_ground_curve_gdot_magnitude() {
+        // G_dot magnitude should equal arc_length / (p1 - p0)
+        let linear_tolerance = 0.01;
+        let p0 = 10.0;
+        let p1 = 20.0;
+        let arc_length = PI * 8.0;
+        let curvature = (PI / 2.0) / arc_length;
+
+        let curve = ArcGroundCurve::new(
+            linear_tolerance,
+            Vector2::new(0.0, 0.0),
+            0.0,
+            curvature,
+            arc_length,
+            p0,
+            p1,
+        )
+        .unwrap();
+
+        let expected_speed = arc_length / (p1 - p0);
+
+        // Check at various points
+        for p in [p0, (p0 + p1) / 2.0, p1] {
+            let g_dot = curve.g_dot(p).unwrap();
+            assert_relative_eq!(g_dot.norm(), expected_speed, epsilon = 1e-10);
+        }
+    }
+
+    #[test]
+    fn test_arc_ground_curve_full_circle() {
+        // Full 360-degree circle
+        let arc_length = 2.0 * PI * 10.0; // circumference of circle with radius 10
+        let curvature = 0.1; // 1/radius
+
+        let curve = ArcGroundCurve::new(
+            0.01,
+            Vector2::new(0.0, 0.0),
+            0.0, // start heading east
+            curvature,
+            arc_length,
+            0.0,
+            arc_length,
+        )
+        .unwrap();
+
+        // After a full circle, we should be back at (approximately) the start
+        let end_point = curve.g(arc_length).unwrap();
+        assert_relative_eq!(end_point.x, 0.0, epsilon = 1e-6);
+        assert_relative_eq!(end_point.y, 0.0, epsilon = 1e-6);
+
+        // Heading should wrap around to 0 (or 2*PI)
+        let end_heading = curve.heading(arc_length).unwrap();
+        // Due to normalization, this could be 0 or close to 2*PI (which normalizes to 0)
+        assert!(end_heading.abs() < 1e-6 || (end_heading - 2.0 * PI).abs() < 1e-6);
+    }
 }
