@@ -784,4 +784,683 @@ mod tests {
         let slope = rc.elevation_slope(50.0).unwrap();
         assert_relative_eq!(slope, 0.1_f64.atan(), epsilon = 1e-9);
     }
+
+    // ============================================================================
+    // C++ Parity Tests from maliput_malidrive/test/regression/base/lane_test.cc
+    //
+    // These tests verify that the Rust implementation produces the same results
+    // as the C++ implementation for the same inputs.
+    // ============================================================================
+
+    mod cpp_parity_tests {
+        use super::*;
+        use crate::road_curve::{ArcGroundCurve, SimpleLaneOffset};
+
+        // Test constants matching C++ test values from lane_test.cc
+        const CPP_LINEAR_TOLERANCE: f64 = 1e-11;
+        const CPP_ANGULAR_TOLERANCE: f64 = 1e-6;
+        const CPP_SCALE_LENGTH: f64 = 1.0;
+
+        // Road geometry parameters
+        const P0: f64 = 0.0;
+        const P1: f64 = 100.0;
+        const WIDTH: f64 = 5.0;
+        const LANE_OFFSET: f64 = 10.0;
+
+        // Test positions
+        const S_START: f64 = 0.0;
+        const S_HALF: f64 = 50.0;
+        const S_END: f64 = 100.0;
+        const R_CENTERLINE: f64 = 0.0;
+        const R_LEFT: f64 = 1.0;
+        const R_RIGHT: f64 = -2.0;
+        const H: f64 = 0.0;
+
+        /// Creates a test road curve matching C++ MalidriveFlatLineLaneFullyInitializedTest setup.
+        ///
+        /// This creates a line ground curve starting at (10, 12) going at 45 degrees
+        /// for a length of 100*sqrt(2) meters (matching dxy norm).
+        fn make_flat_line_road_curve() -> RoadCurve {
+            // Matching C++ values:
+            // kXy0{10., 12.}
+            // kDXy{(kP1 - kP0) * std::sqrt(2.) / 2., (kP1 - kP0) * std::sqrt(2.) / 2.}
+            let xy0 = Vector2::new(10.0, 12.0);
+            let dxy_component = (P1 - P0) * (2.0_f64).sqrt() / 2.0;
+            let dxy = Vector2::new(dxy_component, dxy_component);
+
+            let ground_curve = Arc::new(
+                LineGroundCurve::new(CPP_LINEAR_TOLERANCE, xy0, dxy, P0, P1)
+                    .expect("Failed to create LineGroundCurve"),
+            );
+            let elevation = Arc::new(ConstantFunction::zero(P0, P1));
+            let superelevation = Arc::new(ConstantFunction::zero(P0, P1));
+
+            RoadCurve::new(
+                ground_curve,
+                elevation,
+                superelevation,
+                CPP_LINEAR_TOLERANCE,
+                CPP_SCALE_LENGTH,
+            )
+        }
+
+        /// Computes expected lane length for flat line test.
+        /// dxy = (70.71..., 70.71...) so norm ≈ 100.0
+        fn expected_line_lane_length() -> f64 {
+            let dxy_component = (P1 - P0) * (2.0_f64).sqrt() / 2.0;
+            (dxy_component * dxy_component + dxy_component * dxy_component).sqrt()
+        }
+
+        // ============================================================================
+        // RoadCurve geometry tests (matching C++ ToInertialPosition values)
+        // ============================================================================
+
+        #[test]
+        fn cpp_parity_flat_line_road_curve_creation() {
+            let road_curve = make_flat_line_road_curve();
+
+            assert_relative_eq!(road_curve.p0(), P0, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(road_curve.p1(), P1, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(
+                road_curve.arc_length(),
+                expected_line_lane_length(),
+                epsilon = CPP_LINEAR_TOLERANCE
+            );
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_at_start() {
+            let road_curve = make_flat_line_road_curve();
+
+            // At p=0, r=LANE_OFFSET (10m lateral offset), h=0
+            // The road starts at (10, 12) heading at 45 degrees (PI/4)
+            // Lateral offset of 10m at 45 degrees: perpendicular is at 45+90 = 135 degrees
+            // So offset = 10 * (-sin(45°), cos(45°)) = 10 * (-√2/2, √2/2) = (-7.07, 7.07)
+            // Final position = (10, 12) + (-7.07, 7.07) = (2.93, 19.07)
+            //
+            // C++ expected at centerline (kSStart, kRCenterline, kH):
+            // InertialPosition(2.9289321881345254, 19.071067811865476, 0.)
+
+            let result = road_curve.w(P0, LANE_OFFSET + R_CENTERLINE, H);
+            assert!(result.is_ok(), "w() should succeed");
+            let pos = result.unwrap();
+
+            // These values match C++ ToInertialPosition at kSStart, kRCenterline
+            assert_relative_eq!(pos.x, 2.9289321881345254, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 19.071067811865476, epsilon = 1e-9);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_at_half() {
+            let road_curve = make_flat_line_road_curve();
+
+            // At p=50 (middle), r=LANE_OFFSET (10m), h=0
+            // C++ expected: InertialPosition(38.2842712474619, 54.426406871192846, 0.)
+
+            let result = road_curve.w(S_HALF, LANE_OFFSET + R_CENTERLINE, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 38.2842712474619, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 54.426406871192846, epsilon = 1e-9);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_at_end() {
+            let road_curve = make_flat_line_road_curve();
+
+            // At p=100 (end), r=LANE_OFFSET (10m), h=0
+            // C++ expected: InertialPosition(73.63961030678928, 89.78174593052022, 0.)
+
+            let result = road_curve.w(S_END, LANE_OFFSET + R_CENTERLINE, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 73.63961030678928, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 89.78174593052022, epsilon = 1e-9);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_to_left() {
+            let road_curve = make_flat_line_road_curve();
+
+            // At start, with R_LEFT offset (1m more to the left)
+            // r_total = LANE_OFFSET + R_LEFT = 11m
+            // C++ expected: InertialPosition(2.2218254069479784, 19.77817459305202, 0.)
+
+            let result = road_curve.w(S_START, LANE_OFFSET + R_LEFT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 2.2218254069479784, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 19.77817459305202, epsilon = 1e-9);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_to_right() {
+            let road_curve = make_flat_line_road_curve();
+
+            // At start, with R_RIGHT offset (2m to the right)
+            // r_total = LANE_OFFSET + R_RIGHT = 8m
+            // C++ expected: InertialPosition(4.34314575050762, 17.65685424949238, 0.)
+
+            let result = road_curve.w(S_START, LANE_OFFSET + R_RIGHT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 4.34314575050762, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 17.65685424949238, epsilon = 1e-9);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_half_left() {
+            let road_curve = make_flat_line_road_curve();
+
+            // C++ expected: InertialPosition(37.577164466275356, 55.13351365237939, 0.)
+            let result = road_curve.w(S_HALF, LANE_OFFSET + R_LEFT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 37.577164466275356, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 55.13351365237939, epsilon = 1e-9);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_half_right() {
+            let road_curve = make_flat_line_road_curve();
+
+            // C++ expected: InertialPosition(39.698484809834994, 53.01219330881975, 0.)
+            let result = road_curve.w(S_HALF, LANE_OFFSET + R_RIGHT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 39.698484809834994, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 53.01219330881975, epsilon = 1e-9);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_end_left() {
+            let road_curve = make_flat_line_road_curve();
+
+            // C++ expected: InertialPosition(72.93250352560273, 90.48885271170676, 0.)
+            let result = road_curve.w(S_END, LANE_OFFSET + R_LEFT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 72.93250352560273, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 90.48885271170676, epsilon = 1e-9);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_w_end_right() {
+            let road_curve = make_flat_line_road_curve();
+
+            // C++ expected: InertialPosition(75.05382386916237, 88.36753236814712, 0.)
+            let result = road_curve.w(S_END, LANE_OFFSET + R_RIGHT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 75.05382386916237, epsilon = 1e-9);
+            assert_relative_eq!(pos.y, 88.36753236814712, epsilon = 1e-9);
+        }
+
+        // ============================================================================
+        // Orientation tests
+        // ============================================================================
+
+        #[test]
+        fn cpp_parity_flat_line_rotation() {
+            let road_curve = make_flat_line_road_curve();
+
+            // For a flat line at 45 degrees:
+            // Expected rotation: roll=0, pitch=0, yaw=PI/4
+
+            let rotation = road_curve.rotation(S_START);
+            assert!(rotation.is_ok());
+            let rot = rotation.unwrap();
+
+            let (roll, pitch, yaw) = rot.euler_angles();
+            assert_relative_eq!(roll, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(pitch, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(yaw, PI / 4.0, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_flat_line_rotation_constant() {
+            let road_curve = make_flat_line_road_curve();
+
+            // Rotation should be constant along a straight line
+            let rot_start = road_curve.rotation(S_START).unwrap();
+            let rot_half = road_curve.rotation(S_HALF).unwrap();
+            let rot_end = road_curve.rotation(S_END).unwrap();
+
+            let (_, _, yaw_start) = rot_start.euler_angles();
+            let (_, _, yaw_half) = rot_half.euler_angles();
+            let (_, _, yaw_end) = rot_end.euler_angles();
+
+            assert_relative_eq!(yaw_start, yaw_half, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(yaw_half, yaw_end, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        // ============================================================================
+        // Curvature tests
+        // ============================================================================
+
+        #[test]
+        fn cpp_parity_flat_line_curvature() {
+            let road_curve = make_flat_line_road_curve();
+
+            // For a straight line, curvature should be zero everywhere
+            let curvature_start = road_curve.curvature(S_START);
+            let curvature_half = road_curve.curvature(S_HALF);
+            let curvature_end = road_curve.curvature(S_END);
+
+            assert!(curvature_start.is_ok());
+            assert!(curvature_half.is_ok());
+            assert!(curvature_end.is_ok());
+
+            assert_relative_eq!(curvature_start.unwrap(), 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(curvature_half.unwrap(), 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(curvature_end.unwrap(), 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        // ============================================================================
+        // Motion derivatives tests
+        // ============================================================================
+
+        #[test]
+        fn cpp_parity_flat_line_w_dot() {
+            let road_curve = make_flat_line_road_curve();
+
+            // For a flat line at 45 degrees, the tangent should be in the (1, 1, 0) direction
+            // normalized based on the parameter-to-arc-length ratio
+
+            let w_dot = road_curve.w_dot(S_HALF, LANE_OFFSET, H);
+            assert!(w_dot.is_ok());
+            let tangent = w_dot.unwrap();
+
+            // The tangent direction should be (cos(45°), sin(45°), 0) scaled by ds/dp
+            let tangent_norm = (tangent.x * tangent.x + tangent.y * tangent.y).sqrt();
+            assert!(tangent_norm > 0.0, "Tangent should not be zero");
+
+            // Check direction is 45 degrees
+            let direction = tangent.y.atan2(tangent.x);
+            assert_relative_eq!(direction, PI / 4.0, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        // ============================================================================
+        // Lane bounds tests
+        // ============================================================================
+
+        #[test]
+        fn cpp_parity_simple_lane_offset_for_lane_bounds() {
+            // C++ uses kWidth = 5.0, so lane bounds should be [-2.5, 2.5]
+            let offset = SimpleLaneOffset::new(LANE_OFFSET, WIDTH, P0, P1);
+
+            let half_width = offset.width() / 2.0;
+            assert_relative_eq!(half_width, 2.5, epsilon = CPP_LINEAR_TOLERANCE);
+
+            // Lane bounds
+            let r_min = -half_width;
+            let r_max = half_width;
+            assert_relative_eq!(r_min, -2.5, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(r_max, 2.5, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        // ============================================================================
+        // Complete geometry verification tests
+        // ============================================================================
+
+        /// Verifies the computed inertial positions match C++ expected values.
+        /// This is the key parity test for to_inertial_position.
+        #[test]
+        fn cpp_parity_inertial_positions_match_cpp_values() {
+            let road_curve = make_flat_line_road_curve();
+
+            // Test data: (s, r_offset_from_lane_center, expected_x, expected_y)
+            let test_cases = [
+                // Centerline
+                (S_START, R_CENTERLINE, 2.9289321881345254, 19.071067811865476),
+                (S_HALF, R_CENTERLINE, 38.2842712474619, 54.426406871192846),
+                (S_END, R_CENTERLINE, 73.63961030678928, 89.78174593052022),
+                // Left
+                (S_START, R_LEFT, 2.2218254069479784, 19.77817459305202),
+                (S_HALF, R_LEFT, 37.577164466275356, 55.13351365237939),
+                (S_END, R_LEFT, 72.93250352560273, 90.48885271170676),
+                // Right
+                (S_START, R_RIGHT, 4.34314575050762, 17.65685424949238),
+                (S_HALF, R_RIGHT, 39.698484809834994, 53.01219330881975),
+                (S_END, R_RIGHT, 75.05382386916237, 88.36753236814712),
+            ];
+
+            for (s, r_offset, expected_x, expected_y) in test_cases {
+                let r_total = LANE_OFFSET + r_offset;
+                let result = road_curve.w(s, r_total, H);
+                assert!(
+                    result.is_ok(),
+                    "w({}, {}, {}) should succeed",
+                    s,
+                    r_total,
+                    H
+                );
+                let pos = result.unwrap();
+
+                assert!(
+                    (pos.x - expected_x).abs() < 1e-9,
+                    "x mismatch at s={}, r_offset={}: got {}, expected {}",
+                    s,
+                    r_offset,
+                    pos.x,
+                    expected_x
+                );
+                assert!(
+                    (pos.y - expected_y).abs() < 1e-9,
+                    "y mismatch at s={}, r_offset={}: got {}, expected {}",
+                    s,
+                    r_offset,
+                    pos.y,
+                    expected_y
+                );
+                assert!(
+                    pos.z.abs() < CPP_LINEAR_TOLERANCE,
+                    "z should be 0 for flat road"
+                );
+            }
+        }
+
+        /// Verifies the computed orientations match C++ expected values.
+        /// For a flat line at 45 degrees, rotation should be (roll=0, pitch=0, yaw=PI/4).
+        #[test]
+        fn cpp_parity_orientations_match_cpp_values() {
+            let road_curve = make_flat_line_road_curve();
+
+            let expected_yaw = PI / 4.0;
+
+            for s in [S_START, S_HALF, S_END] {
+                let rotation = road_curve.rotation(s);
+                assert!(rotation.is_ok(), "rotation({}) should succeed", s);
+                let rot = rotation.unwrap();
+
+                let (roll, pitch, yaw) = rot.euler_angles();
+
+                assert!(
+                    roll.abs() < CPP_ANGULAR_TOLERANCE,
+                    "roll at s={}: got {}",
+                    s,
+                    roll
+                );
+                assert!(
+                    pitch.abs() < CPP_ANGULAR_TOLERANCE,
+                    "pitch at s={}: got {}",
+                    s,
+                    pitch
+                );
+                assert!(
+                    (yaw - expected_yaw).abs() < CPP_ANGULAR_TOLERANCE,
+                    "yaw at s={}: got {}, expected {}",
+                    s,
+                    yaw,
+                    expected_yaw
+                );
+            }
+        }
+
+        // ============================================================================
+        // Arc ground curve tests (matching C++ MalidriveFlatArcLaneFullyInitializedTest)
+        // ============================================================================
+
+        // Arc test constants from C++
+        const ARC_START_HEADING: f64 = PI / 3.0; // 60 degrees
+        const ARC_CURVATURE: f64 = -0.025; // Equivalent radius = 40m, turning right
+        const ARC_LENGTH: f64 = 100.0;
+        const ARC_P0: f64 = 0.0;
+        const ARC_P1: f64 = 100.0;
+
+        fn make_flat_arc_road_curve() -> RoadCurve {
+            // C++: kXy0{10., 12.} - same start point as line test
+            let xy0 = Vector2::new(10.0, 12.0);
+
+            let ground_curve = Arc::new(
+                ArcGroundCurve::new(
+                    CPP_LINEAR_TOLERANCE,
+                    xy0,
+                    ARC_START_HEADING,
+                    ARC_CURVATURE,
+                    ARC_LENGTH,
+                    ARC_P0,
+                    ARC_P1,
+                )
+                .expect("Failed to create ArcGroundCurve"),
+            );
+            let elevation = Arc::new(ConstantFunction::zero(ARC_P0, ARC_P1));
+            let superelevation = Arc::new(ConstantFunction::zero(ARC_P0, ARC_P1));
+
+            RoadCurve::new(
+                ground_curve,
+                elevation,
+                superelevation,
+                CPP_LINEAR_TOLERANCE,
+                CPP_SCALE_LENGTH,
+            )
+        }
+
+        #[test]
+        fn cpp_parity_arc_road_curve_creation() {
+            let road_curve = make_flat_arc_road_curve();
+
+            assert_relative_eq!(road_curve.p0(), ARC_P0, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(road_curve.p1(), ARC_P1, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_w_at_start_centerline() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // C++ expected: InertialPosition(1.3397459621556127, 17.0, 0.)
+            let result = road_curve.w(S_START, LANE_OFFSET, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 1.3397459621556127, epsilon = 1e-6);
+            assert_relative_eq!(pos.y, 17.0, epsilon = 1e-6);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_w_at_half_centerline() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // C++ expected: InertialPosition(54.711772824485934, 40.97529846801386, 0.)
+            // Note: p = 50.0 maps to s = arc_length/2 in the C++ test
+
+            let result = road_curve.w(S_HALF, LANE_OFFSET, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 54.711772824485934, epsilon = 1e-5);
+            assert_relative_eq!(pos.y, 40.97529846801386, epsilon = 1e-5);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_w_at_end_centerline() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // C++ expected: InertialPosition(94.29335591114437, -2.113986376104993, 0.)
+            let result = road_curve.w(ARC_P1, LANE_OFFSET, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 94.29335591114437, epsilon = 1e-5);
+            assert_relative_eq!(pos.y, -2.113986376104993, epsilon = 1e-5);
+            assert_relative_eq!(pos.z, 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_orientation_at_start() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // C++ expected: Rotation::FromRpy(0., 0., kStartHeading) = (0, 0, PI/3)
+            let rotation = road_curve.rotation(S_START);
+            assert!(rotation.is_ok());
+            let rot = rotation.unwrap();
+
+            let (roll, pitch, yaw) = rot.euler_angles();
+            assert_relative_eq!(roll, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(pitch, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(yaw, ARC_START_HEADING, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_orientation_at_half() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // C++ expected: kStartHeading + kArcLength * kCurvature * 0.5
+            // = PI/3 + 100 * (-0.025) * 0.5 = PI/3 - 1.25 ≈ -0.203
+            let expected_yaw = ARC_START_HEADING + ARC_LENGTH * ARC_CURVATURE * 0.5;
+
+            let rotation = road_curve.rotation(S_HALF);
+            assert!(rotation.is_ok());
+            let rot = rotation.unwrap();
+
+            let (roll, pitch, yaw) = rot.euler_angles();
+            assert_relative_eq!(roll, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(pitch, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(yaw, expected_yaw, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_orientation_at_end() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // C++ expected: kStartHeading + kArcLength * kCurvature
+            // = PI/3 + 100 * (-0.025) = PI/3 - 2.5 ≈ -1.453
+            let expected_yaw = ARC_START_HEADING + ARC_LENGTH * ARC_CURVATURE;
+
+            let rotation = road_curve.rotation(ARC_P1);
+            assert!(rotation.is_ok());
+            let rot = rotation.unwrap();
+
+            let (roll, pitch, yaw) = rot.euler_angles();
+            assert_relative_eq!(roll, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(pitch, 0.0, epsilon = CPP_ANGULAR_TOLERANCE);
+            assert_relative_eq!(yaw, expected_yaw, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_arc_curvature() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // For a constant-curvature arc, the curvature should be constant
+            let curvature = road_curve.curvature(S_START);
+            assert!(curvature.is_ok());
+
+            // The ground curve curvature is -0.025 (turning right)
+            assert_relative_eq!(curvature.unwrap(), ARC_CURVATURE, epsilon = 1e-6);
+        }
+
+        #[test]
+        fn cpp_parity_arc_inertial_positions_left_offset() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // Test left offset positions from C++
+            // At start: InertialPosition(0.47372055837117344, 17.5, 0.)
+            let result = road_curve.w(S_START, LANE_OFFSET + R_LEFT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 0.47372055837117344, epsilon = 1e-5);
+            assert_relative_eq!(pos.y, 17.5, epsilon = 1e-5);
+        }
+
+        #[test]
+        fn cpp_parity_arc_inertial_positions_right_offset() {
+            let road_curve = make_flat_arc_road_curve();
+
+            // Test right offset positions from C++
+            // At start: InertialPosition(3.0717967697244903, 16.0, 0.)
+            let result = road_curve.w(S_START, LANE_OFFSET + R_RIGHT, H);
+            assert!(result.is_ok());
+            let pos = result.unwrap();
+
+            assert_relative_eq!(pos.x, 3.0717967697244903, epsilon = 1e-5);
+            assert_relative_eq!(pos.y, 16.0, epsilon = 1e-5);
+        }
+
+        // ============================================================================
+        // Ground curve specific tests
+        // ============================================================================
+
+        #[test]
+        fn cpp_parity_line_ground_curve_g_at_start() {
+            let xy0 = Vector2::new(10.0, 12.0);
+            let dxy_component = (P1 - P0) * (2.0_f64).sqrt() / 2.0;
+            let dxy = Vector2::new(dxy_component, dxy_component);
+
+            let curve = LineGroundCurve::new(CPP_LINEAR_TOLERANCE, xy0, dxy, P0, P1)
+                .expect("Failed to create curve");
+
+            let g = curve.g(P0);
+            assert!(g.is_ok());
+            let point = g.unwrap();
+
+            assert_relative_eq!(point.x, 10.0, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(point.y, 12.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_line_ground_curve_g_at_end() {
+            let xy0 = Vector2::new(10.0, 12.0);
+            let dxy_component = (P1 - P0) * (2.0_f64).sqrt() / 2.0;
+            let dxy = Vector2::new(dxy_component, dxy_component);
+
+            let curve = LineGroundCurve::new(CPP_LINEAR_TOLERANCE, xy0, dxy, P0, P1)
+                .expect("Failed to create curve");
+
+            let g = curve.g(P1);
+            assert!(g.is_ok());
+            let point = g.unwrap();
+
+            // End point should be xy0 + dxy
+            assert_relative_eq!(point.x, 10.0 + dxy_component, epsilon = CPP_LINEAR_TOLERANCE);
+            assert_relative_eq!(point.y, 12.0 + dxy_component, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_line_ground_curve_heading() {
+            let xy0 = Vector2::new(10.0, 12.0);
+            let dxy_component = (P1 - P0) * (2.0_f64).sqrt() / 2.0;
+            let dxy = Vector2::new(dxy_component, dxy_component);
+
+            let curve = LineGroundCurve::new(CPP_LINEAR_TOLERANCE, xy0, dxy, P0, P1)
+                .expect("Failed to create curve");
+
+            let heading = curve.heading(P0);
+            assert!(heading.is_ok());
+
+            // Heading should be 45 degrees = PI/4
+            assert_relative_eq!(heading.unwrap(), PI / 4.0, epsilon = CPP_ANGULAR_TOLERANCE);
+        }
+
+        #[test]
+        fn cpp_parity_line_ground_curve_heading_dot() {
+            let xy0 = Vector2::new(10.0, 12.0);
+            let dxy_component = (P1 - P0) * (2.0_f64).sqrt() / 2.0;
+            let dxy = Vector2::new(dxy_component, dxy_component);
+
+            let curve = LineGroundCurve::new(CPP_LINEAR_TOLERANCE, xy0, dxy, P0, P1)
+                .expect("Failed to create curve");
+
+            let heading_dot = curve.heading_dot(P0);
+            assert!(heading_dot.is_ok());
+
+            // For a straight line, heading derivative (curvature) should be zero
+            assert_relative_eq!(heading_dot.unwrap(), 0.0, epsilon = CPP_LINEAR_TOLERANCE);
+        }
+    }
 }

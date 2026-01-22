@@ -5,16 +5,20 @@
 
 use std::sync::{Arc, Weak};
 
-use maliput::api::{
-    InertialPosition, IsoLaneVelocity, Lane, LaneId, LanePosition,
-    LanePositionResult, MaliputResult, RBounds, Rotation, Segment,
-};
+use maliput::api::{Lane, LaneId, LanePosition, Segment};
 use nalgebra::Vector3;
 
-use crate::common::MalidriveError;
+use crate::common::{MalidriveError, MalidriveResult};
 use crate::road_curve::{RoadCurve, SimpleLaneOffset};
 
 /// A concrete Lane implementation backed by road curve geometry.
+///
+/// NOTE: The Lane trait implementation is currently disabled because the
+/// maliput Lane trait expects `&dyn T` references while MalidriveLane uses
+/// `Arc<dyn T>` for parent references (to enable shared ownership).
+///
+/// The geometric computations are tested via RoadCurve tests in:
+///   `road_curve/road_curve.rs` (cpp_parity_tests module)
 pub struct MalidriveLane {
     /// Lane identifier.
     id: LaneId,
@@ -82,6 +86,31 @@ impl MalidriveLane {
         }
     }
 
+    /// Returns the lane identifier.
+    pub fn id(&self) -> &LaneId {
+        &self.id
+    }
+
+    /// Returns the index of this lane within its segment.
+    pub fn index(&self) -> usize {
+        self.index
+    }
+
+    /// Returns the arc-length of the Lane.
+    pub fn length(&self) -> f64 {
+        self.length
+    }
+
+    /// Returns the road curve providing geometry.
+    pub fn road_curve(&self) -> &Arc<RoadCurve> {
+        &self.road_curve
+    }
+
+    /// Returns the lane offset calculator.
+    pub fn lane_offset(&self) -> &SimpleLaneOffset {
+        &self.lane_offset
+    }
+
     /// Sets the default branch at the start.
     pub fn set_default_start_branch(&mut self, lane: Weak<dyn Lane>, which: LaneEndWhich) {
         self.default_start_branch = Some((lane, which));
@@ -93,17 +122,23 @@ impl MalidriveLane {
     }
 
     /// Converts lane s-coordinate to road curve p-coordinate.
-    fn s_to_p(&self, s: f64) -> f64 {
+    pub fn s_to_p(&self, s: f64) -> f64 {
         self.s0 + s
     }
 
     /// Converts road curve p-coordinate to lane s-coordinate.
-    fn p_to_s(&self, p: f64) -> f64 {
+    pub fn p_to_s(&self, p: f64) -> f64 {
         p - self.s0
     }
 
     /// Computes the position in INERTIAL coordinates.
-    fn compute_inertial_position(&self, lane_pos: &LanePosition) -> MalidriveResult<Vector3<f64>> {
+    ///
+    /// This is the core geometric computation that maps lane coordinates
+    /// to world coordinates.
+    pub fn compute_inertial_position(
+        &self,
+        lane_pos: &LanePosition,
+    ) -> MalidriveResult<Vector3<f64>> {
         let p = self.s_to_p(lane_pos.s());
         let r_center = self.lane_offset.r(p);
         let r = r_center + lane_pos.r();
@@ -112,7 +147,7 @@ impl MalidriveLane {
     }
 
     /// Validates that the lane position is within bounds.
-    fn validate_lane_position(&self, lane_pos: &LanePosition) -> MalidriveResult<()> {
+    pub fn validate_lane_position(&self, lane_pos: &LanePosition) -> MalidriveResult<()> {
         let s = lane_pos.s();
         if s < -self.linear_tolerance || s > self.length + self.linear_tolerance {
             return Err(MalidriveError::ParameterOutOfRange {
@@ -124,128 +159,28 @@ impl MalidriveLane {
         }
         Ok(())
     }
-}
 
-impl Lane for MalidriveLane {
-    fn id(&self) -> &LaneId {
-        &self.id
-    }
-
-    fn segment(&self) -> Arc<dyn Segment> {
-        self.segment.upgrade().expect("Segment has been dropped")
-    }
-
-    fn index(&self) -> usize {
-        self.index
-    }
-
-    fn to_left(&self) -> Option<Arc<dyn Lane>> {
-        let seg = self.segment();
-        if self.index + 1 < seg.num_lanes() {
-            Some(seg.lane(self.index + 1))
-        } else {
-            None
-        }
-    }
-
-    fn to_right(&self) -> Option<Arc<dyn Lane>> {
-        if self.index > 0 {
-            Some(self.segment().lane(self.index - 1))
-        } else {
-            None
-        }
-    }
-
-    fn length(&self) -> f64 {
-        self.length
-    }
-
-    fn lane_bounds(&self, s: f64) -> LaneBounds {
+    /// Returns the lane bounds as (r_min, r_max) tuple.
+    ///
+    /// These are the lateral bounds for a position considered to be
+    /// "staying in the lane".
+    pub fn lane_bounds(&self, _s: f64) -> (f64, f64) {
         let half_width = self.lane_offset.width() / 2.0;
-        LaneBounds::new(-half_width, half_width)
+        (-half_width, half_width)
     }
 
-    fn segment_bounds(&self, s: f64) -> RBounds {
+    /// Returns the segment bounds as (r_min, r_max) tuple.
+    pub fn segment_bounds(&self, _s: f64) -> (f64, f64) {
         // For simplicity, return the same as lane bounds
         // A more complete implementation would compute the full segment width
         let half_width = self.lane_offset.width() / 2.0;
-        RBounds::new(-half_width, half_width)
+        (-half_width, half_width)
     }
 
-    fn to_inertial_position(&self, lane_pos: &LanePosition) -> InertialPosition {
-        match self.compute_inertial_position(lane_pos) {
-            Ok(xyz) => InertialPosition::new(xyz.x, xyz.y, xyz.z),
-            Err(_) => {
-                // Clamp to valid range and try again
-                let clamped_s = lane_pos.s().clamp(0.0, self.length);
-                let clamped_pos = LanePosition::new(clamped_s, lane_pos.r(), lane_pos.h());
-                if let Ok(xyz) = self.compute_inertial_position(&clamped_pos) {
-                    InertialPosition::new(xyz.x, xyz.y, xyz.z)
-                } else {
-                    // Last resort: return origin
-                    InertialPosition::new(0.0, 0.0, 0.0)
-                }
-            }
-        }
-    }
-
-    fn to_lane_position(&self, inertial_pos: &InertialPosition) -> LanePositionResult {
-        let xyz = Vector3::new(inertial_pos.x(), inertial_pos.y(), inertial_pos.z());
-
-        // Use the road curve inverse mapping
-        match self.road_curve.w_inverse(xyz) {
-            Ok((p, r_road, h)) => {
-                let s = self.p_to_s(p).clamp(0.0, self.length);
-                let r_center = self.lane_offset.r(self.s_to_p(s));
-                let r = r_road - r_center;
-
-                let lane_pos = LanePosition::new(s, r, h);
-                let nearest = self.to_inertial_position(&lane_pos);
-                let distance = ((nearest.x() - inertial_pos.x()).powi(2)
-                    + (nearest.y() - inertial_pos.y()).powi(2)
-                    + (nearest.z() - inertial_pos.z()).powi(2))
-                .sqrt();
-
-                LanePositionResult::new(lane_pos, nearest, distance)
-            }
-            Err(_) => {
-                // Fallback: project to the centerline
-                let lane_pos = LanePosition::new(self.length / 2.0, 0.0, 0.0);
-                let nearest = self.to_inertial_position(&lane_pos);
-                let distance = ((nearest.x() - inertial_pos.x()).powi(2)
-                    + (nearest.y() - inertial_pos.y()).powi(2)
-                    + (nearest.z() - inertial_pos.z()).powi(2))
-                .sqrt();
-
-                LanePositionResult::new(lane_pos, nearest, distance)
-            }
-        }
-    }
-
-    fn get_orientation(&self, lane_pos: &LanePosition) -> Rotation {
+    /// Returns the orientation at the given lane position.
+    pub fn get_orientation(&self, lane_pos: &LanePosition) -> MalidriveResult<nalgebra::Rotation3<f64>> {
         let p = self.s_to_p(lane_pos.s().clamp(0.0, self.length));
-
-        match self.road_curve.rotation(p) {
-            Ok(rotation) => {
-                let (roll, pitch, yaw) = rotation.euler_angles();
-                Rotation::new(roll, pitch, yaw)
-            }
-            Err(_) => Rotation::new(0.0, 0.0, 0.0),
-        }
-    }
-
-    fn eval_motion_derivatives(
-        &self,
-        lane_pos: &LanePosition,
-        velocity: &IsoLaneVelocity,
-    ) -> LanePosition {
-        // For a simple implementation, the motion derivatives are the velocities
-        // scaled appropriately
-        let s_dot = velocity.sigma_v();
-        let r_dot = velocity.rho_v();
-        let h_dot = velocity.eta_v();
-
-        LanePosition::new(s_dot, r_dot, h_dot)
+        self.road_curve.rotation(p)
     }
 }
 
@@ -259,54 +194,24 @@ impl std::fmt::Debug for MalidriveLane {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::road_curve::{ConstantFunction, LineGroundCurve};
-    use approx::assert_relative_eq;
-    use nalgebra::Vector2;
-
-    const LINEAR_TOLERANCE: f64 = 1e-6;
-    const ANGULAR_TOLERANCE: f64 = 1e-6;
-
-    fn make_test_road_curve() -> Arc<RoadCurve> {
-        let ground_curve = Arc::new(LineGroundCurve::new(
-            LINEAR_TOLERANCE,
-            Vector2::new(0.0, 0.0),
-            0.0, // heading east
-            100.0,
-            0.0,
-            100.0,
-        ));
-        let elevation = Arc::new(ConstantFunction::zero(0.0, 100.0));
-        let superelevation = Arc::new(ConstantFunction::zero(0.0, 100.0));
-
-        Arc::new(RoadCurve::new(
-            ground_curve,
-            elevation,
-            superelevation,
-            LINEAR_TOLERANCE,
-            1.0,
-        ))
-    }
-
-    // Note: Full tests would require a mock Segment, which requires more setup.
-    // Here we test the geometry computations directly.
-
-    #[test]
-    fn test_s_to_p_conversion() {
-        // Test the coordinate conversion logic
-        let s0 = 10.0;
-        let s1 = 60.0;
-        let s = 25.0;
-        let p = s0 + s;
-        assert_relative_eq!(p, 35.0);
-    }
-
-    #[test]
-    fn test_simple_lane_offset() {
-        let offset = SimpleLaneOffset::new(5.0, 3.5, 0.0, 100.0);
-        assert_relative_eq!(offset.r(50.0), 5.0);
-        assert_relative_eq!(offset.width(), 3.5);
-    }
-}
+// NOTE: The Lane trait implementation is disabled until the architecture
+// issue with reference types is resolved.
+//
+// The maliput Lane trait requires:
+//   fn segment(&self) -> &dyn Segment
+//   fn to_left(&self) -> Option<&dyn Lane>
+//   fn to_right(&self) -> Option<&dyn Lane>
+//
+// But MalidriveLane stores Weak<dyn Segment> and would need to return
+// references from upgraded Arc<dyn Segment>, which is not possible without
+// unsafe code or changing the ownership model.
+//
+// Options to resolve:
+// 1. Store raw pointers with lifetime management
+// 2. Use arena allocation
+// 3. Change maliput trait to return Arc<dyn T>
+// 4. Use self-referential structs (ouroboros/rental)
+//
+// For now, MalidriveLane provides non-trait methods that can be used
+// directly, and the geometric computations are validated through
+// RoadCurve tests.

@@ -64,7 +64,9 @@
 pub mod common;
 pub mod road_curve;
 pub mod xodr;
-// TODO: base and builder modules are WIP - they need to be updated to match the maliput_rs API
+// TODO: Re-enable base module after fixing trait implementation issues
+// The base module has trait implementations that don't match the maliput API traits
+// (Arc<dyn T> vs &dyn T for parent references)
 // pub mod base;
 // pub mod builder;
 
