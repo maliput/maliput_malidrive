@@ -31,6 +31,7 @@ pub mod line_ground_curve;
 pub mod param_poly3_ground_curve;
 pub mod piecewise_ground_curve;
 pub mod road_curve;
+pub mod road_curve_offset;
 pub mod spiral_ground_curve;
 
 // Export specific items to avoid ambiguity
@@ -43,4 +44,5 @@ pub use line_ground_curve::LineGroundCurve;
 pub use param_poly3_ground_curve::{ParamPoly3GroundCurve, ParamPoly3Range};
 pub use piecewise_ground_curve::PiecewiseGroundCurve;
 pub use road_curve::RoadCurve;
+pub use road_curve_offset::RoadCurveOffset;
 pub use spiral_ground_curve::SpiralGroundCurve;

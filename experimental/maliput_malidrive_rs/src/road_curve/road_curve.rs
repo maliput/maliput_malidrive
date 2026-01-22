@@ -198,6 +198,198 @@ impl RoadCurve {
         self.ground_curve.heading_dot(s)
     }
 
+    /// Computes the derivative dW/dp at (p, r, h).
+    ///
+    /// This is essential for computing arc length along offset curves.
+    /// The derivative accounts for the ground curve tangent, elevation slope,
+    /// and the rotation of the (r, h) offset due to changes in orientation.
+    ///
+    /// # Arguments
+    /// * `p` - Parameter along the reference line.
+    /// * `r` - Lateral offset from the reference line.
+    /// * `h` - Height above the road surface.
+    ///
+    /// # Returns
+    /// The derivative dW/dp as a 3D vector.
+    pub fn w_dot(&self, p: f64, r: f64, h: f64) -> MalidriveResult<Vector3<f64>> {
+        // Get ground curve derivative and heading derivative
+        let g_prime = self.ground_curve.g_dot(p)?;
+        let heading = self.ground_curve.heading(p)?;
+        let d_gamma = self.ground_curve.heading_dot(p)?; // curvature
+
+        // Get elevation and its derivatives
+        let z_prime = self.elevation.f_dot(p)?;
+        let z_prime_prime = self.elevation.f_dot_dot(p)?;
+
+        // Get superelevation and its derivative
+        let alpha = self.superelevation.f(p)?;
+        let d_alpha = self.superelevation.f_dot(p)?;
+
+        // Compute pitch angle (beta) and its derivative
+        let g_prime_norm = (g_prime.x * g_prime.x + g_prime.y * g_prime.y).sqrt();
+        let beta = if g_prime_norm.abs() > 1e-15 {
+            (-z_prime / g_prime_norm).atan()
+        } else {
+            0.0
+        };
+        let cb = beta.cos();
+        let sb = beta.sin();
+
+        // d_beta assumes |G'| doesn't vary with p
+        let d_beta = if g_prime_norm.abs() > 1e-15 {
+            -cb * cb * z_prime_prime / g_prime_norm
+        } else {
+            0.0
+        };
+
+        // Compute trig values
+        let ca = alpha.cos();
+        let sa = alpha.sin();
+        let cg = heading.cos();
+        let sg = heading.sin();
+
+        // Rotation matrix R = Rz(gamma) * Ry(beta) * Rx(alpha)
+        // Standard ZYX Euler angles
+        // R = [cb*cg,  cg*sb*sa - sg*ca,  cg*sb*ca + sg*sa]
+        //     [cb*sg,  sg*sb*sa + cg*ca,  sg*sb*ca - cg*sa]
+        //     [-sb,    cb*sa,             cb*ca           ]
+
+        // Second column of R (for r-direction): R[:, 1]
+        let r1_x = cg * sb * sa - sg * ca;
+        let r1_y = sg * sb * sa + cg * ca;
+        let r1_z = cb * sa;
+
+        // Third column of R (for h-direction): R[:, 2]
+        let r2_x = cg * sb * ca + sg * sa;
+        let r2_y = sg * sb * ca - cg * sa;
+        let r2_z = cb * ca;
+
+        // Offset in world frame: R * (0, r, h)
+        let offset_x = r * r1_x + h * r2_x;
+        let offset_y = r * r1_y + h * r2_y;
+        let offset_z = r * r1_z + h * r2_z;
+
+        // Compute dR/dp * (0, r, h)
+        // Using the fact that dR/dp = R * [ω_body]_× where ω_body = (d_alpha, d_beta, d_gamma) in body frame
+        // Actually, we need: d(R*v)/dp = (dR/dp)*v
+        //
+        // For R = Rz*Ry*Rx, we have:
+        // dR/dp = dRz/dγ * Ry * Rx * dγ/dp + Rz * dRy/dβ * Rx * dβ/dp + Rz * Ry * dRx/dα * dα/dp
+        //
+        // But it's easier to use: dR/dp * v = ω_world × (R*v) where ω_world is angular velocity in world frame
+        // ω_world = d_gamma * ẑ + Rz * (d_beta * ŷ) + Rz * Ry * (d_alpha * x̂)
+        //         = (0, 0, d_gamma) + d_beta*(−sg, cg, 0) + d_alpha*(cg*cb, sg*cb, −sb)
+
+        let omega_x = d_alpha * cg * cb - d_beta * sg;
+        let omega_y = d_alpha * sg * cb + d_beta * cg;
+        let omega_z = d_gamma - d_alpha * sb;
+
+        // dR/dp * v = ω × (R*v) = ω × offset
+        // Note: ω × offset = (ωy*oz - ωz*oy, ωz*ox - ωx*oz, ωx*oy - ωy*ox)
+        let d_offset_x = omega_y * offset_z - omega_z * offset_y;
+        let d_offset_y = omega_z * offset_x - omega_x * offset_z;
+        let d_offset_z = omega_x * offset_y - omega_y * offset_x;
+
+        // Base derivative from ground curve and elevation
+        let base_x = g_prime.x;
+        let base_y = g_prime.y;
+        let base_z = z_prime;
+
+        Ok(Vector3::new(
+            base_x + d_offset_x,
+            base_y + d_offset_y,
+            base_z + d_offset_z,
+        ))
+    }
+
+    /// Computes the derivative dW/dp at (p, r, h) with a lane offset function.
+    ///
+    /// This version accounts for the rate of change of the lane offset r(p).
+    ///
+    /// # Arguments
+    /// * `p` - Parameter along the reference line.
+    /// * `r` - Lateral offset from the reference line.
+    /// * `h` - Height above the road surface.
+    /// * `lane_offset` - The function describing r(p).
+    ///
+    /// # Returns
+    /// The derivative dW/dp as a 3D vector.
+    pub fn w_dot_with_lane_offset(
+        &self,
+        p: f64,
+        r: f64,
+        h: f64,
+        lane_offset: &dyn Function,
+    ) -> MalidriveResult<Vector3<f64>> {
+        // Get the base derivative (without r_dot contribution)
+        let base = self.w_dot(p, r, h)?;
+
+        // Get r_dot from lane offset
+        let r_dot = lane_offset.f_dot(p)?;
+
+        // Get rotation parameters
+        let heading = self.ground_curve.heading(p)?;
+        let alpha = self.superelevation.f(p)?;
+        let z_prime = self.elevation.f_dot(p)?;
+        let g_prime = self.ground_curve.g_dot(p)?;
+        let g_prime_norm = (g_prime.x * g_prime.x + g_prime.y * g_prime.y).sqrt();
+        let beta = (-z_prime / g_prime_norm).atan();
+
+        // Compute the contribution from r_dot: R * (0, r_dot, 0)
+        let ca = alpha.cos();
+        let sa = alpha.sin();
+        let cb = beta.cos();
+        let sb = beta.sin();
+        let cg = heading.cos();
+        let sg = heading.sin();
+
+        // R * (0, 1, 0) = second column of R
+        let r_col_x = cg * sb * sa - sg * ca;
+        let r_col_y = sg * sb * sa + cg * ca;
+        let r_col_z = cb * sa;
+
+        Ok(base + Vector3::new(
+            r_dot * r_col_x,
+            r_dot * r_col_y,
+            r_dot * r_col_z,
+        ))
+    }
+
+    /// Computes the normalized tangent vector (s-hat) at (p, r, h).
+    ///
+    /// This is the unit vector in the direction of increasing p.
+    pub fn s_hat(&self, p: f64, r: f64, h: f64) -> MalidriveResult<Vector3<f64>> {
+        let w_dot = self.w_dot(p, r, h)?;
+        let norm = w_dot.norm();
+        if norm < 1e-15 {
+            return Err(MalidriveError::RoadCurveError(
+                "w_dot has zero norm".to_string(),
+            ));
+        }
+        Ok(w_dot / norm)
+    }
+
+    /// Computes the orientation (roll, pitch, yaw) at parameter p.
+    ///
+    /// Returns (roll, pitch, yaw) in radians.
+    pub fn orientation(&self, p: f64) -> MalidriveResult<(f64, f64, f64)> {
+        let g_prime = self.ground_curve.g_dot(p)?;
+        let g_prime_norm = (g_prime.x * g_prime.x + g_prime.y * g_prime.y).sqrt();
+
+        let z_prime = self.elevation.f_dot(p)?;
+
+        let roll = self.superelevation.f(p)?;
+        let pitch = (-z_prime / g_prime_norm).atan();
+        let yaw = self.ground_curve.heading(p)?;
+
+        Ok((roll, pitch, yaw))
+    }
+
+    /// Returns the maximum arc length (LMax) of the ground curve.
+    pub fn l_max(&self) -> f64 {
+        self.ground_curve.arc_length()
+    }
+
     /// Validates that p is within the curve's range.
     fn validate_p(&self, p: f64) -> MalidriveResult<()> {
         let p0 = self.p0();
