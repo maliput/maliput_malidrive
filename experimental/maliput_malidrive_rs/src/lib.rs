@@ -61,13 +61,11 @@
 //! let num_junctions = road_geometry.num_junctions();
 //! ```
 
+pub mod base;
 pub mod common;
 pub mod road_curve;
 pub mod xodr;
-// TODO: Re-enable base module after fixing trait implementation issues
-// The base module has trait implementations that don't match the maliput API traits
-// (Arc<dyn T> vs &dyn T for parent references)
-// pub mod base;
+// TODO: Re-enable builder module after completing base implementations
 // pub mod builder;
 
 pub use common::*;

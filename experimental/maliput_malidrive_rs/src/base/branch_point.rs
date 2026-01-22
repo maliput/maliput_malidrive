@@ -2,7 +2,7 @@
 
 use std::sync::{Arc, Weak};
 
-use maliput::api::{BranchPoint, BranchPointId, Lane, LaneEnd, LaneEndSet, RoadGeometry};
+use maliput::api::{BranchPoint, BranchPointId, Lane, LaneEnd, LaneEndSet, MaliputError, MaliputResult, RoadGeometry};
 
 /// A concrete BranchPoint implementation for maliput_malidrive.
 pub struct MalidriveBranchPoint {
@@ -68,32 +68,42 @@ impl BranchPoint for MalidriveBranchPoint {
             .expect("RoadGeometry has been dropped")
     }
 
-    fn get_confluent_branches(&self, end: &LaneEnd) -> Option<Arc<dyn LaneEndSet>> {
+    fn get_confluent_branches(&self, end: &LaneEnd) -> MaliputResult<Arc<dyn LaneEndSet>> {
         // Determine which side the given lane end is on
         if self.a_side.contains(end) {
-            Some(Arc::new(self.a_side.clone()) as Arc<dyn LaneEndSet>)
+            Ok(Arc::new(self.a_side.clone()) as Arc<dyn LaneEndSet>)
         } else if self.b_side.contains(end) {
-            Some(Arc::new(self.b_side.clone()) as Arc<dyn LaneEndSet>)
+            Ok(Arc::new(self.b_side.clone()) as Arc<dyn LaneEndSet>)
         } else {
-            None
+            Err(MaliputError::Validation(format!(
+                "LaneEnd not found in BranchPoint {}",
+                self.id.string()
+            )))
         }
     }
 
-    fn get_ongoing_branches(&self, end: &LaneEnd) -> Option<Arc<dyn LaneEndSet>> {
+    fn get_ongoing_branches(&self, end: &LaneEnd) -> MaliputResult<Arc<dyn LaneEndSet>> {
         // Return the opposite side
         if self.a_side.contains(end) {
-            Some(Arc::new(self.b_side.clone()) as Arc<dyn LaneEndSet>)
+            Ok(Arc::new(self.b_side.clone()) as Arc<dyn LaneEndSet>)
         } else if self.b_side.contains(end) {
-            Some(Arc::new(self.a_side.clone()) as Arc<dyn LaneEndSet>)
+            Ok(Arc::new(self.a_side.clone()) as Arc<dyn LaneEndSet>)
         } else {
-            None
+            Err(MaliputError::Validation(format!(
+                "LaneEnd not found in BranchPoint {}",
+                self.id.string()
+            )))
         }
     }
 
-    fn get_default_branch(&self, end: &LaneEnd) -> Option<LaneEnd> {
+    fn get_default_branch(&self, end: &LaneEnd) -> MaliputResult<Option<LaneEnd>> {
         // For now, return the first ongoing branch if available
-        self.get_ongoing_branches(end)
-            .and_then(|set| if set.size() > 0 { Some(set.get(0)) } else { None })
+        let ongoing = self.get_ongoing_branches(end)?;
+        if ongoing.size() > 0 {
+            Ok(Some(ongoing.get(0)?))
+        } else {
+            Ok(None)
+        }
     }
 
     fn get_a_side(&self) -> Arc<dyn LaneEndSet> {
@@ -139,9 +149,9 @@ impl MalidriveLaneEndSet {
     pub fn contains(&self, end: &LaneEnd) -> bool {
         self.lane_ends.iter().any(|(lane, which)| {
             if let Some(l) = lane.upgrade() {
-                let matches_lane = l.id() == end.lane().id();
+                let matches_lane = l.id() == end.lane.id();
                 let matches_end = matches!(
-                    (which, end.which()),
+                    (which, &end.end),
                     (LaneEndWhich::Start, maliput::api::LaneEndWhich::Start)
                         | (LaneEndWhich::Finish, maliput::api::LaneEndWhich::Finish)
                 );
@@ -164,14 +174,19 @@ impl LaneEndSet for MalidriveLaneEndSet {
         self.lane_ends.len()
     }
 
-    fn get(&self, index: usize) -> LaneEnd {
-        let (lane, which) = &self.lane_ends[index];
-        let lane_arc = lane.upgrade().expect("Lane has been dropped");
+    fn get(&self, index: usize) -> MaliputResult<LaneEnd> {
+        let (lane, which) = self.lane_ends.get(index)
+            .ok_or_else(|| MaliputError::IndexOutOfBounds {
+                index,
+                max: self.lane_ends.len().saturating_sub(1),
+            })?;
+        let lane_arc = lane.upgrade()
+            .ok_or_else(|| MaliputError::Validation("Lane has been dropped".to_string()))?;
         let api_which = match which {
             LaneEndWhich::Start => maliput::api::LaneEndWhich::Start,
             LaneEndWhich::Finish => maliput::api::LaneEndWhich::Finish,
         };
-        LaneEnd::new(lane_arc, api_which)
+        Ok(LaneEnd::new(lane_arc, api_which))
     }
 }
 
@@ -181,7 +196,7 @@ mod tests {
 
     #[test]
     fn test_branch_point_creation() {
-        let id = BranchPointId::new("bp_1");
+        let id = BranchPointId::new("bp_1".to_string());
         assert_eq!(id.string(), "bp_1");
     }
 

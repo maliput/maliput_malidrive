@@ -2,7 +2,7 @@
 
 use std::sync::{Arc, Weak};
 
-use maliput::api::{Junction, JunctionId, RoadGeometry, Segment};
+use maliput::api::{Junction, JunctionId, MaliputError, MaliputResult, RoadGeometry, Segment};
 
 /// A concrete Junction implementation for maliput_malidrive.
 pub struct MalidriveJunction {
@@ -50,8 +50,14 @@ impl Junction for MalidriveJunction {
         self.segments.len()
     }
 
-    fn segment(&self, index: usize) -> Arc<dyn Segment> {
-        Arc::clone(&self.segments[index])
+    fn segment(&self, index: usize) -> MaliputResult<Arc<dyn Segment>> {
+        self.segments
+            .get(index)
+            .cloned()
+            .ok_or_else(|| MaliputError::IndexOutOfBounds {
+                index,
+                max: self.segments.len().saturating_sub(1),
+            })
     }
 }
 
@@ -70,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_junction_creation() {
-        let id = JunctionId::new("junction_1");
+        let id = JunctionId::new("junction_1".to_string());
         assert_eq!(id.string(), "junction_1");
     }
 }

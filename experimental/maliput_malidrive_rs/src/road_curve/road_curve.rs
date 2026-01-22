@@ -369,6 +369,34 @@ impl RoadCurve {
         Ok(w_dot / norm)
     }
 
+    /// Computes the height unit vector (h-hat) at parameter p given s-hat.
+    ///
+    /// This is the unit vector normal to the road surface, pointing "up"
+    /// (accounting for superelevation).
+    pub fn h_hat(&self, p: f64, s_hat: &Vector3<f64>) -> MalidriveResult<Vector3<f64>> {
+        // z_hat is the world up vector
+        let z_hat = Vector3::new(0.0, 0.0, 1.0);
+
+        // h_hat_0 is z_hat with component parallel to s_hat removed and normalized
+        let dot_product = z_hat.dot(s_hat);
+        let h_hat_0_unnorm = z_hat - dot_product * s_hat;
+        let norm = h_hat_0_unnorm.norm();
+        if norm < 1e-15 {
+            // s_hat is vertical - edge case
+            return Err(MalidriveError::RoadCurveError(
+                "Cannot compute h_hat for vertical s_hat".to_string(),
+            ));
+        }
+        let h_hat_0 = h_hat_0_unnorm / norm;
+
+        // Apply superelevation rotation around s_hat
+        let superelevation_angle = self.superelevation.f(p)?;
+        let rotation =
+            nalgebra::UnitQuaternion::from_axis_angle(&nalgebra::Unit::new_normalize(*s_hat), superelevation_angle);
+
+        Ok(rotation * h_hat_0)
+    }
+
     /// Computes the orientation (roll, pitch, yaw) at parameter p.
     ///
     /// Returns (roll, pitch, yaw) in radians.

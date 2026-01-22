@@ -2,7 +2,7 @@
 
 use std::sync::{Arc, Weak};
 
-use maliput::api::{Junction, Lane, Segment, SegmentId};
+use maliput::api::{Junction, Lane, MaliputError, MaliputResult, Segment, SegmentId};
 
 /// A concrete Segment implementation for maliput_malidrive.
 pub struct MalidriveSegment {
@@ -50,8 +50,14 @@ impl Segment for MalidriveSegment {
         self.lanes.len()
     }
 
-    fn lane(&self, index: usize) -> Arc<dyn Lane> {
-        Arc::clone(&self.lanes[index])
+    fn lane(&self, index: usize) -> MaliputResult<Arc<dyn Lane>> {
+        self.lanes
+            .get(index)
+            .cloned()
+            .ok_or_else(|| MaliputError::IndexOutOfBounds {
+                index,
+                max: self.lanes.len().saturating_sub(1),
+            })
     }
 }
 
@@ -70,7 +76,7 @@ mod tests {
 
     #[test]
     fn test_segment_creation() {
-        let id = SegmentId::new("segment_1");
+        let id = SegmentId::new("segment_1".to_string());
         // Note: A full test would require a mock Junction
         // Here we just test the ID creation
         assert_eq!(id.string(), "segment_1");
