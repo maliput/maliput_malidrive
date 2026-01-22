@@ -67,21 +67,17 @@ impl MalidriveRoadGeometry {
 
     /// Sets the junctions for this road geometry.
     pub fn set_junctions(&mut self, junctions: Vec<Arc<dyn Junction>>) {
-        self.all_lanes.clear();
-        for junction in &junctions {
-            for seg_idx in 0..junction.num_segments() {
-                let segment = junction.segment(seg_idx);
-                for lane_idx in 0..segment.num_lanes() {
-                    self.all_lanes.push(segment.lane(lane_idx));
-                }
-            }
-        }
         self.junctions = junctions;
     }
 
     /// Sets the branch points for this road geometry.
     pub fn set_branch_points(&mut self, branch_points: Vec<Arc<dyn BranchPoint>>) {
         self.branch_points = branch_points;
+    }
+
+    /// Sets all lanes for this road geometry.
+    pub fn set_all_lanes(&mut self, lanes: Vec<Arc<dyn Lane>>) {
+        self.all_lanes = lanes;
     }
 }
 

@@ -64,6 +64,7 @@
 pub mod common;
 pub mod road_curve;
 pub mod xodr;
+// TODO: base and builder modules are WIP - they need to be updated to match the maliput_rs API
 // pub mod base;
 // pub mod builder;
 

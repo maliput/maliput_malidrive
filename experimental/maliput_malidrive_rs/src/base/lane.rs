@@ -6,13 +6,13 @@
 use std::sync::{Arc, Weak};
 
 use maliput::api::{
-    InertialPosition, IsoLaneVelocity, Lane, LaneBounds, LaneId, LanePosition,
-    LanePositionResult, RBounds, Rotation, Segment,
+    InertialPosition, IsoLaneVelocity, Lane, LaneId, LanePosition,
+    LanePositionResult, MaliputResult, RBounds, Rotation, Segment,
 };
 use nalgebra::Vector3;
 
-use crate::common::{MalidriveError, MalidriveResult};
-use crate::road_curve::{LaneOffset, RoadCurve, SimpleLaneOffset};
+use crate::common::MalidriveError;
+use crate::road_curve::{RoadCurve, SimpleLaneOffset};
 
 /// A concrete Lane implementation backed by road curve geometry.
 pub struct MalidriveLane {

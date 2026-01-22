@@ -22,16 +22,16 @@
 //!   └── LaneOffset (lateral lane position)
 //! ```
 
-mod arc_ground_curve;
-mod cubic_polynomial;
-mod function;
-mod ground_curve;
-mod lane_offset;
-mod line_ground_curve;
-mod param_poly3_ground_curve;
-mod piecewise_ground_curve;
-mod road_curve;
-mod spiral_ground_curve;
+pub mod arc_ground_curve;
+pub mod cubic_polynomial;
+pub mod function;
+pub mod ground_curve;
+pub mod lane_offset;
+pub mod line_ground_curve;
+pub mod param_poly3_ground_curve;
+pub mod piecewise_ground_curve;
+pub mod road_curve;
+pub mod spiral_ground_curve;
 
 // Export specific items to avoid ambiguity
 pub use arc_ground_curve::ArcGroundCurve;

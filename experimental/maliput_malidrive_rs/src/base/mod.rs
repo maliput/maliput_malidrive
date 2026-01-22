@@ -9,8 +9,8 @@ mod junction;
 mod branch_point;
 mod road_geometry;
 
-pub use lane::*;
-pub use segment::*;
-pub use junction::*;
-pub use branch_point::*;
-pub use road_geometry::*;
+pub use branch_point::{LaneEndWhich, MalidriveBranchPoint, MalidriveLaneEndSet};
+pub use junction::MalidriveJunction;
+pub use lane::MalidriveLane;
+pub use road_geometry::MalidriveRoadGeometry;
+pub use segment::MalidriveSegment;
