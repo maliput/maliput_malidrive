@@ -37,6 +37,8 @@ add_library(xodr
   road_header.cc
   road_link.cc
   road_type.cc
+  signal.cc
+  signals.cc
   tools.cc
   unit.cc
 )
