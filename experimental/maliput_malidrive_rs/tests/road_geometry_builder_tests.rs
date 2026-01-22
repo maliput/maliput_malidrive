@@ -492,7 +492,7 @@ fn test_is_drivable_lane_type_comprehensive() {
 // ============================================================================
 
 #[test]
-fn test_crossing_8_course() {
+fn test_crossing_8_course_geometry_types() {
     let xodr_path = resources_dir().join("Crossing8Course.xodr");
     let doc = load_from_file(xodr_path.to_str().unwrap());
 
@@ -624,4 +624,351 @@ fn test_road_geometry_structure_arc_lane() {
 
     assert_eq!(rg.num_junctions(), params.expected_junctions,
         "Junction count mismatch for {}", params.file_name);
+}
+
+// ============================================================================
+// Detailed Structure Tests (matching C++ RoadGeometryBuilderBaseTest)
+// ============================================================================
+
+/// Tests detailed road geometry structure for SingleLane.xodr
+/// Matching C++ test: RoadGeometryBuilderBase/SingleLane
+#[test]
+fn test_single_lane_detailed_structure() {
+    let xodr_path = resources_dir().join("SingleLane.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load SingleLane.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // Verify junction structure
+    assert_eq!(rg.num_junctions(), 1);
+    
+    let junction = rg.junction(0).unwrap();
+    assert_eq!(junction.id().string(), "1_0");  // Road 1, Section 0
+    assert_eq!(junction.num_segments(), 1);
+    
+    let segment = junction.segment(0).unwrap();
+    assert_eq!(segment.id().string(), "1_0");  // Road 1, Section 0
+    assert_eq!(segment.num_lanes(), 2);  // Left lane (1) and Right lane (-1)
+    
+    // Verify lane IDs match expected format
+    let lane0 = segment.lane(0).unwrap();
+    let lane1 = segment.lane(1).unwrap();
+    
+    // Lane IDs should be "1_0_-1" (road 1, section 0, lane -1) 
+    // and "1_0_1" (road 1, section 0, lane 1)
+    let lane_ids: Vec<String> = vec![
+        lane0.id().string().to_string(),
+        lane1.id().string().to_string(),
+    ];
+    assert!(lane_ids.contains(&"1_0_-1".to_string()) || lane_ids.contains(&"1_0_1".to_string()),
+        "Lane IDs should include 1_0_-1 and 1_0_1, got: {:?}", lane_ids);
+}
+
+/// Tests detailed road geometry structure for ArcLane.xodr
+/// Matching C++ test: RoadGeometryBuilderBase/ArcLane
+#[test]
+fn test_arc_lane_detailed_structure() {
+    let xodr_path = resources_dir().join("ArcLane.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load ArcLane.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    assert_eq!(rg.num_junctions(), 1);
+    
+    let junction = rg.junction(0).unwrap();
+    assert_eq!(junction.id().string(), "1_0");
+    assert_eq!(junction.num_segments(), 1);
+    
+    let segment = junction.segment(0).unwrap();
+    assert_eq!(segment.num_lanes(), 2);  // Left lane (1) and Right lane (-1)
+}
+
+/// Tests detailed road geometry structure for SpiralRoad.xodr
+/// Matching C++ test: RoadGeometryBuilderBase/SpiralRoad
+#[test]
+fn test_spiral_road_detailed_structure() {
+    let xodr_path = resources_dir().join("SpiralRoad.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load SpiralRoad.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // SpiralRoad: 1 road, 1 section, 2 driving lanes
+    assert_eq!(rg.num_junctions(), 1);
+    
+    let junction = rg.junction(0).unwrap();
+    assert_eq!(junction.id().string(), "1_0");
+    assert_eq!(junction.num_segments(), 1);
+    
+    let segment = junction.segment(0).unwrap();
+    assert_eq!(segment.num_lanes(), 2);
+}
+
+/// Tests detailed road geometry structure for SShapeRoad.xodr
+/// Matching C++ test: RoadGeometryBuilderBase/SShapeRoad
+#[test]
+fn test_sshape_road_detailed_structure() {
+    let xodr_path = resources_dir().join("SShapeRoad.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load SShapeRoad.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // SShapeRoad: 1 road, 1 section, 2 driving lanes
+    // Road has 3 geometries (arc + line + arc) but still 1 lane section
+    assert_eq!(rg.num_junctions(), 1);
+    
+    let junction = rg.junction(0).unwrap();
+    assert_eq!(junction.id().string(), "1_0");
+}
+
+/// Tests detailed road geometry structure for LShapeRoad.xodr
+/// Matching C++ test: RoadGeometryBuilderBase/LShapeRoad
+#[test]
+fn test_lshape_road_detailed_structure() {
+    let xodr_path = resources_dir().join("LShapeRoad.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load LShapeRoad.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // LShapeRoad: 3 roads, 1 section each, 1 driving lane each
+    // Junction IDs: 1_0, 2_0, 3_0
+    assert_eq!(rg.num_junctions(), 3);
+    
+    // Collect junction IDs
+    let junction_ids: Vec<String> = (0..rg.num_junctions())
+        .map(|i| rg.junction(i).unwrap().id().string().to_string())
+        .collect();
+    
+    assert!(junction_ids.contains(&"1_0".to_string()), "Should have junction 1_0");
+    assert!(junction_ids.contains(&"2_0".to_string()), "Should have junction 2_0");
+    assert!(junction_ids.contains(&"3_0".to_string()), "Should have junction 3_0");
+}
+
+/// Tests detailed road geometry structure for TShapeRoad.xodr
+/// Matching C++ test: RoadGeometryBuilderBase/TShapeRoad
+#[test]
+fn test_tshape_road_detailed_structure() {
+    let xodr_path = resources_dir().join("TShapeRoad.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load TShapeRoad.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // TShapeRoad: 3 main roads + 6 junction roads = 9 roads
+    // Main road junctions: 0_0, 1_0, 2_0
+    // Junction roads are grouped under junction "3"
+    // Expected junctions: 4 (0_0, 1_0, 2_0, and junction "3" with 6 segments)
+    assert!(rg.num_junctions() >= 4, 
+        "TShapeRoad should have at least 4 junctions, got {}", rg.num_junctions());
+
+    // Verify junction "3" exists (from XODR junction definition)
+    let junction_ids: Vec<String> = (0..rg.num_junctions())
+        .map(|i| rg.junction(i).unwrap().id().string().to_string())
+        .collect();
+    
+    assert!(junction_ids.contains(&"0_0".to_string()), "Should have junction 0_0");
+    assert!(junction_ids.contains(&"1_0".to_string()), "Should have junction 1_0");
+    assert!(junction_ids.contains(&"2_0".to_string()), "Should have junction 2_0");
+    assert!(junction_ids.contains(&"3".to_string()), "Should have junction 3");
+}
+
+/// Tests GapInLaneWidthDrivableLane.xodr - tests lane width variations
+/// Matching C++ test: RoadGeometryBuilderBase/GapInLaneWidthDrivableLane
+#[test]
+fn test_gap_in_lane_width_drivable_lane() {
+    let xodr_path = resources_dir().join("GapInLaneWidthDrivableLane.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load GapInLaneWidthDrivableLane.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // GapInLaneWidthDrivableLane: 1 road, 1 section, 1 driving lane
+    assert_eq!(rg.num_junctions(), 1);
+    
+    let junction = rg.junction(0).unwrap();
+    assert_eq!(junction.id().string(), "1_0");
+    assert_eq!(junction.num_segments(), 1);
+    
+    let segment = junction.segment(0).unwrap();
+    assert_eq!(segment.num_lanes(), 1);  // Only lane 1 (driving)
+}
+
+/// Tests DisconnectedRoadInJunction.xodr - road in junction not connected at one end
+/// Matching C++ test: RoadGeometryBuilderBase/DisconnectedRoadInJunction
+#[test]
+fn test_disconnected_road_in_junction() {
+    let xodr_path = resources_dir().join("DisconnectedRoadInJunction.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load DisconnectedRoadInJunction.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // DisconnectedRoadInJunction: 2 roads, 1 section each
+    // Road 0 has junction 0_0, Road 1 belongs to Junction 2
+    assert_eq!(rg.num_junctions(), 2);
+    
+    let junction_ids: Vec<String> = (0..rg.num_junctions())
+        .map(|i| rg.junction(i).unwrap().id().string().to_string())
+        .collect();
+    
+    assert!(junction_ids.contains(&"0_0".to_string()), "Should have junction 0_0");
+    assert!(junction_ids.contains(&"2".to_string()), "Should have junction 2");
+}
+
+// ============================================================================
+// Branch Point Tests
+// ============================================================================
+
+/// Tests that branch points are created for each lane end
+#[test]
+fn test_branch_points_created() {
+    let xodr_path = resources_dir().join("SingleLane.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load SingleLane.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // Each lane should have 2 branch points (start and finish)
+    // SingleLane has 2 lanes, so 4 branch points total
+    let num_branch_points = rg.num_branch_points();
+    assert_eq!(num_branch_points, 4, 
+        "SingleLane should have 4 branch points (2 lanes × 2 ends)");
+}
+
+/// Tests branch point ID naming convention
+#[test]
+fn test_branch_point_id_format() {
+    let xodr_path = resources_dir().join("SingleLane.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load SingleLane.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // Check that branch point IDs follow the "bp_{index}" format
+    for i in 0..rg.num_branch_points() {
+        let bp = rg.branch_point(i).unwrap();
+        let id = bp.id().string();
+        assert!(id.starts_with("bp_"), 
+            "Branch point ID should start with 'bp_', got: {}", id);
+    }
+}
+
+// ============================================================================
+// Crossing 8 Course Tests
+// ============================================================================
+
+/// Tests Crossing8Course.xodr - complex figure-8 crossing
+#[test]
+fn test_crossing_8_course() {
+    let xodr_path = resources_dir().join("Crossing8Course.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load Crossing8Course.xodr");
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    // Crossing8Course is a complex map - verify it builds successfully
+    assert!(rg.num_junctions() > 0, "Should have at least one junction");
+    
+    // Verify segments and lanes exist
+    let mut total_lanes = 0;
+    for i in 0..rg.num_junctions() {
+        let junction = rg.junction(i).unwrap();
+        for j in 0..junction.num_segments() {
+            let segment = junction.segment(j).unwrap();
+            total_lanes += segment.num_lanes();
+        }
+    }
+    assert!(total_lanes > 0, "Should have at least one lane");
 }

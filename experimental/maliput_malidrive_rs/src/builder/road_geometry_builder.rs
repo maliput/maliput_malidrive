@@ -3,6 +3,44 @@
 //! This module implements the road geometry building process that transforms
 //! parsed OpenDRIVE data into a complete maliput RoadGeometry with proper
 //! junctions, segments, lanes, and branch points.
+//!
+//! # Implementation Status
+//!
+//! The following features from the C++ implementation are currently implemented:
+//! - Basic road geometry construction from XODR data
+//! - Junction, Segment, and Lane creation
+//! - Road curve building (line, arc, spiral, param_poly3)
+//! - Lane width function creation
+//! - Basic branch point creation
+//! - Drivable lane filtering
+//!
+//! # TODO: Missing Features (compared to C++ implementation)
+//!
+//! The following features need to be implemented for full parity:
+//!
+//! ## High Priority
+//! - **Lane Offset Calculation**: Proper `LaneOffset` computation using adjacent lane functions
+//!   (see C++ `road_curve::LaneOffset::AdjacentLaneFunctions`)
+//! - **Reference Line Offset**: Create reference line offset for segments
+//!   (see C++ `MakeReferenceLineOffset`)
+//! - **Branch Point Connections**: Proper logic for connecting lane ends:
+//!   - `FindConnectingLaneEndsForLaneEnd`
+//!   - `SolveLaneEndsForInnerLaneSection`
+//!   - `SolveLaneEndsForConnectingRoad`
+//!   - `SolveLaneEndsForJunction`
+//!   - `AttachLaneEndToBranchPoint`
+//!   - `SetDefaultsToBranchPoints`
+//!
+//! ## Medium Priority
+//! - **Lane Width Validation**: `VerifyNonNegativeLaneWidth` - validate lane widths are non-negative
+//! - **Tolerance Range Support**: Automatic retry with different tolerances
+//! - **Geometry Simplification**: Support for `SimplificationPolicy`
+//!
+//! ## Lower Priority
+//! - **Lane Boundaries**: `BuildLaneBoundaries` with road marking support
+//! - **Scaled Domain Function**: Wrap functions with scaled domains for piecewise curves
+//! - **KD-Tree Strategy**: Initialization for efficient spatial queries
+//! - **Parallel Build Policy**: Multi-threaded lane building support
 
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock, Weak};
@@ -308,7 +346,12 @@ impl RoadGeometryBuilder {
             let width_fn = self.make_lane_width_function(&xodr_lane.widths, section_start, section_end);
 
             // Build lane offset function (r-coordinate of lane centerline)
-            // For now, use a simple offset based on lane ID (negative = right, positive = left)
+            // TODO: Implement proper lane offset calculation using adjacent lane functions.
+            // In C++, this uses `road_curve::LaneOffset` with `AdjacentLaneFunctions`:
+            //   - For positive lane ids (left lanes): offset = sum of widths of lanes between center and this lane
+            //   - For negative lane ids (right lanes): offset = -sum of widths of lanes between center and this lane
+            //   - The offset function accounts for lane width variations along the road
+            // Current placeholder: simple constant offset based on lane ID
             let lane_offset_fn: Arc<dyn Function> = Arc::new(
                 CubicPolynomial::constant(xodr_lane.id as f64 * 1.75, section_start, section_end)
             );
@@ -348,6 +391,10 @@ impl RoadGeometryBuilder {
     }
 
     /// Creates a lane width function from XODR lane widths.
+    ///
+    /// TODO: Add non-negative width validation matching C++ `VerifyNonNegativeLaneWidth`:
+    /// - Validate that lane width polynomials produce non-negative values
+    /// - Check coefficients satisfy: a >= 0, and polynomial >= 0 for entire domain
     fn make_lane_width_function(
         &self,
         widths: &[crate::xodr::LaneWidth],
@@ -376,6 +423,31 @@ impl RoadGeometryBuilder {
     }
 
     /// Builds branch points for all lanes.
+    ///
+    /// TODO: Implement full branch point connection logic matching C++:
+    ///
+    /// The C++ implementation has a sophisticated multi-step process:
+    ///
+    /// 1. `BuildBranchPointsForLanes` - main entry point that orchestrates:
+    ///    - Creates empty branch points for each lane end
+    ///    - Calls `FindConnectingLaneEndsForLaneEnd` to find connections
+    ///    - Calls `AttachLaneEndToBranchPoint` to connect lane ends
+    ///
+    /// 2. `FindConnectingLaneEndsForLaneEnd` - determines connection type:
+    ///    - `SolveLaneEndsForInnerLaneSection` - connects lanes in consecutive lane sections
+    ///    - `SolveLaneEndsForConnectingRoad` - connects lanes via road predecessor/successor
+    ///    - `SolveLaneEndsForJunction` - connects lanes from non-junction to junction roads
+    ///    - `SolveLaneEndsWithinJunction` - connects lanes within a junction
+    ///
+    /// 3. `AttachLaneEndToBranchPoint` - adds lane end to appropriate branch point:
+    ///    - Determines if lane end should be on A-side or B-side
+    ///    - Creates new branch point if needed, or reuses existing
+    ///
+    /// 4. `SetDefaultsToBranchPoints` - sets the default branch for each lane end:
+    ///    - Iterates through all branch points
+    ///    - For each side (A/B), sets the first lane as the default continuation
+    ///
+    /// Current implementation: Creates basic branch points (one per lane end) without connections.
     fn build_branch_points(
         &self,
         lane_infos: &[LaneInfo],
