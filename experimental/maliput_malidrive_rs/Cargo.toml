@@ -1,0 +1,24 @@
+[package]
+name = "maliput_malidrive"
+version = "0.1.0"
+edition = "2021"
+authors = ["Maliput Contributors"]
+license = "BSD-3-Clause"
+description = "A Rust implementation of the maliput_malidrive backend - OpenDRIVE support for maliput"
+repository = "https://github.com/maliput/maliput_malidrive"
+keywords = ["road-network", "simulation", "autonomous-vehicles", "opendrive", "mapping"]
+categories = ["simulation", "science::geo", "parser-implementations"]
+
+[dependencies]
+maliput = { path = "../../../maliput/experimental/maliput_rs" }
+thiserror = "1.0"
+nalgebra = "0.32"
+quick-xml = "0.31"
+
+[dev-dependencies]
+approx = "0.5"
+
+[features]
+default = []
+# Enable parallel computation support
+parallel = []
