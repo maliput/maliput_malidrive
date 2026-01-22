@@ -62,10 +62,9 @@
 //! ```
 
 pub mod base;
+pub mod builder;
 pub mod common;
 pub mod road_curve;
 pub mod xodr;
-// TODO: Re-enable builder module after completing base implementations
-// pub mod builder;
 
 pub use common::*;

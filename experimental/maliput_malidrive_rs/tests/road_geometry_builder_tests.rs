@@ -1,5 +1,14 @@
 //! Tests for road geometry builder functionality.
+//!
+//! These tests are designed to replicate the C++ tests in
+//! `test/regression/builder/road_geometry_builder_test.cc` to ensure
+//! behavior parity after migration to Rust.
 
+use maliput::api::RoadGeometry;
+use maliput_malidrive::builder::{
+    get_junction_id, get_lane_id, get_segment_id, is_drivable_lane_type,
+    BuilderParams, RoadGeometryBuilder, SCALE_LENGTH, STRICT_ANGULAR_TOLERANCE, STRICT_LINEAR_TOLERANCE,
+};
 use maliput_malidrive::xodr::{load_from_file, GeometryDescription, LaneType};
 use maliput_malidrive::road_curve::{
     ArcGroundCurve, CubicPolynomial, GroundCurve, LineGroundCurve, RoadCurve,
@@ -13,6 +22,61 @@ fn resources_dir() -> PathBuf {
     PathBuf::from(manifest_dir).join("../../resources")
 }
 
+// ============================================================================
+// Builder Constructor Tests (matching BuilderTestSingleLane)
+// ============================================================================
+
+#[test]
+fn test_road_geometry_builder_constructor() {
+    let xodr_path = resources_dir().join("SingleLane.xodr");
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect("Failed to load SingleLane.xodr");
+
+    let params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH)
+        .with_road_geometry_id("SingleLane");
+
+    let builder = RoadGeometryBuilder::new(params).expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions).expect("Build should succeed");
+
+    assert!(rg.linear_tolerance() > 0.0);
+    assert!(rg.angular_tolerance() > 0.0);
+    assert!(rg.scale_length() > 0.0);
+}
+
+#[test]
+fn test_road_geometry_builder_constructor_bad_linear_tolerance() {
+    let params = BuilderParams::new("test.xodr")
+        .with_linear_tolerance(-5.0);
+
+    let result = RoadGeometryBuilder::new(params);
+    assert!(result.is_err(), "Negative linear tolerance should fail");
+}
+
+#[test]
+fn test_road_geometry_builder_constructor_bad_angular_tolerance() {
+    let params = BuilderParams::new("test.xodr")
+        .with_angular_tolerance(-5.0);
+
+    let result = RoadGeometryBuilder::new(params);
+    assert!(result.is_err(), "Negative angular tolerance should fail");
+}
+
+#[test]
+fn test_road_geometry_builder_constructor_bad_scale_length() {
+    let params = BuilderParams::new("test.xodr")
+        .with_scale_length(-5.0);
+
+    let result = RoadGeometryBuilder::new(params);
+    assert!(result.is_err(), "Negative scale length should fail");
+}
+
+// ============================================================================
+// XODR Loading Tests
+// ============================================================================
+
 #[test]
 fn test_load_single_lane_xodr() {
     let xodr_path = resources_dir().join("SingleLane.xodr");
@@ -24,7 +88,7 @@ fn test_load_single_lane_xodr() {
     let road = &doc.roads[0];
     assert_eq!(road.id, "1", "Road ID should be 1");
     assert!((road.length - 100.0).abs() < 0.1);
-    assert_eq!(road.junction, "-1");
+    assert!(road.junction == "-1", "Road should not be in a junction");
 
     assert!(!road.plan_view.is_empty());
     assert_eq!(road.plan_view.geometries.len(), 1);
@@ -60,13 +124,20 @@ fn test_load_tshape_road_xodr() {
     let doc = load_from_file(xodr_path.to_str().unwrap())
         .expect("Failed to load TShapeRoad.xodr");
 
+    // TShapeRoad has 9 roads and 1 junction in the C++ tests
     assert!(doc.roads.len() >= 3);
     assert!(doc.junctions.len() > 0);
 
-    let main_roads: Vec<_> = doc.roads.iter().filter(|r| r.junction == "-1").collect();
+    // Check for roads that don't belong to a Junction
+    let main_roads: Vec<_> = doc.roads.iter()
+        .filter(|r| r.junction == "-1")
+        .collect();
     assert!(main_roads.len() >= 3);
 
-    let junction_roads: Vec<_> = doc.roads.iter().filter(|r| r.junction != "-1").collect();
+    // Check for roads that belong to a Junction
+    let junction_roads: Vec<_> = doc.roads.iter()
+        .filter(|r| r.junction != "-1")
+        .collect();
     assert!(junction_roads.len() > 0);
 }
 
@@ -76,13 +147,18 @@ fn test_load_lshape_road_xodr() {
     let doc = load_from_file(xodr_path.to_str().unwrap())
         .expect("Failed to load LShapeRoad.xodr");
 
+    // LShapeRoad has 3 roads in C++ tests
+    assert_eq!(doc.roads.len(), 3);
+
+    // Verify road connections exist
     for road in &doc.roads {
         if let Some(link) = &road.link {
+            println!("Road {} has link info", road.id);
             if let Some(pred) = &link.predecessor {
-                println!("Road {} predecessor: {}", road.id, pred.element_id);
+                println!("  Predecessor: {}", pred.element_id);
             }
             if let Some(succ) = &link.successor {
-                println!("Road {} successor: {}", road.id, succ.element_id);
+                println!("  Successor: {}", succ.element_id);
             }
         }
     }
@@ -96,6 +172,8 @@ fn test_load_line_multiple_sections_xodr() {
 
     assert_eq!(doc.roads.len(), 1);
     let road = &doc.roads[0];
+    
+    // Should have 3 lane sections per C++ test
     assert_eq!(road.lanes.lane_sections.len(), 3);
 }
 
@@ -112,6 +190,10 @@ fn test_load_figure8_xodr() {
     }
 }
 
+// ============================================================================
+// Lane Section Structure Tests
+// ============================================================================
+
 #[test]
 fn test_lane_section_structure() {
     let xodr_path = resources_dir().join("TShapeRoad.xodr");
@@ -119,20 +201,24 @@ fn test_lane_section_structure() {
         .expect("Failed to load TShapeRoad.xodr");
 
     for road in &doc.roads {
+        // Skip junction roads for this test
         if road.junction != "-1" {
             continue;
         }
 
         for section in &road.lanes.lane_sections {
+            // Left lanes should have positive IDs
             for lane in &section.left_lanes {
-                assert!(lane.id > 0);
+                assert!(lane.id > 0, "Left lane should have positive ID");
             }
 
+            // Right lanes should have negative IDs
             for lane in &section.right_lanes {
-                assert!(lane.id < 0);
+                assert!(lane.id < 0, "Right lane should have negative ID");
             }
 
-            assert_eq!(section.center_lane.id, 0);
+            // Center lane should have ID 0
+            assert_eq!(section.center_lane.id, 0, "Center lane should have ID 0");
         }
     }
 }
@@ -149,8 +235,12 @@ fn test_driving_lane_identification() {
     let has_driving_lanes = section.left_lanes.iter().any(|l| l.lane_type == LaneType::Driving)
         || section.right_lanes.iter().any(|l| l.lane_type == LaneType::Driving);
 
-    assert!(has_driving_lanes);
+    assert!(has_driving_lanes, "SingleLane should have driving lanes");
 }
+
+// ============================================================================
+// Junction/Connection Tests
+// ============================================================================
 
 #[test]
 fn test_junction_connections() {
@@ -158,16 +248,20 @@ fn test_junction_connections() {
     let doc = load_from_file(xodr_path.to_str().unwrap())
         .expect("Failed to load TShapeRoad.xodr");
 
-    assert!(doc.junctions.len() > 0);
+    assert!(doc.junctions.len() > 0, "TShapeRoad should have junctions");
 
     let junction = &doc.junctions[0];
-    assert!(junction.connections.len() > 0);
+    assert!(junction.connections.len() > 0, "Junction should have connections");
 
     for connection in &junction.connections {
-        assert!(!connection.incoming_road.is_empty());
-        assert!(!connection.connecting_road.is_empty());
+        assert!(!connection.incoming_road.is_empty(), "Connection should have incoming road");
+        assert!(!connection.connecting_road.is_empty(), "Connection should have connecting road");
     }
 }
+
+// ============================================================================
+// Ground Curve Tests
+// ============================================================================
 
 #[test]
 fn test_line_geometry_to_ground_curve() {
@@ -231,6 +325,10 @@ fn test_arc_geometry_to_ground_curve() {
     assert!((start_pos.x - geom.start_point.x).abs() < 1e-6);
     assert!((start_pos.y - geom.start_point.y).abs() < 1e-6);
 }
+
+// ============================================================================
+// Road Curve Tests
+// ============================================================================
 
 #[test]
 fn test_road_curve_with_elevation() {
@@ -310,6 +408,10 @@ fn test_road_curve_with_lateral_offset() {
     assert!((pos_offset.y - pos_center.y - 2.0).abs() < 1e-3);
 }
 
+// ============================================================================
+// Lane Width Tests
+// ============================================================================
+
 #[test]
 fn test_lane_width_parsing() {
     let xodr_path = resources_dir().join("SingleLane.xodr");
@@ -328,12 +430,74 @@ fn test_lane_width_parsing() {
     }
 }
 
+// ============================================================================
+// ID Generation Tests (matching C++ id_providers)
+// ============================================================================
+
+#[test]
+fn test_lane_id_format() {
+    // C++ format: {road}_{section}_{lane}
+    assert_eq!(get_lane_id(1, 0, -1), "1_0_-1");
+    assert_eq!(get_lane_id(1, 0, 1), "1_0_1");
+    assert_eq!(get_lane_id(2, 1, -2), "2_1_-2");
+    assert_eq!(get_lane_id(0, 0, 4), "0_0_4");
+}
+
+#[test]
+fn test_segment_id_format() {
+    // C++ format: {road}_{section}
+    assert_eq!(get_segment_id("1", 0), "1_0");
+    assert_eq!(get_segment_id("2", 1), "2_1");
+}
+
+#[test]
+fn test_junction_id_format() {
+    // C++ format: {road}_{section} for non-xodr junctions
+    assert_eq!(get_junction_id("1", 0), "1_0");
+    assert_eq!(get_junction_id("2", 1), "2_1");
+}
+
+// ============================================================================
+// Drivable Lane Type Tests
+// ============================================================================
+
+#[test]
+fn test_is_drivable_lane_type_comprehensive() {
+    // Drivable types (matching C++ is_driveable_lane)
+    assert!(is_drivable_lane_type(LaneType::Driving));
+    assert!(is_drivable_lane_type(LaneType::Entry));
+    assert!(is_drivable_lane_type(LaneType::Exit));
+    assert!(is_drivable_lane_type(LaneType::OffRamp));
+    assert!(is_drivable_lane_type(LaneType::OnRamp));
+    assert!(is_drivable_lane_type(LaneType::Parking));
+    assert!(is_drivable_lane_type(LaneType::Stop));
+    assert!(is_drivable_lane_type(LaneType::Shoulder));
+    assert!(is_drivable_lane_type(LaneType::Biking));
+    assert!(is_drivable_lane_type(LaneType::Sidewalk));
+    assert!(is_drivable_lane_type(LaneType::Bidirectional));
+    assert!(is_drivable_lane_type(LaneType::ConnectingRamp));
+    assert!(is_drivable_lane_type(LaneType::MwyEntry));
+    assert!(is_drivable_lane_type(LaneType::MwyExit));
+
+    // Non-drivable types
+    assert!(!is_drivable_lane_type(LaneType::Border));
+    assert!(!is_drivable_lane_type(LaneType::Curb));
+    assert!(!is_drivable_lane_type(LaneType::None));
+    assert!(!is_drivable_lane_type(LaneType::Restricted));
+    assert!(!is_drivable_lane_type(LaneType::Median));
+}
+
+// ============================================================================
+// Complex Map Geometry Tests
+// ============================================================================
+
 #[test]
 fn test_crossing_8_course() {
     let xodr_path = resources_dir().join("Crossing8Course.xodr");
     let doc = load_from_file(xodr_path.to_str().unwrap());
 
     if doc.is_err() {
+        // Some maps may not be available in all environments
         return;
     }
 
@@ -360,4 +524,104 @@ fn test_crossing_8_course() {
 
     println!("Geometry types: {} lines, {} arcs, {} spirals, {} poly",
         line_count, arc_count, spiral_count, poly_count);
+}
+
+// ============================================================================
+// Road Geometry Structure Tests (matching C++ parameterized tests)
+// ============================================================================
+
+/// Test parameters matching C++ RoadGeometryBuilderTestParameters
+struct RoadGeometryTestParams {
+    /// XODR file name
+    file_name: &'static str,
+    /// Expected number of junctions
+    expected_junctions: usize,
+    /// Expected number of segments
+    expected_segments: usize,
+    /// Expected number of lanes
+    expected_lanes: usize,
+}
+
+const TEST_CASES: &[RoadGeometryTestParams] = &[
+    // SingleLane: 1 road, 1 section, 2 driving lanes (left=1, right=-1) -> 1 junction, 1 segment, 2 lanes
+    RoadGeometryTestParams {
+        file_name: "SingleLane.xodr",
+        expected_junctions: 1,
+        expected_segments: 1,
+        expected_lanes: 2,
+    },
+    // ArcLane: 1 road, 1 section, 2 driving lanes (left=1, right=-1) -> 1 junction, 1 segment, 2 lanes  
+    RoadGeometryTestParams {
+        file_name: "ArcLane.xodr",
+        expected_junctions: 1,
+        expected_segments: 1,
+        expected_lanes: 2,
+    },
+    // LineMultipleSections: 1 road, 3 sections, varying lanes per section
+    RoadGeometryTestParams {
+        file_name: "LineMultipleSections.xodr",
+        expected_junctions: 3,
+        expected_segments: 3,
+        expected_lanes: 3, // Based on C++ test expectations
+    },
+];
+
+#[test]
+fn test_road_geometry_structure_single_lane() {
+    let params = &TEST_CASES[0];
+    let xodr_path = resources_dir().join(params.file_name);
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect(&format!("Failed to load {}", params.file_name));
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    assert_eq!(rg.num_junctions(), params.expected_junctions,
+        "Junction count mismatch for {}", params.file_name);
+    
+    // Count total segments across all junctions
+    let total_segments: usize = (0..rg.num_junctions())
+        .map(|i| rg.junction(i).unwrap().num_segments())
+        .sum();
+    assert_eq!(total_segments, params.expected_segments,
+        "Segment count mismatch for {}", params.file_name);
+    
+    // Count total lanes across all segments
+    let mut total_lanes = 0;
+    for i in 0..rg.num_junctions() {
+        let junction = rg.junction(i).unwrap();
+        for j in 0..junction.num_segments() {
+            total_lanes += junction.segment(j).unwrap().num_lanes();
+        }
+    }
+    assert_eq!(total_lanes, params.expected_lanes,
+        "Lane count mismatch for {}", params.file_name);
+}
+
+#[test]
+fn test_road_geometry_structure_arc_lane() {
+    let params = &TEST_CASES[1];
+    let xodr_path = resources_dir().join(params.file_name);
+    let doc = load_from_file(xodr_path.to_str().unwrap())
+        .expect(&format!("Failed to load {}", params.file_name));
+
+    let builder_params = BuilderParams::new(xodr_path.to_str().unwrap())
+        .with_linear_tolerance(STRICT_LINEAR_TOLERANCE)
+        .with_angular_tolerance(STRICT_ANGULAR_TOLERANCE)
+        .with_scale_length(SCALE_LENGTH);
+
+    let builder = RoadGeometryBuilder::new(builder_params)
+        .expect("Builder creation should succeed");
+    let rg = builder.build(&doc.roads, &doc.junctions)
+        .expect("Build should succeed");
+
+    assert_eq!(rg.num_junctions(), params.expected_junctions,
+        "Junction count mismatch for {}", params.file_name);
 }
