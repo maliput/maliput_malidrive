@@ -39,7 +39,10 @@ pub use arc_ground_curve::ArcGroundCurve;
 pub use cubic_polynomial::{CubicPolynomial, PiecewiseCubicPolynomial};
 pub use function::{ConstantFunction, Function, LinearFunction};
 pub use ground_curve::{validate_p, GroundCurve, GROUND_CURVE_EPSILON};
-pub use lane_offset::{LaneOffset, SimpleLaneOffset};
+pub use lane_offset::{
+    AdjacentLaneFunctions, LaneOffset, MalidriveLaneOffset, SimpleLaneOffset,
+    AT_LEFT_FROM_CENTER_LANE, AT_RIGHT_FROM_CENTER_LANE,
+};
 pub use line_ground_curve::LineGroundCurve;
 pub use param_poly3_ground_curve::{ParamPoly3GroundCurve, ParamPoly3Range};
 pub use piecewise_ground_curve::PiecewiseGroundCurve;

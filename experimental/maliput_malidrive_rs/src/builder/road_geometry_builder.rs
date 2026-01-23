@@ -11,6 +11,8 @@
 //! - Junction, Segment, and Lane creation
 //! - Road curve building (line, arc, spiral, param_poly3)
 //! - Lane width function creation
+//! - **Lane Offset Calculation**: Proper `MalidriveLaneOffset` computation using `AdjacentLaneFunctions`
+//! - **Reference Line Offset**: Creates reference line offset from XODR `<laneOffset>` elements
 //! - Basic branch point creation
 //! - Drivable lane filtering
 //!
@@ -19,10 +21,6 @@
 //! The following features need to be implemented for full parity:
 //!
 //! ## High Priority
-//! - **Lane Offset Calculation**: Proper `LaneOffset` computation using adjacent lane functions
-//!   (see C++ `road_curve::LaneOffset::AdjacentLaneFunctions`)
-//! - **Reference Line Offset**: Create reference line offset for segments
-//!   (see C++ `MakeReferenceLineOffset`)
 //! - **Branch Point Connections**: Proper logic for connecting lane ends:
 //!   - `FindConnectingLaneEndsForLaneEnd`
 //!   - `SolveLaneEndsForInnerLaneSection`
@@ -247,10 +245,11 @@ impl RoadGeometryBuilder {
                 let junction_dyn_weak: Weak<dyn maliput::api::Junction> = 
                     Weak::<MalidriveJunction>::new() as Weak<dyn maliput::api::Junction>; // Placeholder for now
 
-                // Create reference line offset function
-                // TODO: Parse from XODR LaneOffset data. For now, use a zero constant function.
-                let reference_line_offset: Arc<dyn Function> = Arc::new(
-                    CubicPolynomial::constant(0.0, section_start, section_end)
+                // Create reference line offset function from XODR lane offset data
+                let reference_line_offset: Arc<dyn Function> = self.road_curve_factory.make_reference_line_offset(
+                    &lanes_data.lane_offsets,
+                    section_start,
+                    section_end,
                 );
 
                 // First build the lanes for this segment (we need them to add to segment)
@@ -270,6 +269,7 @@ impl RoadGeometryBuilder {
                     lane_section,
                     road_curve,
                     &segment_placeholder,
+                    &reference_line_offset,
                 )?;
                 
                 // Now create the actual segment with the lanes
@@ -316,6 +316,15 @@ impl RoadGeometryBuilder {
     }
 
     /// Builds lanes for a segment from a lane section.
+    ///
+    /// This method builds lanes iteratively from the center lane outward, first processing
+    /// right lanes (in reverse order from most negative to least negative ID), then
+    /// left lanes (in forward order from least positive to most positive ID).
+    ///
+    /// For each lane, the offset is computed using the `MalidriveLaneOffset` formula:
+    /// `LaneOffset_i(p) = LaneOffset_{i-1}(p) + sign * LaneWidth_{i-1}(p)/2 + sign * LaneWidth_i(p)/2`
+    ///
+    /// Where sign is -1 for right lanes and +1 for left lanes.
     fn build_lanes_for_segment(
         &self,
         road: &RoadHeader,
@@ -323,7 +332,10 @@ impl RoadGeometryBuilder {
         lane_section: &LaneSection,
         road_curve: &Arc<RoadCurve>,
         segment: &Arc<MalidriveSegment>,
+        reference_line_offset: &Arc<dyn Function>,
     ) -> MalidriveResult<Vec<LaneInfo>> {
+        use crate::road_curve::{AdjacentLaneFunctions, MalidriveLaneOffset, AT_LEFT_FROM_CENTER_LANE, AT_RIGHT_FROM_CENTER_LANE};
+
         let mut lane_infos = Vec::new();
 
         // Calculate section s-range
@@ -334,79 +346,154 @@ impl RoadGeometryBuilder {
             road.length
         };
 
-        // Collect drivable lanes (right lanes reversed, then left lanes in order)
-        let mut drivable_lanes: Vec<&XodrLane> = Vec::new();
-
-        // Right lanes in reverse order (so index 0 is rightmost)
-        let mut right_lanes: Vec<_> = lane_section
-            .right_lanes
-            .iter()
-            .filter(|l| !self.omit_nondrivable_lanes || is_drivable_lane_type(l.lane_type))
-            .collect();
-        right_lanes.reverse();
-        drivable_lanes.extend(right_lanes);
-
-        // Left lanes in forward order
-        let left_lanes: Vec<_> = lane_section
-            .left_lanes
-            .iter()
-            .filter(|l| !self.omit_nondrivable_lanes || is_drivable_lane_type(l.lane_type))
-            .collect();
-        drivable_lanes.extend(left_lanes);
-
         // Parse road ID to integer for lane ID generation
         let road_id_int: i32 = road
             .id
             .parse()
             .map_err(|_| MalidriveError::ParsingError(format!("Invalid road ID: {}", road.id)))?;
 
-        // Create lanes
-        for (lane_index, xodr_lane) in drivable_lanes.iter().enumerate() {
-            let lane_id = get_lane_id(road_id_int, section_idx as i32, xodr_lane.id);
+        // Collect all lanes with their drivability status
+        // We need to process ALL lanes (not just drivable) to compute offsets correctly,
+        // but we only create Lane objects for drivable lanes.
+
+        // ===== Process RIGHT lanes (from center outward, i.e., -1, -2, -3, ...) =====
+        // Sort right lanes by ID in ascending order (e.g., -1, -2, -3)
+        // We iterate from closest to center (-1) to furthest (-N)
+        let mut right_lanes_sorted: Vec<&XodrLane> = lane_section.right_lanes.iter().collect();
+        right_lanes_sorted.sort_by_key(|l| std::cmp::Reverse(l.id)); // -1 first, -2 second, etc.
+
+        let mut adjacent_lane_functions: Option<AdjacentLaneFunctions> = None;
+        let mut lane_index = 0;
+
+        for xodr_lane in &right_lanes_sorted {
+            let is_drivable = !self.omit_nondrivable_lanes || is_drivable_lane_type(xodr_lane.lane_type);
 
             // Build lane width function
             let width_fn = self.make_lane_width_function(&xodr_lane.widths, section_start, section_end);
 
-            // Build lane offset function (r-coordinate of lane centerline)
-            // TODO: Implement proper lane offset calculation using adjacent lane functions.
-            // In C++, this uses `road_curve::LaneOffset` with `AdjacentLaneFunctions`:
-            //   - For positive lane ids (left lanes): offset = sum of widths of lanes between center and this lane
-            //   - For negative lane ids (right lanes): offset = -sum of widths of lanes between center and this lane
-            //   - The offset function accounts for lane width variations along the road
-            // Current placeholder: simple constant offset based on lane ID
-            let lane_offset_fn: Arc<dyn Function> = Arc::new(
-                CubicPolynomial::constant(xodr_lane.id as f64 * 1.75, section_start, section_end)
-            );
-
-            // Create the lane using correct API signature
-            let segment_weak: Weak<dyn maliput::api::Segment> = Arc::downgrade(segment) as Weak<dyn maliput::api::Segment>;
-            let lane = MalidriveLane::new(
-                LaneId::new(lane_id.clone()),
-                lane_index,
-                segment_weak,
-                Arc::clone(road_curve),
-                width_fn,
-                lane_offset_fn,
-                section_start,  // p0
-                section_end,    // p1
-                default_elevation_bounds(),
-                xodr_lane_type_to_maliput(xodr_lane.lane_type),
-                road_id_int,    // xodr_track
-                xodr_lane.id,   // xodr_lane_id
+            // Build lane offset using MalidriveLaneOffset
+            let lane_offset = MalidriveLaneOffset::new(
+                adjacent_lane_functions.clone(),
+                Arc::clone(&width_fn),
+                Arc::clone(reference_line_offset),
+                AT_RIGHT_FROM_CENTER_LANE,
+                section_start,
+                section_end,
                 self.params.linear_tolerance,
-                self.params.angular_tolerance,
             )?;
+            let lane_offset_fn: Arc<dyn Function> = Arc::new(lane_offset);
 
-            let lane_arc = Arc::new(lane);
+            // Update adjacent_lane_functions for the next lane
+            adjacent_lane_functions = Some(AdjacentLaneFunctions::new(
+                Arc::clone(&lane_offset_fn),
+                Arc::clone(&width_fn),
+            ));
 
-            lane_infos.push(LaneInfo {
-                lane: Arc::clone(&lane_arc),
-                xodr_road_id: road.id.clone(),
-                xodr_lane_section_index: section_idx,
-                xodr_lane_id: xodr_lane.id,
-                track_s_start: section_start,
-                track_s_end: section_end,
-            });
+            // Only create a Lane object if this lane is drivable
+            if is_drivable {
+                let lane_id = get_lane_id(road_id_int, section_idx as i32, xodr_lane.id);
+
+                let segment_weak: Weak<dyn maliput::api::Segment> = Arc::downgrade(segment) as Weak<dyn maliput::api::Segment>;
+                let lane = MalidriveLane::new(
+                    LaneId::new(lane_id.clone()),
+                    lane_index,
+                    segment_weak,
+                    Arc::clone(road_curve),
+                    width_fn,
+                    lane_offset_fn,
+                    section_start,
+                    section_end,
+                    default_elevation_bounds(),
+                    xodr_lane_type_to_maliput(xodr_lane.lane_type),
+                    road_id_int,
+                    xodr_lane.id,
+                    self.params.linear_tolerance,
+                    self.params.angular_tolerance,
+                )?;
+
+                let lane_arc = Arc::new(lane);
+
+                lane_infos.push(LaneInfo {
+                    lane: Arc::clone(&lane_arc),
+                    xodr_road_id: road.id.clone(),
+                    xodr_lane_section_index: section_idx,
+                    xodr_lane_id: xodr_lane.id,
+                    track_s_start: section_start,
+                    track_s_end: section_end,
+                });
+
+                lane_index += 1;
+            }
+        }
+
+        // ===== Process LEFT lanes (from center outward, i.e., 1, 2, 3, ...) =====
+        // Sort left lanes by ID in ascending order (e.g., 1, 2, 3)
+        // We iterate from closest to center (1) to furthest (N)
+        let mut left_lanes_sorted: Vec<&XodrLane> = lane_section.left_lanes.iter().collect();
+        left_lanes_sorted.sort_by_key(|l| l.id); // 1 first, 2 second, etc.
+
+        // Reset adjacent_lane_functions for left lanes (start fresh from center)
+        let mut adjacent_lane_functions: Option<AdjacentLaneFunctions> = None;
+
+        for xodr_lane in &left_lanes_sorted {
+            let is_drivable = !self.omit_nondrivable_lanes || is_drivable_lane_type(xodr_lane.lane_type);
+
+            // Build lane width function
+            let width_fn = self.make_lane_width_function(&xodr_lane.widths, section_start, section_end);
+
+            // Build lane offset using MalidriveLaneOffset
+            let lane_offset = MalidriveLaneOffset::new(
+                adjacent_lane_functions.clone(),
+                Arc::clone(&width_fn),
+                Arc::clone(reference_line_offset),
+                AT_LEFT_FROM_CENTER_LANE,
+                section_start,
+                section_end,
+                self.params.linear_tolerance,
+            )?;
+            let lane_offset_fn: Arc<dyn Function> = Arc::new(lane_offset);
+
+            // Update adjacent_lane_functions for the next lane
+            adjacent_lane_functions = Some(AdjacentLaneFunctions::new(
+                Arc::clone(&lane_offset_fn),
+                Arc::clone(&width_fn),
+            ));
+
+            // Only create a Lane object if this lane is drivable
+            if is_drivable {
+                let lane_id = get_lane_id(road_id_int, section_idx as i32, xodr_lane.id);
+
+                let segment_weak: Weak<dyn maliput::api::Segment> = Arc::downgrade(segment) as Weak<dyn maliput::api::Segment>;
+                let lane = MalidriveLane::new(
+                    LaneId::new(lane_id.clone()),
+                    lane_index,
+                    segment_weak,
+                    Arc::clone(road_curve),
+                    width_fn,
+                    lane_offset_fn,
+                    section_start,
+                    section_end,
+                    default_elevation_bounds(),
+                    xodr_lane_type_to_maliput(xodr_lane.lane_type),
+                    road_id_int,
+                    xodr_lane.id,
+                    self.params.linear_tolerance,
+                    self.params.angular_tolerance,
+                )?;
+
+                let lane_arc = Arc::new(lane);
+
+                lane_infos.push(LaneInfo {
+                    lane: Arc::clone(&lane_arc),
+                    xodr_road_id: road.id.clone(),
+                    xodr_lane_section_index: section_idx,
+                    xodr_lane_id: xodr_lane.id,
+                    track_s_start: section_start,
+                    track_s_end: section_end,
+                });
+
+                lane_index += 1;
+            }
         }
 
         Ok(lane_infos)

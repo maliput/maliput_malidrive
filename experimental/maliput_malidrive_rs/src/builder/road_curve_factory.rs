@@ -228,6 +228,98 @@ impl RoadCurveFactory {
 
         Arc::new(PiecewiseCubicPolynomial::new(polynomials))
     }
+
+    /// Creates a reference line offset function from OpenDRIVE lane offset data.
+    ///
+    /// The reference line offset describes the lateral shift of the lane reference line
+    /// from the road reference line. This is defined in the `<laneOffset>` elements
+    /// of the OpenDRIVE `<lanes>` section.
+    ///
+    /// If no lane offset records are provided, returns a zero constant function.
+    ///
+    /// # Arguments
+    /// * `lane_offsets` - The XODR lane offset records.
+    /// * `p0` - Start parameter (must be non-negative).
+    /// * `p1` - End parameter (must be greater than p0).
+    pub fn make_reference_line_offset(
+        &self,
+        lane_offsets: &[crate::xodr::LaneOffset],
+        p0: f64,
+        p1: f64,
+    ) -> Arc<dyn Function> {
+        if lane_offsets.is_empty() {
+            // No lane offset - return constant zero
+            return Arc::new(CubicPolynomial::constant(0.0, p0, p1));
+        }
+
+        let mut polynomials: Vec<CubicPolynomial> = Vec::new();
+
+        // Check if there's a gap at the beginning
+        if (lane_offsets[0].s - p0).abs() > self.linear_tolerance {
+            // Add a zero polynomial for the gap
+            polynomials.push(CubicPolynomial::constant(0.0, p0, lane_offsets[0].s));
+        }
+
+        for (i, offset) in lane_offsets.iter().enumerate() {
+            let start = offset.s;
+            let end = if i + 1 < lane_offsets.len() {
+                lane_offsets[i + 1].s
+            } else {
+                p1
+            };
+
+            // Skip if the segment has zero or negative length
+            if end <= start {
+                continue;
+            }
+
+            // Skip very short segments to avoid numerical issues
+            const STRICT_LINEAR_TOLERANCE: f64 = 1e-6;
+            if end - start < STRICT_LINEAR_TOLERANCE {
+                continue;
+            }
+
+            // Translate the cubic polynomial to use absolute p values
+            // The XODR uses ds = p - s, so we need to translate the coefficients
+            // Original: f(ds) = a + b*ds + c*ds² + d*ds³
+            // Translated: f(p) = a + b*(p-s) + c*(p-s)² + d*(p-s)³
+            // Expanded: f(p) = a' + b'*p + c'*p² + d'*p³
+            let translated = translate_cubic(offset.a, offset.b, offset.c, offset.d, offset.s);
+
+            polynomials.push(CubicPolynomial::new(
+                translated[0], translated[1], translated[2], translated[3],
+                start, end,
+            ));
+        }
+
+        if polynomials.is_empty() {
+            // All segments were skipped, return zero
+            return Arc::new(CubicPolynomial::constant(0.0, p0, p1));
+        }
+
+        Arc::new(PiecewiseCubicPolynomial::new(polynomials))
+    }
+}
+
+/// Translates a cubic polynomial from local coordinates to global coordinates.
+///
+/// Given: f(ds) = a + b*ds + c*ds² + d*ds³ where ds = p - s0
+/// Returns: [a', b', c', d'] such that f(p) = a' + b'*p + c'*p² + d'*p³
+fn translate_cubic(a: f64, b: f64, c: f64, d: f64, s0: f64) -> [f64; 4] {
+    // Expand (p - s0)^n terms:
+    // a + b*(p - s0) + c*(p - s0)² + d*(p - s0)³
+    // = a + b*p - b*s0 + c*(p² - 2*p*s0 + s0²) + d*(p³ - 3*p²*s0 + 3*p*s0² - s0³)
+    // = (a - b*s0 + c*s0² - d*s0³) + (b - 2*c*s0 + 3*d*s0²)*p + (c - 3*d*s0)*p² + d*p³
+
+    let s0_2 = s0 * s0;
+    let s0_3 = s0_2 * s0;
+
+    let a_prime = a - b * s0 + c * s0_2 - d * s0_3;
+    let b_prime = b - 2.0 * c * s0 + 3.0 * d * s0_2;
+    let c_prime = c - 3.0 * d * s0;
+    let d_prime = d;
+
+    [a_prime, b_prime, c_prime, d_prime]
 }
 
 #[cfg(test)]
@@ -326,5 +418,104 @@ mod tests {
 
         // SingleLane.xodr has a 100m road
         assert!((road_curve.p1() - road_curve.p0() - 100.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_make_reference_line_offset_empty() {
+        let factory = RoadCurveFactory::new(TOLERANCE, 1.0);
+
+        let lane_offsets: Vec<crate::xodr::LaneOffset> = vec![];
+        let offset_fn = factory.make_reference_line_offset(&lane_offsets, 0.0, 100.0);
+
+        // Empty offsets should return zero
+        assert_relative_eq!(offset_fn.f(0.0).unwrap(), 0.0);
+        assert_relative_eq!(offset_fn.f(50.0).unwrap(), 0.0);
+        assert_relative_eq!(offset_fn.f(100.0).unwrap(), 0.0);
+    }
+
+    #[test]
+    fn test_make_reference_line_offset_constant() {
+        let factory = RoadCurveFactory::new(TOLERANCE, 1.0);
+
+        // Constant offset of 0.5m starting at s=0
+        let lane_offsets = vec![
+            crate::xodr::LaneOffset::constant(0.0, 0.5),
+        ];
+        let offset_fn = factory.make_reference_line_offset(&lane_offsets, 0.0, 100.0);
+
+        assert_relative_eq!(offset_fn.f(0.0).unwrap(), 0.5, epsilon = TOLERANCE);
+        assert_relative_eq!(offset_fn.f(50.0).unwrap(), 0.5, epsilon = TOLERANCE);
+        assert_relative_eq!(offset_fn.f(100.0).unwrap(), 0.5, epsilon = TOLERANCE);
+    }
+
+    #[test]
+    fn test_make_reference_line_offset_linear() {
+        let factory = RoadCurveFactory::new(TOLERANCE, 1.0);
+
+        // Linear offset: f(ds) = 0 + 0.01*ds (where ds = p - 0)
+        let lane_offsets = vec![
+            crate::xodr::LaneOffset::new(0.0, 0.0, 0.01, 0.0, 0.0),
+        ];
+        let offset_fn = factory.make_reference_line_offset(&lane_offsets, 0.0, 100.0);
+
+        // At p=0: f = 0
+        // At p=50: f = 0.01 * 50 = 0.5
+        // At p=100: f = 0.01 * 100 = 1.0
+        assert_relative_eq!(offset_fn.f(0.0).unwrap(), 0.0, epsilon = TOLERANCE);
+        assert_relative_eq!(offset_fn.f(50.0).unwrap(), 0.5, epsilon = TOLERANCE);
+        assert_relative_eq!(offset_fn.f(100.0).unwrap(), 1.0, epsilon = TOLERANCE);
+    }
+
+    #[test]
+    fn test_make_reference_line_offset_with_gap_at_start() {
+        let factory = RoadCurveFactory::new(TOLERANCE, 1.0);
+
+        // Lane offset starts at s=10, road starts at s=0
+        let lane_offsets = vec![
+            crate::xodr::LaneOffset::constant(10.0, 0.5),
+        ];
+        let offset_fn = factory.make_reference_line_offset(&lane_offsets, 0.0, 100.0);
+
+        // Gap [0, 10) should be filled with zero
+        assert_relative_eq!(offset_fn.f(0.0).unwrap(), 0.0, epsilon = TOLERANCE);
+        assert_relative_eq!(offset_fn.f(5.0).unwrap(), 0.0, epsilon = TOLERANCE);
+        // After s=10, offset is 0.5
+        assert_relative_eq!(offset_fn.f(50.0).unwrap(), 0.5, epsilon = TOLERANCE);
+    }
+
+    #[test]
+    fn test_make_reference_line_offset_multiple_segments() {
+        let factory = RoadCurveFactory::new(TOLERANCE, 1.0);
+
+        // Two segments: constant 0.0 from [0, 50), constant 1.0 from [50, 100]
+        let lane_offsets = vec![
+            crate::xodr::LaneOffset::constant(0.0, 0.0),
+            crate::xodr::LaneOffset::constant(50.0, 1.0),
+        ];
+        let offset_fn = factory.make_reference_line_offset(&lane_offsets, 0.0, 100.0);
+
+        assert_relative_eq!(offset_fn.f(25.0).unwrap(), 0.0, epsilon = TOLERANCE);
+        assert_relative_eq!(offset_fn.f(75.0).unwrap(), 1.0, epsilon = TOLERANCE);
+    }
+
+    #[test]
+    fn test_translate_cubic() {
+        // Test constant: a=5, no translation effect
+        let result = translate_cubic(5.0, 0.0, 0.0, 0.0, 10.0);
+        assert_relative_eq!(result[0], 5.0, epsilon = 1e-10);
+        assert_relative_eq!(result[1], 0.0, epsilon = 1e-10);
+        assert_relative_eq!(result[2], 0.0, epsilon = 1e-10);
+        assert_relative_eq!(result[3], 0.0, epsilon = 1e-10);
+
+        // Test linear: f(ds) = 1 + 2*ds at s0=0 should give f(p) = 1 + 2*p
+        let result = translate_cubic(1.0, 2.0, 0.0, 0.0, 0.0);
+        assert_relative_eq!(result[0], 1.0, epsilon = 1e-10);
+        assert_relative_eq!(result[1], 2.0, epsilon = 1e-10);
+
+        // Test linear at non-zero s0: f(ds) = 0 + 1*ds at s0=10
+        // f(p) = (p-10) = -10 + 1*p
+        let result = translate_cubic(0.0, 1.0, 0.0, 0.0, 10.0);
+        assert_relative_eq!(result[0], -10.0, epsilon = 1e-10);
+        assert_relative_eq!(result[1], 1.0, epsilon = 1e-10);
     }
 }
