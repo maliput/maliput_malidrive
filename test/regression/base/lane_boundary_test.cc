@@ -29,18 +29,29 @@
 #include "maliput_malidrive/base/lane_boundary.h"
 
 #include <memory>
+#include <optional>
+#include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
+#include <maliput/api/junction.h>
+#include <maliput/api/lane_boundary.h>
 #include <maliput/api/lane_marking.h>
+#include <maliput/api/road_geometry.h>
+#include <maliput/api/road_network.h>
+#include <maliput/api/segment.h>
 #include <maliput/common/maliput_throw.h>
 
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/base/segment.h"
+#include "maliput_malidrive/builder/road_geometry_configuration.h"
+#include "maliput_malidrive/builder/road_network_builder.h"
+#include "maliput_malidrive/loader/loader.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/line_ground_curve.h"
 #include "maliput_malidrive/road_curve/road_curve.h"
 #include "maliput_malidrive/xodr/lane_road_mark.h"
+#include "utility/resources.h"
 
 namespace malidrive {
 namespace test {
@@ -1219,6 +1230,575 @@ TEST_F(LaneBoundaryTest, DoubleToSingleLineTransition) {
   EXPECT_EQ(LaneMarkingType::kBroken, markings[1].marking.type);
   EXPECT_EQ(maliput::api::LaneChangePermission::kAllowed, markings[1].marking.lane_change);
   EXPECT_TRUE(markings[1].marking.lines.empty());
+}
+
+// =====================================================================================
+// Integration tests that load real XODR files and verify end-to-end LaneBoundary
+// construction and lane marking properties.
+// =====================================================================================
+
+/// Integration test fixture for loading XODR files and testing LaneBoundary construction.
+class LaneBoundaryIntegrationTest : public ::testing::Test {
+ protected:
+  /// Loads a RoadNetwork from the specified XODR file.
+  void LoadRoadNetwork(const std::string& xodr_filename) {
+    const std::string xodr_file_path = utility::FindResourceInPath(xodr_filename, kMalidriveResourceFolder);
+
+    builder::RoadGeometryConfiguration rg_config;
+    rg_config.id = maliput::api::RoadGeometryId{xodr_filename};
+    rg_config.opendrive_file = xodr_file_path;
+    rg_config.tolerances.linear_tolerance = 5e-2;
+    rg_config.tolerances.max_linear_tolerance = 5e-2;
+    rg_config.tolerances.angular_tolerance = 1e-3;
+    rg_config.scale_length = 1.0;
+    rg_config.inertial_to_backend_frame_translation = {0., 0., 0.};
+    rg_config.build_policy.type = builder::BuildPolicy::Type::kSequential;
+    rg_config.simplification_policy = builder::RoadGeometryConfiguration::SimplificationPolicy::kNone;
+    rg_config.standard_strictness_policy = builder::RoadGeometryConfiguration::StandardStrictnessPolicy::kPermissive;
+    rg_config.omit_nondrivable_lanes = false;
+
+    road_network_ = loader::Load<builder::RoadNetworkBuilder>(rg_config.ToStringMap());
+  }
+
+  // Resource folder path defined via compile definition.
+  static constexpr char const* kMalidriveResourceFolder{DEF_MALIDRIVE_RESOURCES};
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  static constexpr double kTolerance{1e-6};
+};
+
+/// Tests that LaneBoundaries are created for the Straight800m.xodr file.
+///
+/// The Straight800m.xodr file has:
+/// - 1 road with 1 lane section
+/// - 4 left lanes (shoulder, driving, driving, shoulder)
+/// - Center lane (no type)
+/// - No right lanes
+///
+/// Expected boundaries (5 total for 4 lanes):
+/// - Boundary 0: Center boundary (no marking - uses center lane's road marks)
+/// - Boundary 1: Between Lane 1 (shoulder) and Lane 2 (driving) - solid white
+/// - Boundary 2: Between Lane 2 (driving) and Lane 3 (driving) - broken white
+/// - Boundary 3: Between Lane 3 (driving) and Lane 4 (shoulder) - solid white
+/// - Boundary 4: Leftmost edge - no marking (Lane 4 has type="none")
+TEST_F(LaneBoundaryIntegrationTest, Straight800mLaneBoundariesAreCreated) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  ASSERT_NE(rg, nullptr);
+  ASSERT_EQ(rg->num_junctions(), 1);
+
+  const maliput::api::Junction* junction = rg->junction(0);
+  ASSERT_NE(junction, nullptr);
+  ASSERT_EQ(junction->num_segments(), 1);
+
+  const maliput::api::Segment* segment = junction->segment(0);
+  ASSERT_NE(segment, nullptr);
+
+  // 4 lanes should result in 5 boundaries (N+1 boundaries for N lanes).
+  EXPECT_EQ(segment->num_lanes(), 4);
+  EXPECT_EQ(segment->num_boundaries(), 5);
+
+  // Verify each boundary exists and has valid properties.
+  for (int i = 0; i < segment->num_boundaries(); ++i) {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(i);
+    ASSERT_NE(boundary, nullptr) << "Boundary " << i << " should exist";
+    EXPECT_EQ(boundary->segment(), segment);
+    EXPECT_EQ(boundary->index(), i);
+  }
+}
+
+/// Tests the lane marking properties of each boundary in Straight800m.xodr.
+///
+/// Expected markings based on the XODR file:
+/// - Boundary 0: No marking (center lane has type="none", color="standard" -> kWhite)
+/// - Boundary 1: Solid white (from Lane 1's road marks, laneChange="none")
+/// - Boundary 2: Broken white (from Lane 2's road marks, laneChange="both")
+/// - Boundary 3: Solid white (from Lane 3's road marks, laneChange="none")
+/// - Boundary 4: No marking (Lane 4 has type="none")
+TEST_F(LaneBoundaryIntegrationTest, Straight800mLaneMarkingsAreCorrect) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  // Define expected markings for each boundary.
+  struct ExpectedMarking {
+    int boundary_index;
+    LaneMarkingType type;
+    LaneMarkingColor color;
+    std::optional<maliput::api::LaneChangePermission> lane_change;
+    std::optional<double> width;
+  };
+
+  // Note: In OpenDRIVE, road marks are on the outer edge of lanes.
+  // For left lanes (positive IDs), road marks are on the left edge (farther from center).
+  // The boundary logic uses the inner lane's marks (closer to center) for boundaries
+  // between lanes on the same side.
+  //
+  // Boundary ordering (right to left) for Straight800m.xodr which has only left lanes:
+  // - Boundary 0: Center boundary (uses center lane road marks -> none, standard/white)
+  // - Boundary 1: Between Lane 1 and Lane 2 (uses Lane 1's marks -> solid white, prohibited)
+  // - Boundary 2: Between Lane 2 and Lane 3 (uses Lane 2's marks -> broken white, allowed)
+  // - Boundary 3: Between Lane 3 and Lane 4 (uses Lane 3's marks -> solid white, prohibited)
+  // - Boundary 4: Leftmost edge (uses Lane 4's marks -> none)
+  const std::vector<ExpectedMarking> expected_markings = {
+      {0, LaneMarkingType::kNone, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kProhibited,
+       std::nullopt},
+      {1, LaneMarkingType::kSolid, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kProhibited, 0.125},
+      {2, LaneMarkingType::kBroken, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kAllowed, 0.125},
+      {3, LaneMarkingType::kSolid, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kProhibited, 0.125},
+      {4, LaneMarkingType::kNone, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kProhibited,
+       std::nullopt},
+  };
+
+  for (const auto& expected : expected_markings) {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(expected.boundary_index);
+    ASSERT_NE(boundary, nullptr) << "Boundary " << expected.boundary_index << " should exist";
+
+    // Get all markings for this boundary.
+    const auto markings = boundary->GetMarkings();
+
+    // For this simple road with no marking changes along s, we expect exactly 1 marking.
+    ASSERT_EQ(markings.size(), 1u) << "Boundary " << expected.boundary_index << " should have exactly 1 marking";
+
+    const maliput::api::LaneMarkingResult& result = markings[0];
+    const LaneMarking& marking = result.marking;
+
+    // Verify marking type.
+    EXPECT_EQ(marking.type, expected.type) << "Boundary " << expected.boundary_index << " type mismatch";
+
+    // Verify color.
+    EXPECT_EQ(marking.color, expected.color) << "Boundary " << expected.boundary_index << " color mismatch";
+
+    // Verify lane change permission.
+    if (expected.lane_change.has_value()) {
+      EXPECT_EQ(marking.lane_change, expected.lane_change.value())
+          << "Boundary " << expected.boundary_index << " lane_change mismatch";
+    }
+
+    // Verify width if expected.
+    if (expected.width.has_value()) {
+      EXPECT_NEAR(marking.width, expected.width.value(), kTolerance)
+          << "Boundary " << expected.boundary_index << " width mismatch";
+    }
+
+    // Verify s-range covers the full lane length (800m road).
+    EXPECT_NEAR(result.s_start, 0., kTolerance) << "Boundary " << expected.boundary_index << " s_start should be 0";
+    EXPECT_NEAR(result.s_end, 800., kTolerance) << "Boundary " << expected.boundary_index << " s_end should be 800";
+  }
+}
+
+/// Tests GetMarking at specific s-coordinates for Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mGetMarkingAtS) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  // Test boundary 2 (broken white line between two driving lanes).
+  const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+  ASSERT_NE(boundary, nullptr);
+
+  // Query at s=400 (middle of the road).
+  const auto result_at_400 = boundary->GetMarking(400.);
+  ASSERT_TRUE(result_at_400.has_value());
+  EXPECT_EQ(result_at_400->marking.type, LaneMarkingType::kBroken);
+  EXPECT_EQ(result_at_400->marking.color, LaneMarkingColor::kWhite);
+  EXPECT_EQ(result_at_400->marking.lane_change, maliput::api::LaneChangePermission::kAllowed);
+
+  // Query at s=0 (start of the road).
+  const auto result_at_0 = boundary->GetMarking(0.);
+  ASSERT_TRUE(result_at_0.has_value());
+  EXPECT_EQ(result_at_0->marking.type, LaneMarkingType::kBroken);
+
+  // Query at s=800 (end of the road).
+  const auto result_at_800 = boundary->GetMarking(800.);
+  ASSERT_TRUE(result_at_800.has_value());
+  EXPECT_EQ(result_at_800->marking.type, LaneMarkingType::kBroken);
+}
+
+/// Tests GetMarkings with s-range filter for Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mGetMarkingsInRange) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  const maliput::api::LaneBoundary* boundary = segment->boundary(1);  // Solid white line.
+  ASSERT_NE(boundary, nullptr);
+
+  // Get markings in the range [100, 200].
+  const auto markings = boundary->GetMarkings(100., 200.);
+  ASSERT_EQ(markings.size(), 1u);
+  EXPECT_EQ(markings[0].marking.type, LaneMarkingType::kSolid);
+
+  // The returned marking's s_range should cover the full marking extent,
+  // not just the queried range.
+  EXPECT_NEAR(markings[0].s_start, 0., kTolerance);
+  EXPECT_NEAR(markings[0].s_end, 800., kTolerance);
+}
+
+/// Tests that adjacent lane pointers are correctly set on boundaries for Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mAdjacentLanes) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  // Boundary 0 (rightmost/center): lane_to_right=nullptr, lane_to_left=Lane0.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(0);
+    ASSERT_NE(boundary, nullptr);
+    EXPECT_EQ(boundary->lane_to_right(), nullptr);
+    EXPECT_NE(boundary->lane_to_left(), nullptr);
+    EXPECT_EQ(boundary->lane_to_left(), segment->lane(0));
+  }
+
+  // Boundary 1: lane_to_right=Lane0, lane_to_left=Lane1.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+    ASSERT_NE(boundary, nullptr);
+    EXPECT_NE(boundary->lane_to_right(), nullptr);
+    EXPECT_NE(boundary->lane_to_left(), nullptr);
+    EXPECT_EQ(boundary->lane_to_right(), segment->lane(0));
+    EXPECT_EQ(boundary->lane_to_left(), segment->lane(1));
+  }
+
+  // Boundary 2: lane_to_right=Lane1, lane_to_left=Lane2.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+    ASSERT_NE(boundary, nullptr);
+    EXPECT_EQ(boundary->lane_to_right(), segment->lane(1));
+    EXPECT_EQ(boundary->lane_to_left(), segment->lane(2));
+  }
+
+  // Boundary 3: lane_to_right=Lane2, lane_to_left=Lane3.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(3);
+    ASSERT_NE(boundary, nullptr);
+    EXPECT_EQ(boundary->lane_to_right(), segment->lane(2));
+    EXPECT_EQ(boundary->lane_to_left(), segment->lane(3));
+  }
+
+  // Boundary 4 (leftmost): lane_to_right=Lane3, lane_to_left=nullptr.
+  {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(4);
+    ASSERT_NE(boundary, nullptr);
+    EXPECT_NE(boundary->lane_to_right(), nullptr);
+    EXPECT_EQ(boundary->lane_to_right(), segment->lane(3));
+    EXPECT_EQ(boundary->lane_to_left(), nullptr);
+  }
+}
+
+/// Tests that line details (length, space) are correctly parsed for broken lines in Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mBrokenLineDetails) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  // Boundary 2 has a broken line with:
+  // - length="6.0" (visible dash length)
+  // - space="12.0" (gap between dashes)
+  // - width="0.125"
+  const maliput::api::LaneBoundary* boundary = segment->boundary(2);
+  ASSERT_NE(boundary, nullptr);
+
+  const auto markings = boundary->GetMarkings();
+  ASSERT_EQ(markings.size(), 1u);
+
+  const LaneMarking& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, LaneMarkingType::kBroken);
+
+  // Verify that line details are present.
+  ASSERT_FALSE(marking.lines.empty()) << "Broken line should have line details";
+
+  // Check the first line's properties.
+  const auto& line = marking.lines[0];
+  EXPECT_NEAR(line.length, 6.0, kTolerance) << "Line length should be 6.0m";
+  EXPECT_NEAR(line.space, 12.0, kTolerance) << "Line space should be 12.0m";
+  EXPECT_NEAR(line.width, 0.125, kTolerance) << "Line width should be 0.125m";
+  EXPECT_NEAR(line.r_offset, 0., kTolerance) << "Line t_offset (r_offset) should be 0";
+}
+
+/// Tests that solid lines have appropriate line details for Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mSolidLineDetails) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  // Boundary 1 has a solid line.
+  const maliput::api::LaneBoundary* boundary = segment->boundary(1);
+  ASSERT_NE(boundary, nullptr);
+
+  const auto markings = boundary->GetMarkings();
+  ASSERT_EQ(markings.size(), 1u);
+
+  const LaneMarking& marking = markings[0].marking;
+  EXPECT_EQ(marking.type, LaneMarkingType::kSolid);
+
+  // Verify that line details are present.
+  ASSERT_FALSE(marking.lines.empty()) << "Solid line should have line details";
+
+  // Check the first line's properties.
+  // In the XODR, the solid line has: length="800" space="0" width="0.125"
+  const auto& line = marking.lines[0];
+  EXPECT_NEAR(line.length, 800.0, kTolerance) << "Solid line length should be 800.0m";
+  EXPECT_NEAR(line.space, 0., kTolerance) << "Solid line space should be 0";
+  EXPECT_NEAR(line.width, 0.125, kTolerance) << "Line width should be 0.125m";
+}
+
+/// Tests that boundary IDs follow the expected naming convention for Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mBoundaryIds) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  // Verify boundary IDs contain the segment ID and boundary index.
+  for (int i = 0; i < segment->num_boundaries(); ++i) {
+    const maliput::api::LaneBoundary* boundary = segment->boundary(i);
+    ASSERT_NE(boundary, nullptr);
+
+    const std::string boundary_id = boundary->id().string();
+    EXPECT_TRUE(boundary_id.find(segment->id().string()) != std::string::npos)
+        << "Boundary ID '" << boundary_id << "' should contain segment ID '" << segment->id().string() << "'";
+    EXPECT_TRUE(boundary_id.find("boundary") != std::string::npos)
+        << "Boundary ID '" << boundary_id << "' should contain 'boundary'";
+    EXPECT_TRUE(boundary_id.find(std::to_string(i)) != std::string::npos)
+        << "Boundary ID '" << boundary_id << "' should contain index " << i;
+  }
+}
+
+/// Tests that boundaries can be retrieved by ID from the RoadGeometry for Straight800m.xodr.
+TEST_F(LaneBoundaryIntegrationTest, Straight800mGetBoundaryById) {
+  LoadRoadNetwork("Straight800m.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  const maliput::api::Segment* segment = rg->junction(0)->segment(0);
+
+  for (int i = 0; i < segment->num_boundaries(); ++i) {
+    const maliput::api::LaneBoundary* boundary_from_segment = segment->boundary(i);
+    ASSERT_NE(boundary_from_segment, nullptr);
+
+    // Retrieve the same boundary by ID from the RoadGeometry.
+    const maliput::api::LaneBoundary* boundary_by_id = rg->ById().GetLaneBoundary(boundary_from_segment->id());
+    EXPECT_EQ(boundary_by_id, boundary_from_segment)
+        << "GetLaneBoundary should return the same boundary as segment->boundary()";
+  }
+}
+
+/// Tests that LaneBoundaries are created for TwoWayRoadWithDoubleYellowCurve.xodr.
+///
+/// This road has:
+/// - 1 road with 5 lane sections (different center markings)
+/// - 2 lanes per section: lane 1 (left) and lane -1 (right)
+/// - Center lane boundary markings change along the road:
+///   * Section 1 [0, 70): Broken white - passing allowed
+///   * Section 2 [70, 100): Broken-Solid yellow - transition into curve
+///   * Section 3 [100, 214): Double solid yellow - no passing (curve)
+///   * Section 4 [214, 244): Solid-Broken yellow - transition out of curve
+///   * Section 5 [244, 314): Broken white - passing allowed
+///
+/// Expected: 5 segments (one per lane section), each with 3 boundaries (2 lanes + 1 = 3)
+TEST_F(LaneBoundaryIntegrationTest, TwoWayRoadWithDoubleYellowCurveLaneBoundariesAreCreated) {
+  LoadRoadNetwork("TwoWayRoadWithDoubleYellowCurve.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+  ASSERT_NE(rg, nullptr);
+
+  // This road has 5 lane sections, which results in 5 segments (one junction with 5 segments).
+  ASSERT_GE(rg->num_junctions(), 1);
+
+  int total_segments = 0;
+  for (int j = 0; j < rg->num_junctions(); ++j) {
+    total_segments += rg->junction(j)->num_segments();
+  }
+  EXPECT_EQ(total_segments, 5) << "Expected 5 segments for 5 lane sections";
+
+  // Verify each segment has the expected number of lanes and boundaries.
+  for (int j = 0; j < rg->num_junctions(); ++j) {
+    const maliput::api::Junction* junction = rg->junction(j);
+    for (int s = 0; s < junction->num_segments(); ++s) {
+      const maliput::api::Segment* segment = junction->segment(s);
+      ASSERT_NE(segment, nullptr);
+
+      // Each segment should have 2 lanes (lane 1 and lane -1).
+      EXPECT_EQ(segment->num_lanes(), 2) << "Segment " << segment->id().string() << " should have 2 lanes";
+
+      // 2 lanes should result in 3 boundaries (N+1 boundaries for N lanes).
+      EXPECT_EQ(segment->num_boundaries(), 3) << "Segment " << segment->id().string() << " should have 3 boundaries";
+
+      // Verify each boundary exists.
+      for (int i = 0; i < segment->num_boundaries(); ++i) {
+        const maliput::api::LaneBoundary* boundary = segment->boundary(i);
+        ASSERT_NE(boundary, nullptr) << "Boundary " << i << " in segment " << segment->id().string() << " should exist";
+        EXPECT_EQ(boundary->segment(), segment);
+        EXPECT_EQ(boundary->index(), i);
+      }
+    }
+  }
+}
+
+/// Tests the lane marking properties of the center boundary in TwoWayRoadWithDoubleYellowCurve.xodr.
+///
+/// This tests the center boundary (boundary 1) across all 5 lane sections.
+/// The center marking changes along the road to demonstrate no-passing zones near curves.
+TEST_F(LaneBoundaryIntegrationTest, TwoWayRoadWithDoubleYellowCurveCenterMarkings) {
+  LoadRoadNetwork("TwoWayRoadWithDoubleYellowCurve.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+
+  // Expected center markings for each of the 5 lane sections (by s-coordinate range).
+  // Each section has a different center line marking.
+  struct ExpectedCenterMarking {
+    double s_approx;  // Approximate s-coordinate to identify the section.
+    LaneMarkingType type;
+    LaneMarkingColor color;
+    maliput::api::LaneChangePermission lane_change;
+  };
+
+  // The lane sections in order:
+  // Section 1: [0, 70) - broken white, both directions can pass
+  // Section 2: [70, 100) - broken_solid yellow (laneChange="decrease" -> ToRight)
+  // Section 3: [100, 214) - solid_solid yellow, no passing
+  // Section 4: [214, 244) - solid_broken yellow (laneChange="increase" -> ToLeft)
+  // Section 5: [244, 314) - broken white, both directions can pass
+  const std::vector<ExpectedCenterMarking> expected_center_markings = {
+      {35.0, LaneMarkingType::kBroken, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kAllowed},
+      {85.0, LaneMarkingType::kBrokenSolid, LaneMarkingColor::kYellow, maliput::api::LaneChangePermission::kToRight},
+      {157.0, LaneMarkingType::kSolidSolid, LaneMarkingColor::kYellow, maliput::api::LaneChangePermission::kProhibited},
+      {229.0, LaneMarkingType::kSolidBroken, LaneMarkingColor::kYellow, maliput::api::LaneChangePermission::kToLeft},
+      {279.0, LaneMarkingType::kBroken, LaneMarkingColor::kWhite, maliput::api::LaneChangePermission::kAllowed},
+  };
+
+  // Find and verify each segment's center boundary.
+  int section_idx = 0;
+  for (int j = 0; j < rg->num_junctions(); ++j) {
+    const maliput::api::Junction* junction = rg->junction(j);
+    for (int s = 0; s < junction->num_segments(); ++s) {
+      const maliput::api::Segment* segment = junction->segment(s);
+
+      // The center boundary is boundary 1 (between lane 0 which is lane -1, and lane 1 which is lane 1).
+      // Boundary ordering: 0 = rightmost edge, 1 = center, 2 = leftmost edge.
+      ASSERT_GE(segment->num_boundaries(), 2);
+      const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+      ASSERT_NE(center_boundary, nullptr);
+
+      // Get the marking at a point in the middle of this section.
+      const auto& expected = expected_center_markings[section_idx];
+      const auto marking_result = center_boundary->GetMarking(expected.s_approx);
+
+      // If the s_approx is within the boundary's range, we should get a marking.
+      if (marking_result.has_value()) {
+        const auto& marking = marking_result->marking;
+
+        EXPECT_EQ(marking.type, expected.type)
+            << "Section " << section_idx << " center boundary type mismatch at s=" << expected.s_approx;
+        EXPECT_EQ(marking.color, expected.color)
+            << "Section " << section_idx << " center boundary color mismatch at s=" << expected.s_approx;
+        EXPECT_EQ(marking.lane_change, expected.lane_change)
+            << "Section " << section_idx << " center boundary lane_change mismatch at s=" << expected.s_approx;
+      }
+
+      section_idx++;
+      if (section_idx >= static_cast<int>(expected_center_markings.size())) {
+        break;
+      }
+    }
+    if (section_idx >= static_cast<int>(expected_center_markings.size())) {
+      break;
+    }
+  }
+
+  EXPECT_EQ(section_idx, 5) << "Should have verified all 5 lane sections";
+}
+
+/// Tests GetMarkings across the full road for the center boundary in TwoWayRoadWithDoubleYellowCurve.xodr.
+///
+/// This verifies that GetMarkings returns the correct sequence of markings
+/// for the center boundary which changes 5 times along the road.
+TEST_F(LaneBoundaryIntegrationTest, TwoWayRoadWithDoubleYellowCurveGetMarkingsSequence) {
+  LoadRoadNetwork("TwoWayRoadWithDoubleYellowCurve.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+
+  // Collect all center boundary markings across all segments.
+  std::vector<maliput::api::LaneMarkingResult> all_center_markings;
+
+  for (int j = 0; j < rg->num_junctions(); ++j) {
+    const maliput::api::Junction* junction = rg->junction(j);
+    for (int s = 0; s < junction->num_segments(); ++s) {
+      const maliput::api::Segment* segment = junction->segment(s);
+      if (segment->num_boundaries() >= 2) {
+        const maliput::api::LaneBoundary* center_boundary = segment->boundary(1);
+        const auto markings = center_boundary->GetMarkings();
+        for (const auto& m : markings) {
+          all_center_markings.push_back(m);
+        }
+      }
+    }
+  }
+
+  // We expect at least 5 markings (one per lane section).
+  EXPECT_GE(all_center_markings.size(), 5u) << "Expected at least 5 center markings for the 5 lane sections";
+
+  // Verify the marking types follow the expected pattern:
+  // broken -> broken_solid -> solid_solid -> solid_broken -> broken
+  if (all_center_markings.size() >= 5) {
+    EXPECT_EQ(all_center_markings[0].marking.type, LaneMarkingType::kBroken);
+    EXPECT_EQ(all_center_markings[1].marking.type, LaneMarkingType::kBrokenSolid);
+    EXPECT_EQ(all_center_markings[2].marking.type, LaneMarkingType::kSolidSolid);
+    EXPECT_EQ(all_center_markings[3].marking.type, LaneMarkingType::kSolidBroken);
+    EXPECT_EQ(all_center_markings[4].marking.type, LaneMarkingType::kBroken);
+  }
+}
+
+/// Tests that the outer edge boundaries have solid white markings in TwoWayRoadWithDoubleYellowCurve.xodr.
+TEST_F(LaneBoundaryIntegrationTest, TwoWayRoadWithDoubleYellowCurveEdgeMarkings) {
+  LoadRoadNetwork("TwoWayRoadWithDoubleYellowCurve.xodr");
+  ASSERT_NE(road_network_, nullptr);
+
+  const maliput::api::RoadGeometry* rg = road_network_->road_geometry();
+
+  // Verify edge boundaries (0 and 2) have solid white markings across all segments.
+  for (int j = 0; j < rg->num_junctions(); ++j) {
+    const maliput::api::Junction* junction = rg->junction(j);
+    for (int s = 0; s < junction->num_segments(); ++s) {
+      const maliput::api::Segment* segment = junction->segment(s);
+
+      // Verify boundary 0 (right edge) and boundary 2 (left edge).
+      for (int boundary_idx : {0, 2}) {
+        if (boundary_idx < segment->num_boundaries()) {
+          const maliput::api::LaneBoundary* edge_boundary = segment->boundary(boundary_idx);
+          ASSERT_NE(edge_boundary, nullptr);
+
+          const auto markings = edge_boundary->GetMarkings();
+          ASSERT_GE(markings.size(), 1u) << "Segment " << segment->id().string() << " boundary " << boundary_idx
+                                         << " should have markings";
+
+          // Edge markings should be solid white.
+          EXPECT_EQ(markings[0].marking.type, LaneMarkingType::kSolid)
+              << "Segment " << segment->id().string() << " boundary " << boundary_idx << " should be solid";
+          EXPECT_EQ(markings[0].marking.color, LaneMarkingColor::kWhite)
+              << "Segment " << segment->id().string() << " boundary " << boundary_idx << " should be white";
+        }
+      }
+    }
+  }
 }
 
 }  // namespace
