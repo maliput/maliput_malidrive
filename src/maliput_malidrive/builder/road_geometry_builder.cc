@@ -440,20 +440,35 @@ void RoadGeometryBuilder::BuildLaneBoundaries(RoadGeometry* rg) {
         double track_s_start = 0.;
         double track_s_end = 0.;
 
-        // Check if this is a center boundary (boundary between lanes on opposite sides of the road).
-        // A center boundary has lane_to_left with positive XODR ID and lane_to_right with negative XODR ID.
+        // Check if this is a center boundary (boundary adjacent to the center lane).
+        // A center boundary can be:
+        // 1. Between left lanes (positive IDs) and right lanes (negative IDs) - when both sides have lanes
+        // 2. The rightmost boundary when there are only left lanes (no right lanes)
+        // 3. The leftmost boundary when there are only right lanes (no left lanes)
         bool is_center_boundary = false;
         if (lane_to_left != nullptr && lane_to_right != nullptr) {
           const Lane* left_lane = static_cast<const Lane*>(lane_to_left);
           const Lane* right_lane = static_cast<const Lane*>(lane_to_right);
           // In OpenDRIVE: positive lane IDs are left of center, negative are right of center.
           is_center_boundary = (left_lane->get_lane_id() > 0) && (right_lane->get_lane_id() < 0);
+        } else if (lane_to_left != nullptr && lane_to_right == nullptr) {
+          // Rightmost boundary - check if lane_to_left is a left lane (positive ID).
+          // If so, this boundary is adjacent to the center lane.
+          const Lane* left_lane = static_cast<const Lane*>(lane_to_left);
+          is_center_boundary = (left_lane->get_lane_id() > 0);
+        } else if (lane_to_right != nullptr && lane_to_left == nullptr) {
+          // Leftmost boundary - check if lane_to_right is a right lane (negative ID).
+          // If so, this boundary is adjacent to the center lane.
+          const Lane* right_lane = static_cast<const Lane*>(lane_to_right);
+          is_center_boundary = (right_lane->get_lane_id() < 0);
         }
 
-        if (is_center_boundary && lane_to_left != nullptr) {
+        if (is_center_boundary) {
           // Use the center lane's road marks for the center boundary.
-          reference_lane = static_cast<const Lane*>(lane_to_left);
-          SetRoadMarkProperties(lane_to_left, true, road_marks, track_s_start, track_s_end);
+          // We need a reference lane to look up the lane section - use whichever adjacent lane is available.
+          reference_lane = lane_to_left != nullptr ? static_cast<const Lane*>(lane_to_left)
+                                                   : static_cast<const Lane*>(lane_to_right);
+          SetRoadMarkProperties(reference_lane, true, road_marks, track_s_start, track_s_end);
         } else if (lane_to_left != nullptr && lane_to_right != nullptr) {
           // Boundary between two lanes on the same side of center.
           // Not a center boundary (already handled above), so both lanes are on the same side.

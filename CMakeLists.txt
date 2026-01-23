@@ -170,6 +170,7 @@ install (FILES resources/ArcLane.xodr
                resources/SShapeRoad.xodr
                resources/SShapeSuperelevatedRoad.xodr
                resources/StraightForward.xodr
+               resources/Straight800m.xodr
                resources/Town01.xodr
                resources/Town02.xodr
                resources/Town03.xodr
