@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.18.0 (2026-01-23)
+-------------------
+* Correctly populate LaneBoundaries when only left or right lanes are present. (`#398 <https://github.com/maliput/maliput_malidrive/issues/398>`_)
+* Signal parsing. (`#395 <https://github.com/maliput/maliput_malidrive/issues/395>`_)
+  ---------
+* Contributors: Franco Cipollone, Santiago Lopez
+
 0.17.2 (2026-01-20)
 -------------------
 * Fixing object xodr bool parsing (`#396 <https://github.com/maliput/maliput_malidrive/issues/396>`_)
