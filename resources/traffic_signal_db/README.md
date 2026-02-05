@@ -135,13 +135,6 @@ See `traffic_signal_db_example.yaml` for detailed examples including:
 - Pedestrian signal (type 1000002)
 - Multi-group dual-face signal (type 1000012)
 
-## File Naming
-
-Traffic signal database files should follow the naming convention:
-
-- `traffic_signal_db_<region>.yaml` - Region-specific databases
-- `traffic_signal_db_example.yaml` - Example/reference database
-
 ## Usage in Parsers
 
 A parser loading these files should:
