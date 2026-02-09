@@ -151,10 +151,6 @@ traffic_signal_types:
             state: "On"
         value: "Go"
 
-      # No condition met (e.g., all off, or invalid state): Signal malfunction.
-      - condition: null
-        value: "SignalMalfunctioning"
-
   # Three-bulb traffic light with arrow support.
   # Can display turn arrows in green (left, straight, right).
   - type: "1000011"
@@ -223,9 +219,6 @@ traffic_signal_types:
             state: "On"
         value: "Go"
 
-      - condition: null
-        value: "SignalMalfunctioning"
-
   # Pedestrian signal with walk/don't walk.
   - type: "1000002"
     subtype: -1
@@ -275,6 +268,3 @@ traffic_signal_types:
           - bulb: "WalkBulb"
             state: "Blinking"
         value: "ProceedWithCaution"
-
-      - condition: null
-        value: "SignalMalfunctioning"
