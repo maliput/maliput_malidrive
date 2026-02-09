@@ -41,7 +41,7 @@
 #   <signal type="1000001" subtype="-1" country="OpenDRIVE" .../>
 #
 # A parser looks up the signal type in this database to:
-# 1. Create maliput::api::rules::TrafficLight with bulb groups and bulbs.
+# 1. Create maliput::api::rules::TrafficLight with bulb group and bulbs.
 # 2. Create maliput::api::rules::DiscreteValueRule for "Right-Of-Way Rule Type"
 #    mapping bulb states to rule values (Go, Stop, StopIfSafe, etc.).
 # 3. Link rules to lanes affected by the signal (from XODR signal).
@@ -59,11 +59,10 @@ traffic_signal_types:
     country_revision: null
     description: "Standard three-bulb vertical traffic light with red, yellow, and green bulbs."
 
-    bulb_groups:
-      # Single bulb group containing all three bulbs.
-      - id: 0
+    # Single bulb group containing all three bulbs.
+    bulb_group:
         # Position of the bulb group's frame origin relative to the traffic light frame.
-        position_traffic_light: [0.0, 0.0, 0.0]
+      - position_traffic_light: [0.0, 0.0, 0.0]
         # Orientation (quaternion [w, x, y, z]) of bulb group frame relative to traffic light frame.
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
 
@@ -101,7 +100,7 @@ traffic_signal_types:
     # Rule conditions: map bulb state combinations to Right-Of-Way rule values.
     # Each condition defines a set of (bulb_id, state) pairs.
     # When these conditions are met, the corresponding rule value is applied.
-    rules:
+    rule-states:
       # Red only: Stop.
       - condition:
           - bulb: "RedBulb"
@@ -164,10 +163,9 @@ traffic_signal_types:
     country_revision: null
     description: "Three-bulb traffic light with optional arrow support (left/straight/right)."
 
-    bulb_groups:
-      # Main vertical bulb group (red, yellow, green).
-      - id: 0
-        position_traffic_light: [0.0, 0.0, 0.0]
+    # Main vertical bulb group (red, yellow, green).
+    bulb_group:
+      - position_traffic_light: [0.0, 0.0, 0.0]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
 
         bulbs:
@@ -197,7 +195,7 @@ traffic_signal_types:
             # π rad = arrow points in -Y direction (left).
             arrow_orientation_rad: 1.5707963267948966  # π/2 rad (straight).
 
-    rules:
+    rule-states:
       - condition:
           - bulb: "RedBulb"
             state: "On"
@@ -235,9 +233,8 @@ traffic_signal_types:
     country_revision: null
     description: "Pedestrian walk/don't walk signal (red standing figure on black background / green walking figure on black background)."
 
-    bulb_groups:
-      - id: 0
-        position_traffic_light: [0.0, 0.0, 0.0]
+    bulb_group:
+      - position_traffic_light: [0.0, 0.0, 0.0]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
 
         bulbs:
@@ -257,7 +254,7 @@ traffic_signal_types:
             type: "Round"
             states: ["Off", "On", "Blinking"]
 
-    rules:
+    rule-states:
       - condition:
           - bulb: "DontWalkBulb"
             state: "On"
@@ -278,103 +275,6 @@ traffic_signal_types:
           - bulb: "WalkBulb"
             state: "Blinking"
         value: "ProceedWithCaution"
-
-      - condition: null
-        value: "SignalMalfunctioning"
-
-  # Multi-group signal: separate bulb groups facing different directions.
-  # Example: intersection signal with one group facing north-bound traffic,
-  # another facing east-bound traffic.
-  - type: "1000012"
-    subtype: -1
-    country: "OpenDRIVE"
-    country_revision: null
-    description: "Dual-face traffic light with two independent bulb groups (e.g., for intersection approaches)."
-
-    bulb_groups:
-      # First bulb group (e.g., north-bound approach).
-      - id: 0
-        position_traffic_light: [-0.3, 0.0, 0.0]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-
-        bulbs:
-          - id: "RedBulb"
-            position_bulb_group: [0.0, 0.0, 0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Red"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-
-          - id: "YellowBulb"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Yellow"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-
-          - id: "GreenBulb"
-            position_bulb_group: [0.0, 0.0, -0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Round"
-            states: ["Off", "On"]
-
-      # Second bulb group (e.g., east-bound approach).
-      # Could face a different direction by adjusting orientation_traffic_light.
-      - id: 1
-        position_traffic_light: [0.3, 0.0, 0.0]
-        # Rotated 90 degrees around Z-axis (π/2 radians).
-        orientation_traffic_light: [0.7071067811865476, 0.0, 0.0, 0.7071067811865476]
-
-        bulbs:
-          - id: "RedBulb"
-            position_bulb_group: [0.0, 0.0, 0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Red"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-
-          - id: "YellowBulb"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Yellow"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-
-          - id: "GreenBulb"
-            position_bulb_group: [0.0, 0.0, -0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Round"
-            states: ["Off", "On"]
-
-    rules:
-      - condition:
-          - bulb: "RedBulb"
-            state: "On"
-          - bulb: "YellowBulb"
-            state: "Off"
-          - bulb: "GreenBulb"
-            state: "Off"
-        value: "Stop"
-
-      - condition:
-          - bulb: "RedBulb"
-            state: "Off"
-          - bulb: "YellowBulb"
-            state: "On"
-          - bulb: "GreenBulb"
-            state: "Off"
-        value: "StopIfSafe"
-
-      - condition:
-          - bulb: "RedBulb"
-            state: "Off"
-          - bulb: "YellowBulb"
-            state: "Off"
-          - bulb: "GreenBulb"
-            state: "On"
-        value: "Go"
 
       - condition: null
         value: "SignalMalfunctioning"

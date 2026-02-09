@@ -7,7 +7,7 @@ This directory contains YAML files that define reusable traffic signal type defi
 A traffic signal type definition describes the physical structure and control logic of a traffic signal. It defines:
 
 - **Bulb structure**: Colors, types (round/arrow), states, dimensions, and positions
-- **Bulb groups**: Logical groupings of bulbs with specified orientations (e.g., for multi-face signals)
+- **Bulb group**: A single group of bulbs with specified orientation
 - **Rule logic**: Mapping from bulb state combinations to Right-Of-Way Rule values
 
 ## How It Works
@@ -39,14 +39,13 @@ Each YAML file in this directory should define a list of signal types under the 
   description: "..."            # Human-readable description
 ```
 
-### Bulb Groups
+### Bulb Group
 
-Each signal type contains one or more `bulb_groups`:
+Each signal type contains a single `bulb_group`:
 
 ```yaml
-  bulb_groups:
-    - id: 0                      # Group index (0, 1, 2, ...)
-      position_traffic_light: [x, y, z]           # Position relative to traffic light frame (meters)
+  bulb_group:
+    - position_traffic_light: [x, y, z]           # Position relative to traffic light frame (meters)
       orientation_traffic_light: [w, x, y, z]     # Quaternion relative to traffic light frame
       
       bulbs:                     # List of bulbs in this group
@@ -62,12 +61,12 @@ Each signal type contains one or more `bulb_groups`:
           arrow_orientation_rad: (optional, required if type is Arrow)  # Arrow angle in radians
 ```
 
-### Rule Conditions
+### Rule States
 
-Rule conditions map bulb state combinations to Right-Of-Way Rule values:
+Rule states map bulb state combinations to Right-Of-Way Rule values:
 
 ```yaml
-  rules:
+  rule-states:
     - condition:
         - bulb: "BulbId"
           state: "On"
@@ -117,14 +116,9 @@ When bulb state conditions are met, the parser creates rules with one of these v
 | `ProceedWithCaution` | Proceed but watch for conflicting traffic (e.g., flashing yellow) |
 | `SignalMalfunctioning` | Traffic signal is not functioning correctly |
 
-## Multi-Group Signals
+## Single Bulb Group Architecture
 
-Signals can have multiple bulb groups with different positions and orientations. This is useful for:
-
-- **Intersection signals**: Different groups face different road approaches (north, east, south, west)
-- **Complex signals**: Some bulbs face different directions (e.g., one group vertical, one horizontal)
-
-Each group's `position_traffic_light` and `orientation_traffic_light` define its position/orientation relative to the traffic light's frame.
+Each traffic signal has exactly one bulb group, which contains all the bulbs for that signal. The group's `position_traffic_light` and `orientation_traffic_light` define its position/orientation within the traffic signal's inertial frame.
 
 ## Examples
 
@@ -133,7 +127,6 @@ See `traffic_signal_db_example.yaml` for detailed examples including:
 - Standard three-bulb vertical traffic light (type 1000001)
 - Arrow-based traffic light (type 1000011)
 - Pedestrian signal (type 1000002)
-- Multi-group dual-face signal (type 1000012)
 
 ## Usage in Parsers
 
@@ -173,6 +166,5 @@ YAML states map to `maliput::api::rules::BulbState` enum:
 ## Notes
 
 - Severity for all Right-Of-Way rules is fixed at 0 (strict enforcement)
-- Bulb group IDs in the YAML are indices (0, 1, 2, ...); the parser generates unique IDs by combining signal type and group index
 - If `bounding_box` is omitted, maliput uses default dimensions (~12" lens: 0.356m tall × 0.356m wide × 0.177m deep)
 - Arrow orientation is only valid (and required) when `type: "Arrow"`
