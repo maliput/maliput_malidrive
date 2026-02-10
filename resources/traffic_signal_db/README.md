@@ -66,16 +66,13 @@ Each signal type contains a single `bulb_group`:
 Rule states map bulb state combinations to Right-Of-Way Rule values:
 
 ```yaml
-  rule-states:
+  rule_states:
     - condition:
         - bulb: "BulbId"
           state: "On"
         - bulb: "OtherBulbId"
           state: "Off"
       value: "Go"              # Rule value: Go, Stop, StopIfSafe, StopThenGo, ProceedWithCaution, or SignalMalfunctioning
-    
-    - condition: null           # Fallback: no other condition matched
-      value: "SignalMalfunctioning"
 ```
 
 ## Coordinate Frames
