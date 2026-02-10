@@ -100,7 +100,7 @@ traffic_signal_types:
     # Rule conditions: map bulb state combinations to Right-Of-Way rule values.
     # Each condition defines a set of (bulb_id, state) pairs.
     # When these conditions are met, the corresponding rule value is applied.
-    rule-states:
+    rule_states:
       # Red only: Stop.
       - condition:
           - bulb: "RedBulb"
@@ -191,7 +191,7 @@ traffic_signal_types:
             # π rad = arrow points in -Y direction (left).
             arrow_orientation_rad: 1.5707963267948966  # π/2 rad (straight).
 
-    rule-states:
+    rule_states:
       - condition:
           - bulb: "RedBulb"
             state: "On"
@@ -247,7 +247,7 @@ traffic_signal_types:
             type: "Round"
             states: ["Off", "On", "Blinking"]
 
-    rule-states:
+    rule_states:
       - condition:
           - bulb: "DontWalkBulb"
             state: "On"
