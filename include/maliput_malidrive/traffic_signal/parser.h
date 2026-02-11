@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2022-2026, Woven by Toyota. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -141,6 +141,13 @@ class TrafficSignalParser {
   /// @return Map of signal identifiers to their definitions.
   /// @throws maliput::common::assertion_error if YAML parsing fails or schema validation fails.
   static std::map<std::string, TrafficSignalDefinition> LoadFromString(const std::string& yaml_content);
+
+  /// Loads a traffic signal database from a YAML file.
+  ///
+  /// @param file_path Path to the YAML database file.
+  /// @return Map of signal identifiers to their definitions.
+  /// @throws std::exception if file loading, YAML parsing, or schema validation fails.
+  static std::map<std::string, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path);
 };
 
 }  // namespace traffic_signal

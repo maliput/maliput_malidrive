@@ -254,14 +254,7 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
   return signal_definition;
 }
 
-}  // namespace
-
-std::map<std::string, TrafficSignalDefinition> TrafficSignalParser::LoadFromString(const std::string& yaml_content) {
-  std::map<std::string, TrafficSignalDefinition> result;
-
-  // Parse YAML content.
-  YAML::Node root;
-  root = YAML::Load(yaml_content);
+std::map<std::string, TrafficSignalDefinition> BuildFrom(const YAML::Node& root) {
   MALIDRIVE_THROW_UNLESS(root.IsMap());
 
   // Get traffic_signal_types array.
@@ -269,6 +262,7 @@ std::map<std::string, TrafficSignalDefinition> TrafficSignalParser::LoadFromStri
   MALIDRIVE_THROW_UNLESS(signals_node.IsDefined());
   MALIDRIVE_THROW_UNLESS(signals_node.IsSequence());
 
+  std::map<std::string, TrafficSignalDefinition> result;
   // Parse each signal definition.
   for (const auto& signal_node : signals_node) {
     const auto signal_definition = ParseSignalDefinition(signal_node);
@@ -276,6 +270,18 @@ std::map<std::string, TrafficSignalDefinition> TrafficSignalParser::LoadFromStri
   }
 
   return result;
+}
+
+}  // namespace
+
+std::map<std::string, TrafficSignalDefinition> TrafficSignalParser::LoadFromString(const std::string& yaml_content) {
+  YAML::Node root = YAML::Load(yaml_content);
+  return BuildFrom(root);
+}
+
+std::map<std::string, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path) {
+  YAML::Node root = YAML::LoadFile(yaml_file_path);
+  return BuildFrom(root);
 }
 
 }  // namespace traffic_signal

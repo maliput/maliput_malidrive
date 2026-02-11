@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2022-2026, Woven by Toyota.
+// Copyright (c) 2026, Woven by Toyota.
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -160,7 +160,6 @@ void ValidateSequenceSize(const YAML::Node& node, const std::string& field_name,
   MALIDRIVE_VALIDATE(node.IsSequence(), maliput::common::assertion_error,
                      "Field '" + field_name + "' is not a sequence in YAML. ");
 
-  // Only validate size if expected_size > 0
   if (expected_size > 0) {
     MALIDRIVE_VALIDATE(node.size() == expected_size, maliput::common::assertion_error,
                        "Field '" + field_name + "' has incorrect sequence size. Expected: " +

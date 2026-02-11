@@ -37,13 +37,12 @@
 
 #include <maliput/math/quaternion.h>
 #include <maliput/math/vector.h>
-
 #include <yaml-cpp/yaml.h>
 
 namespace malidrive {
 namespace traffic_signal {
 
-/// Constants for traffic signal type YAML fields.
+/// Constants for traffic signal description YAML fields.
 struct TrafficSignalConstants {
   static const char* kType;
   static const char* kSubtype;
