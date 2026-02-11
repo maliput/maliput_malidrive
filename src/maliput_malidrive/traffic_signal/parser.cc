@@ -222,20 +222,24 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
   TrafficSignalDefinition signal_definition;
 
   // Parse required fields.
-  signal_definition.type = GetRequiredStringField(signal_node, TrafficSignalConstants::kType);
+  signal_definition.fingerprint.type = GetRequiredStringField(signal_node, TrafficSignalConstants::kType);
   signal_definition.description = GetRequiredStringField(signal_node, TrafficSignalConstants::kDescription);
 
   // Parse optional fields.
   if (const auto subtype = GetOptionalIntField(signal_node, TrafficSignalConstants::kSubtype)) {
-    signal_definition.subtype = subtype;
+    if (subtype.has_value() && subtype.value() < 0) {
+      signal_definition.fingerprint.subtype = std::nullopt;
+    } else {
+      signal_definition.fingerprint.subtype = subtype;
+    }
   }
 
   if (const auto country = GetOptionalStringField(signal_node, TrafficSignalConstants::kCountry)) {
-    signal_definition.country = country;
+    signal_definition.fingerprint.country = country;
   }
 
   if (const auto revision = GetOptionalStringField(signal_node, TrafficSignalConstants::kCountryRevision)) {
-    signal_definition.country_revision = revision;
+    signal_definition.fingerprint.country_revision = revision;
   }
 
   // Parse bulb group (exactly one expected).
@@ -254,7 +258,7 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
   return signal_definition;
 }
 
-std::map<std::string, TrafficSignalDefinition> BuildFrom(const YAML::Node& root) {
+std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> BuildFrom(const YAML::Node& root) {
   MALIDRIVE_THROW_UNLESS(root.IsMap());
 
   // Get traffic_signal_types array.
@@ -262,11 +266,12 @@ std::map<std::string, TrafficSignalDefinition> BuildFrom(const YAML::Node& root)
   MALIDRIVE_THROW_UNLESS(signals_node.IsDefined());
   MALIDRIVE_THROW_UNLESS(signals_node.IsSequence());
 
-  std::map<std::string, TrafficSignalDefinition> result;
+  std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> result;
   // Parse each signal definition.
   for (const auto& signal_node : signals_node) {
     const auto signal_definition = ParseSignalDefinition(signal_node);
-    result[signal_definition.type] = signal_definition;
+    std::pair<TrafficSignalFingerprint, TrafficSignalDefinition> pair(signal_definition.fingerprint, signal_definition);
+    result.insert(pair);
   }
 
   return result;
@@ -274,12 +279,12 @@ std::map<std::string, TrafficSignalDefinition> BuildFrom(const YAML::Node& root)
 
 }  // namespace
 
-std::map<std::string, TrafficSignalDefinition> TrafficSignalParser::LoadFromString(const std::string& yaml_content) {
+std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> TrafficSignalParser::LoadFromString(const std::string& yaml_content) {
   YAML::Node root = YAML::Load(yaml_content);
   return BuildFrom(root);
 }
 
-std::map<std::string, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path) {
+std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path) {
   YAML::Node root = YAML::LoadFile(yaml_file_path);
   return BuildFrom(root);
 }

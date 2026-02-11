@@ -28,10 +28,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <map>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include <maliput/api/lane_data.h>
@@ -99,9 +100,8 @@ struct BulbGroupDefinition {
   std::vector<BulbDefinition> bulbs;
 };
 
-/// Represents a traffic signal definition loaded from the database.
-/// Describes the complete structure and rule logic for a particular signal.
-struct TrafficSignalDefinition {
+/// Unique identifier for a traffic signal definition.
+struct TrafficSignalFingerprint {
   /// Signal type identifier. Matches XODR signal type attribute.
   std::string type;
   /// Optional signal subtype for finer matching.
@@ -110,6 +110,19 @@ struct TrafficSignalDefinition {
   std::optional<std::string> country;
   /// Optional country standard revision.
   std::optional<std::string> country_revision;
+
+  bool operator==(const TrafficSignalFingerprint& other) const {
+    return type == other.type && subtype == other.subtype && country == other.country &&
+           country_revision == other.country_revision;
+  }
+  bool operator!=(const TrafficSignalFingerprint& other) const { return !(*this == other); }
+};
+
+/// Represents a traffic signal definition loaded from the database.
+/// Describes the complete structure and rule logic for a particular signal.
+struct TrafficSignalDefinition {
+  /// Unique identifier for this signal definition.
+  TrafficSignalFingerprint fingerprint;
   /// Human-readable description of this signal definition.
   std::string description;
   /// Bulb group for this signal definition.
@@ -140,15 +153,50 @@ class TrafficSignalParser {
   /// @param yaml_content The YAML content as a string.
   /// @return Map of signal identifiers to their definitions.
   /// @throws maliput::common::assertion_error if YAML parsing fails or schema validation fails.
-  static std::map<std::string, TrafficSignalDefinition> LoadFromString(const std::string& yaml_content);
+  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromString(const std::string& yaml_content);
 
   /// Loads a traffic signal database from a YAML file.
   ///
   /// @param file_path Path to the YAML database file.
   /// @return Map of signal identifiers to their definitions.
   /// @throws std::exception if file loading, YAML parsing, or schema validation fails.
-  static std::map<std::string, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path);
+  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path);
 };
 
 }  // namespace traffic_signal
 }  // namespace malidrive
+
+namespace std {
+
+/// Hash function to use TrafficSignalFingerprint as a key in unordered containers. Combines the hash of each member variable.
+template <>
+struct hash<malidrive::traffic_signal::TrafficSignalFingerprint> {
+    size_t operator()(const malidrive::traffic_signal::TrafficSignalFingerprint& f) const {
+        size_t seed = 0;
+
+        // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
+        auto hash_combine = [&seed](const auto& v) {
+            using T = std::decay_t<decltype(v)>;
+            seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+        };
+
+        // 1. Hash the mandatory string.
+        hash_combine(f.type);
+
+        // 2. Hash optionals (only if they have values, otherwise use a constant).
+        auto hash_optional = [&](const auto& opt) {
+            if (opt) {
+                hash_combine(*opt);
+            } else {
+                hash_combine(size_t(0)); // Or any sentinel value
+            }
+        };
+
+        hash_optional(f.subtype);
+        hash_optional(f.country);
+        hash_optional(f.country_revision);
+
+        return seed;
+    }
+};
+}  // namespace std

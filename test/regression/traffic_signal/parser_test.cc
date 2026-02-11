@@ -114,17 +114,35 @@ GTEST_TEST(TrafficSignalParserTest, LoadFromString) {
   const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
 
   EXPECT_EQ(signal_definitions.size(), 2);
-  EXPECT_TRUE(signal_definitions.find("1000001") != signal_definitions.end());
-  EXPECT_TRUE(signal_definitions.find("1000011") != signal_definitions.end());
+  const auto& standard_fingerprint = TrafficSignalFingerprint{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const auto& arrow_fingerprint = TrafficSignalFingerprint{
+      .type = "1000011",
+      .subtype = 10,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  EXPECT_TRUE(signal_definitions.find(standard_fingerprint) != signal_definitions.end());
+  EXPECT_TRUE(signal_definitions.find(arrow_fingerprint) != signal_definitions.end());
 }
 
 GTEST_TEST(TrafficSignalParserTest, ValidateSignalType1000001) {
   const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
-  const auto& dut = signal_definitions.at("1000001");
+  const TrafficSignalFingerprint fingerprint{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const auto& dut = signal_definitions.at(fingerprint);
 
-  EXPECT_EQ(dut.type, "1000001");
-  EXPECT_EQ(dut.subtype, -1);
-  EXPECT_EQ(dut.country, "OpenDRIVE");
+  EXPECT_EQ(dut.fingerprint.type, "1000001");
+  EXPECT_EQ(dut.fingerprint.subtype, std::nullopt);
+  EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "Standard three-bulb vertical traffic light");
 
   const auto& group = dut.bulb_group;
@@ -149,10 +167,16 @@ GTEST_TEST(TrafficSignalParserTest, ValidateSignalType1000001) {
 
 GTEST_TEST(TrafficSignalParserTest, ValidateArrowSignal) {
   const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
-  const auto& dut = signal_definitions.at("1000011");
+  const TrafficSignalFingerprint arrow_fingerprint{
+      .type = "1000011",
+      .subtype = 10,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const auto& dut = signal_definitions.at(arrow_fingerprint);
 
-  EXPECT_EQ(dut.type, "1000011");
-  EXPECT_EQ(dut.subtype, 10);
+  EXPECT_EQ(dut.fingerprint.type, "1000011");
+  EXPECT_EQ(dut.fingerprint.subtype, 10);
   EXPECT_EQ(dut.description, "Traffic light with arrow");
 
   const auto& group = dut.bulb_group;
