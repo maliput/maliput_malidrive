@@ -28,15 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_signal/parser.h"
 
-#include <string>
-#include <unordered_map>
 #include <utility>
-#include <vector>
 
-#include <maliput/api/rules/traffic_lights.h>
 #include <maliput/common/maliput_throw.h>
-#include <maliput/math/quaternion.h>
-#include <maliput/math/vector.h>
 #include <yaml-cpp/yaml.h>
 
 #include "maliput_malidrive/common/macros.h"

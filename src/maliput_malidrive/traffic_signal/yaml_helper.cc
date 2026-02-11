@@ -31,11 +31,7 @@
 
 #include "maliput_malidrive/traffic_signal/yaml_helper.h"
 
-#include <sstream>
-
 #include <maliput/common/maliput_throw.h>
-#include <maliput/math/quaternion.h>
-#include <maliput/math/vector.h>
 
 #include "maliput_malidrive/common/macros.h"
 

@@ -104,14 +104,14 @@ Not all bulbs support all states. Define `states` array to specify which states 
 
 When bulb state conditions are met, the parser creates rules with one of these values:
 
-| Value | Meaning |
-|-------|---------|
-| `Go` | Proceed through the intersection |
-| `Stop` | Must stop before entering intersection |
-| `StopIfSafe` | Stop if safe to do so; may proceed if unsafe to stop |
-| `StopThenGo` | Stop, then proceed when safe (e.g., blinking red) |
-| `ProceedWithCaution` | Proceed but watch for conflicting traffic (e.g., flashing yellow) |
-| `SignalMalfunctioning` | Traffic signal is not functioning correctly |
+| Value                  | Meaning                                                           |
+| ---------------------- | ----------------------------------------------------------------- |
+| `Go`                   | Proceed through the intersection                                  |
+| `Stop`                 | Must stop before entering intersection                            |
+| `StopIfSafe`           | Stop if safe to do so; may proceed if unsafe to stop              |
+| `StopThenGo`           | Stop, then proceed when safe (e.g., blinking red)                 |
+| `ProceedWithCaution`   | Proceed but watch for conflicting traffic (e.g., flashing yellow) |
+| `SignalMalfunctioning` | Traffic signal is not functioning correctly                       |
 
 ## Single Bulb Group Architecture
 

@@ -35,15 +35,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include <maliput/api/lane_data.h>
-#include <maliput/api/regions.h>
-#include <maliput/api/rules/discrete_value_rule.h>
-#include <maliput/api/rules/rule.h>
 #include <maliput/api/rules/traffic_lights.h>
 #include <maliput/math/quaternion.h>
 #include <maliput/math/vector.h>
-
-#include "maliput_malidrive/xodr/signal.h"
 
 namespace malidrive {
 namespace traffic_signal {

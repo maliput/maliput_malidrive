@@ -29,7 +29,6 @@
 #include "maliput_malidrive/traffic_signal/parser.h"
 
 #include <gtest/gtest.h>
-#include <maliput/api/rules/traffic_lights.h>
 
 namespace malidrive {
 namespace traffic_signal {
