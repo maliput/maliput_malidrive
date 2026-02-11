@@ -284,7 +284,8 @@ std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> BuildFrom(
 
 }  // namespace
 
-std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> TrafficSignalParser::LoadFromString(const std::string& yaml_content) {
+std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> TrafficSignalParser::LoadFromString(
+    const std::string& yaml_content) {
   YAML::Node root = YAML::Load(yaml_content);
   return BuildFrom(root);
 }

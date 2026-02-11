@@ -153,14 +153,16 @@ class TrafficSignalParser {
   /// @param yaml_content The YAML content as a string.
   /// @return Map of signal identifiers to their definitions.
   /// @throws maliput::common::assertion_error if YAML parsing fails or schema validation fails.
-  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromString(const std::string& yaml_content);
+  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromString(
+      const std::string& yaml_content);
 
   /// Loads a traffic signal database from a YAML file.
   ///
   /// @param file_path Path to the YAML database file.
   /// @return Map of signal identifiers to their definitions.
   /// @throws std::exception if file loading, YAML parsing, or schema validation fails.
-  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromFile(const std::string& yaml_file_path);
+  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromFile(
+      const std::string& yaml_file_path);
 };
 
 }  // namespace traffic_signal
@@ -168,35 +170,36 @@ class TrafficSignalParser {
 
 namespace std {
 
-/// Hash function to use TrafficSignalFingerprint as a key in unordered containers. Combines the hash of each member variable.
+/// Hash function to use TrafficSignalFingerprint as a key in unordered containers. Combines the hash of each member
+/// variable.
 template <>
 struct hash<malidrive::traffic_signal::TrafficSignalFingerprint> {
-    size_t operator()(const malidrive::traffic_signal::TrafficSignalFingerprint& f) const {
-        size_t seed = 0;
+  size_t operator()(const malidrive::traffic_signal::TrafficSignalFingerprint& f) const {
+    size_t seed = 0;
 
-        // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
-        auto hash_combine = [&seed](const auto& v) {
-            using T = std::decay_t<decltype(v)>;
-            seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-        };
+    // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
+    auto hash_combine = [&seed](const auto& v) {
+      using T = std::decay_t<decltype(v)>;
+      seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+    };
 
-        // 1. Hash the mandatory string.
-        hash_combine(f.type);
+    // 1. Hash the mandatory string.
+    hash_combine(f.type);
 
-        // 2. Hash optionals (only if they have values, otherwise use a constant).
-        auto hash_optional = [&](const auto& opt) {
-            if (opt) {
-                hash_combine(*opt);
-            } else {
-                hash_combine(size_t(0)); // Or any sentinel value
-            }
-        };
+    // 2. Hash optionals (only if they have values, otherwise use a constant).
+    auto hash_optional = [&](const auto& opt) {
+      if (opt) {
+        hash_combine(*opt);
+      } else {
+        hash_combine(size_t(0));  // Or any sentinel value
+      }
+    };
 
-        hash_optional(f.subtype);
-        hash_optional(f.country);
-        hash_optional(f.country_revision);
+    hash_optional(f.subtype);
+    hash_optional(f.country);
+    hash_optional(f.country_revision);
 
-        return seed;
-    }
+    return seed;
+  }
 };
 }  // namespace std
