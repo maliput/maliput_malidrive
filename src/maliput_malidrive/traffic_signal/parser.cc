@@ -226,8 +226,8 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
   signal_definition.description = GetRequiredStringField(signal_node, TrafficSignalConstants::kDescription);
 
   // Parse optional fields.
-  if (const auto subtype = GetOptionalIntField(signal_node, TrafficSignalConstants::kSubtype)) {
-    if (subtype.has_value() && subtype.value() < 0) {
+  if (const auto subtype = GetOptionalStringField(signal_node, TrafficSignalConstants::kSubtype)) {
+    if (subtype.has_value() && (subtype.value() == "-1" || subtype.value() == "none")) {
       signal_definition.fingerprint.subtype = std::nullopt;
     } else {
       signal_definition.fingerprint.subtype = subtype;

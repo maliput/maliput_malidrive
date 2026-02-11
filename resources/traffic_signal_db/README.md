@@ -33,7 +33,7 @@ Each YAML file in this directory should define a list of signal types under the 
 
 ```yaml
 - type: "1000001"               # Signal type identifier (must match XODR signal type)
-  subtype: -1                   # Optional: signal subtype for finer matching
+  subtype: "-1"                 # Optional: signal subtype for finer matching
   country: "OpenDRIVE"          # Optional: country code or standard
   country_revision: null        # Optional: country standard revision
   description: "..."            # Human-readable description

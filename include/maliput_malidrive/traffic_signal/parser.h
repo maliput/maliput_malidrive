@@ -105,7 +105,7 @@ struct TrafficSignalFingerprint {
   /// Signal type identifier. Matches XODR signal type attribute.
   std::string type;
   /// Optional signal subtype for finer matching.
-  std::optional<int> subtype;
+  std::optional<std::string> subtype;
   /// Optional country code or standard.
   std::optional<std::string> country;
   /// Optional country standard revision.

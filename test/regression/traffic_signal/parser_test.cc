@@ -41,7 +41,7 @@ constexpr double kTolerance = 1e-6;
 const char kTrafficSignalDb[] = R"(
 traffic_signal_types:
   - type: "1000001"
-    subtype: -1
+    subtype: "-1"
     country: "OpenDRIVE"
     country_revision: null
     description: "Standard three-bulb vertical traffic light"
@@ -88,7 +88,7 @@ traffic_signal_types:
             state: "On"
         value: "Go"
   - type: "1000011"
-    subtype: 10
+    subtype: "10"
     country: "OpenDRIVE"
     country_revision: null
     description: "Traffic light with arrow"
@@ -122,7 +122,7 @@ GTEST_TEST(TrafficSignalParserTest, LoadFromString) {
   };
   const auto& arrow_fingerprint = TrafficSignalFingerprint{
       .type = "1000011",
-      .subtype = 10,
+      .subtype = "10",
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
@@ -169,14 +169,14 @@ GTEST_TEST(TrafficSignalParserTest, ValidateArrowSignal) {
   const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
   const TrafficSignalFingerprint arrow_fingerprint{
       .type = "1000011",
-      .subtype = 10,
+      .subtype = "10",
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
   const auto& dut = signal_definitions.at(arrow_fingerprint);
 
   EXPECT_EQ(dut.fingerprint.type, "1000011");
-  EXPECT_EQ(dut.fingerprint.subtype, 10);
+  EXPECT_EQ(dut.fingerprint.subtype, "10");
   EXPECT_EQ(dut.description, "Traffic light with arrow");
 
   const auto& group = dut.bulb_group;
