@@ -108,12 +108,27 @@ traffic_signal_types:
           - bulb: "GreenArrow"
             state: "On"
         value: "Go"
+  - type: "default_bulb_state"
+    subtype: null
+    country: null
+    country_revision: null
+    description: "Signal with default bulb states and bounding box"
+    bulb_group:
+      - position_traffic_light: [0.0, 0.0, 0.0]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        bulbs:
+          - id: "DefaultBulb"
+            position_bulb_group: [0.0, 0.0, 0.0]
+            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
+            color: "Red"
+            type: "Round"
+    rule_states: []
 )";
 
 GTEST_TEST(TrafficSignalParserTest, LoadFromString) {
   const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
 
-  EXPECT_EQ(signal_definitions.size(), 2);
+  EXPECT_EQ(signal_definitions.size(), 3);
   const auto& standard_fingerprint = TrafficSignalFingerprint{
       .type = "1000001",
       .subtype = std::nullopt,
@@ -186,6 +201,41 @@ GTEST_TEST(TrafficSignalParserTest, ValidateArrowSignal) {
   EXPECT_EQ(arrow_bulb.type, maliput::api::rules::BulbType::kArrow);
   EXPECT_TRUE(arrow_bulb.arrow_orientation_rad.has_value());
   EXPECT_NEAR(arrow_bulb.arrow_orientation_rad.value(), 1.570796, kTolerance);
+}
+
+GTEST_TEST(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
+  const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+  const TrafficSignalFingerprint default_fingerprint{
+      .type = "default_bulb_state",
+      .subtype = std::nullopt,
+      .country = std::nullopt,
+      .country_revision = std::nullopt,
+  };
+  const auto& dut = signal_definitions.at(default_fingerprint);
+
+  EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
+  EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
+
+  const auto& group = dut.bulb_group;
+  EXPECT_EQ(group.bulbs.size(), 1);
+
+  const auto& default_bulb = group.bulbs[0];
+  EXPECT_EQ(default_bulb.id, "DefaultBulb");
+  EXPECT_EQ(default_bulb.color, maliput::api::rules::BulbColor::kRed);
+  EXPECT_EQ(default_bulb.type, maliput::api::rules::BulbType::kRound);
+
+  // Verify default states.
+  EXPECT_EQ(default_bulb.states.size(), 2);
+  EXPECT_EQ(default_bulb.states[0], maliput::api::rules::BulbState::kOff);
+  EXPECT_EQ(default_bulb.states[1], maliput::api::rules::BulbState::kOn);
+
+  // Verify default bounding box.
+  EXPECT_NEAR(default_bulb.bounding_box.p_BMin.x(), -0.0889, kTolerance);
+  EXPECT_NEAR(default_bulb.bounding_box.p_BMin.y(), -0.1778, kTolerance);
+  EXPECT_NEAR(default_bulb.bounding_box.p_BMin.z(), -0.1778, kTolerance);
+  EXPECT_NEAR(default_bulb.bounding_box.p_BMax.x(), 0.0889, kTolerance);
+  EXPECT_NEAR(default_bulb.bounding_box.p_BMax.y(), 0.1778, kTolerance);
+  EXPECT_NEAR(default_bulb.bounding_box.p_BMax.z(), 0.1778, kTolerance);
 }
 
 }  // namespace

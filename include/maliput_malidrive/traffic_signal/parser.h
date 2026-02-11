@@ -84,9 +84,9 @@ struct BulbDefinition {
   /// Arrow orientation in radians (only for Arrow type bulbs).
   /// Required when type is Arrow.
   std::optional<double> arrow_orientation_rad;
-  /// Optional custom bounding box for this bulb.
-  /// If not specified, maliput uses default dimensions.
-  std::optional<maliput::api::rules::Bulb::BoundingBox> bounding_box;
+  /// Custom bounding box for this bulb.
+  /// If not specified, uses default maliput dimensions.
+  maliput::api::rules::Bulb::BoundingBox bounding_box;
 };
 
 /// Represents a bulb group definition within a signal.

@@ -92,9 +92,11 @@ maliput::api::rules::BulbState StringToBulbState(const std::string& state_str) {
 // Helper function to parse a bounding box from a YAML map.
 // @param node The YAML node containing p_min and p_max keys.
 // @return A Bulb::BoundingBox with the parsed values.
-std::optional<maliput::api::rules::Bulb::BoundingBox> ParseBoundingBox(const YAML::Node& node) {
+maliput::api::rules::Bulb::BoundingBox ParseBoundingBox(const YAML::Node& node) {
+  auto bounding_box = maliput::api::rules::Bulb::BoundingBox();
   if (!node.IsDefined()) {
-    return std::nullopt;
+    // If not defined, return the default bounding box.
+    return bounding_box;
   }
   MALIDRIVE_THROW_UNLESS(node.IsMap(), maliput::common::road_network_description_parser_error);
   MALIDRIVE_THROW_UNLESS(node[BoundingBoxConstants::kPMin].IsDefined(),
@@ -105,11 +107,10 @@ std::optional<maliput::api::rules::Bulb::BoundingBox> ParseBoundingBox(const YAM
   const auto p_min = GetVector3(node[BoundingBoxConstants::kPMin], BoundingBoxConstants::kPMin);
   const auto p_max = GetVector3(node[BoundingBoxConstants::kPMax], BoundingBoxConstants::kPMax);
 
-  auto bounding_box = maliput::api::rules::Bulb::BoundingBox();
   bounding_box.p_BMin = p_min;
   bounding_box.p_BMax = p_max;
 
-  return std::make_optional<maliput::api::rules::Bulb::BoundingBox>(bounding_box);
+  return bounding_box;
 }
 
 // Helper function to parse a BulbDefinition from a YAML map.
@@ -137,12 +138,16 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
   bulb.orientation_bulb_group =
       GetQuaternion(bulb_node[BulbConstants::kOrientationBulbGroup], BulbConstants::kOrientationBulbGroup);
 
-  // Parse bulb states (optional, defaults to empty vector to be populated by defaults if needed).
+  // Parse bulb states (optional, defaults to ["Off", "On"]).
   if (bulb_node[BulbConstants::kStates].IsDefined()) {
     ValidateSequenceSize(bulb_node[BulbConstants::kStates], BulbConstants::kStates);
     for (const auto& state_node : bulb_node[BulbConstants::kStates]) {
       bulb.states.push_back(StringToBulbState(state_node.as<std::string>()));
     }
+  } else {
+    // Default states if not defined.
+    bulb.states.push_back(maliput::api::rules::BulbState::kOff);
+    bulb.states.push_back(maliput::api::rules::BulbState::kOn);
   }
 
   // Parse arrow orientation (only for Arrow type bulbs).
