@@ -147,7 +147,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":common",
-        ":xodr",
         "@maliput//:api",
         "@maliput//:common",
         "@maliput//:math",
