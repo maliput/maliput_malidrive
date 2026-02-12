@@ -131,10 +131,19 @@ traffic_signal_types:
     rule_states: []
 )";
 
-GTEST_TEST(TrafficSignalParserTest, LoadFromString) {
-  const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+class TrafficSignalParserTest : public ::testing::Test {
+ public:
+  static void SetUpTestCase() {
+    signal_definitions_ = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+  }
+  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> signal_definitions_;
+};
 
-  EXPECT_EQ(signal_definitions.size(), 3);
+// Needed to allocate memory for static member variable.
+std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> TrafficSignalParserTest::signal_definitions_;
+
+TEST_F(TrafficSignalParserTest, LoadFromString) {
+  EXPECT_EQ(signal_definitions_.size(), 3);
   const auto& standard_fingerprint = TrafficSignalFingerprint{
       .type = "1000001",
       .subtype = std::nullopt,
@@ -147,19 +156,18 @@ GTEST_TEST(TrafficSignalParserTest, LoadFromString) {
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  EXPECT_TRUE(signal_definitions.find(standard_fingerprint) != signal_definitions.end());
-  EXPECT_TRUE(signal_definitions.find(arrow_fingerprint) != signal_definitions.end());
+  EXPECT_TRUE(signal_definitions_.find(standard_fingerprint) != signal_definitions_.end());
+  EXPECT_TRUE(signal_definitions_.find(arrow_fingerprint) != signal_definitions_.end());
 }
 
-GTEST_TEST(TrafficSignalParserTest, ValidateSignalType1000001) {
-  const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+TEST_F(TrafficSignalParserTest, ValidateSignalType1000001) {
   const TrafficSignalFingerprint fingerprint{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions.at(fingerprint);
+  const auto& dut = signal_definitions_.at(fingerprint);
 
   EXPECT_EQ(dut.fingerprint.type, "1000001");
   EXPECT_EQ(dut.fingerprint.subtype, std::nullopt);
@@ -186,15 +194,14 @@ GTEST_TEST(TrafficSignalParserTest, ValidateSignalType1000001) {
   EXPECT_EQ(dut.rule_states[1].bulb_conditions.size(), 3);
 }
 
-GTEST_TEST(TrafficSignalParserTest, ValidateArrowSignal) {
-  const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+TEST_F(TrafficSignalParserTest, ValidateArrowSignal) {
   const TrafficSignalFingerprint arrow_fingerprint{
       .type = "1000011",
       .subtype = "10",
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions.at(arrow_fingerprint);
+  const auto& dut = signal_definitions_.at(arrow_fingerprint);
 
   EXPECT_EQ(dut.fingerprint.type, "1000011");
   EXPECT_EQ(dut.fingerprint.subtype, "10");
@@ -209,15 +216,14 @@ GTEST_TEST(TrafficSignalParserTest, ValidateArrowSignal) {
   EXPECT_NEAR(arrow_bulb.arrow_orientation_rad.value(), 1.570796, kTolerance);
 }
 
-GTEST_TEST(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
-  const auto signal_definitions = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
   const TrafficSignalFingerprint default_fingerprint{
       .type = "default_bulb_state",
       .subtype = std::nullopt,
       .country = std::nullopt,
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions.at(default_fingerprint);
+  const auto& dut = signal_definitions_.at(default_fingerprint);
 
   EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
   EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
@@ -244,7 +250,7 @@ GTEST_TEST(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.z(), 0.1778, kTolerance);
 }
 
-GTEST_TEST(TrafficSignalParserTest, LoadFromFile) {
+GTEST_TEST(TrafficSignalYamlFileParserTest, LoadFromFile) {
   const std::string yaml_file_path =
       utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
 
