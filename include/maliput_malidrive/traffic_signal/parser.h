@@ -146,7 +146,7 @@ class TrafficSignalParser {
   ///
   /// @param yaml_content The YAML content as a string.
   /// @return Map of signal identifiers to their definitions.
-  /// @throws maliput::common::assertion_error if YAML parsing fails or schema validation fails.
+  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails or schema validation fails.
   static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromString(
       const std::string& yaml_content);
 
@@ -154,7 +154,7 @@ class TrafficSignalParser {
   ///
   /// @param file_path Path to the YAML database file.
   /// @return Map of signal identifiers to their definitions.
-  /// @throws std::exception if file loading, YAML parsing, or schema validation fails.
+  /// @throws maliput::common::road_network_description_parser_error YAML parsing or schema validation fails.
   static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromFile(
       const std::string& yaml_file_path);
 };

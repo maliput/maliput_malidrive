@@ -97,13 +97,13 @@ const char* BulbStateConditionConstants::kState = "state";
 // ============================================================================
 
 void ValidateYamlNode(const YAML::Node& node, const std::string& field_name, const std::string& expected_type) {
-  MALIDRIVE_VALIDATE(node.IsDefined(), maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(node.IsDefined(), maliput::common::road_network_description_parser_error,
                      std::string("Field '" + field_name + "' is not defined in YAML. Expected: " + expected_type));
 }
 
 std::string GetRequiredStringField(const YAML::Node& node, const std::string& field_name) {
   ValidateYamlNode(node[field_name], field_name, "string value");
-  MALIDRIVE_VALIDATE(!node[field_name].IsNull(), maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(!node[field_name].IsNull(), maliput::common::road_network_description_parser_error,
                      "Field '" + field_name + "' is null in YAML");
 
   return node[field_name].as<std::string>();
@@ -153,11 +153,11 @@ maliput::math::Quaternion GetQuaternion(const YAML::Node& node, const std::strin
 }
 
 void ValidateSequenceSize(const YAML::Node& node, const std::string& field_name, size_t expected_size) {
-  MALIDRIVE_VALIDATE(node.IsSequence(), maliput::common::assertion_error,
+  MALIDRIVE_VALIDATE(node.IsSequence(), maliput::common::road_network_description_parser_error,
                      "Field '" + field_name + "' is not a sequence in YAML. ");
 
   if (expected_size > 0) {
-    MALIDRIVE_VALIDATE(node.size() == expected_size, maliput::common::assertion_error,
+    MALIDRIVE_VALIDATE(node.size() == expected_size, maliput::common::road_network_description_parser_error,
                        "Field '" + field_name + "' has incorrect sequence size. Expected: " +
                            std::to_string(expected_size) + ", Got: " + std::to_string(node.size()));
   }

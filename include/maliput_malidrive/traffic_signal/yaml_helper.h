@@ -93,7 +93,7 @@ struct BulbStateConditionConstants {
 /// @param field_name The name of the field being validated (for error messages).
 /// @param expected_type A description of the expected YAML type
 /// (e.g., "map", "sequence", "string value").
-/// @throws maliput::common::assertion_error if node is not defined or is of
+/// @throws maliput::common::road_network_description_parser_error if node is not defined or is of
 ///         an unexpected type.
 void ValidateYamlNode(const YAML::Node& node, const std::string& field_name, const std::string& expected_type);
 
@@ -102,7 +102,7 @@ void ValidateYamlNode(const YAML::Node& node, const std::string& field_name, con
 /// @param node The YAML node containing the field.
 /// @param field_name The name of the field to retrieve.
 /// @returns The string value of the field.
-/// @throws maliput::common::assertion_error if the field is missing, null, or
+/// @throws maliput::common::road_network_description_parser_error if the field is missing, null, or
 ///         cannot be converted to a string.
 std::string GetRequiredStringField(const YAML::Node& node, const std::string& field_name);
 
@@ -135,7 +135,7 @@ std::optional<double> GetOptionalDoubleField(const YAML::Node& node, const std::
 /// @param node The YAML sequence node containing three values.
 /// @param field_name The name of the field being extracted (for error messages).
 /// @returns A Vector3 with (x, y, z) values.
-/// @throws maliput::common::assertion_error if the node is not a sequence with
+/// @throws maliput::common::road_network_description_parser_error if the node is not a sequence with
 ///         exactly 3 elements.
 maliput::math::Vector3 GetVector3(const YAML::Node& node, const std::string& field_name);
 
@@ -144,7 +144,7 @@ maliput::math::Vector3 GetVector3(const YAML::Node& node, const std::string& fie
 /// @param node The YAML sequence node containing four values (w, x, y, z).
 /// @param field_name The name of the field being extracted (for error messages).
 /// @returns A Quaternion with (w, x, y, z) values.
-/// @throws maliput::common::assertion_error if the node is not a sequence with
+/// @throws maliput::common::road_network_description_parser_error if the node is not a sequence with
 ///         exactly 4 elements or if any element cannot be converted to double.
 maliput::math::Quaternion GetQuaternion(const YAML::Node& node, const std::string& field_name);
 
@@ -154,7 +154,7 @@ maliput::math::Quaternion GetQuaternion(const YAML::Node& node, const std::strin
 /// @param field_name The name of the field being validated (for error messages).
 /// @param expected_size The expected number of elements in the sequence. If 0
 /// (default), size validation is skipped and only the sequence type is checked.
-/// @throws maliput::common::assertion_error if the node is not a sequence or
+/// @throws maliput::common::road_network_description_parser_error if the node is not a sequence or
 ///         if expected_size > 0 and the actual size does not match.
 void ValidateSequenceSize(const YAML::Node& node, const std::string& field_name, size_t expected_size = 0);
 

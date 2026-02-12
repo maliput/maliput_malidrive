@@ -159,10 +159,13 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
 // @param group_node The YAML node representing a bulb group.
 // @return A BulbGroupDefinition with the parsed values.
 BulbGroupDefinition ParseBulbGroup(const YAML::Node& group_node) {
-  MALIDRIVE_THROW_UNLESS(group_node.IsMap());
-  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kPositionTrafficLight].IsDefined());
-  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kOrientationTrafficLight].IsDefined());
-  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kBulbs].IsDefined());
+  MALIDRIVE_THROW_UNLESS(group_node.IsMap(), maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kPositionTrafficLight].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kOrientationTrafficLight].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kBulbs].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
   ValidateSequenceSize(group_node[BulbGroupConstants::kBulbs], BulbGroupConstants::kBulbs);
 
   BulbGroupDefinition group;
@@ -183,18 +186,22 @@ BulbGroupDefinition ParseBulbGroup(const YAML::Node& group_node) {
 // @param rule_state_node The YAML node representing a rule state.
 // @return A RuleState with the parsed values.
 RuleState ParseRuleState(const YAML::Node& rule_state_node) {
-  MALIDRIVE_THROW_UNLESS(rule_state_node.IsMap());
-  MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kCondition].IsDefined());
+  MALIDRIVE_THROW_UNLESS(rule_state_node.IsMap(), maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kCondition].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
   ValidateSequenceSize(rule_state_node[RuleStateConstants::kCondition], RuleStateConstants::kCondition);
-  MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kValue].IsDefined());
+  MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kValue].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
 
   RuleState rule_state;
 
   // Parse bulb conditions.
   for (const auto& condition_node : rule_state_node[RuleStateConstants::kCondition]) {
-    MALIDRIVE_THROW_UNLESS(condition_node.IsMap());
-    MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kBulb].IsDefined());
-    MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kState].IsDefined());
+    MALIDRIVE_THROW_UNLESS(condition_node.IsMap(), maliput::common::road_network_description_parser_error);
+    MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kBulb].IsDefined(),
+                           maliput::common::road_network_description_parser_error);
+    MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kState].IsDefined(),
+                           maliput::common::road_network_description_parser_error);
 
     BulbStateCondition condition;
     condition.bulb_id = GetRequiredStringField(condition_node, BulbStateConditionConstants::kBulb);
@@ -213,10 +220,13 @@ RuleState ParseRuleState(const YAML::Node& rule_state_node) {
 // @param signal_node The YAML node representing a traffic signal definition.
 // @return A TrafficSignalDefinition with the parsed values.
 TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
-  MALIDRIVE_THROW_UNLESS(signal_node.IsMap());
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kType].IsDefined());
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kDescription].IsDefined());
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].IsDefined());
+  MALIDRIVE_THROW_UNLESS(signal_node.IsMap(), maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kType].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kDescription].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
 
   TrafficSignalDefinition signal_definition;
 
@@ -242,8 +252,10 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
   }
 
   // Parse bulb group (exactly one expected).
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].IsSequence());
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].size() == 1);
+  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].IsSequence(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].size() == 1,
+                         maliput::common::road_network_description_parser_error);
   signal_definition.bulb_group = ParseBulbGroup(signal_node[TrafficSignalConstants::kBulbGroup][0]);
 
   // Parse rule_states (optional).
@@ -258,12 +270,12 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
 }
 
 std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> BuildFrom(const YAML::Node& root) {
-  MALIDRIVE_THROW_UNLESS(root.IsMap());
+  MALIDRIVE_THROW_UNLESS(root.IsMap(), maliput::common::road_network_description_parser_error);
 
   // Get traffic_signal_types array.
   const YAML::Node& signals_node = root["traffic_signal_types"];
-  MALIDRIVE_THROW_UNLESS(signals_node.IsDefined());
-  MALIDRIVE_THROW_UNLESS(signals_node.IsSequence());
+  MALIDRIVE_THROW_UNLESS(signals_node.IsDefined(), maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(signals_node.IsSequence(), maliput::common::road_network_description_parser_error);
 
   std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> result;
   // Parse each signal definition.
