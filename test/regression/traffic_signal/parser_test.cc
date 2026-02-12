@@ -30,10 +30,14 @@
 
 #include <gtest/gtest.h>
 
+#include "utility/resources.h"
+
 namespace malidrive {
 namespace traffic_signal {
 namespace test {
 namespace {
+
+static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 
 constexpr double kTolerance = 1e-6;
 
@@ -235,6 +239,416 @@ GTEST_TEST(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.x(), 0.0889, kTolerance);
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.y(), 0.1778, kTolerance);
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.z(), 0.1778, kTolerance);
+}
+
+GTEST_TEST(TrafficSignalParserTest, LoadFromFile) {
+  const std::string yaml_file_path =
+      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+
+  // Load from file and validate it matches the string loading.
+  const auto signal_definitions_from_file = TrafficSignalParser::LoadFromFile(yaml_file_path);
+  const auto signal_definitions_from_string = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+  EXPECT_EQ(signal_definitions_from_file, signal_definitions_from_string);
+}
+
+GTEST_TEST(BulbStateConditionEqualityOperatorTest, EqualConditions) {
+  const BulbStateCondition condition1{
+      .bulb_id = "RedBulb",
+      .state = maliput::api::rules::BulbState::kOn,
+  };
+  const BulbStateCondition condition2{
+      .bulb_id = "RedBulb",
+      .state = maliput::api::rules::BulbState::kOn,
+  };
+  EXPECT_EQ(condition1, condition2);
+  EXPECT_TRUE(condition1 == condition2);
+}
+
+GTEST_TEST(BulbStateConditionEqualityOperatorTest, DifferentBulbId) {
+  const BulbStateCondition condition1{
+      .bulb_id = "RedBulb",
+      .state = maliput::api::rules::BulbState::kOn,
+  };
+  const BulbStateCondition condition2{
+      .bulb_id = "GreenBulb",
+      .state = maliput::api::rules::BulbState::kOn,
+  };
+  EXPECT_NE(condition1, condition2);
+  EXPECT_TRUE(condition1 != condition2);
+}
+
+GTEST_TEST(BulbStateConditionEqualityOperatorTest, DifferentState) {
+  const BulbStateCondition condition1{
+      .bulb_id = "RedBulb",
+      .state = maliput::api::rules::BulbState::kOn,
+  };
+  const BulbStateCondition condition2{
+      .bulb_id = "RedBulb",
+      .state = maliput::api::rules::BulbState::kOff,
+  };
+  EXPECT_NE(condition1, condition2);
+  EXPECT_TRUE(condition1 != condition2);
+}
+
+GTEST_TEST(RuleStateEqualityOperatorTest, EqualRuleStates) {
+  const RuleState rule_state1{
+      .bulb_conditions =
+          {
+              BulbStateCondition{
+                  .bulb_id = "RedBulb",
+                  .state = maliput::api::rules::BulbState::kOn,
+              },
+              BulbStateCondition{
+                  .bulb_id = "YellowBulb",
+                  .state = maliput::api::rules::BulbState::kOff,
+              },
+          },
+      .rule_value = "Stop",
+  };
+  const RuleState rule_state2{
+      .bulb_conditions =
+          {
+              BulbStateCondition{
+                  .bulb_id = "RedBulb",
+                  .state = maliput::api::rules::BulbState::kOn,
+              },
+              BulbStateCondition{
+                  .bulb_id = "YellowBulb",
+                  .state = maliput::api::rules::BulbState::kOff,
+              },
+          },
+      .rule_value = "Stop",
+  };
+  EXPECT_EQ(rule_state1, rule_state2);
+  EXPECT_TRUE(rule_state1 == rule_state2);
+}
+
+GTEST_TEST(RuleStateEqualityOperatorTest, DifferentRuleValue) {
+  const RuleState rule_state1{
+      .bulb_conditions =
+          {
+              BulbStateCondition{
+                  .bulb_id = "RedBulb",
+                  .state = maliput::api::rules::BulbState::kOn,
+              },
+          },
+      .rule_value = "Stop",
+  };
+  const RuleState rule_state2{
+      .bulb_conditions =
+          {
+              BulbStateCondition{
+                  .bulb_id = "RedBulb",
+                  .state = maliput::api::rules::BulbState::kOn,
+              },
+          },
+      .rule_value = "Go",
+  };
+  EXPECT_NE(rule_state1, rule_state2);
+  EXPECT_TRUE(rule_state1 != rule_state2);
+}
+
+GTEST_TEST(RuleStateEqualityOperatorTest, DifferentBulbConditions) {
+  const RuleState rule_state1{
+      .bulb_conditions =
+          {
+              BulbStateCondition{
+                  .bulb_id = "RedBulb",
+                  .state = maliput::api::rules::BulbState::kOn,
+              },
+          },
+      .rule_value = "Stop",
+  };
+  const RuleState rule_state2{
+      .bulb_conditions =
+          {
+              BulbStateCondition{
+                  .bulb_id = "GreenBulb",
+                  .state = maliput::api::rules::BulbState::kOn,
+              },
+          },
+      .rule_value = "Stop",
+  };
+  EXPECT_NE(rule_state1, rule_state2);
+  EXPECT_TRUE(rule_state1 != rule_state2);
+}
+
+GTEST_TEST(BulbDefinitionEqualityOperatorTest, EqualBulbDefinitions) {
+  const BulbDefinition bulb1{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+              maliput::api::rules::BulbState::kBlinking,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .bounding_box = {},
+  };
+  const BulbDefinition bulb2{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+              maliput::api::rules::BulbState::kBlinking,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .bounding_box = {},
+  };
+  EXPECT_EQ(bulb1, bulb2);
+  EXPECT_TRUE(bulb1 == bulb2);
+}
+
+GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentId) {
+  const BulbDefinition bulb1{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .bounding_box = {},
+  };
+  const BulbDefinition bulb2{
+      .id = "GreenBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .bounding_box = {},
+  };
+  EXPECT_NE(bulb1, bulb2);
+  EXPECT_TRUE(bulb1 != bulb2);
+}
+
+GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
+  const BulbDefinition bulb1{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .bounding_box = {},
+  };
+  const BulbDefinition bulb2{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kGreen,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .bounding_box = {},
+  };
+  EXPECT_NE(bulb1, bulb2);
+  EXPECT_TRUE(bulb1 != bulb2);
+}
+
+GTEST_TEST(BulbGroupDefinitionEqualityOperatorTest, EqualBulbGroupDefinitions) {
+  const BulbGroupDefinition group1{
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .bulbs =
+          {
+              BulbDefinition{
+                  .id = "RedBulb",
+                  .color = maliput::api::rules::BulbColor::kRed,
+                  .type = maliput::api::rules::BulbType::kRound,
+                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                  .states =
+                      {
+                          maliput::api::rules::BulbState::kOff,
+                          maliput::api::rules::BulbState::kOn,
+                      },
+                  .arrow_orientation_rad = std::nullopt,
+                  .bounding_box = {},
+              },
+          },
+  };
+  const BulbGroupDefinition group2{
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .bulbs =
+          {
+              BulbDefinition{
+                  .id = "RedBulb",
+                  .color = maliput::api::rules::BulbColor::kRed,
+                  .type = maliput::api::rules::BulbType::kRound,
+                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                  .states =
+                      {
+                          maliput::api::rules::BulbState::kOff,
+                          maliput::api::rules::BulbState::kOn,
+                      },
+                  .arrow_orientation_rad = std::nullopt,
+                  .bounding_box = {},
+              },
+          },
+  };
+  EXPECT_EQ(group1, group2);
+  EXPECT_TRUE(group1 == group2);
+}
+
+GTEST_TEST(BulbGroupDefinitionEqualityOperatorTest, DifferentPosition) {
+  const BulbGroupDefinition group1{
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .bulbs = {},
+  };
+  const BulbGroupDefinition group2{
+      .position_traffic_light = maliput::math::Vector3(1.0, 0.0, 0.0),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .bulbs = {},
+  };
+  EXPECT_NE(group1, group2);
+  EXPECT_TRUE(group1 != group2);
+}
+
+GTEST_TEST(BulbGroupDefinitionEqualityOperatorTest, DifferentBulbs) {
+  const BulbGroupDefinition group1{
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .bulbs =
+          {
+              BulbDefinition{
+                  .id = "RedBulb",
+                  .color = maliput::api::rules::BulbColor::kRed,
+                  .type = maliput::api::rules::BulbType::kRound,
+                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                  .states =
+                      {
+                          maliput::api::rules::BulbState::kOff,
+                          maliput::api::rules::BulbState::kOn,
+                      },
+                  .arrow_orientation_rad = std::nullopt,
+                  .bounding_box = {},
+              },
+          },
+  };
+  const BulbGroupDefinition group2{
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .bulbs =
+          {
+              BulbDefinition{
+                  .id = "GreenBulb",
+                  .color = maliput::api::rules::BulbColor::kGreen,
+                  .type = maliput::api::rules::BulbType::kRound,
+                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, -0.4),
+                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                  .states =
+                      {
+                          maliput::api::rules::BulbState::kOff,
+                          maliput::api::rules::BulbState::kOn,
+                      },
+                  .arrow_orientation_rad = std::nullopt,
+                  .bounding_box = {},
+              },
+          },
+  };
+  EXPECT_NE(group1, group2);
+  EXPECT_TRUE(group1 != group2);
+}
+
+GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, EqualFingerprints) {
+  const TrafficSignalFingerprint fingerprint1{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const TrafficSignalFingerprint fingerprint2{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  EXPECT_EQ(fingerprint1, fingerprint2);
+  EXPECT_TRUE(fingerprint1 == fingerprint2);
+}
+
+GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentType) {
+  const TrafficSignalFingerprint fingerprint1{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const TrafficSignalFingerprint fingerprint2{
+      .type = "1000011",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  EXPECT_NE(fingerprint1, fingerprint2);
+  EXPECT_TRUE(fingerprint1 != fingerprint2);
+}
+
+GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentSubtype) {
+  const TrafficSignalFingerprint fingerprint1{
+      .type = "1000011",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const TrafficSignalFingerprint fingerprint2{
+      .type = "1000011",
+      .subtype = "10",
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  EXPECT_NE(fingerprint1, fingerprint2);
+  EXPECT_TRUE(fingerprint1 != fingerprint2);
+}
+
+GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentCountry) {
+  const TrafficSignalFingerprint fingerprint1{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  const TrafficSignalFingerprint fingerprint2{
+      .type = "1000001",
+      .subtype = std::nullopt,
+      .country = "ARG",
+      .country_revision = std::nullopt,
+  };
+  EXPECT_NE(fingerprint1, fingerprint2);
+  EXPECT_TRUE(fingerprint1 != fingerprint2);
 }
 
 }  // namespace

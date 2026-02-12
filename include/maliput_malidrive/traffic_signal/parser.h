@@ -49,6 +49,9 @@ struct BulbStateCondition {
   std::string bulb_id;
   /// Required bulb state.
   maliput::api::rules::BulbState state;
+
+  bool operator==(const BulbStateCondition& other) const { return bulb_id == other.bulb_id && state == other.state; }
+  bool operator!=(const BulbStateCondition& other) const { return !(*this == other); }
 };
 
 /// Represents a rule state that maps bulb state combinations to a Right-Of-Way rule value.
@@ -58,6 +61,11 @@ struct RuleState {
   std::vector<BulbStateCondition> bulb_conditions;
   /// The Right-Of-Way rule value when this condition is met.
   std::string rule_value;
+
+  bool operator==(const RuleState& other) const {
+    return bulb_conditions == other.bulb_conditions && rule_value == other.rule_value;
+  }
+  bool operator!=(const RuleState& other) const { return !(*this == other); }
 };
 
 /// Represents a bulb definition within a bulb group in a signal.
@@ -81,6 +89,14 @@ struct BulbDefinition {
   /// Custom bounding box for this bulb.
   /// If not specified, uses default maliput dimensions.
   maliput::api::rules::Bulb::BoundingBox bounding_box;
+
+  bool operator==(const BulbDefinition& other) const {
+    return id == other.id && color == other.color && type == other.type &&
+           position_bulb_group == other.position_bulb_group && orientation_bulb_group == other.orientation_bulb_group &&
+           states == other.states && arrow_orientation_rad == other.arrow_orientation_rad &&
+           bounding_box.p_BMin == other.bounding_box.p_BMin && bounding_box.p_BMax == other.bounding_box.p_BMax;
+  }
+  bool operator!=(const BulbDefinition& other) const { return !(*this == other); }
 };
 
 /// Represents a bulb group definition within a signal.
@@ -92,6 +108,12 @@ struct BulbGroupDefinition {
   maliput::math::Quaternion orientation_traffic_light;
   /// Bulbs in this group.
   std::vector<BulbDefinition> bulbs;
+
+  bool operator==(const BulbGroupDefinition& other) const {
+    return position_traffic_light == other.position_traffic_light &&
+           orientation_traffic_light == other.orientation_traffic_light && bulbs == other.bulbs;
+  }
+  bool operator!=(const BulbGroupDefinition& other) const { return !(*this == other); }
 };
 
 /// Unique identifier for a traffic signal definition.
@@ -123,6 +145,12 @@ struct TrafficSignalDefinition {
   BulbGroupDefinition bulb_group;
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
   std::vector<RuleState> rule_states;
+
+  bool operator==(const TrafficSignalDefinition& other) const {
+    return fingerprint == other.fingerprint && description == other.description && bulb_group == other.bulb_group &&
+           rule_states == other.rule_states;
+  }
+  bool operator!=(const TrafficSignalDefinition& other) const { return !(*this == other); }
 };
 
 /// Traffic signal parser that loads traffic signal definitions from a YAML database. These are then
