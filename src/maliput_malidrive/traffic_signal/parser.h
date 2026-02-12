@@ -200,6 +200,13 @@ struct hash<malidrive::traffic_signal::TrafficSignalFingerprint> {
     size_t seed = 0;
 
     // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
+    // During the Boost formal review, Dave Harris pointed out that this suffers from the so-called 
+    // "zero trap"; if seed is initially 0, and all the inputs are 0 (or hash to 0), seed remains 0 no
+    // matter how many input values are combined.
+    // This is an undesirable property, because it causes containers of zeroes to have a zero hash value
+    // regardless of their sizes.
+    // To fix this, the arbitrary constant 0x9e3779b9 (the golden ratio in a 32 bit fixed point
+    // representation) was added to the computation.
     auto hash_combine = [&seed](const auto& v) {
       using T = std::decay_t<decltype(v)>;
       seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
