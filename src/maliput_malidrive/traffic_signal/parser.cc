@@ -269,8 +269,7 @@ std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> BuildFrom(
   // Parse each signal definition.
   for (const auto& signal_node : signals_node) {
     const auto signal_definition = ParseSignalDefinition(signal_node);
-    std::pair<TrafficSignalFingerprint, TrafficSignalDefinition> pair(signal_definition.fingerprint, signal_definition);
-    result.insert(pair);
+    result.emplace(signal_definition.fingerprint, signal_definition);
   }
 
   return result;
