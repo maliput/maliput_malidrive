@@ -651,6 +651,281 @@ GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentCountry) {
   EXPECT_TRUE(fingerprint1 != fingerprint2);
 }
 
+GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, EqualTrafficSignalDefinitions) {
+  const TrafficSignalDefinition definition1{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs =
+                  {
+                      BulbDefinition{
+                          .id = "RedBulb",
+                          .color = maliput::api::rules::BulbColor::kRed,
+                          .type = maliput::api::rules::BulbType::kRound,
+                          .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+                          .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                          .states =
+                              {
+                                  maliput::api::rules::BulbState::kOff,
+                                  maliput::api::rules::BulbState::kOn,
+                              },
+                          .arrow_orientation_rad = std::nullopt,
+                          .bounding_box = {},
+                      },
+                  },
+          },
+      .rule_states =
+          {
+              RuleState{
+                  .bulb_conditions =
+                      {
+                          BulbStateCondition{
+                              .bulb_id = "RedBulb",
+                              .state = maliput::api::rules::BulbState::kOn,
+                          },
+                      },
+                  .rule_value = "Stop",
+              },
+          },
+  };
+  const TrafficSignalDefinition definition2{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs =
+                  {
+                      BulbDefinition{
+                          .id = "RedBulb",
+                          .color = maliput::api::rules::BulbColor::kRed,
+                          .type = maliput::api::rules::BulbType::kRound,
+                          .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
+                          .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                          .states =
+                              {
+                                  maliput::api::rules::BulbState::kOff,
+                                  maliput::api::rules::BulbState::kOn,
+                              },
+                          .arrow_orientation_rad = std::nullopt,
+                          .bounding_box = {},
+                      },
+                  },
+          },
+      .rule_states =
+          {
+              RuleState{
+                  .bulb_conditions =
+                      {
+                          BulbStateCondition{
+                              .bulb_id = "RedBulb",
+                              .state = maliput::api::rules::BulbState::kOn,
+                          },
+                      },
+                  .rule_value = "Stop",
+              },
+          },
+  };
+  EXPECT_EQ(definition1, definition2);
+  EXPECT_TRUE(definition1 == definition2);
+}
+
+GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentFingerprint) {
+  const TrafficSignalDefinition definition1{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states = {},
+  };
+  const TrafficSignalDefinition definition2{
+      .fingerprint =
+          {
+              .type = "1000011",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states = {},
+  };
+  EXPECT_NE(definition1, definition2);
+  EXPECT_TRUE(definition1 != definition2);
+}
+
+GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentDescription) {
+  const TrafficSignalDefinition definition1{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states = {},
+  };
+  const TrafficSignalDefinition definition2{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Traffic light with arrow",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states = {},
+  };
+  EXPECT_NE(definition1, definition2);
+  EXPECT_TRUE(definition1 != definition2);
+}
+
+GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentBulbGroup) {
+  const TrafficSignalDefinition definition1{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states = {},
+  };
+  const TrafficSignalDefinition definition2{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(1.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states = {},
+  };
+  EXPECT_NE(definition1, definition2);
+  EXPECT_TRUE(definition1 != definition2);
+}
+
+GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentRuleStates) {
+  const TrafficSignalDefinition definition1{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states =
+          {
+              RuleState{
+                  .bulb_conditions =
+                      {
+                          BulbStateCondition{
+                              .bulb_id = "RedBulb",
+                              .state = maliput::api::rules::BulbState::kOn,
+                          },
+                      },
+                  .rule_value = "Stop",
+              },
+          },
+  };
+  const TrafficSignalDefinition definition2{
+      .fingerprint =
+          {
+              .type = "1000001",
+              .subtype = std::nullopt,
+              .country = "OpenDRIVE",
+              .country_revision = std::nullopt,
+          },
+      .description = "Standard three-bulb vertical traffic light",
+      .bulb_group =
+          {
+              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
+              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+              .bulbs = {},
+          },
+      .rule_states =
+          {
+              RuleState{
+                  .bulb_conditions =
+                      {
+                          BulbStateCondition{
+                              .bulb_id = "GreenBulb",
+                              .state = maliput::api::rules::BulbState::kOn,
+                          },
+                      },
+                  .rule_value = "Go",
+              },
+          },
+  };
+  EXPECT_NE(definition1, definition2);
+  EXPECT_TRUE(definition1 != definition2);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace traffic_signal
