@@ -28,6 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_signal/parser.h"
 
+#include <fstream>
+#include <sstream>
+
 #include <gtest/gtest.h>
 
 #include "utility/resources.h"
@@ -245,9 +248,16 @@ GTEST_TEST(TrafficSignalParserTest, LoadFromFile) {
   const std::string yaml_file_path =
       utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
 
-  // Load from file and validate it matches the string loading.
+  std::ifstream yaml_file(yaml_file_path);
+  std::stringstream buffer;
+  buffer << yaml_file.rdbuf();
+  const std::string yaml_content = buffer.str();
+  yaml_file.close();
+
+  // Load from file and load from the file content string.
   const auto signal_definitions_from_file = TrafficSignalParser::LoadFromFile(yaml_file_path);
-  const auto signal_definitions_from_string = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
+  const auto signal_definitions_from_string = TrafficSignalParser::LoadFromString(yaml_content);
+
   EXPECT_EQ(signal_definitions_from_file, signal_definitions_from_string);
 }
 
