@@ -30,7 +30,6 @@
 
 #include <optional>
 #include <string>
-#include <tuple>
 
 #include <maliput/math/quaternion.h>
 #include <maliput/math/vector.h>
@@ -41,50 +40,50 @@ namespace traffic_signal {
 
 /// Constants for traffic signal description YAML fields.
 struct TrafficSignalConstants {
-  static const char* kType;
-  static const char* kSubtype;
-  static const char* kCountry;
-  static const char* kCountryRevision;
-  static const char* kDescription;
-  static const char* kBulbGroup;
-  static const char* kRuleStates;
+  static constexpr const char* kType = "type";
+  static constexpr const char* kSubtype = "subtype";
+  static constexpr const char* kCountry = "country";
+  static constexpr const char* kCountryRevision = "country_revision";
+  static constexpr const char* kDescription = "description";
+  static constexpr const char* kBulbGroup = "bulb_group";
+  static constexpr const char* kRuleStates = "rule_states";
 };
 
 /// Constants for bulb group YAML fields.
 struct BulbGroupConstants {
-  static const char* kPositionTrafficLight;
-  static const char* kOrientationTrafficLight;
-  static const char* kBulbs;
+  static constexpr const char* kPositionTrafficLight = "position_traffic_light";
+  static constexpr const char* kOrientationTrafficLight = "orientation_traffic_light";
+  static constexpr const char* kBulbs = "bulbs";
 };
 
 /// Constants for bulb YAML fields.
 struct BulbConstants {
-  static const char* kId;
-  static const char* kColor;
-  static const char* kType;
-  static const char* kPositionBulbGroup;
-  static const char* kOrientationBulbGroup;
-  static const char* kStates;
-  static const char* kArrowOrientationRad;
-  static const char* kBoundingBox;
+  static constexpr const char* kId = "id";
+  static constexpr const char* kColor = "color";
+  static constexpr const char* kType = "type";
+  static constexpr const char* kPositionBulbGroup = "position_bulb_group";
+  static constexpr const char* kOrientationBulbGroup = "orientation_bulb_group";
+  static constexpr const char* kStates = "states";
+  static constexpr const char* kArrowOrientationRad = "arrow_orientation_rad";
+  static constexpr const char* kBoundingBox = "bounding_box";
 };
 
 /// Constants for bounding box YAML fields.
 struct BoundingBoxConstants {
-  static const char* kPMin;
-  static const char* kPMax;
+  static constexpr const char* kPMin = "p_min";
+  static constexpr const char* kPMax = "p_max";
 };
 
 /// Constants for rule state YAML fields.
 struct RuleStateConstants {
-  static const char* kCondition;
-  static const char* kValue;
+  static constexpr const char* kCondition = "condition";
+  static constexpr const char* kValue = "value";
 };
 
 /// Constants for bulb state condition YAML fields.
 struct BulbStateConditionConstants {
-  static const char* kBulb;
-  static const char* kState;
+  static constexpr const char* kBulb = "bulb";
+  static constexpr const char* kState = "state";
 };
 
 /// Validates that a YAML node is defined and of the expected type.

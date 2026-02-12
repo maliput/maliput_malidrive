@@ -39,60 +39,6 @@ namespace malidrive {
 namespace traffic_signal {
 
 // ============================================================================
-// TrafficSignalConstants Definitions
-// ============================================================================
-
-const char* TrafficSignalConstants::kType = "type";
-const char* TrafficSignalConstants::kSubtype = "subtype";
-const char* TrafficSignalConstants::kCountry = "country";
-const char* TrafficSignalConstants::kCountryRevision = "country_revision";
-const char* TrafficSignalConstants::kDescription = "description";
-const char* TrafficSignalConstants::kBulbGroup = "bulb_group";
-const char* TrafficSignalConstants::kRuleStates = "rule_states";
-
-// ============================================================================
-// BulbGroupConstants Definitions
-// ============================================================================
-
-const char* BulbGroupConstants::kPositionTrafficLight = "position_traffic_light";
-const char* BulbGroupConstants::kOrientationTrafficLight = "orientation_traffic_light";
-const char* BulbGroupConstants::kBulbs = "bulbs";
-
-// ============================================================================
-// BulbConstants Definitions
-// ============================================================================
-
-const char* BulbConstants::kId = "id";
-const char* BulbConstants::kColor = "color";
-const char* BulbConstants::kType = "type";
-const char* BulbConstants::kPositionBulbGroup = "position_bulb_group";
-const char* BulbConstants::kOrientationBulbGroup = "orientation_bulb_group";
-const char* BulbConstants::kStates = "states";
-const char* BulbConstants::kArrowOrientationRad = "arrow_orientation_rad";
-const char* BulbConstants::kBoundingBox = "bounding_box";
-
-// ============================================================================
-// BoundingBoxConstants Definitions
-// ============================================================================
-
-const char* BoundingBoxConstants::kPMin = "p_min";
-const char* BoundingBoxConstants::kPMax = "p_max";
-
-// ============================================================================
-// RuleStateConstants Definitions
-// ============================================================================
-
-const char* RuleStateConstants::kCondition = "condition";
-const char* RuleStateConstants::kValue = "value";
-
-// ============================================================================
-// BulbStateConditionConstants Definitions
-// ============================================================================
-
-const char* BulbStateConditionConstants::kBulb = "bulb";
-const char* BulbStateConditionConstants::kState = "state";
-
-// ============================================================================
 // Utility Function Implementations
 // ============================================================================
 
