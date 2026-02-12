@@ -23,7 +23,6 @@ target_link_libraries(
       maliput::api
       maliput::math
       maliput_malidrive::common
-      maliput_malidrive::traffic_signal
       yaml-cpp
 )
 
