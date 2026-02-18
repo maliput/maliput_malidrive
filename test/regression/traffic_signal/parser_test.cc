@@ -122,6 +122,58 @@ traffic_signal_types:
     rule_states: []
 )";
 
+const char kRepeatedTrafficSignalDb[] = R"(
+traffic_signal_types:
+  - type: "1234567"
+    subtype: "11"
+    country: "OpenDRIVE"
+    country_revision: null
+    description: "Single red bulb traffic light"
+    bulbs:
+      - id: "RedBulb"
+        position_traffic_light: [0.0, 0.0, 0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Red"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+        bounding_box:
+          p_min: [-0.0889, -0.1778, -0.1778]
+          p_max: [0.0889, 0.1778, 0.1778]
+    rule_states:
+      - condition:
+          - bulb: "RedBulb"
+            state: "On"
+        value: "Stop"
+      - condition:
+          - bulb: "RedBulb"
+            state: "Off"
+        value: "Go"
+  - type: "1234567"
+    subtype: "11"
+    country: "OpenDRIVE"
+    country_revision: null
+    description: "Single green bulb traffic light"
+    bulbs:
+      - id: "GreenBulb"
+        position_traffic_light: [0.0, 0.0, 0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+        bounding_box:
+          p_min: [-0.0889, -0.1778, -0.1778]
+          p_max: [0.0889, 0.1778, 0.1778]
+    rule_states:
+      - condition:
+          - bulb: "GreenBulb"
+            state: "On"
+        value: "Go"
+      - condition:
+          - bulb: "GreenBulb"
+            state: "Off"
+        value: "Stop"
+)";
+
 class TrafficSignalParserTest : public ::testing::Test {
  public:
   static void SetUpTestCase() { signal_definitions_ = TrafficSignalParser::LoadFromString(kTrafficSignalDb); }
@@ -234,6 +286,22 @@ TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.x(), 0.0889, kTolerance);
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.y(), 0.1778, kTolerance);
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.z(), 0.1778, kTolerance);
+}
+
+GTEST_TEST(RepeatedTrafficSignalParserTest, RepeatedFingerprintOverwrites) {
+    const auto signal_definitions = TrafficSignalParser::LoadFromString(kRepeatedTrafficSignalDb);
+    EXPECT_EQ(signal_definitions.size(), 1);
+    const TrafficSignalFingerprint fingerprint{
+        .type = "1234567",
+        .subtype = "11",
+        .country = "OpenDRIVE",
+        .country_revision = std::nullopt,
+    };
+    EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
+    const auto& definition = signal_definitions.at(fingerprint);
+    EXPECT_EQ(definition.description, "Single green bulb traffic light");
+    EXPECT_EQ(definition.bulbs.size(), 1);
+    EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
 }
 
 GTEST_TEST(TrafficSignalYamlFileParserTest, LoadFromFile) {

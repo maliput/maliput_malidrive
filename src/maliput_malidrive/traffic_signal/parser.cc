@@ -254,7 +254,6 @@ std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> BuildFrom(
   for (const auto& signal_node : signals_node) {
     const auto signal_definition = ParseSignalDefinition(signal_node);
     const auto& it = result.emplace(signal_definition.fingerprint, signal_definition);
-    // TODO(@Santoi): Test this behavior.
     if (!it.second) {
       result[signal_definition.fingerprint] = signal_definition;
     }
