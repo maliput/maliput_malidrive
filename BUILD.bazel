@@ -141,9 +141,9 @@ cc_library(
 cc_library(
     name = "traffic_signal",
     srcs = glob(["src/maliput_malidrive/traffic_signal/*.cc"]),
-    hdrs = glob(["include/maliput_malidrive/traffic_signal/*.h"]),
+    hdrs = glob(["src/maliput_malidrive/traffic_signal/*.h"]),
     copts = COPTS,
-    strip_include_prefix = "include",
+    strip_include_prefix = "src",
     visibility = ["//visibility:public"],
     deps = [
         ":common",
