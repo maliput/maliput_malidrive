@@ -289,19 +289,19 @@ TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
 }
 
 GTEST_TEST(RepeatedTrafficSignalParserTest, RepeatedFingerprintOverwrites) {
-    const auto signal_definitions = TrafficSignalParser::LoadFromString(kRepeatedTrafficSignalDb);
-    EXPECT_EQ(signal_definitions.size(), 1);
-    const TrafficSignalFingerprint fingerprint{
-        .type = "1234567",
-        .subtype = "11",
-        .country = "OpenDRIVE",
-        .country_revision = std::nullopt,
-    };
-    EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
-    const auto& definition = signal_definitions.at(fingerprint);
-    EXPECT_EQ(definition.description, "Single green bulb traffic light");
-    EXPECT_EQ(definition.bulbs.size(), 1);
-    EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
+  const auto signal_definitions = TrafficSignalParser::LoadFromString(kRepeatedTrafficSignalDb);
+  EXPECT_EQ(signal_definitions.size(), 1);
+  const TrafficSignalFingerprint fingerprint{
+      .type = "1234567",
+      .subtype = "11",
+      .country = "OpenDRIVE",
+      .country_revision = std::nullopt,
+  };
+  EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
+  const auto& definition = signal_definitions.at(fingerprint);
+  EXPECT_EQ(definition.description, "Single green bulb traffic light");
+  EXPECT_EQ(definition.bulbs.size(), 1);
+  EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
 }
 
 GTEST_TEST(TrafficSignalYamlFileParserTest, LoadFromFile) {
