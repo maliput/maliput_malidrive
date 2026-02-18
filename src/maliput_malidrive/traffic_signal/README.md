@@ -1,14 +1,16 @@
-# Traffic Signal Type Database
+# Traffic Signal Database Parser
 
-This directory contains YAML files that define reusable traffic signal type definitions to use with maliput.
+This directory contains a C++ parser and supporting utilities that read and validate YAML-based traffic signal type definitions to create maliput traffic signal objects such as `TrafficLight`s and `DiscreteValueRule`s.
 
 ## Overview
 
-A traffic signal type definition describes the physical structure and control logic of a traffic signal. It defines:
+A traffic signal type definition describes the physical structure and control logic of a traffic signal. Each definition specifies:
 
 - **Bulb structure**: Colors, types (round/arrow), states, dimensions, and positions
-- **Bulb group**: A single group of bulbs with specified orientation
+- **Bulbs**: A list of bulbs with specified orientation
 - **Rule logic**: Mapping from bulb state combinations to Right-Of-Way Rule values
+
+The parser in this directory reads YAML files containing these traffic signal type definitions, validates them, and creates the corresponding maliput `TrafficLight` and `DiscreteValueRule` objects.
 
 ## How It Works
 
@@ -21,7 +23,7 @@ When parsing an OpenDRIVE (`*.xodr`) road network file, traffic signals are refe
 A parser uses this database to:
 
 1. **Look up the signal type** (e.g., `1000001`) in the YAML database
-2. **Create a maliput TrafficLight** object with bulb groups and bulbs from the type definition
+2. **Create a maliput TrafficLight** object with bulbs from the type definition
 3. **Create Right-Of-Way rules** mapping bulb state conditions to rule values (Go, Stop, etc.)
 4. **Link rules to affected lanes** using the signal's validity information from the XODR file
 
@@ -39,26 +41,22 @@ Each YAML file in this directory should define a list of signal types under the 
   description: "..."            # Human-readable description
 ```
 
-### Bulb Group
+### Bulbs
 
-Each signal type contains a single `bulb_group`:
+Each signal type contains a list of `bulbs`:
 
 ```yaml
-  bulb_group:
-    - position_traffic_light: [x, y, z]           # Position relative to traffic light frame (meters)
-      orientation_traffic_light: [w, x, y, z]     # Quaternion relative to traffic light frame
-      
-      bulbs:                     # List of bulbs in this group
-        - id: "BulbName"
-          position_bulb_group: [x, y, z]          # Position relative to bulb group frame
-          orientation_bulb_group: [w, x, y, z]    # Orientation relative to bulb group frame
-          color: "Red"           # One of: Red, Yellow, Green
-          type: "Round"          # One of: Round, Arrow
-          states: ["Off", "On", "Blinking"]  # Possible states for this bulb
-          bounding_box: (optional)  # Custom bounding box if needed
-            p_min: [x, y, z]
-            p_max: [x, y, z]
-          arrow_orientation_rad: (optional, required if type is Arrow)  # Arrow angle in radians
+  bulbs:                     # List of bulbs
+    - id: "BulbName"
+      position_traffic_light: [x, y, z]          # Position relative to traffic light frame
+      orientation_traffic_light: [w, x, y, z]    # Orientation relative to traffic light frame
+      color: "Red"           # One of: Red, Yellow, Green
+      type: "Round"          # One of: Round, Arrow
+      states: ["Off", "On", "Blinking"]  # Possible states for this bulb
+      bounding_box: (optional)  # Custom bounding box if needed
+        p_min: [x, y, z]
+        p_max: [x, y, z]
+      arrow_orientation_rad: (optional, required if type is Arrow)  # Arrow angle in radians
 ```
 
 ### Rule States
@@ -79,7 +77,7 @@ Rule states map bulb state combinations to Right-Of-Way Rule values:
 
 All positions and orientations use right-handed coordinate systems with axes:
 
-- **+X**: Direction the bulb/group is facing
+- **+X**: Direction the bulb is facing
 - **+Y**: Left when facing the +X direction
 - **+Z**: Up (gravity opposite)
 
@@ -87,8 +85,7 @@ All positions and orientations use right-handed coordinate systems with axes:
 
 1. **Inertial/Road Network Frame**: Global reference frame for the entire road network
 2. **Traffic Light Frame**: Origin at traffic light's center of mass; obtained from XODR signal position/orientation
-3. **Bulb Group Frame**: Origin at group's center of mass; positioned/oriented relative to traffic light frame
-4. **Bulb Frame**: Origin at bulb's center of mass; positioned/oriented relative to bulb group frame
+3. **Bulb Frame**: Origin at bulb's center of mass; positioned/oriented relative to traffic light frame
 
 ## Bulb States
 
@@ -113,13 +110,9 @@ When bulb state conditions are met, the parser creates rules with one of these v
 | `ProceedWithCaution`   | Proceed but watch for conflicting traffic (e.g., flashing yellow) |
 | `SignalMalfunctioning` | Traffic signal is not functioning correctly                       |
 
-## Single Bulb Group Architecture
-
-Each traffic signal has exactly one bulb group, which contains all the bulbs for that signal. The group's `position_traffic_light` and `orientation_traffic_light` define its position/orientation within the traffic signal's inertial frame.
-
 ## Examples
 
-See `traffic_signal_db_example.yaml` for detailed examples including:
+See `resources/traffic_signal_db/traffic_signal_db_example.yaml` for detailed examples including:
 
 - Standard three-bulb vertical traffic light (type 1000001)
 - Arrow-based traffic light (type 1000011)
@@ -131,7 +124,7 @@ A parser loading these files should:
 
 1. Load the YAML file
 2. For each signal in the XODR file with type/subtype matching a database entry:
-   - Create a `maliput::api::rules::TrafficLight` with bulb groups and bulbs
+   - Create a `maliput::api::rules::TrafficLight` with bulbs
    - Create `maliput::api::rules::DiscreteValueRule` entries for each applicable lane
    - Map bulb state conditions to Right-Of-Way rule values
 3. Add the rules to the `maliput::api::rules::RoadRulebook`
