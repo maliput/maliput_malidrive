@@ -47,8 +47,7 @@
 # 3. Link rules to lanes affected by the signal (from XODR signal).
 #
 # Coordinate Frames:
-# - Bulb position/orientation: relative to bulb group frame.
-# - Bulb group position/orientation: relative to traffic light frame.
+# - Bulb position/orientation: relative to traffic light frame.
 # - Traffic light position/orientation: relative to road network inertial frame (from XODR signal).
 
 traffic_signal_types:
@@ -59,43 +58,37 @@ traffic_signal_types:
     country_revision: null
     description: "Standard three-bulb vertical traffic light with red, yellow, and green bulbs."
 
-    # Single bulb group containing all three bulbs.
-    bulb_group:
-        # Position of the bulb group's frame origin relative to the traffic light frame.
-      - position_traffic_light: [0.0, 0.0, 0.0]
-        # Orientation (quaternion [w, x, y, z]) of bulb group frame relative to traffic light frame.
+    # List of bulbs
+    bulbs:
+      - id: "RedBulb"
+        # Position relative to traffic light frame (meters).
+        position_traffic_light: [0.0, 0.0, 0.4]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        # Bulb color: must be one of {Red, Yellow, Green}.
+        color: "Red"
+        # Bulb type: must be one of {Round, Arrow}.
+        type: "Round"
+        # Possible states this bulb can be in: subset of {Off, On, Blinking}.
+        states: ["Off", "On", "Blinking"]
+        # Optional: custom bounding box for this bulb.
+        # If omitted, uses maliput default (~12" lens: 0.356m tall x 0.356m wide x 0.177m deep).
+        bounding_box:
+          p_min: [-0.0889, -0.1778, -0.1778]
+          p_max: [0.0889, 0.1778, 0.1778]
 
-        bulbs:
-          - id: "RedBulb"
-            # Position relative to bulb group frame (meters).
-            position_bulb_group: [0.0, 0.0, 0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            # Bulb color: must be one of {Red, Yellow, Green}.
-            color: "Red"
-            # Bulb type: must be one of {Round, Arrow}.
-            type: "Round"
-            # Possible states this bulb can be in: subset of {Off, On, Blinking}.
-            states: ["Off", "On", "Blinking"]
-            # Optional: custom bounding box for this bulb.
-            # If omitted, uses maliput default (~12" lens: 0.356m tall x 0.356m wide x 0.177m deep).
-            bounding_box:
-              p_min: [-0.0889, -0.1778, -0.1778]
-              p_max: [0.0889, 0.1778, 0.1778]
+      - id: "YellowBulb"
+        position_traffic_light: [0.0, 0.0, 0.0]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Yellow"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
 
-          - id: "YellowBulb"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Yellow"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-
-          - id: "GreenBulb"
-            position_bulb_group: [0.0, 0.0, -0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Round"
-            states: ["Off", "On"]
+      - id: "GreenBulb"
+        position_traffic_light: [0.0, 0.0, -0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Round"
+        states: ["Off", "On"]
 
     # Rule conditions: map bulb state combinations to Right-Of-Way rule values.
     # Each condition defines a set of (bulb_id, state) pairs.
@@ -159,37 +152,32 @@ traffic_signal_types:
     country_revision: null
     description: "Three-bulb traffic light with optional arrow support (left/straight/right)."
 
-    # Main vertical bulb group (red, yellow, green).
-    bulb_group:
-      - position_traffic_light: [0.0, 0.0, 0.0]
+    bulbs:
+      - id: "RedBulb"
+        position_traffic_light: [0.0, 0.0, 0.4]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Red"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
 
-        bulbs:
-          - id: "RedBulb"
-            position_bulb_group: [0.0, 0.0, 0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Red"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
+      - id: "YellowBulb"
+        position_traffic_light: [0.0, 0.0, 0.0]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Yellow"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
 
-          - id: "YellowBulb"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Yellow"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-
-          - id: "GreenArrow"
-            position_bulb_group: [0.0, 0.0, -0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Arrow"
-            states: ["Off", "On"]
-            # Arrow orientation in radians, measured along bulb +X axis relative to +Y axis.
-            # 0.0 rad = arrow points in +Y direction (right from approaching vehicle perspective).
-            # π/2 rad = arrow points in +Z direction (straight).
-            # π rad = arrow points in -Y direction (left).
-            arrow_orientation_rad: 1.5707963267948966  # π/2 rad (straight).
+      - id: "GreenArrow"
+        position_traffic_light: [0.0, 0.0, -0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Arrow"
+        states: ["Off", "On"]
+        # Arrow orientation in radians, measured along bulb +X axis relative to +Y axis.
+        # 0.0 rad = arrow points in +Y direction (right from approaching vehicle perspective).
+        # π/2 rad = arrow points in +Z direction (straight).
+        # π rad = arrow points in -Y direction (left).
+        arrow_orientation_rad: 1.5707963267948966  # π/2 rad (straight).
 
     rule_states:
       - condition:
@@ -226,26 +214,22 @@ traffic_signal_types:
     country_revision: null
     description: "Pedestrian walk/don't walk signal (red standing figure on black background / green walking figure on black background)."
 
-    bulb_group:
-      - position_traffic_light: [0.0, 0.0, 0.0]
+    bulbs:
+      # Black background with red standing figure hand (Don't Walk).
+      - id: "DontWalkBulb"
+        position_traffic_light: [0.0, 0.0, 0.1]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Red"
+        type: "Round"
+        states: ["Off", "On"]
 
-        bulbs:
-          # Black background with red standing figure hand (Don't Walk).
-          - id: "DontWalkBulb"
-            position_bulb_group: [0.0, 0.0, 0.1]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Red"
-            type: "Round"
-            states: ["Off", "On"]
-
-          # Black background with green walking figure (Walk).
-          - id: "WalkBulb"
-            position_bulb_group: [0.0, 0.0, -0.1]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
+      # Black background with green walking figure (Walk).
+      - id: "WalkBulb"
+        position_traffic_light: [0.0, 0.0, -0.1]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
 
     rule_states:
       - condition:

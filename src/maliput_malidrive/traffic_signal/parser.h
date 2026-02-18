@@ -45,7 +45,7 @@ namespace traffic_signal {
 /// Represents a bulb state condition in a rule definition.
 /// Specifies that a particular bulb must be in a particular state.
 struct BulbStateCondition {
-  /// Bulb ID (unique within bulb group).
+  /// Bulb ID (unique within traffic signal).
   std::string bulb_id;
   /// Required bulb state.
   maliput::api::rules::BulbState state;
@@ -68,19 +68,19 @@ struct RuleState {
   bool operator!=(const RuleState& other) const { return !(*this == other); }
 };
 
-/// Represents a bulb definition within a bulb group in a signal.
+/// Represents a bulb definition within a signal.
 /// Defines the physical and behavioral properties of a single bulb.
 struct BulbDefinition {
-  /// Bulb ID (unique within bulb group).
+  /// Bulb ID (unique within traffic signal).
   std::string id;
   /// Bulb color.
   maliput::api::rules::BulbColor color;
   /// Bulb type (Round or Arrow).
   maliput::api::rules::BulbType type;
-  /// Position of bulb frame origin relative to bulb group frame.
-  maliput::math::Vector3 position_bulb_group;
-  /// Orientation (quaternion [w, x, y, z]) of bulb frame relative to bulb group frame.
-  maliput::math::Quaternion orientation_bulb_group;
+  /// Position of bulb frame origin relative to traffic light frame.
+  maliput::math::Vector3 position_traffic_light;
+  /// Orientation (quaternion [w, x, y, z]) of bulb frame relative to traffic light frame.
+  maliput::math::Quaternion orientation_traffic_light;
   /// Possible states this bulb can be in. Defaults to [Off, On] if not specified.
   std::vector<maliput::api::rules::BulbState> states;
   /// Arrow orientation in radians (only for Arrow type bulbs).
@@ -92,28 +92,12 @@ struct BulbDefinition {
 
   bool operator==(const BulbDefinition& other) const {
     return id == other.id && color == other.color && type == other.type &&
-           position_bulb_group == other.position_bulb_group && orientation_bulb_group == other.orientation_bulb_group &&
-           states == other.states && arrow_orientation_rad == other.arrow_orientation_rad &&
-           bounding_box.p_BMin == other.bounding_box.p_BMin && bounding_box.p_BMax == other.bounding_box.p_BMax;
+           position_traffic_light == other.position_traffic_light &&
+           orientation_traffic_light == other.orientation_traffic_light && states == other.states &&
+           arrow_orientation_rad == other.arrow_orientation_rad && bounding_box.p_BMin == other.bounding_box.p_BMin &&
+           bounding_box.p_BMax == other.bounding_box.p_BMax;
   }
   bool operator!=(const BulbDefinition& other) const { return !(*this == other); }
-};
-
-/// Represents a bulb group definition within a signal.
-/// Bulbs in a group share the same orientation and are positioned relative to the traffic light.
-struct BulbGroupDefinition {
-  /// Position of group frame origin relative to traffic light frame.
-  maliput::math::Vector3 position_traffic_light;
-  /// Orientation (quaternion [w, x, y, z]) of group frame relative to traffic light frame.
-  maliput::math::Quaternion orientation_traffic_light;
-  /// Bulbs in this group.
-  std::vector<BulbDefinition> bulbs;
-
-  bool operator==(const BulbGroupDefinition& other) const {
-    return position_traffic_light == other.position_traffic_light &&
-           orientation_traffic_light == other.orientation_traffic_light && bulbs == other.bulbs;
-  }
-  bool operator!=(const BulbGroupDefinition& other) const { return !(*this == other); }
 };
 
 /// Unique identifier for a traffic signal definition.
@@ -141,13 +125,13 @@ struct TrafficSignalDefinition {
   TrafficSignalFingerprint fingerprint;
   /// Human-readable description of this signal definition.
   std::string description;
-  /// Bulb group for this signal definition.
-  BulbGroupDefinition bulb_group;
+  /// Bulbs in this traffic signal.
+  std::vector<BulbDefinition> bulbs;
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
   std::vector<RuleState> rule_states;
 
   bool operator==(const TrafficSignalDefinition& other) const {
-    return fingerprint == other.fingerprint && description == other.description && bulb_group == other.bulb_group &&
+    return fingerprint == other.fingerprint && description == other.description && bulbs == other.bulbs &&
            rule_states == other.rule_states;
   }
   bool operator!=(const TrafficSignalDefinition& other) const { return !(*this == other); }
@@ -200,7 +184,7 @@ struct hash<malidrive::traffic_signal::TrafficSignalFingerprint> {
     size_t seed = 0;
 
     // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
-    // During the Boost formal review, Dave Harris pointed out that this suffers from the so-called 
+    // During the Boost formal review, Dave Harris pointed out that this suffers from the so-called
     // "zero trap"; if seed is initially 0, and all the inputs are 0 (or hash to 0), seed remains 0 no
     // matter how many input values are combined.
     // This is an undesirable property, because it causes containers of zeroes to have a zero hash value

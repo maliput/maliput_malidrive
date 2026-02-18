@@ -51,31 +51,28 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Standard three-bulb vertical traffic light"
-    bulb_group:
-      - position_traffic_light: [0.0, 0.0, 0.0]
+    bulbs:
+      - id: "RedBulb"
+        position_traffic_light: [0.0, 0.0, 0.4]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        bulbs:
-          - id: "RedBulb"
-            position_bulb_group: [0.0, 0.0, 0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Red"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-            bounding_box:
-              p_min: [-0.0889, -0.1778, -0.1778]
-              p_max: [0.0889, 0.1778, 0.1778]
-          - id: "YellowBulb"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Yellow"
-            type: "Round"
-            states: ["Off", "On", "Blinking"]
-          - id: "GreenBulb"
-            position_bulb_group: [0.0, 0.0, -0.4]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Round"
-            states: ["Off", "On"]
+        color: "Red"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+        bounding_box:
+          p_min: [-0.0889, -0.1778, -0.1778]
+          p_max: [0.0889, 0.1778, 0.1778]
+      - id: "YellowBulb"
+        position_traffic_light: [0.0, 0.0, 0.0]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Yellow"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+      - id: "GreenBulb"
+        position_traffic_light: [0.0, 0.0, -0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Round"
+        states: ["Off", "On"]
     rule_states:
       - condition:
           - bulb: "RedBulb"
@@ -98,17 +95,14 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Traffic light with arrow"
-    bulb_group:
-      - position_traffic_light: [0.0, 0.0, 0.0]
+    bulbs:
+      - id: "GreenArrow"
+        position_traffic_light: [0.0, 0.0, 0.0]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        bulbs:
-          - id: "GreenArrow"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Green"
-            type: "Arrow"
-            states: ["Off", "On"]
-            arrow_orientation_rad: 1.5707963267948966
+        color: "Green"
+        type: "Arrow"
+        states: ["Off", "On"]
+        arrow_orientation_rad: 1.5707963267948966
     rule_states:
       - condition:
           - bulb: "GreenArrow"
@@ -119,23 +113,18 @@ traffic_signal_types:
     country: null
     country_revision: null
     description: "Signal with default bulb states and bounding box"
-    bulb_group:
-      - position_traffic_light: [0.0, 0.0, 0.0]
+    bulbs:
+      - id: "DefaultBulb"
+        position_traffic_light: [0.0, 0.0, 0.0]
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        bulbs:
-          - id: "DefaultBulb"
-            position_bulb_group: [0.0, 0.0, 0.0]
-            orientation_bulb_group: [1.0, 0.0, 0.0, 0.0]
-            color: "Red"
-            type: "Round"
+        color: "Red"
+        type: "Round"
     rule_states: []
 )";
 
 class TrafficSignalParserTest : public ::testing::Test {
  public:
-  static void SetUpTestCase() {
-    signal_definitions_ = TrafficSignalParser::LoadFromString(kTrafficSignalDb);
-  }
+  static void SetUpTestCase() { signal_definitions_ = TrafficSignalParser::LoadFromString(kTrafficSignalDb); }
   static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> signal_definitions_;
 };
 
@@ -174,16 +163,15 @@ TEST_F(TrafficSignalParserTest, ValidateSignalType1000001) {
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "Standard three-bulb vertical traffic light");
 
-  const auto& group = dut.bulb_group;
-  EXPECT_EQ(group.bulbs.size(), 3);
+  EXPECT_EQ(dut.bulbs.size(), 3);
 
   // Check red bulb
-  const auto& red_bulb = group.bulbs[0];
+  const auto& red_bulb = dut.bulbs[0];
   EXPECT_EQ(red_bulb.id, "RedBulb");
   EXPECT_EQ(red_bulb.color, maliput::api::rules::BulbColor::kRed);
   EXPECT_EQ(red_bulb.type, maliput::api::rules::BulbType::kRound);
-  EXPECT_NEAR(red_bulb.position_bulb_group.x(), 0.0, kTolerance);
-  EXPECT_NEAR(red_bulb.position_bulb_group.z(), 0.4, kTolerance);
+  EXPECT_NEAR(red_bulb.position_traffic_light.x(), 0.0, kTolerance);
+  EXPECT_NEAR(red_bulb.position_traffic_light.z(), 0.4, kTolerance);
   EXPECT_EQ(red_bulb.states.size(), 3);
 
   // Check rule conditions
@@ -207,10 +195,9 @@ TEST_F(TrafficSignalParserTest, ValidateArrowSignal) {
   EXPECT_EQ(dut.fingerprint.subtype, "10");
   EXPECT_EQ(dut.description, "Traffic light with arrow");
 
-  const auto& group = dut.bulb_group;
-  EXPECT_EQ(group.bulbs.size(), 1);
+  EXPECT_EQ(dut.bulbs.size(), 1);
 
-  const auto& arrow_bulb = group.bulbs[0];
+  const auto& arrow_bulb = dut.bulbs[0];
   EXPECT_EQ(arrow_bulb.type, maliput::api::rules::BulbType::kArrow);
   EXPECT_TRUE(arrow_bulb.arrow_orientation_rad.has_value());
   EXPECT_NEAR(arrow_bulb.arrow_orientation_rad.value(), 1.570796, kTolerance);
@@ -228,10 +215,9 @@ TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
   EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
   EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
 
-  const auto& group = dut.bulb_group;
-  EXPECT_EQ(group.bulbs.size(), 1);
+  EXPECT_EQ(dut.bulbs.size(), 1);
 
-  const auto& default_bulb = group.bulbs[0];
+  const auto& default_bulb = dut.bulbs[0];
   EXPECT_EQ(default_bulb.id, "DefaultBulb");
   EXPECT_EQ(default_bulb.color, maliput::api::rules::BulbColor::kRed);
   EXPECT_EQ(default_bulb.type, maliput::api::rules::BulbType::kRound);
@@ -394,8 +380,8 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, EqualBulbDefinitions) {
       .id = "RedBulb",
       .color = maliput::api::rules::BulbColor::kRed,
       .type = maliput::api::rules::BulbType::kRound,
-      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
       .states =
           {
               maliput::api::rules::BulbState::kOff,
@@ -409,8 +395,8 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, EqualBulbDefinitions) {
       .id = "RedBulb",
       .color = maliput::api::rules::BulbColor::kRed,
       .type = maliput::api::rules::BulbType::kRound,
-      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
       .states =
           {
               maliput::api::rules::BulbState::kOff,
@@ -429,8 +415,8 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentId) {
       .id = "RedBulb",
       .color = maliput::api::rules::BulbColor::kRed,
       .type = maliput::api::rules::BulbType::kRound,
-      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
       .states =
           {
               maliput::api::rules::BulbState::kOff,
@@ -443,8 +429,8 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentId) {
       .id = "GreenBulb",
       .color = maliput::api::rules::BulbColor::kRed,
       .type = maliput::api::rules::BulbType::kRound,
-      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
       .states =
           {
               maliput::api::rules::BulbState::kOff,
@@ -462,8 +448,8 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
       .id = "RedBulb",
       .color = maliput::api::rules::BulbColor::kRed,
       .type = maliput::api::rules::BulbType::kRound,
-      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
       .states =
           {
               maliput::api::rules::BulbState::kOff,
@@ -476,8 +462,8 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
       .id = "RedBulb",
       .color = maliput::api::rules::BulbColor::kGreen,
       .type = maliput::api::rules::BulbType::kRound,
-      .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-      .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
       .states =
           {
               maliput::api::rules::BulbState::kOff,
@@ -488,115 +474,6 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
   };
   EXPECT_NE(bulb1, bulb2);
   EXPECT_TRUE(bulb1 != bulb2);
-}
-
-GTEST_TEST(BulbGroupDefinitionEqualityOperatorTest, EqualBulbGroupDefinitions) {
-  const BulbGroupDefinition group1{
-      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-      .bulbs =
-          {
-              BulbDefinition{
-                  .id = "RedBulb",
-                  .color = maliput::api::rules::BulbColor::kRed,
-                  .type = maliput::api::rules::BulbType::kRound,
-                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-                  .states =
-                      {
-                          maliput::api::rules::BulbState::kOff,
-                          maliput::api::rules::BulbState::kOn,
-                      },
-                  .arrow_orientation_rad = std::nullopt,
-                  .bounding_box = {},
-              },
-          },
-  };
-  const BulbGroupDefinition group2{
-      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-      .bulbs =
-          {
-              BulbDefinition{
-                  .id = "RedBulb",
-                  .color = maliput::api::rules::BulbColor::kRed,
-                  .type = maliput::api::rules::BulbType::kRound,
-                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-                  .states =
-                      {
-                          maliput::api::rules::BulbState::kOff,
-                          maliput::api::rules::BulbState::kOn,
-                      },
-                  .arrow_orientation_rad = std::nullopt,
-                  .bounding_box = {},
-              },
-          },
-  };
-  EXPECT_EQ(group1, group2);
-  EXPECT_TRUE(group1 == group2);
-}
-
-GTEST_TEST(BulbGroupDefinitionEqualityOperatorTest, DifferentPosition) {
-  const BulbGroupDefinition group1{
-      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-      .bulbs = {},
-  };
-  const BulbGroupDefinition group2{
-      .position_traffic_light = maliput::math::Vector3(1.0, 0.0, 0.0),
-      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-      .bulbs = {},
-  };
-  EXPECT_NE(group1, group2);
-  EXPECT_TRUE(group1 != group2);
-}
-
-GTEST_TEST(BulbGroupDefinitionEqualityOperatorTest, DifferentBulbs) {
-  const BulbGroupDefinition group1{
-      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-      .bulbs =
-          {
-              BulbDefinition{
-                  .id = "RedBulb",
-                  .color = maliput::api::rules::BulbColor::kRed,
-                  .type = maliput::api::rules::BulbType::kRound,
-                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-                  .states =
-                      {
-                          maliput::api::rules::BulbState::kOff,
-                          maliput::api::rules::BulbState::kOn,
-                      },
-                  .arrow_orientation_rad = std::nullopt,
-                  .bounding_box = {},
-              },
-          },
-  };
-  const BulbGroupDefinition group2{
-      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-      .bulbs =
-          {
-              BulbDefinition{
-                  .id = "GreenBulb",
-                  .color = maliput::api::rules::BulbColor::kGreen,
-                  .type = maliput::api::rules::BulbType::kRound,
-                  .position_bulb_group = maliput::math::Vector3(0.0, 0.0, -0.4),
-                  .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-                  .states =
-                      {
-                          maliput::api::rules::BulbState::kOff,
-                          maliput::api::rules::BulbState::kOn,
-                      },
-                  .arrow_orientation_rad = std::nullopt,
-                  .bounding_box = {},
-              },
-          },
-  };
-  EXPECT_NE(group1, group2);
-  EXPECT_TRUE(group1 != group2);
 }
 
 GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, EqualFingerprints) {
@@ -677,27 +554,22 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, EqualTrafficSignalDefini
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
+      .bulbs =
           {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs =
-                  {
-                      BulbDefinition{
-                          .id = "RedBulb",
-                          .color = maliput::api::rules::BulbColor::kRed,
-                          .type = maliput::api::rules::BulbType::kRound,
-                          .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-                          .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-                          .states =
-                              {
-                                  maliput::api::rules::BulbState::kOff,
-                                  maliput::api::rules::BulbState::kOn,
-                              },
-                          .arrow_orientation_rad = std::nullopt,
-                          .bounding_box = {},
+              BulbDefinition{
+                  .id = "RedBulb",
+                  .color = maliput::api::rules::BulbColor::kRed,
+                  .type = maliput::api::rules::BulbType::kRound,
+                  .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+                  .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                  .states =
+                      {
+                          maliput::api::rules::BulbState::kOff,
+                          maliput::api::rules::BulbState::kOn,
                       },
-                  },
+                  .arrow_orientation_rad = std::nullopt,
+                  .bounding_box = {},
+              },
           },
       .rule_states =
           {
@@ -722,27 +594,22 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, EqualTrafficSignalDefini
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
+      .bulbs =
           {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs =
-                  {
-                      BulbDefinition{
-                          .id = "RedBulb",
-                          .color = maliput::api::rules::BulbColor::kRed,
-                          .type = maliput::api::rules::BulbType::kRound,
-                          .position_bulb_group = maliput::math::Vector3(0.0, 0.0, 0.4),
-                          .orientation_bulb_group = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-                          .states =
-                              {
-                                  maliput::api::rules::BulbState::kOff,
-                                  maliput::api::rules::BulbState::kOn,
-                              },
-                          .arrow_orientation_rad = std::nullopt,
-                          .bounding_box = {},
+              BulbDefinition{
+                  .id = "RedBulb",
+                  .color = maliput::api::rules::BulbColor::kRed,
+                  .type = maliput::api::rules::BulbType::kRound,
+                  .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+                  .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+                  .states =
+                      {
+                          maliput::api::rules::BulbState::kOff,
+                          maliput::api::rules::BulbState::kOn,
                       },
-                  },
+                  .arrow_orientation_rad = std::nullopt,
+                  .bounding_box = {},
+              },
           },
       .rule_states =
           {
@@ -772,12 +639,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentFingerprint) {
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
+      .bulbs = {},
       .rule_states = {},
   };
   const TrafficSignalDefinition definition2{
@@ -789,12 +651,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentFingerprint) {
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
+      .bulbs = {},
       .rule_states = {},
   };
   EXPECT_NE(definition1, definition2);
@@ -811,12 +668,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentDescription) {
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
+      .bulbs = {},
       .rule_states = {},
   };
   const TrafficSignalDefinition definition2{
@@ -828,51 +680,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentDescription) {
               .country_revision = std::nullopt,
           },
       .description = "Traffic light with arrow",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
-      .rule_states = {},
-  };
-  EXPECT_NE(definition1, definition2);
-  EXPECT_TRUE(definition1 != definition2);
-}
-
-GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentBulbGroup) {
-  const TrafficSignalDefinition definition1{
-      .fingerprint =
-          {
-              .type = "1000001",
-              .subtype = std::nullopt,
-              .country = "OpenDRIVE",
-              .country_revision = std::nullopt,
-          },
-      .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
-      .rule_states = {},
-  };
-  const TrafficSignalDefinition definition2{
-      .fingerprint =
-          {
-              .type = "1000001",
-              .subtype = std::nullopt,
-              .country = "OpenDRIVE",
-              .country_revision = std::nullopt,
-          },
-      .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(1.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
+      .bulbs = {},
       .rule_states = {},
   };
   EXPECT_NE(definition1, definition2);
@@ -889,12 +697,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentRuleStates) {
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
+      .bulbs = {},
       .rule_states =
           {
               RuleState{
@@ -918,12 +721,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentRuleStates) {
               .country_revision = std::nullopt,
           },
       .description = "Standard three-bulb vertical traffic light",
-      .bulb_group =
-          {
-              .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.0),
-              .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
-              .bulbs = {},
-          },
+      .bulbs = {},
       .rule_states =
           {
               RuleState{

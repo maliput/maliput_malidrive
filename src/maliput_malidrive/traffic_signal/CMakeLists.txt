@@ -21,6 +21,7 @@ target_include_directories(
 target_link_libraries(
   traffic_signal
       maliput::api
+      maliput::common
       maliput::math
       maliput_malidrive::common
       yaml-cpp

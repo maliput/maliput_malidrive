@@ -45,15 +45,8 @@ struct TrafficSignalConstants {
   static constexpr const char* kCountry = "country";
   static constexpr const char* kCountryRevision = "country_revision";
   static constexpr const char* kDescription = "description";
-  static constexpr const char* kBulbGroup = "bulb_group";
-  static constexpr const char* kRuleStates = "rule_states";
-};
-
-/// Constants for bulb group YAML fields.
-struct BulbGroupConstants {
-  static constexpr const char* kPositionTrafficLight = "position_traffic_light";
-  static constexpr const char* kOrientationTrafficLight = "orientation_traffic_light";
   static constexpr const char* kBulbs = "bulbs";
+  static constexpr const char* kRuleStates = "rule_states";
 };
 
 /// Constants for bulb YAML fields.
@@ -61,8 +54,8 @@ struct BulbConstants {
   static constexpr const char* kId = "id";
   static constexpr const char* kColor = "color";
   static constexpr const char* kType = "type";
-  static constexpr const char* kPositionBulbGroup = "position_bulb_group";
-  static constexpr const char* kOrientationBulbGroup = "orientation_bulb_group";
+  static constexpr const char* kPositionTrafficLight = "position_traffic_light";
+  static constexpr const char* kOrientationTrafficLight = "orientation_traffic_light";
   static constexpr const char* kStates = "states";
   static constexpr const char* kArrowOrientationRad = "arrow_orientation_rad";
   static constexpr const char* kBoundingBox = "bounding_box";

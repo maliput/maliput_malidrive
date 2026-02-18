@@ -118,19 +118,19 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
                          maliput::common::road_network_description_parser_error);
   MALIDRIVE_THROW_UNLESS(bulb_node[BulbConstants::kType].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(bulb_node[BulbConstants::kPositionBulbGroup].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(bulb_node[BulbConstants::kPositionTrafficLight].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(bulb_node[BulbConstants::kOrientationBulbGroup].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(bulb_node[BulbConstants::kOrientationTrafficLight].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
   BulbDefinition bulb;
   bulb.id = GetRequiredStringField(bulb_node, BulbConstants::kId);
   bulb.color = StringToBulbColor(GetRequiredStringField(bulb_node, BulbConstants::kColor));
   bulb.type = StringToBulbType(GetRequiredStringField(bulb_node, BulbConstants::kType));
-  bulb.position_bulb_group =
-      GetVector3(bulb_node[BulbConstants::kPositionBulbGroup], BulbConstants::kPositionBulbGroup);
-  bulb.orientation_bulb_group =
-      GetQuaternion(bulb_node[BulbConstants::kOrientationBulbGroup], BulbConstants::kOrientationBulbGroup);
+  bulb.position_traffic_light =
+      GetVector3(bulb_node[BulbConstants::kPositionTrafficLight], BulbConstants::kPositionTrafficLight);
+  bulb.orientation_traffic_light =
+      GetQuaternion(bulb_node[BulbConstants::kOrientationTrafficLight], BulbConstants::kOrientationTrafficLight);
 
   // Parse bulb states (optional, defaults to ["Off", "On"]).
   if (bulb_node[BulbConstants::kStates].IsDefined()) {
@@ -153,33 +153,6 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
   bulb.bounding_box = ParseBoundingBox(bulb_node[BulbConstants::kBoundingBox]);
 
   return bulb;
-}
-
-// Helper function to parse a BulbGroupDefinition from a YAML map.
-// @param group_node The YAML node representing a bulb group.
-// @return A BulbGroupDefinition with the parsed values.
-BulbGroupDefinition ParseBulbGroup(const YAML::Node& group_node) {
-  MALIDRIVE_THROW_UNLESS(group_node.IsMap(), maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kPositionTrafficLight].IsDefined(),
-                         maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kOrientationTrafficLight].IsDefined(),
-                         maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(group_node[BulbGroupConstants::kBulbs].IsDefined(),
-                         maliput::common::road_network_description_parser_error);
-  ValidateSequenceSize(group_node[BulbGroupConstants::kBulbs], BulbGroupConstants::kBulbs);
-
-  BulbGroupDefinition group;
-  group.position_traffic_light =
-      GetVector3(group_node[BulbGroupConstants::kPositionTrafficLight], BulbGroupConstants::kPositionTrafficLight);
-  group.orientation_traffic_light = GetQuaternion(group_node[BulbGroupConstants::kOrientationTrafficLight],
-                                                  BulbGroupConstants::kOrientationTrafficLight);
-
-  // Parse bulbs.
-  for (const auto& bulb_node : group_node[BulbGroupConstants::kBulbs]) {
-    group.bulbs.push_back(ParseBulb(bulb_node));
-  }
-
-  return group;
 }
 
 // Helper function to parse a RuleState (rule-state) from a YAML map.
@@ -225,7 +198,7 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
                          maliput::common::road_network_description_parser_error);
   MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kDescription].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbs].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
   TrafficSignalDefinition signal_definition;
@@ -251,12 +224,11 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
     signal_definition.fingerprint.country_revision = revision;
   }
 
-  // Parse bulb group (exactly one expected).
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].IsSequence(),
-                         maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficSignalConstants::kBulbGroup].size() == 1,
-                         maliput::common::road_network_description_parser_error);
-  signal_definition.bulb_group = ParseBulbGroup(signal_node[TrafficSignalConstants::kBulbGroup][0]);
+  // Parse bulbs.
+  ValidateSequenceSize(signal_node[TrafficSignalConstants::kBulbs], TrafficSignalConstants::kBulbs);
+  for (const auto& bulb_node : signal_node[TrafficSignalConstants::kBulbs]) {
+    signal_definition.bulbs.push_back(ParseBulb(bulb_node));
+  }
 
   // Parse rule_states (optional).
   if (signal_node[TrafficSignalConstants::kRuleStates].IsDefined()) {
