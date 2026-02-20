@@ -49,7 +49,7 @@
 #include "maliput_malidrive/xodr/object/skeleton.h"
 #include "maliput_malidrive/xodr/object/surface.h"
 #include "maliput_malidrive/xodr/object/tunnel.h"
-#include "maliput_malidrive/xodr/object/validity.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
@@ -180,7 +180,7 @@ struct Object {
   /// Material element.
   std::vector<Material> materials{};
   /// Validity element.
-  std::vector<Validity> validities{};
+  std::vector<malidrive::xodr::Validity> validities{};
   /// ParkingSpace element.
   std::optional<ParkingSpace> parking_space{std::nullopt};
   /// Markings element.

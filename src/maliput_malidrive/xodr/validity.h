@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
+// Copyright (c) 2025-2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,19 +26,35 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal.h"
+#pragma once
+
+#include <maliput/api/type_specific_identifier.h>
 
 namespace malidrive {
 namespace xodr {
 
-bool Signal::operator==(const Signal& other) const {
-  return s == other.s && t == other.t && id == other.id && name == other.name && dynamic == other.dynamic &&
-         orientation == other.orientation && z_offset == other.z_offset && country == other.country &&
-         country_revision == other.country_revision && type == other.type && subtype == other.subtype &&
-         value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
-         length == other.length && pitch == other.pitch && roll == other.roll && text == other.text;
-}
+/// Holds the values of a XODR validity element.
+struct Validity {
+  /// Id alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Validity>;
 
-bool Signal::operator!=(const Signal& other) const { return !(*this == other); }
+  /// Convenient constants that hold the tag names in the XODR validity description.
+  static constexpr const char* kValidityTag = "validity";
+  static constexpr const char* kFromLane = "fromLane";
+  static constexpr const char* kToLane = "toLane";
+
+  /// Minimum ID of the lanes for which the parent element is valid. The value of the @fromLane attribute shall be lower
+  /// than or equal to the value of the @toLane attribute.
+  Id from_lane{"none"};
+  /// Maximum ID of the lanes for which the parent element is valid.
+  Id to_lane{"none"};
+
+  /// Equality operator.
+  bool operator==(const Validity& other) const;
+
+  /// Inequality operator.
+  bool operator!=(const Validity& other) const;
+};
+
 }  // namespace xodr
 }  // namespace malidrive

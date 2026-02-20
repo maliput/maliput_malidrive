@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -29,35 +28,38 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <maliput/api/type_specific_identifier.h>
+#include <optional>
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 
-/// Holds the values of a XODR Object validity element.
-struct Validity {
-  /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct Validity>;
+struct Signal;
 
-  /// Convenient constants that hold the tag names in the XODR object validity description.
-  static constexpr const char* kValidityTag = "validity";
-  static constexpr const char* kFromLane = "fromLane";
-  static constexpr const char* kToLane = "toLane";
+/// Holds the values of a XODR reference element.
+struct Reference {
+  /// Convenient constants that hold the tag names in the XODR reference description.
+  static constexpr const char* kReferenceTag = "reference";
+  static constexpr const char* kElementId = "elementId";
+  static constexpr const char* kElementType = "elementType";
+  static constexpr const char* kType = "type";
 
-  /// Minimum ID of the lanes for which the object is valid. The value of the @fromLane attribute shall be lower than or
-  /// equal to the value of the @toLane attribute.
-  Id from_lane{"none"};
-  /// Maximum ID of the lanes for which the object is valid.
-  Id to_lane{"none"};
+  enum class ElementType { kObject, kSignal };
+
+  /// Unique ID of the linked element.
+  std::string element_id{};
+  /// Type of the linked element.
+  ElementType element_type{};
+  /// Type of the linkage.
+  std::optional<std::string> type{};
 
   /// Equality operator.
-  bool operator==(const Validity& other) const;
+  bool operator==(const Reference& other) const;
 
   /// Inequality operator.
-  bool operator!=(const Validity& other) const;
+  bool operator!=(const Reference& other) const;
 };
 
-}  // namespace object
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

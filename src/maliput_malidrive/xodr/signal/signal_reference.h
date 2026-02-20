@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,32 +26,51 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/validity.h"
+#pragma once
 
-#include <gtest/gtest.h>
-#include <maliput/common/error.h>
+#include <optional>
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
-namespace test {
-namespace {
+namespace signal {
 
-GTEST_TEST(Validity, EqualityOperator) {
-  const Validity kValidity{object::Validity::Id("test"), object::Validity::Id("test2")};
-  Validity validity = kValidity;
+struct Signal;
 
-  EXPECT_EQ(kValidity, validity);
-  // Test inequality
-  validity.from_lane = object::Validity::Id("test2");
-  EXPECT_NE(kValidity, validity);
-  validity.from_lane = object::Validity::Id("test");
-  validity.to_lane = object::Validity::Id("test3");
-  EXPECT_NE(kValidity, validity);
-}
+/// Holds the values of a XODR signal reference element.
+struct SignalReference {
+  /// SignalId alias.
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
+  /// Convenient constants that hold the tag names in the XODR signal reference description.
+  static constexpr const char* kSignalReferenceTag = "signalReference";
+  static constexpr const char* kId = "id";
+  static constexpr const char* kOrientation = "orientation";
+  static constexpr const char* kS = "s";
+  static constexpr const char* kT = "t";
 
-}  // namespace
-}  // namespace test
-}  // namespace object
+  enum class Orientation { kPositive, kNegative, kNone };
+
+  /// Unique ID of the referenced signal.
+  SignalId id;
+  /// Orientation of the reference. It can be "+" for positive s-direction, "-" for negative s-direction, or "none" for bidirectional.
+  Orientation orientation{};
+  /// s-coordinate.
+  double s{};
+  /// t-coordinate.
+  double t{};
+  /// Validity element.
+  std::vector<Validity> validities{};
+
+  /// Equality operator.
+  bool operator==(const SignalReference& other) const;
+
+  /// Inequality operator.
+  bool operator!=(const SignalReference& other) const;
+};
+
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

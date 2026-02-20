@@ -34,6 +34,7 @@
 
 namespace malidrive {
 namespace xodr {
+namespace signal {
 namespace test {
 namespace {
 
@@ -84,7 +85,38 @@ GTEST_TEST(Value, EqualityOperatorEmptyUnit) {
   EXPECT_EQ(kSignalValue, signal_value);
 }
 
+GTEST_TEST(Signals, EqualityOperator) {
+  const Signal kSignal{
+      1.0 /* s */,
+      2.0 /* t */,
+      "signal_id" /* id */,
+      std::make_optional("signal_name") /* name */,
+      false /* dynamic */,
+      "+" /* orientation */,
+      0.1 /* z_offset */,
+      std::make_optional("signal_country") /* country */,
+      std::make_optional("signal_country_revision") /* country_revision */,
+      "signal_type" /* type */,
+      "signal_subtype" /* subtype */,
+      std::nullopt /* value */,
+      std::make_optional(1.0) /* height */,
+      std::make_optional(1.0) /* width */,
+      std::make_optional(1.0) /* h_offset */,
+      std::make_optional(1.0) /* length */,
+      std::make_optional(1.0) /* pitch */,
+      std::make_optional(1.0) /* roll */,
+      std::make_optional("signal_text") /* text */
+  };
+  const Signals kSignals{{{kSignal}}};
+
+  Signals signals = kSignals;
+  EXPECT_EQ(kSignals, signals);
+  signals.signals[0].s = 2.;
+  EXPECT_NE(kSignals, signals);
+}
+
 }  // namespace
 }  // namespace test
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

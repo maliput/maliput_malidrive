@@ -142,10 +142,12 @@ cc_library(
     srcs = glob([
         "src/maliput_malidrive/xodr/*.cc",
         "src/maliput_malidrive/xodr/object/*.cc",
+        "src/maliput_malidrive/xodr/signal/*.cc",
     ]),
     hdrs = glob([
         "src/maliput_malidrive/xodr/*.h",
         "src/maliput_malidrive/xodr/object/*.h",
+        "src/maliput_malidrive/xodr/signal/*.h",
     ]),
     strip_include_prefix = "src",
     copts = COPTS,

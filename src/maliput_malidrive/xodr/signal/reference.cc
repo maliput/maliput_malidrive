@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,18 +26,18 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/validity.h"
+#include "maliput_malidrive/xodr/signal/reference.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 
-bool Validity::operator==(const Validity& other) const {
-  return from_lane == other.from_lane && to_lane == other.to_lane;
+bool Reference::operator==(const Reference& other) const {
+  return element_id == other.element_id && element_type == other.element_type && type == other.type;
 }
 
-bool Validity::operator!=(const Validity& other) const { return !(*this == other); }
+bool Reference::operator!=(const Reference& other) const { return !(*this == other); }
 
-}  // namespace object
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

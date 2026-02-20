@@ -1,6 +1,7 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
+// Copyright (c) 2025, Woven Planet. All rights reserved.
+// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,14 +27,30 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signals.h"
+#include "maliput_malidrive/xodr/validity.h"
+
+#include <gtest/gtest.h>
+#include <maliput/common/error.h>
 
 namespace malidrive {
 namespace xodr {
+namespace test {
+namespace {
 
-bool Signals::operator==(const Signals& other) const { return signals == other.signals; }
+GTEST_TEST(Validity, EqualityOperator) {
+  const Validity kValidity{Validity::Id("test"), Validity::Id("test2")};
+  Validity validity = kValidity;
 
-bool Signals::operator!=(const Signals& other) const { return !(*this == other); }
+  EXPECT_EQ(kValidity, validity);
+  // Test inequality
+  validity.from_lane = Validity::Id("test2");
+  EXPECT_NE(kValidity, validity);
+  validity.from_lane = Validity::Id("test");
+  validity.to_lane = Validity::Id("test3");
+  EXPECT_NE(kValidity, validity);
+}
 
+}  // namespace
+}  // namespace test
 }  // namespace xodr
 }  // namespace malidrive

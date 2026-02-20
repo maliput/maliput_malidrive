@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -29,68 +28,36 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-
 #include <maliput/api/type_specific_identifier.h>
-
-#include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 
-/// Holds the values of a XODR Object bridge element.
-struct Bridge {
-  /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct Bridge>;
+struct Signal;
 
-  /// Convenient constants that hold the tag names in the XODR element attributes description.
-  static constexpr const char* kBridgeTag = "bridge";
+/// Holds the values of a XODR dependency element.
+struct Dependency {
+  /// SignalId alias.
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
+
+  /// Convenient constants that hold the tag names in the XODR dependency description.
+  static constexpr const char* kDependencyTag = "dependency";
   static constexpr const char* kId = "id";
-  static constexpr const char* kLength = "length";
-  static constexpr const char* kName = "name";
-  static constexpr const char* kS = "s";
   static constexpr const char* kType = "type";
 
-  enum class Type {
-    kBrick,
-    kConcrete,
-    kSteel,
-    kWood,
-  };
+  /// ID of the controlling signal.
+  SignalId id;
+  /// Maximum ID of the lanes for which the parent element is valid.
+  std::string type{};
 
-  /// Unique ID within database.
-  Id id{"none"};
-  /// Length of the tunnel (in s-direction).
-  double length;
-  /// Name of the tunnel. May be chosen freely.
-  std::optional<std::string> name{std::nullopt};
-  /// Starting coordinate.
-  double s;
-  /// Type of tunnel.
-  Type type;
+  /// Equality operator.
+  bool operator==(const Dependency& other) const;
 
-  /// Lane validities restrict signals and objects to specific lanes.
-  std::vector<malidrive::xodr::Validity> validities{};
-
-  /// Matches string with a Type.
-  /// @param type Is a Type.
-  /// @returns A string that matches with `type`.
-  static std::string type_to_str(Type type);
-
-  /// Matches Type with a string.
-  /// @param type Is a string.
-  /// @returns A Type that matches with `type`.
-  /// @throw maliput::common::assertion_error When `type` doesn't match with a Type.
-  static Type str_to_type(const std::string& type);
-
-  bool operator==(const Bridge& other) const;
-  bool operator!=(const Bridge& other) const;
+  /// Inequality operator.
+  bool operator!=(const Dependency& other) const;
 };
 
-}  // namespace object
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

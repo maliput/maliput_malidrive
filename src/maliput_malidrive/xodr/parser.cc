@@ -54,9 +54,9 @@
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
-#include "maliput_malidrive/xodr/signal.h"
-#include "maliput_malidrive/xodr/signals.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 #include "maliput_malidrive/xodr/unit.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
@@ -1238,49 +1238,61 @@ PlanView NodeParser::As() const {
 
 // Specialization to parse `Signal`'s node.
 template <>
-Signal NodeParser::As() const {
+signal::Signal NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
   // Non-optional attributes.
   // @{
-  const double s = ValidateDouble(attribute_parser.As<double>(Signal::kS), kDontAllowNan);
+  const double s = ValidateDouble(attribute_parser.As<double>(signal::Signal::kS), kDontAllowNan);
   MALIDRIVE_THROW_UNLESS(s >= 0.0, maliput::common::road_network_description_parser_error);
-  const double t = ValidateDouble(attribute_parser.As<double>(Signal::kT), kDontAllowNan);
-  const auto id = attribute_parser.As<std::string>(Signal::kId);
+  const double t = ValidateDouble(attribute_parser.As<double>(signal::Signal::kT), kDontAllowNan);
+  const auto id = attribute_parser.As<std::string>(signal::Signal::kId);
   MALIDRIVE_THROW_UNLESS(id != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto dynamic = attribute_parser.As<bool>(Signal::kDynamic);
+  const auto dynamic = attribute_parser.As<bool>(signal::Signal::kDynamic);
   MALIDRIVE_THROW_UNLESS(dynamic != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto orientation = attribute_parser.As<std::string>(Signal::kOrientation);
+  const auto orientation = attribute_parser.As<std::string>(signal::Signal::kOrientation);
   MALIDRIVE_THROW_UNLESS(orientation != std::nullopt, maliput::common::road_network_description_parser_error);
-  const double z_offset = ValidateDouble(attribute_parser.As<double>(Signal::kZOffset), kDontAllowNan);
-  const auto type = attribute_parser.As<std::string>(Signal::kType);
+  const double z_offset = ValidateDouble(attribute_parser.As<double>(signal::Signal::kZOffset), kDontAllowNan);
+  const auto type = attribute_parser.As<std::string>(signal::Signal::kType);
   MALIDRIVE_THROW_UNLESS(type != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto subtype = attribute_parser.As<std::string>(Signal::kSubtype);
+  const auto subtype = attribute_parser.As<std::string>(signal::Signal::kSubtype);
   MALIDRIVE_THROW_UNLESS(subtype != std::nullopt, maliput::common::road_network_description_parser_error);
   // @}
 
   // Optional attributes.
   // @{
-  const auto name = attribute_parser.As<std::string>(Signal::kName);
-  const auto country = attribute_parser.As<std::string>(Signal::kCountry);
-  const auto country_revision = attribute_parser.As<std::string>(Signal::kCountryRevision);
-  const auto value_value = attribute_parser.As<double>(Signal::Value::kValue);
-  const auto value_unit = attribute_parser.As<std::string>(Signal::Value::kUnit);
+  const auto name = attribute_parser.As<std::string>(signal::Signal::kName);
+  const auto country = attribute_parser.As<std::string>(signal::Signal::kCountry);
+  const auto country_revision = attribute_parser.As<std::string>(signal::Signal::kCountryRevision);
+  const auto value_value = attribute_parser.As<double>(signal::Signal::Value::kValue);
+  const auto value_unit = attribute_parser.As<std::string>(signal::Signal::Value::kUnit);
   if (value_value.has_value() && !value_unit.has_value() && !parser_configuration_.allow_schema_errors) {
     MALIDRIVE_THROW_MESSAGE(
         "Signal with id '" + id.value() + "' has 'value' attribute but is missing the 'unit' attribute.",
         maliput::common::road_network_description_parser_error);
   }
-  const std::optional<Signal::Value> value =
-      value_value.has_value() ? std::make_optional<Signal::Value>(Signal::Value{
+  const std::optional<signal::Signal::Value> value =
+      value_value.has_value() ? std::make_optional<signal::Signal::Value>(signal::Signal::Value{
                                     value_value.value(), value_unit.has_value() ? value_unit.value() : std::string{}})
                               : std::nullopt;
-  const auto height = attribute_parser.As<double>(Signal::kHeight);
-  const auto width = attribute_parser.As<double>(Signal::kWidth);
-  const auto h_offset = attribute_parser.As<double>(Signal::kHOffset);
-  const auto length = attribute_parser.As<double>(Signal::kLength);
-  const auto pitch = attribute_parser.As<double>(Signal::kPitch);
-  const auto roll = attribute_parser.As<double>(Signal::kRoll);
-  const auto text = attribute_parser.As<std::string>(Signal::kText);
+  const auto height = attribute_parser.As<double>(signal::Signal::kHeight);
+  const auto width = attribute_parser.As<double>(signal::Signal::kWidth);
+  const auto h_offset = attribute_parser.As<double>(signal::Signal::kHOffset);
+  const auto length = attribute_parser.As<double>(signal::Signal::kLength);
+  const auto pitch = attribute_parser.As<double>(signal::Signal::kPitch);
+  const auto roll = attribute_parser.As<double>(signal::Signal::kRoll);
+  const auto text = attribute_parser.As<std::string>(signal::Signal::kText);
+  // @}
+
+  // Elements.
+  // @{
+  // Validity elements
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
+  while (validity_element_xml) {
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
+    validities.push_back(validity);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
+  }
   // @}
 
   return {s,        t,       id.value(),       name,         dynamic.value(), orientation.value(),
@@ -1291,16 +1303,16 @@ Signal NodeParser::As() const {
 
 // Specialization to parse `Signals`'s node.
 template <>
-Signals NodeParser::As() const {
+signal::Signals NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Signal elements.
-  tinyxml2::XMLElement* signals_element_xml = element_->FirstChildElement(Signal::kSignalTag);
-  std::vector<Signal> signals;
+  tinyxml2::XMLElement* signals_element_xml = element_->FirstChildElement(signal::Signal::kSignalTag);
+  std::vector<signal::Signal> signals;
   while (signals_element_xml) {
-    auto signal = NodeParser(signals_element_xml, parser_configuration_).As<Signal>();
+    auto signal = NodeParser(signals_element_xml, parser_configuration_).As<signal::Signal>();
     signals.push_back(signal);
-    signals_element_xml = signals_element_xml->NextSiblingElement(Signal::kSignalTag);
+    signals_element_xml = signals_element_xml->NextSiblingElement(signal::Signal::kSignalTag);
   }
 
   return {signals};
@@ -1393,9 +1405,9 @@ RoadHeader NodeParser::As() const {
   // Get Signals.
   // @{
   MALIDRIVE_TRACE("Parsing Signals.");
-  tinyxml2::XMLElement* signals_elements(element_->FirstChildElement(Signals::kSignalsTag));
+  tinyxml2::XMLElement* signals_elements(element_->FirstChildElement(signal::Signals::kSignalsTag));
   if (signals_elements) {
-    road_header.signals = NodeParser(signals_elements, parser_configuration_).As<Signals>();
+    road_header.signals = NodeParser(signals_elements, parser_configuration_).As<signal::Signals>();
   }
   // @}
 
@@ -1506,6 +1518,22 @@ Junction NodeParser::As() const {
     connection_element = connection_element->NextSiblingElement(Connection::kConnectionTag);
   }
   return {Junction::Id(*id), name, type, connections};
+}
+
+// Specialization to parse `object::Validity`'s node.
+template <>
+Validity NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto from_lane = attribute_parser.As<std::string>(Validity::kFromLane);
+  MALIDRIVE_THROW_UNLESS(from_lane != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto to_lane = attribute_parser.As<std::string>(Validity::kToLane);
+  MALIDRIVE_THROW_UNLESS(to_lane != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  return {Validity::Id(from_lane.value_or("none")), Validity::Id(to_lane.value_or("none"))};
 }
 
 std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element) {
