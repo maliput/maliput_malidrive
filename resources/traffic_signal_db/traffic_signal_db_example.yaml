@@ -1,0 +1,254 @@
+# -*- yaml -*-
+#
+# BSD 3-Clause License
+#
+# Copyright (c) 2026, Woven by Toyota. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# Traffic Signal Type Database for maliput.
+#
+# This YAML file defines reusable traffic signal type definitions that describe:
+# - The physical structure of traffic lights (bulbs, groups, dimensions).
+# - The rule logic mapping bulb state combinations to Right-Of-Way rule values.
+#
+# Usage:
+# When parsing an OpenDRIVE (.xodr) file, traffic signals are defined with:
+#   <signal type="1000001" subtype="-1" country="OpenDRIVE" .../>
+#
+# A parser looks up the signal type in this database to:
+# 1. Create maliput::api::rules::TrafficLight with bulb group and bulbs.
+# 2. Create maliput::api::rules::DiscreteValueRule for "Right-Of-Way Rule Type"
+#    mapping bulb states to rule values (Go, Stop, StopIfSafe, etc.).
+# 3. Link rules to lanes affected by the signal (from XODR signal).
+#
+# Coordinate Frames:
+# - Bulb position/orientation: relative to traffic light frame.
+# - Traffic light position/orientation: relative to road network inertial frame (from XODR signal).
+
+traffic_signal_types:
+  # Standard three-bulb vertical traffic light (Red above Yellow above Green).
+  - type: "1000001"
+    subtype: "-1"
+    country: "OpenDRIVE"
+    country_revision: null
+    description: "Standard three-bulb vertical traffic light with red, yellow, and green bulbs."
+
+    # List of bulbs
+    bulbs:
+      - id: "RedBulb"
+        # Position relative to traffic light frame (meters).
+        position_traffic_light: [0.0, 0.0, 0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        # Bulb color: must be one of {Red, Yellow, Green}.
+        color: "Red"
+        # Bulb type: must be one of {Round, Arrow}.
+        type: "Round"
+        # Possible states this bulb can be in: subset of {Off, On, Blinking}.
+        states: ["Off", "On", "Blinking"]
+        # Optional: custom bounding box for this bulb.
+        # If omitted, uses maliput default (~12" lens: 0.356m tall x 0.356m wide x 0.177m deep).
+        bounding_box:
+          p_min: [-0.0889, -0.1778, -0.1778]
+          p_max: [0.0889, 0.1778, 0.1778]
+
+      - id: "YellowBulb"
+        position_traffic_light: [0.0, 0.0, 0.0]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Yellow"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+
+      - id: "GreenBulb"
+        position_traffic_light: [0.0, 0.0, -0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Round"
+        states: ["Off", "On"]
+
+    # Rule conditions: map bulb state combinations to Right-Of-Way rule values.
+    # Each condition defines a set of (bulb_id, state) pairs.
+    # When these conditions are met, the corresponding rule value is applied.
+    rule_states:
+      # Red only: Stop.
+      - condition:
+          - bulb: "RedBulb"
+            state: "On"
+          - bulb: "YellowBulb"
+            state: "Off"
+          - bulb: "GreenBulb"
+            state: "Off"
+        value: "Stop"
+
+      # Red blinking: Stop and prepare to proceed.
+      - condition:
+          - bulb: "RedBulb"
+            state: "Blinking"
+          - bulb: "YellowBulb"
+            state: "Off"
+          - bulb: "GreenBulb"
+            state: "Off"
+        value: "StopThenGo"
+
+      # Yellow solid: Stop if safe, otherwise proceed with caution.
+      - condition:
+          - bulb: "RedBulb"
+            state: "Off"
+          - bulb: "YellowBulb"
+            state: "On"
+          - bulb: "GreenBulb"
+            state: "Off"
+        value: "StopIfSafe"
+
+      # Yellow blinking: Proceed with caution.
+      - condition:
+          - bulb: "RedBulb"
+            state: "Off"
+          - bulb: "YellowBulb"
+            state: "Blinking"
+          - bulb: "GreenBulb"
+            state: "Off"
+        value: "ProceedWithCaution"
+
+      # Green solid: Proceed.
+      - condition:
+          - bulb: "RedBulb"
+            state: "Off"
+          - bulb: "YellowBulb"
+            state: "Off"
+          - bulb: "GreenBulb"
+            state: "On"
+        value: "Go"
+
+  # Three-bulb traffic light with arrow support.
+  # Can display turn arrows in green (left, straight, right).
+  - type: "1000011"
+    subtype: "10"
+    country: "OpenDRIVE"
+    country_revision: null
+    description: "Three-bulb traffic light with optional arrow support (left/straight/right)."
+
+    bulbs:
+      - id: "RedBulb"
+        position_traffic_light: [0.0, 0.0, 0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Red"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+
+      - id: "YellowBulb"
+        position_traffic_light: [0.0, 0.0, 0.0]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Yellow"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+
+      - id: "GreenArrow"
+        position_traffic_light: [0.0, 0.0, -0.4]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Arrow"
+        states: ["Off", "On"]
+        # Arrow orientation in radians, measured along bulb +X axis relative to +Y axis.
+        # 0.0 rad = arrow points in +Y direction (right from approaching vehicle perspective).
+        # π/2 rad = arrow points in +Z direction (straight).
+        # π rad = arrow points in -Y direction (left).
+        arrow_orientation_rad: 1.5707963267948966  # π/2 rad (straight).
+
+    rule_states:
+      - condition:
+          - bulb: "RedBulb"
+            state: "On"
+          - bulb: "YellowBulb"
+            state: "Off"
+          - bulb: "GreenArrow"
+            state: "Off"
+        value: "Stop"
+
+      - condition:
+          - bulb: "RedBulb"
+            state: "Off"
+          - bulb: "YellowBulb"
+            state: "On"
+          - bulb: "GreenArrow"
+            state: "Off"
+        value: "StopIfSafe"
+
+      - condition:
+          - bulb: "RedBulb"
+            state: "Off"
+          - bulb: "YellowBulb"
+            state: "Off"
+          - bulb: "GreenArrow"
+            state: "On"
+        value: "Go"
+
+  # Pedestrian signal with walk/don't walk.
+  - type: "1000002"
+    subtype: "-1"
+    country: "OpenDRIVE"
+    country_revision: null
+    description: "Pedestrian walk/don't walk signal (red standing figure on black background / green walking figure on black background)."
+
+    bulbs:
+      # Black background with red standing figure hand (Don't Walk).
+      - id: "DontWalkBulb"
+        position_traffic_light: [0.0, 0.0, 0.1]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Red"
+        type: "Round"
+        states: ["Off", "On"]
+
+      # Black background with green walking figure (Walk).
+      - id: "WalkBulb"
+        position_traffic_light: [0.0, 0.0, -0.1]
+        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+        color: "Green"
+        type: "Round"
+        states: ["Off", "On", "Blinking"]
+
+    rule_states:
+      - condition:
+          - bulb: "DontWalkBulb"
+            state: "On"
+          - bulb: "WalkBulb"
+            state: "Off"
+        value: "Stop"
+
+      - condition:
+          - bulb: "DontWalkBulb"
+            state: "Off"
+          - bulb: "WalkBulb"
+            state: "On"
+        value: "Go"
+
+      - condition:
+          - bulb: "DontWalkBulb"
+            state: "Off"
+          - bulb: "WalkBulb"
+            state: "Blinking"
+        value: "ProceedWithCaution"

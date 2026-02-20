@@ -28,6 +28,7 @@ cc_library(
         ":common",
         ":loader",
         ":road_curve",
+        ":traffic_signal",
         ":test_utilities",
     ],
 )
@@ -134,6 +135,22 @@ cc_library(
         "@maliput//:common",
         "@maliput//:drake",
         "@maliput//:math",
+    ],
+)
+
+cc_library(
+    name = "traffic_signal",
+    srcs = glob(["src/maliput_malidrive/traffic_signal/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/traffic_signal/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common",
+        "@maliput//:api",
+        "@maliput//:common",
+        "@maliput//:math",
+        "@yaml-cpp",
     ],
 )
 
