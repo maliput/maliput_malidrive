@@ -58,6 +58,7 @@
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
+#include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"
 #include "maliput_malidrive/xodr/unit.h"
@@ -1383,6 +1384,14 @@ signal::Signal NodeParser::As() const {
     vms_boards.push_back(vms_board);
     vms_board_element_xml = vms_board_element_xml->NextSiblingElement(signal::VmsBoard::kVmsBoardTag);
   }
+  // signal::Semantics elements
+  tinyxml2::XMLElement* semantics_element_xml = element_->FirstChildElement(signal::Semantics::kSemanticsTag);
+  std::vector<signal::Semantics> semantics;
+  while (semantics_element_xml) {
+    auto semantics_element = NodeParser(semantics_element_xml, parser_configuration_).As<signal::Semantics>();
+    semantics.push_back(semantics_element);
+    semantics_element_xml = semantics_element_xml->NextSiblingElement(signal::Semantics::kSemanticsTag);
+  }
   // @}
 
   return {s,
@@ -1410,7 +1419,8 @@ signal::Signal NodeParser::As() const {
           signal_references,
           controllers,
           static_boards,
-          vms_boards};
+          vms_boards,
+          semantics};
 }
 
 // Specialization to parse `Signals`'s node.

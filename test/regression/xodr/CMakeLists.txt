@@ -10,6 +10,7 @@ set(TEST_TYPE UNIT_XODR)
 ##############################################################################
 
 add_subdirectory(object)
+add_subdirectory(signal)
 
 set(UNIT_TEST_XODR_SOURCES
   connection_test.cc
