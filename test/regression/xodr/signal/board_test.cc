@@ -32,6 +32,9 @@
 
 #include <gtest/gtest.h>
 
+#include "maliput_malidrive/xodr/signal/sign.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
+
 namespace malidrive {
 namespace xodr {
 namespace signal {
@@ -106,7 +109,7 @@ GTEST_TEST(StaticBoard, EqualityOperator) {
   const Signal kSignal{
       1.0 /* s */,
       2.0 /* t */,
-      "signal_id" /* id */,
+      signal::Signal::Id("signal_id") /* id */,
       std::make_optional("signal_name") /* name */,
       false /* dynamic */,
       "+" /* orientation */,
@@ -124,7 +127,7 @@ GTEST_TEST(StaticBoard, EqualityOperator) {
       std::make_optional(1.0) /* roll */,
       std::make_optional("signal_text") /* text */
   };
-  const Sign kSign = static_cast<Sign>(kSignal);
+  const Sign kSign = Sign(kSignal, 0.0 /* v */, 0.0 /* z */);
   const StaticBoard kStaticBoard{{kSign}};
 
   StaticBoard static_board = kStaticBoard;

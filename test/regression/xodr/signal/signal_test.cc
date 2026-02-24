@@ -42,7 +42,7 @@ GTEST_TEST(Signal, EqualityOperator) {
   const Signal kSignal{
       1.0 /* s */,
       2.0 /* t */,
-      "signal_id" /* id */,
+      signal::Signal::Id("signal_id") /* id */,
       std::make_optional("signal_name") /* name */,
       false /* dynamic */,
       "+" /* orientation */,
@@ -89,7 +89,7 @@ GTEST_TEST(Signals, EqualityOperator) {
   const Signal kSignal{
       1.0 /* s */,
       2.0 /* t */,
-      "signal_id" /* id */,
+      signal::Signal::Id("signal_id") /* id */,
       std::make_optional("signal_name") /* name */,
       false /* dynamic */,
       "+" /* orientation */,

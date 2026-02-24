@@ -44,7 +44,7 @@ GTEST_TEST(Sign, EqualityOperator) {
   const Signal kSignal{
       1.0 /* s */,
       2.0 /* t */,
-      "signal_id" /* id */,
+      signal::Signal::Id("signal_id") /* id */,
       std::make_optional("signal_name") /* name */,
       false /* dynamic */,
       "+" /* orientation */,
@@ -62,9 +62,7 @@ GTEST_TEST(Sign, EqualityOperator) {
       std::make_optional(1.0) /* roll */,
       std::make_optional("signal_text") /* text */
   };
-  Sign kSign = static_cast<Sign>(kSignal);
-  kSign.v = 0.5;
-  kSign.z = 1.2;
+  const Sign kSign = Sign(kSignal, 0.5 /* v */, 1.2 /* z */);
 
   Sign sign = kSign;
   EXPECT_EQ(kSign, sign);

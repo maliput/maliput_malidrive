@@ -65,12 +65,16 @@ struct StaticBoard {
   /// Signs that are displayed on the static board.
   std::vector<Sign> signs;
 
+  // These are needed so the compiler can write std::vector<Sign> initializers and destroyers without knowing the
+  // complete definition of Sign.
   StaticBoard();
   ~StaticBoard();
   StaticBoard(const StaticBoard&);
   StaticBoard& operator=(const StaticBoard&);
   StaticBoard(StaticBoard&&) noexcept;
   StaticBoard& operator=(StaticBoard&&) noexcept;
+
+  StaticBoard(const std::vector<Sign>& signs_init);
 
   bool operator==(const StaticBoard& other) const;
   bool operator!=(const StaticBoard& other) const;

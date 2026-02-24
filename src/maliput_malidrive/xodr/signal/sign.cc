@@ -33,8 +33,7 @@ namespace malidrive {
 namespace xodr {
 namespace signal {
 
-Sign::Sign(const Signal& base_signal, double v_init, double z_init)
-    : Signal(base_signal), v(v_init), z(z_init) {}
+Sign::Sign(const Signal& base_signal, double v_init, double z_init) : Signal(base_signal), v(v_init), z(z_init) {}
 
 bool Sign::operator==(const Sign& other) const { return Signal::operator==(other) && v == other.v && z == other.z; }
 

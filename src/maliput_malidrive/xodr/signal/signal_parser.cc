@@ -302,10 +302,7 @@ signal::StaticBoard NodeParser::As() const {
     sign_element_xml = sign_element_xml->NextSiblingElement(signal::Sign::kSignTag);
   }
 
-  signal::StaticBoard board;
-  board.signs = std::move(signs);
-
-  return board;
+  return {signs};
 }
 
 }  // namespace xodr

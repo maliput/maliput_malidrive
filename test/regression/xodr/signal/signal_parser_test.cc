@@ -242,7 +242,7 @@ std::string GetBasicController() {
 TEST_F(SignalParsingTests, NodeParserController) {
   const Control kControl1{Control::SignalId("signal_1"), std::make_optional("control_type")};
   const Control kControl2{Control::SignalId("signal_2"), std::nullopt};
-  const Controller kExpectedController{Controller::SignalId("controller_1"),
+  const Controller kExpectedController{Controller::Id("controller_1"),
                                        std::make_optional("MyController"),
                                        std::make_optional(1),
                                        {{kControl1, kControl2}}};

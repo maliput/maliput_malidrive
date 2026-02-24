@@ -1715,7 +1715,7 @@ TEST_F(ParsingTests, NodeParserSignals) {
   const signal::Signal kExpectedSignal{
       100.10 /* s */,
       -1.5 /* t */,
-      "12345" /* id */,
+      signal::Signal::Id("12345") /* id */,
       "Test Signal" /* name */,
       false /* dynamic */,
       "+" /* orientation */,
@@ -1788,7 +1788,7 @@ TEST_F(ParsingTests, NodeParserSignalMissingUnitAllowingSchemaError) {
   const signal::Signal kExpectedSignal{
       100.10 /* s */,
       -1.5 /* t */,
-      "12345" /* id */,
+      signal::Signal::Id("12345") /* id */,
       "Test Signal" /* name */,
       false /* dynamic */,
       "+" /* orientation */,
