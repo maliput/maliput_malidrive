@@ -54,7 +54,12 @@
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
+#include "maliput_malidrive/xodr/signal/board.h"
+#include "maliput_malidrive/xodr/signal/controller.h"
+#include "maliput_malidrive/xodr/signal/dependency.h"
+#include "maliput_malidrive/xodr/signal/reference.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/xodr/signal/signal_reference.h"
 #include "maliput_malidrive/xodr/unit.h"
 #include "maliput_malidrive/xodr/validity.h"
 
@@ -1236,7 +1241,7 @@ PlanView NodeParser::As() const {
   return {geometries};
 }
 
-// Specialization to parse `Signal`'s node.
+// Specialization to parse `signal::Signal`'s node.
 template <>
 signal::Signal NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
@@ -1293,12 +1298,76 @@ signal::Signal NodeParser::As() const {
     validities.push_back(validity);
     validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
+  // signal::Dependency elements
+  tinyxml2::XMLElement* dependency_element_xml = element_->FirstChildElement(signal::Dependency::kDependencyTag);
+  std::vector<signal::Dependency> dependencies;
+  while (dependency_element_xml) {
+    auto dependency = NodeParser(dependency_element_xml, parser_configuration_).As<signal::Dependency>();
+    dependencies.push_back(dependency);
+    dependency_element_xml = dependency_element_xml->NextSiblingElement(signal::Dependency::kDependencyTag);
+  }
+  // signal::Reference elements
+  tinyxml2::XMLElement* reference_element_xml = element_->FirstChildElement(signal::Reference::kReferenceTag);
+  std::vector<signal::Reference> references;
+  while (reference_element_xml) {
+    auto reference = NodeParser(reference_element_xml, parser_configuration_).As<signal::Reference>();
+    references.push_back(reference);
+    reference_element_xml = reference_element_xml->NextSiblingElement(signal::Reference::kReferenceTag);
+  }
+  // signal::SignalReference elements
+  tinyxml2::XMLElement* signal_reference_element_xml =
+      element_->FirstChildElement(signal::SignalReference::kSignalReferenceTag);
+  std::vector<signal::SignalReference> signal_references;
+  while (signal_reference_element_xml) {
+    auto signal_reference =
+        NodeParser(signal_reference_element_xml, parser_configuration_).As<signal::SignalReference>();
+    signal_references.push_back(signal_reference);
+    signal_reference_element_xml =
+        signal_reference_element_xml->NextSiblingElement(signal::SignalReference::kSignalReferenceTag);
+  }
+  // signal::Controller elements
+  tinyxml2::XMLElement* controller_element_xml = element_->FirstChildElement(signal::Controller::kControllerTag);
+  std::vector<signal::Controller> controllers;
+  while (controller_element_xml) {
+    auto controller = NodeParser(controller_element_xml, parser_configuration_).As<signal::Controller>();
+    controllers.push_back(controller);
+    controller_element_xml = controller_element_xml->NextSiblingElement(signal::Controller::kControllerTag);
+  }
+  // signal::StaticBoard elements
+  tinyxml2::XMLElement* static_board_element_xml = element_->FirstChildElement(signal::StaticBoard::kStaticBoardTag);
+  std::vector<signal::StaticBoard> static_boards;
+  while (static_board_element_xml) {
+    auto static_board = NodeParser(static_board_element_xml, parser_configuration_).As<signal::StaticBoard>();
+    static_boards.push_back(static_board);
+    static_board_element_xml = static_board_element_xml->NextSiblingElement(signal::StaticBoard::kStaticBoardTag);
+  }
   // @}
 
-  return {s,        t,       id.value(),       name,         dynamic.value(), orientation.value(),
-          z_offset, country, country_revision, type.value(), subtype.value(), value,
-          height,   width,   h_offset,         length,       pitch,           roll,
-          text};
+  return {s,
+          t,
+          signal::Signal::Id(id.value()),
+          name,
+          dynamic.value(),
+          orientation.value(),
+          z_offset,
+          country,
+          country_revision,
+          type.value(),
+          subtype.value(),
+          value,
+          height,
+          width,
+          h_offset,
+          length,
+          pitch,
+          roll,
+          text,
+          validities,
+          dependencies,
+          references,
+          signal_references,
+          controllers,
+          static_boards};
 }
 
 // Specialization to parse `Signals`'s node.
@@ -1520,7 +1589,7 @@ Junction NodeParser::As() const {
   return {Junction::Id(*id), name, type, connections};
 }
 
-// Specialization to parse `object::Validity`'s node.
+// Specialization to parse `Validity`'s node.
 template <>
 Validity NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);

@@ -32,6 +32,7 @@
 #include <vector>
 
 #include <maliput/api/type_specific_identifier.h>
+
 #include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
@@ -46,16 +47,17 @@ struct SignalReference {
   using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
   /// Convenient constants that hold the tag names in the XODR signal reference description.
   static constexpr const char* kSignalReferenceTag = "signalReference";
-  static constexpr const char* kId = "id";
+  static constexpr const char* kSignalId = "id";
   static constexpr const char* kOrientation = "orientation";
   static constexpr const char* kS = "s";
   static constexpr const char* kT = "t";
 
-  enum class Orientation { kPositive, kNegative, kNone };
+  enum class Orientation { kWithS, kAgainstS, kBidirectional };
 
   /// Unique ID of the referenced signal.
-  SignalId id;
-  /// Orientation of the reference. It can be "+" for positive s-direction, "-" for negative s-direction, or "none" for bidirectional.
+  SignalId signal_id;
+  /// Orientation of the reference. It can be "+" for positive s-direction, "-" for negative s-direction, or "none" for
+  /// bidirectional.
   Orientation orientation{};
   /// s-coordinate.
   double s{};

@@ -26,18 +26,22 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal/signal_reference.h"
+
+#include "maliput_malidrive/xodr/signal/controller.h"
 
 namespace malidrive {
 namespace xodr {
 namespace signal {
 
-bool SignalReference::operator==(const SignalReference& other) const {
-  return signal_id == other.signal_id && orientation == other.orientation && s == other.s && t == other.t &&
-         validities == other.validities;
+bool Control::operator==(const Control& other) const { return signal_id == other.signal_id && type == other.type; }
+
+bool Control::operator!=(const Control& other) const { return !(*this == other); }
+
+bool Controller::operator==(const Controller& other) const {
+  return id == other.id && name == other.name && sequence == other.sequence && controls == other.controls;
 }
 
-bool SignalReference::operator!=(const SignalReference& other) const { return !(*this == other); }
+bool Controller::operator!=(const Controller& other) const { return !(*this == other); }
 
 }  // namespace signal
 }  // namespace xodr

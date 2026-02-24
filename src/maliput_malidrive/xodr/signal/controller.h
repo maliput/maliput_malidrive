@@ -28,36 +28,60 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <optional>
-
 #include <maliput/api/type_specific_identifier.h>
 
 namespace malidrive {
 namespace xodr {
 namespace signal {
 
-struct Signal;
-
-/// Holds the values of a XODR dependency element.
-struct Dependency {
-  /// SignalId alias.
+/// Holds the values of a XODR control element.
+struct Control {
+  /// Signal ID alias.
   using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
 
-  /// Convenient constants that hold the tag names in the XODR dependency description.
-  static constexpr const char* kDependencyTag = "dependency";
-  static constexpr const char* kSignalId = "id";
+  /// Convenient constants that hold the tag names in the XODR control description.
+  static constexpr const char* kControlTag = "control";
+  static constexpr const char* kSignalId = "signalId";
   static constexpr const char* kType = "type";
 
-  /// ID of the controlling signal.
+  /// ID of the controlled signal.
   SignalId signal_id;
-  /// Type of the dependency.
+  /// Type of control.
   std::optional<std::string> type{};
 
   /// Equality operator.
-  bool operator==(const Dependency& other) const;
+  bool operator==(const Control& other) const;
 
   /// Inequality operator.
-  bool operator!=(const Dependency& other) const;
+  bool operator!=(const Control& other) const;
+};
+
+/// Holds the values of a XODR controller element.
+struct Controller {
+  /// Controller ID alias.
+  using Id = maliput::api::TypeSpecificIdentifier<struct Controller>;
+
+  /// Convenient constants that hold the tag names in the XODR controller description.
+  static constexpr const char* kControllerTag = "controller";
+  static constexpr const char* kId = "id";
+  static constexpr const char* kName = "name";
+  static constexpr const char* kSequence = "sequence";
+
+  /// ID of the controller.
+  Id id;
+  /// Maximum ID of the lanes for which the parent element is valid.
+  std::optional<std::string> name{};
+  /// Sequence number of the controller with respect to other controllers of the same logical level.
+  /// It acts like some sort of priority, where the controller with the lowest sequence number has the highest priority.
+  std::optional<int> sequence{};
+  /// Controlled signals.
+  std::vector<Control> controls{};
+
+  /// Equality operator.
+  bool operator==(const Controller& other) const;
+
+  /// Inequality operator.
+  bool operator!=(const Controller& other) const;
 };
 
 }  // namespace signal

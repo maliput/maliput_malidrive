@@ -33,7 +33,7 @@ namespace xodr {
 namespace signal {
 
 bool Dependency::operator==(const Dependency& other) const {
-  return id == other.id && type == other.type;
+  return signal_id == other.signal_id && type == other.type;
 }
 
 bool Dependency::operator!=(const Dependency& other) const { return !(*this == other); }

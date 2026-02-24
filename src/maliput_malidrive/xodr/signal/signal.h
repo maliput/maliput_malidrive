@@ -33,16 +33,22 @@
 #include <vector>
 
 #include <maliput/api/type_specific_identifier.h>
+
+#include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
+#include "maliput_malidrive/xodr/signal/signal_reference.h"
 #include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
 namespace signal {
 
-/// Holds the values of a XODR Signal Offset.
-/// For example, a XML node describing a XODR's signal offset:
+struct StaticBoard;
+struct VmsBoard;
+
+/// Holds the values of a XODR Signal.
+/// For example, a XML node describing a XODR's signal:
 /// @code{.xml}
 ///   <OpenDRIVE>
 ///       ...
@@ -185,6 +191,21 @@ struct Signal {
 
   /// Reference elements.
   std::vector<Reference> references{};
+
+  /// SignalReference elements.
+  std::vector<SignalReference> signal_references{};
+
+  /// Controller elements.
+  std::vector<Controller> controllers{};
+
+  /// StaticBoard element.
+  std::vector<StaticBoard> static_boards{};
+
+  /// VmsBoard element.
+  std::vector<VmsBoard> vms_boards{};
+
+  // /// VmsGroup element.
+  // std::vector<VmsGroup> vms_groups{};
 };
 
 /// Holds the values of a XODR Signals node.

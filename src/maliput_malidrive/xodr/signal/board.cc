@@ -26,18 +26,41 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal/signal_reference.h"
+
+#include "maliput_malidrive/xodr/signal/board.h"
 
 namespace malidrive {
 namespace xodr {
 namespace signal {
 
-bool SignalReference::operator==(const SignalReference& other) const {
-  return signal_id == other.signal_id && orientation == other.orientation && s == other.s && t == other.t &&
-         validities == other.validities;
+bool StaticBoard::operator==(const StaticBoard& other) const { return signs == other.signs; }
+
+bool StaticBoard::operator!=(const StaticBoard& other) const { return !(*this == other); }
+
+bool DisplayArea::operator==(const DisplayArea& other) const {
+  return height == other.height && index == other.index && v == other.v && width == other.width && z == other.z;
 }
 
-bool SignalReference::operator!=(const SignalReference& other) const { return !(*this == other); }
+bool DisplayArea::operator!=(const DisplayArea& other) const { return !(*this == other); }
+
+bool VmsBoard::operator==(const VmsBoard& other) const {
+  return display_height == other.display_height && display_type == other.display_type &&
+         display_width == other.display_width && v == other.v && z == other.z && display_areas == other.display_areas;
+}
+
+bool VmsBoard::operator!=(const VmsBoard& other) const { return !(*this == other); }
+
+bool VmsBoardReference::operator==(const VmsBoardReference& other) const {
+  return group_index == other.group_index && signal_id == other.signal_id && vms_index == other.vms_index;
+}
+
+bool VmsBoardReference::operator!=(const VmsBoardReference& other) const { return !(*this == other); }
+
+bool VmsGroup::operator==(const VmsGroup& other) const {
+  return id == other.id && vms_board_references == other.vms_board_references;
+}
+
+bool VmsGroup::operator!=(const VmsGroup& other) const { return !(*this == other); }
 
 }  // namespace signal
 }  // namespace xodr
