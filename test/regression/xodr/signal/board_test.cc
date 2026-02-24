@@ -26,7 +26,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/xodr/signal/board.h"
 
 #include <optional>
 
@@ -38,54 +38,71 @@ namespace signal {
 namespace test {
 namespace {
 
-GTEST_TEST(Signal, EqualityOperator) {
-  const Signal kSignal{
-      1.0 /* s */,
-      2.0 /* t */,
-      "signal_id" /* id */,
-      std::make_optional("signal_name") /* name */,
-      false /* dynamic */,
-      "+" /* orientation */,
-      0.1 /* z_offset */,
-      std::make_optional("signal_country") /* country */,
-      std::make_optional("signal_country_revision") /* country_revision */,
-      "signal_type" /* type */,
-      "signal_subtype" /* subtype */,
-      std::make_optional(Signal::Value{1.0, "signal_unit"}) /* value */,
-      std::make_optional(1.0) /* height */,
-      std::make_optional(1.0) /* width */,
-      std::make_optional(1.0) /* h_offset */,
-      std::make_optional(1.0) /* length */,
-      std::make_optional(1.0) /* pitch */,
-      std::make_optional(1.0) /* roll */,
-      std::make_optional("signal_text") /* text */
+GTEST_TEST(DisplayArea, EqualityOperator) {
+  const DisplayArea kDisplayArea{2.0 /* height */, 1 /* index */, 0.5 /* v */, 1.5 /* width */, 0.8 /* z */};
+
+  DisplayArea display_area = kDisplayArea;
+  EXPECT_EQ(kDisplayArea, display_area);
+
+  display_area.height = 3.0;
+  EXPECT_NE(kDisplayArea, display_area);
+  display_area = kDisplayArea;
+
+  display_area.index = 2;
+  EXPECT_NE(kDisplayArea, display_area);
+  display_area = kDisplayArea;
+
+  display_area.v = 1.0;
+  EXPECT_NE(kDisplayArea, display_area);
+  display_area = kDisplayArea;
+
+  display_area.width = 2.5;
+  EXPECT_NE(kDisplayArea, display_area);
+  display_area = kDisplayArea;
+
+  display_area.z = 1.5;
+  EXPECT_NE(kDisplayArea, display_area);
+}
+
+GTEST_TEST(VmsBoard, EqualityOperator) {
+  const DisplayArea kDisplayArea{2.0 /* height */, 1 /* index */, 0.5 /* v */, 1.5 /* width */, 0.8 /* z */};
+  const VmsBoard kVmsBoard{
+      std::make_optional(3.0) /* display_height */,
+      DisplayType::kLed /* display_type */,
+      std::make_optional(5.0) /* display_width */,
+      0.5 /* v */,
+      1.2 /* z */,
+      {{kDisplayArea}} /* display_areas */
   };
 
-  Signal signal = kSignal;
-  EXPECT_EQ(kSignal, signal);
-  signal.s = 2.;
-  EXPECT_NE(kSignal, signal);
+  VmsBoard vms_board = kVmsBoard;
+  EXPECT_EQ(kVmsBoard, vms_board);
+
+  vms_board.display_height = std::make_optional(4.0);
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.display_type = DisplayType::kMonochromeGraphic;
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.display_width = std::make_optional(6.0);
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.v = 1.0;
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.z = 2.0;
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.display_areas.clear();
+  EXPECT_NE(kVmsBoard, vms_board);
 }
 
-GTEST_TEST(Value, EqualityOperator) {
-  const Signal::Value kSignalValue{40.0, "km/h"};
-
-  Signal::Value signal_value = kSignalValue;
-  EXPECT_EQ(kSignalValue, signal_value);
-  signal_value.value = 60.0;
-  EXPECT_NE(kSignalValue, signal_value);
-  signal_value.value = 40.0;
-  signal_value.unit = "m/s";
-  EXPECT_NE(kSignalValue, signal_value);
-}
-
-GTEST_TEST(Value, EqualityOperatorEmptyUnit) {
-  const Signal::Value kSignalValue{40.0, {}};
-  Signal::Value signal_value = kSignalValue;
-  EXPECT_EQ(kSignalValue, signal_value);
-}
-
-GTEST_TEST(Signals, EqualityOperator) {
+GTEST_TEST(StaticBoard, EqualityOperator) {
   const Signal kSignal{
       1.0 /* s */,
       2.0 /* t */,
@@ -107,12 +124,14 @@ GTEST_TEST(Signals, EqualityOperator) {
       std::make_optional(1.0) /* roll */,
       std::make_optional("signal_text") /* text */
   };
-  const Signals kSignals{{{kSignal}}};
+  const Sign kSign = static_cast<Sign>(kSignal);
+  const StaticBoard kStaticBoard{{kSign}};
 
-  Signals signals = kSignals;
-  EXPECT_EQ(kSignals, signals);
-  signals.signals[0].s = 2.;
-  EXPECT_NE(kSignals, signals);
+  StaticBoard static_board = kStaticBoard;
+  EXPECT_EQ(kStaticBoard, static_board);
+
+  static_board.signs.clear();
+  EXPECT_NE(kStaticBoard, static_board);
 }
 
 }  // namespace
