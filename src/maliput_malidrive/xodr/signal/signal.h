@@ -201,9 +201,6 @@ struct Signal {
 
   /// VmsBoard element.
   std::vector<VmsBoard> vms_boards{};
-
-  // /// VmsGroup element.
-  // std::vector<VmsGroup> vms_groups{};
 };
 
 /// Holds the values of a XODR Signals node.

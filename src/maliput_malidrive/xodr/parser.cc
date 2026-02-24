@@ -1375,6 +1375,14 @@ signal::Signal NodeParser::As() const {
     static_boards.push_back(static_board);
     static_board_element_xml = static_board_element_xml->NextSiblingElement(signal::StaticBoard::kStaticBoardTag);
   }
+  // signal::VmsBoard elements
+  tinyxml2::XMLElement* vms_board_element_xml = element_->FirstChildElement(signal::VmsBoard::kVmsBoardTag);
+  std::vector<signal::VmsBoard> vms_boards;
+  while (vms_board_element_xml) {
+    auto vms_board = NodeParser(vms_board_element_xml, parser_configuration_).As<signal::VmsBoard>();
+    vms_boards.push_back(vms_board);
+    vms_board_element_xml = vms_board_element_xml->NextSiblingElement(signal::VmsBoard::kVmsBoardTag);
+  }
   // @}
 
   return {s,
@@ -1401,7 +1409,8 @@ signal::Signal NodeParser::As() const {
           references,
           signal_references,
           controllers,
-          static_boards};
+          static_boards,
+          vms_boards};
 }
 
 // Specialization to parse `Signals`'s node.
