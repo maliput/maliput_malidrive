@@ -176,6 +176,24 @@ int ParserBase::NumberOfAttributes() const {
   return attributes.size() - 1;
 }
 
+// Specialization to parse as `int` the attribute's value.
+template <>
+std::optional<int> AttributeParser::As(const std::string& attribute_name) const {
+  int value{};
+  const auto result = element_->QueryIntAttribute(attribute_name.c_str(), &value);
+  if (result != tinyxml2::XML_SUCCESS) {
+    return std::nullopt;
+  }
+  if (std::isnan(value)) {
+    std::string msg{"Attributes with NaN values has been found. " + ConvertXMLNodeToText(element_)};
+    maliput::log()->debug(msg);
+    if (!parser_configuration_.allow_schema_errors) {
+      MALIDRIVE_THROW_MESSAGE(msg, maliput::common::road_network_description_parser_error);
+    }
+  }
+  return std::make_optional(value);
+}
+
 // Specialization to parse as `double` the attribute's value.
 template <>
 std::optional<double> AttributeParser::As(const std::string& attribute_name) const {
@@ -1241,6 +1259,22 @@ PlanView NodeParser::As() const {
   return {geometries};
 }
 
+// Specialization to parse `Validity`'s node.
+template <>
+Validity NodeParser::As() const {
+  const AttributeParser attribute_parser(element_, parser_configuration_);
+
+  // Non-optional attributes.
+  // @{
+  const auto from_lane = attribute_parser.As<std::string>(Validity::kFromLane);
+  MALIDRIVE_THROW_UNLESS(from_lane != std::nullopt, maliput::common::road_network_description_parser_error);
+  const auto to_lane = attribute_parser.As<std::string>(Validity::kToLane);
+  MALIDRIVE_THROW_UNLESS(to_lane != std::nullopt, maliput::common::road_network_description_parser_error);
+  // @}
+
+  return {Validity::Id(from_lane.value_or("none")), Validity::Id(to_lane.value_or("none"))};
+}
+
 // Specialization to parse `signal::Signal`'s node.
 template <>
 signal::Signal NodeParser::As() const {
@@ -1587,22 +1621,6 @@ Junction NodeParser::As() const {
     connection_element = connection_element->NextSiblingElement(Connection::kConnectionTag);
   }
   return {Junction::Id(*id), name, type, connections};
-}
-
-// Specialization to parse `Validity`'s node.
-template <>
-Validity NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, parser_configuration_);
-
-  // Non-optional attributes.
-  // @{
-  const auto from_lane = attribute_parser.As<std::string>(Validity::kFromLane);
-  MALIDRIVE_THROW_UNLESS(from_lane != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto to_lane = attribute_parser.As<std::string>(Validity::kToLane);
-  MALIDRIVE_THROW_UNLESS(to_lane != std::nullopt, maliput::common::road_network_description_parser_error);
-  // @}
-
-  return {Validity::Id(from_lane.value_or("none")), Validity::Id(to_lane.value_or("none"))};
 }
 
 std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element) {

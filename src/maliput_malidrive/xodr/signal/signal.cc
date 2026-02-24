@@ -27,6 +27,7 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/xodr/signal/board.h"
 
 namespace malidrive {
 namespace xodr {
@@ -37,7 +38,10 @@ bool Signal::operator==(const Signal& other) const {
          orientation == other.orientation && z_offset == other.z_offset && country == other.country &&
          country_revision == other.country_revision && type == other.type && subtype == other.subtype &&
          value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
-         length == other.length && pitch == other.pitch && roll == other.roll && text == other.text;
+         length == other.length && pitch == other.pitch && roll == other.roll && text == other.text &&
+         validities == other.validities && dependencies == other.dependencies && references == other.references &&
+         signal_references == other.signal_references && controllers == other.controllers &&
+         static_boards == other.static_boards && vms_boards == other.vms_boards;
 }
 
 bool Signal::operator!=(const Signal& other) const { return !(*this == other); }

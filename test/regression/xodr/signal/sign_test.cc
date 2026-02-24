@@ -27,11 +27,12 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/signal/sign.h"
-#include "maliput_malidrive/xodr/signal/signal.h"
 
 #include <optional>
 
 #include <gtest/gtest.h>
+
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 namespace malidrive {
 namespace xodr {

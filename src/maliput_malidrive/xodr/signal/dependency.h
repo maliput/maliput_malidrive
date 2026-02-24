@@ -36,12 +36,10 @@ namespace malidrive {
 namespace xodr {
 namespace signal {
 
-struct Signal;
-
 /// Holds the values of a XODR dependency element.
 struct Dependency {
   /// SignalId alias.
-  using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct Dependency>;
 
   /// Convenient constants that hold the tag names in the XODR dependency description.
   static constexpr const char* kDependencyTag = "dependency";

@@ -82,6 +82,7 @@ struct Sign : public Signal {
   /// Local z-coordinate of the sign on a board.
   double z{};
 
+  Sign(const Signal& base_signal, double v_init, double z_init);
   bool operator==(const Sign& other) const;
   bool operator!=(const Sign& other) const;
 };

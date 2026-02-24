@@ -34,6 +34,7 @@
 
 #include <maliput/api/type_specific_identifier.h>
 
+#include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
@@ -43,9 +44,6 @@
 namespace malidrive {
 namespace xodr {
 namespace signal {
-
-struct StaticBoard;
-struct VmsBoard;
 
 /// Holds the values of a XODR Signal.
 /// For example, a XML node describing a XODR's signal:

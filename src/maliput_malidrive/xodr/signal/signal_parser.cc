@@ -151,7 +151,8 @@ signal::SignalReference NodeParser::As() const {
   MALIDRIVE_THROW_UNLESS(orientation_str != std::nullopt, maliput::common::road_network_description_parser_error);
   const auto s = attribute_parser.As<double>(signal::SignalReference::kS);
   MALIDRIVE_THROW_UNLESS(s != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto t = attribute_parser.As<double>(signal::SignalReference::kS);
+  MALIDRIVE_THROW_UNLESS(s.value() >= 0, maliput::common::road_network_description_parser_error);
+  const auto t = attribute_parser.As<double>(signal::SignalReference::kT);
   MALIDRIVE_THROW_UNLESS(t != std::nullopt, maliput::common::road_network_description_parser_error);
   // @}
 
@@ -177,7 +178,7 @@ signal::SignalReference NodeParser::As() const {
   }
   MALIDRIVE_THROW_UNLESS(!validities.empty(), maliput::common::road_network_description_parser_error);
 
-  return {signal::Dependency::SignalId(signal_id.value_or("none")), orientation, s.value(), t.value(), validities};
+  return {signal::SignalReference::SignalId(signal_id.value_or("none")), orientation, s.value(), t.value(), validities};
 }
 
 // Specialization to parse `signal::Reference`'s node
@@ -215,16 +216,14 @@ template <>
 signal::Sign NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
-  signal::Sign sign = static_cast<signal::Sign>(NodeParser(element_, parser_configuration_).As<signal::Signal>());
+  signal::Signal signal = NodeParser(element_, parser_configuration_).As<signal::Signal>();
   // Non-optional attributes.
   // @{
   const double v = ValidateDouble(attribute_parser.As<double>(signal::Sign::kV), kDontAllowNan);
   const double z = ValidateDouble(attribute_parser.As<double>(signal::Sign::kZ), kDontAllowNan);
-  sign.v = v;
-  sign.z = z;
   // @}
 
-  return sign;
+  return {signal, v, z};
 }
 
 // Specialization to parse `signal::DisplayArea`'s node.
@@ -303,7 +302,10 @@ signal::StaticBoard NodeParser::As() const {
     sign_element_xml = sign_element_xml->NextSiblingElement(signal::Sign::kSignTag);
   }
 
-  return {signs};
+  signal::StaticBoard board;
+  board.signs = std::move(signs);
+
+  return board;
 }
 
 }  // namespace xodr

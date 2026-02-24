@@ -37,7 +37,7 @@ namespace signal {
 /// Holds the values of a XODR control element.
 struct Control {
   /// Signal ID alias.
-  using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct Control>;
 
   /// Convenient constants that hold the tag names in the XODR control description.
   static constexpr const char* kControlTag = "control";

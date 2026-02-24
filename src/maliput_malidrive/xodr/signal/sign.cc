@@ -33,13 +33,10 @@ namespace malidrive {
 namespace xodr {
 namespace signal {
 
-bool Sign::operator==(const Sign& other) const {
-  return country_revision == other.country_revision && country == other.country && dynamic == other.dynamic &&
-         h_offset == other.h_offset && height == other.height && id == other.id && length == other.length &&
-         name == other.name && orientation == other.orientation && pitch == other.pitch && roll == other.roll &&
-         subtype == other.subtype && text == other.text && type == other.type && v == other.v && value == other.value &&
-         width == other.width && z == other.z && validities == other.validities;
-}
+Sign::Sign(const Signal& base_signal, double v_init, double z_init)
+    : Signal(base_signal), v(v_init), z(z_init) {}
+
+bool Sign::operator==(const Sign& other) const { return Signal::operator==(other) && v == other.v && z == other.z; }
 
 bool Sign::operator!=(const Sign& other) const { return !(*this == other); }
 

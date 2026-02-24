@@ -28,10 +28,18 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "maliput_malidrive/xodr/signal/board.h"
+#include "maliput_malidrive/xodr/signal/sign.h"
 
 namespace malidrive {
 namespace xodr {
 namespace signal {
+
+StaticBoard::StaticBoard() = default;
+StaticBoard::~StaticBoard() = default;
+StaticBoard::StaticBoard(const StaticBoard&) = default;
+StaticBoard& StaticBoard::operator=(const StaticBoard&) = default;
+StaticBoard::StaticBoard(StaticBoard&&) noexcept = default;
+StaticBoard& StaticBoard::operator=(StaticBoard&&) noexcept = default;
 
 bool StaticBoard::operator==(const StaticBoard& other) const { return signs == other.signs; }
 

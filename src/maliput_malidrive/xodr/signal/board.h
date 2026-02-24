@@ -65,6 +65,13 @@ struct StaticBoard {
   /// Signs that are displayed on the static board.
   std::vector<Sign> signs;
 
+  StaticBoard();
+  ~StaticBoard();
+  StaticBoard(const StaticBoard&);
+  StaticBoard& operator=(const StaticBoard&);
+  StaticBoard(StaticBoard&&) noexcept;
+  StaticBoard& operator=(StaticBoard&&) noexcept;
+
   bool operator==(const StaticBoard& other) const;
   bool operator!=(const StaticBoard& other) const;
 };
@@ -120,42 +127,42 @@ struct VmsBoard {
   bool operator!=(const VmsBoard& other) const;
 };
 
-// /// Holds the values of an XODR VmsBoardReference.
-// struct VmsBoardReference {
-//   using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
+/// Holds the values of an XODR VmsBoardReference.
+struct VmsBoardReference {
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct VmsBoardReference>;
 
-//   static constexpr const char* kVmsBoardReferenceTag = "vmsBoardReference";
-//   static constexpr const char* kGroupIndex = "groupIndex";
-//   static constexpr const char* kSignalId = "signalId";
-//   static constexpr const char* kVmsIndex = "vmsIndex";
+  static constexpr const char* kVmsBoardReferenceTag = "vmsBoardReference";
+  static constexpr const char* kGroupIndex = "groupIndex";
+  static constexpr const char* kSignalId = "signalId";
+  static constexpr const char* kVmsIndex = "vmsIndex";
 
-//   /// Index of the grouped boards; shall be unique within the vmsGroup.
-//   int group_index{};
-//   /// ID of the signal that has a vmsBoard assigned.
-//   SignalId signal_id;
-//   /// Index of the referenced vmsBoard.
-//   int vms_index{};
+  /// Index of the grouped boards; shall be unique within the vmsGroup.
+  int group_index{};
+  /// ID of the signal that has a vmsBoard assigned.
+  SignalId signal_id;
+  /// Index of the referenced vmsBoard.
+  int vms_index{};
 
-//   bool operator==(const VmsBoardReference& other) const;
-//   bool operator!=(const VmsBoardReference& other) const;
-// };
+  bool operator==(const VmsBoardReference& other) const;
+  bool operator!=(const VmsBoardReference& other) const;
+};
 
-// /// Holds the values of an XODR VmsGroup.
-// struct VmsGroup {
-//   using Id = maliput::api::TypeSpecificIdentifier<struct VmsGroup>;
+/// Holds the values of an XODR VmsGroup.
+struct VmsGroup {
+  using Id = maliput::api::TypeSpecificIdentifier<struct VmsGroup>;
 
-//   static constexpr const char* kVmsGroupTag = "vmsGroup";
-//   static constexpr const char* kId = "id";
+  static constexpr const char* kVmsGroupTag = "vmsGroup";
+  static constexpr const char* kId = "id";
 
-//   /// Unique ID of the VmsGroup.
-//   Id id;
+  /// Unique ID of the VmsGroup.
+  Id id;
 
-//   /// Child references mapping specific VMS boards to this group.
-//   std::vector<VmsBoardReference> vms_board_references;
+  /// Child references mapping specific VMS boards to this group.
+  std::vector<VmsBoardReference> vms_board_references;
 
-//   bool operator==(const VmsGroup& other) const;
-//   bool operator!=(const VmsGroup& other) const;
-// };
+  bool operator==(const VmsGroup& other) const;
+  bool operator!=(const VmsGroup& other) const;
+};
 
 }  // namespace signal
 }  // namespace xodr

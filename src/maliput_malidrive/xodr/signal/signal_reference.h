@@ -44,7 +44,7 @@ struct Signal;
 /// Holds the values of a XODR signal reference element.
 struct SignalReference {
   /// SignalId alias.
-  using SignalId = maliput::api::TypeSpecificIdentifier<struct Signal>;
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct SignalReference>;
   /// Convenient constants that hold the tag names in the XODR signal reference description.
   static constexpr const char* kSignalReferenceTag = "signalReference";
   static constexpr const char* kSignalId = "id";
