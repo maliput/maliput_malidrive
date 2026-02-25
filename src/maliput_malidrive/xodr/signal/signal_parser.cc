@@ -210,242 +210,243 @@ signal::Reference NodeParser::As() const {
   return {element_id.value_or("none"), element_type, type};
 }
 
-// Specialization to parse `signal::Speed`'s node.
+// Specialization to parse `signal::Semantics::Speed`'s node.
 template <>
-signal::Speed NodeParser::As() const {
+signal::Semantics::Speed NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Parse type
-  const auto type_str = attribute_parser.As<std::string>(signal::Speed::kType);
+  const auto type_str = attribute_parser.As<std::string>(signal::Semantics::Speed::kType);
   MALIDRIVE_THROW_UNLESS(type_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::SemanticsSpeed type = signal::SemanticsSpeed::kUnknown;
+  signal::Semantics::SemanticsSpeed type = signal::Semantics::SemanticsSpeed::kUnknown;
   if (type_str.value() == "maximum")
-    type = signal::SemanticsSpeed::kMaximum;
+    type = signal::Semantics::SemanticsSpeed::kMaximum;
   else if (type_str.value() == "maximumEnd")
-    type = signal::SemanticsSpeed::kMaximumEnd;
+    type = signal::Semantics::SemanticsSpeed::kMaximumEnd;
   else if (type_str.value() == "minimum")
-    type = signal::SemanticsSpeed::kMinimum;
+    type = signal::Semantics::SemanticsSpeed::kMinimum;
   else if (type_str.value() == "minimumEnd")
-    type = signal::SemanticsSpeed::kMinimumEnd;
+    type = signal::Semantics::SemanticsSpeed::kMinimumEnd;
   else if (type_str.value() == "recommended")
-    type = signal::SemanticsSpeed::kRecommended;
+    type = signal::Semantics::SemanticsSpeed::kRecommended;
   else if (type_str.value() == "recommendedEnd")
-    type = signal::SemanticsSpeed::kRecommendedEnd;
+    type = signal::Semantics::SemanticsSpeed::kRecommendedEnd;
   else if (type_str.value() == "zone")
-    type = signal::SemanticsSpeed::Zone;
+    type = signal::Semantics::SemanticsSpeed::Zone;
   else if (type_str.value() == "zoneEnd")
-    type = signal::SemanticsSpeed::ZoneEnd;
+    type = signal::Semantics::SemanticsSpeed::ZoneEnd;
   else
-    type = signal::SemanticsSpeed::kUnknown;
+    type = signal::Semantics::SemanticsSpeed::kUnknown;
 
   // Parse unit
-  const auto unit_str = attribute_parser.As<std::string>(signal::Speed::kUnit);
+  const auto unit_str = attribute_parser.As<std::string>(signal::Semantics::Speed::kUnit);
   MALIDRIVE_THROW_UNLESS(unit_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::UnitSpeed unit = signal::UnitSpeed::kUnknown;
+  signal::Semantics::UnitSpeed unit = signal::Semantics::UnitSpeed::kUnknown;
   if (unit_str.value() == "m/s")
-    unit = signal::UnitSpeed::kMS;
+    unit = signal::Semantics::UnitSpeed::kMS;
   else if (unit_str.value() == "mph")
-    unit = signal::UnitSpeed::kMph;
+    unit = signal::Semantics::UnitSpeed::kMph;
   else if (unit_str.value() == "km/h")
-    unit = signal::UnitSpeed::kKmh;
+    unit = signal::Semantics::UnitSpeed::kKmh;
 
   // Parse value
-  const auto value_opt = attribute_parser.As<double>(signal::Speed::kValue);
+  const auto value_opt = attribute_parser.As<double>(signal::Semantics::Speed::kValue);
   MALIDRIVE_THROW_UNLESS(value_opt != std::nullopt, maliput::common::road_network_description_parser_error);
   const double value = ValidateDouble(value_opt, kDontAllowNan);
 
   return {type, unit, value};
 }
 
-// Specialization to parse `signal::Lane`'s node.
+// Specialization to parse `signal::Semantics::Lane`'s node.
 template <>
-signal::Lane NodeParser::As() const {
+signal::Semantics::Lane NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
-  const auto type_str = attribute_parser.As<std::string>(signal::Lane::kType);
+  const auto type_str = attribute_parser.As<std::string>(signal::Semantics::Lane::kType);
   MALIDRIVE_THROW_UNLESS(type_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::SemanticsLane type = signal::SemanticsLane::kUnknown;
+  signal::Semantics::SemanticsLane type = signal::Semantics::SemanticsLane::kUnknown;
   if (type_str.value() == "noOvertakeCarsEnd")
-    type = signal::SemanticsLane::kNoOvertakeCarsEnd;
+    type = signal::Semantics::SemanticsLane::kNoOvertakeCarsEnd;
   else if (type_str.value() == "noOvertakeCars")
-    type = signal::SemanticsLane::kNoOvertakeCars;
+    type = signal::Semantics::SemanticsLane::kNoOvertakeCars;
   else if (type_str.value() == "noOvertakeTrucksEnd")
-    type = signal::SemanticsLane::kNoOvertakeTrucksEnd;
+    type = signal::Semantics::SemanticsLane::kNoOvertakeTrucksEnd;
   else if (type_str.value() == "noOvertakeTrucks")
-    type = signal::SemanticsLane::kNoOvertakeTrucks;
+    type = signal::Semantics::SemanticsLane::kNoOvertakeTrucks;
   else if (type_str.value() == "priorityOverOncoming")
-    type = signal::SemanticsLane::kPriorityOverOncoming;
+    type = signal::Semantics::SemanticsLane::kPriorityOverOncoming;
   else if (type_str.value() == "roundabout")
-    type = signal::SemanticsLane::kRoundabout;
+    type = signal::Semantics::SemanticsLane::kRoundabout;
   else if (type_str.value() == "yieldForOncoming")
-    type = signal::SemanticsLane::kYieldForOncoming;
+    type = signal::Semantics::SemanticsLane::kYieldForOncoming;
   else
-    type = signal::SemanticsLane::kUnknown;
+    type = signal::Semantics::SemanticsLane::kUnknown;
 
   return {type};
 }
 
-// Specialization to parse `signal::Priority`'s node.
+// Specialization to parse `signal::Semantics::Priority`'s node.
 template <>
-signal::Priority NodeParser::As() const {
+signal::Semantics::Priority NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
-  const auto type_str = attribute_parser.As<std::string>(signal::Priority::kType);
+  const auto type_str = attribute_parser.As<std::string>(signal::Semantics::Priority::kType);
   MALIDRIVE_THROW_UNLESS(type_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::SemanticsPriority type = signal::SemanticsPriority::kUnknown;
+  signal::Semantics::SemanticsPriority type = signal::Semantics::SemanticsPriority::kUnknown;
   if (type_str.value() == "4Way")
-    type = signal::SemanticsPriority::k4Way;
+    type = signal::Semantics::SemanticsPriority::k4Way;
   else if (type_str.value() == "keepClearLine")
-    type = signal::SemanticsPriority::kKeepClearLine;
+    type = signal::Semantics::SemanticsPriority::kKeepClearLine;
   else if (type_str.value() == "noParkingLine")
-    type = signal::SemanticsPriority::kNoParkingLine;
+    type = signal::Semantics::SemanticsPriority::kNoParkingLine;
   else if (type_str.value() == "noTurnOnRed")
-    type = signal::SemanticsPriority::kNoTurnOnRed;
+    type = signal::Semantics::SemanticsPriority::kNoTurnOnRed;
   else if (type_str.value() == "priorityRoadEnd")
-    type = signal::SemanticsPriority::kPriorityRoadEnd;
+    type = signal::Semantics::SemanticsPriority::kPriorityRoadEnd;
   else if (type_str.value() == "priorityRoad")
-    type = signal::SemanticsPriority::kPriorityRoad;
+    type = signal::Semantics::SemanticsPriority::kPriorityRoad;
   else if (type_str.value() == "priorityToTheRightRule")
-    type = signal::SemanticsPriority::kPriorityToTheRightRule;
+    type = signal::Semantics::SemanticsPriority::kPriorityToTheRightRule;
   else if (type_str.value() == "stopLine")
-    type = signal::SemanticsPriority::kStopLine;
+    type = signal::Semantics::SemanticsPriority::kStopLine;
   else if (type_str.value() == "stop")
-    type = signal::SemanticsPriority::kStop;
+    type = signal::Semantics::SemanticsPriority::kStop;
   else if (type_str.value() == "trafficLight")
-    type = signal::SemanticsPriority::kTrafficLight;
+    type = signal::Semantics::SemanticsPriority::kTrafficLight;
   else if (type_str.value() == "turnOnRedAllowed")
-    type = signal::SemanticsPriority::kTurnOnRedAllowed;
+    type = signal::Semantics::SemanticsPriority::kTurnOnRedAllowed;
   else if (type_str.value() == "waitingLine")
-    type = signal::SemanticsPriority::kWaitingLine;
+    type = signal::Semantics::SemanticsPriority::kWaitingLine;
   else if (type_str.value() == "yield")
-    type = signal::SemanticsPriority::kYield;
+    type = signal::Semantics::SemanticsPriority::kYield;
   else
-    type = signal::SemanticsPriority::kUnknown;
+    type = signal::Semantics::SemanticsPriority::kUnknown;
 
   return {type};
 }
 
-// Specializations for empty elements (tags that convey meaning just by being present)
+// Specializations for Semantics empty elements (tags that convey meaning just by being present)
 template <>
-signal::Prohibited NodeParser::As() const {
+signal::Semantics::Prohibited NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::Warning NodeParser::As() const {
+signal::Semantics::Warning NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::Routing NodeParser::As() const {
+signal::Semantics::Routing NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::StreetName NodeParser::As() const {
+signal::Semantics::StreetName NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::Parking NodeParser::As() const {
+signal::Semantics::Parking NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::Tourist NodeParser::As() const {
+signal::Semantics::Tourist NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::SupplementaryAllows NodeParser::As() const {
+signal::Semantics::SupplementaryAllows NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::SupplementaryProhibits NodeParser::As() const {
+signal::Semantics::SupplementaryProhibits NodeParser::As() const {
   return {};
 }
 
 template <>
-signal::SupplementaryExplanatory NodeParser::As() const {
+signal::Semantics::SupplementaryExplanatory NodeParser::As() const {
   return {};
 }
 
-// Specialization to parse `signal::SupplementaryTime`'s node.
+// Specialization to parse `signal::Semantics::SupplementaryTime`'s node.
 template <>
-signal::SupplementaryTime NodeParser::As() const {
+signal::Semantics::SupplementaryTime NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
-  const auto type_str = attribute_parser.As<std::string>(signal::SupplementaryTime::kType);
+  const auto type_str = attribute_parser.As<std::string>(signal::Semantics::SupplementaryTime::kType);
   MALIDRIVE_THROW_UNLESS(type_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::SemanticsSupplementaryTime type = signal::SemanticsSupplementaryTime::kUnknown;
+  signal::Semantics::SemanticsSupplementaryTime type = signal::Semantics::SemanticsSupplementaryTime::kUnknown;
   if (type_str.value() == "time")
-    type = signal::SemanticsSupplementaryTime::kTime;
+    type = signal::Semantics::SemanticsSupplementaryTime::kTime;
   else if (type_str.value() == "day")
-    type = signal::SemanticsSupplementaryTime::kDay;
+    type = signal::Semantics::SemanticsSupplementaryTime::kDay;
   else
-    type = signal::SemanticsSupplementaryTime::kUnknown;
+    type = signal::Semantics::SemanticsSupplementaryTime::kUnknown;
 
-  const auto value_opt = attribute_parser.As<double>(signal::SupplementaryTime::kValue);
+  const auto value_opt = attribute_parser.As<double>(signal::Semantics::SupplementaryTime::kValue);
   MALIDRIVE_THROW_UNLESS(value_opt != std::nullopt, maliput::common::road_network_description_parser_error);
   const double value = ValidateDouble(value_opt, kDontAllowNan);
 
   return {type, value};
 }
 
-// Specialization to parse `signal::SupplementaryDistance`'s node.
+// Specialization to parse `signal::Semantics::SupplementaryDistance`'s node.
 template <>
-signal::SupplementaryDistance NodeParser::As() const {
+signal::Semantics::SupplementaryDistance NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Parse type
-  const auto type_str = attribute_parser.As<std::string>(signal::SupplementaryDistance::kType);
+  const auto type_str = attribute_parser.As<std::string>(signal::Semantics::SupplementaryDistance::kType);
   MALIDRIVE_THROW_UNLESS(type_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::SemanticsSupplementaryDistance type = signal::SemanticsSupplementaryDistance::kUnknown;
+  signal::Semantics::SemanticsSupplementaryDistance type = signal::Semantics::SemanticsSupplementaryDistance::kUnknown;
   if (type_str.value() == "for")
-    type = signal::SemanticsSupplementaryDistance::kFor;
+    type = signal::Semantics::SemanticsSupplementaryDistance::kFor;
   else if (type_str.value() == "in")
-    type = signal::SemanticsSupplementaryDistance::kIn;
+    type = signal::Semantics::SemanticsSupplementaryDistance::kIn;
   else
-    type = signal::SemanticsSupplementaryDistance::kUnknown;
+    type = signal::Semantics::SemanticsSupplementaryDistance::kUnknown;
 
   // Parse unit
-  const auto unit_str = attribute_parser.As<std::string>(signal::SupplementaryDistance::kUnit);
+  const auto unit_str = attribute_parser.As<std::string>(signal::Semantics::SupplementaryDistance::kUnit);
   MALIDRIVE_THROW_UNLESS(unit_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::UnitDistance unit = signal::UnitDistance::kUnknown;
+  signal::Semantics::UnitDistance unit = signal::Semantics::UnitDistance::kUnknown;
   if (unit_str.value() == "m")
-    unit = signal::UnitDistance::kM;
+    unit = signal::Semantics::UnitDistance::kM;
   else if (unit_str.value() == "km")
-    unit = signal::UnitDistance::kKm;
+    unit = signal::Semantics::UnitDistance::kKm;
   else if (unit_str.value() == "ft")
-    unit = signal::UnitDistance::kFt;
+    unit = signal::Semantics::UnitDistance::kFt;
   else if (unit_str.value() == "mile")
-    unit = signal::UnitDistance::kMile;
+    unit = signal::Semantics::UnitDistance::kMile;
 
   // Parse value
-  const auto value_opt = attribute_parser.As<double>(signal::SupplementaryDistance::kValue);
+  const auto value_opt = attribute_parser.As<double>(signal::Semantics::SupplementaryDistance::kValue);
   MALIDRIVE_THROW_UNLESS(value_opt != std::nullopt, maliput::common::road_network_description_parser_error);
   const double value = ValidateDouble(value_opt, kDontAllowNan);
 
   return {type, unit, value};
 }
 
-// Specialization to parse `signal::SupplementaryEnvironment`'s node.
+// Specialization to parse `signal::Semantics::SupplementaryEnvironment`'s node.
 template <>
-signal::SupplementaryEnvironment NodeParser::As() const {
+signal::Semantics::SupplementaryEnvironment NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
-  const auto type_str = attribute_parser.As<std::string>(signal::SupplementaryEnvironment::kType);
+  const auto type_str = attribute_parser.As<std::string>(signal::Semantics::SupplementaryEnvironment::kType);
   MALIDRIVE_THROW_UNLESS(type_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::SemanticsSupplementaryEnvironment type = signal::SemanticsSupplementaryEnvironment::kUnknown;
+  signal::Semantics::SemanticsSupplementaryEnvironment type =
+      signal::Semantics::SemanticsSupplementaryEnvironment::kUnknown;
   if (type_str.value() == "rain")
-    type = signal::SemanticsSupplementaryEnvironment::kRain;
+    type = signal::Semantics::SemanticsSupplementaryEnvironment::kRain;
   else if (type_str.value() == "snow")
-    type = signal::SemanticsSupplementaryEnvironment::kSnow;
+    type = signal::Semantics::SemanticsSupplementaryEnvironment::kSnow;
   else if (type_str.value() == "fog")
-    type = signal::SemanticsSupplementaryEnvironment::kFog;
+    type = signal::Semantics::SemanticsSupplementaryEnvironment::kFog;
   else
-    type = signal::SemanticsSupplementaryEnvironment::kUnknown;
+    type = signal::Semantics::SemanticsSupplementaryEnvironment::kUnknown;
 
   return {type};
 }
@@ -465,21 +466,25 @@ signal::Semantics NodeParser::As() const {
     }
   };
 
-  parse_elements(signal::Speed::kSpeedTag, semantics.speeds);
-  parse_elements(signal::Lane::kLaneTag, semantics.lanes);
-  parse_elements(signal::Priority::kPriorityTag, semantics.priorities);
-  parse_elements(signal::Prohibited::kProhibitedTag, semantics.prohibited);
-  parse_elements(signal::Warning::kWarningTag, semantics.warnings);
-  parse_elements(signal::Routing::kRoutingTag, semantics.routings);
-  parse_elements(signal::StreetName::kStreetNameTag, semantics.street_names);
-  parse_elements(signal::Parking::kParkingTag, semantics.parkings);
-  parse_elements(signal::Tourist::kTouristTag, semantics.tourists);
-  parse_elements(signal::SupplementaryTime::kSupplementaryTimeTag, semantics.supplementary_times);
-  parse_elements(signal::SupplementaryAllows::kSupplementaryAllowsTag, semantics.supplementary_allows);
-  parse_elements(signal::SupplementaryProhibits::kSupplementaryProhibitsTag, semantics.supplementary_prohibits);
-  parse_elements(signal::SupplementaryDistance::kSupplementaryDistanceTag, semantics.supplementary_distances);
-  parse_elements(signal::SupplementaryEnvironment::kSupplementaryEnvironmentTag, semantics.supplementary_environments);
-  parse_elements(signal::SupplementaryExplanatory::kSupplementaryExplanatoryTag, semantics.supplementary_explanatories);
+  parse_elements(signal::Semantics::Speed::kSpeedTag, semantics.speeds);
+  parse_elements(signal::Semantics::Lane::kLaneTag, semantics.lanes);
+  parse_elements(signal::Semantics::Priority::kPriorityTag, semantics.priorities);
+  parse_elements(signal::Semantics::Prohibited::kProhibitedTag, semantics.prohibited);
+  parse_elements(signal::Semantics::Warning::kWarningTag, semantics.warnings);
+  parse_elements(signal::Semantics::Routing::kRoutingTag, semantics.routings);
+  parse_elements(signal::Semantics::StreetName::kStreetNameTag, semantics.street_names);
+  parse_elements(signal::Semantics::Parking::kParkingTag, semantics.parkings);
+  parse_elements(signal::Semantics::Tourist::kTouristTag, semantics.tourists);
+  parse_elements(signal::Semantics::SupplementaryTime::kSupplementaryTimeTag, semantics.supplementary_times);
+  parse_elements(signal::Semantics::SupplementaryAllows::kSupplementaryAllowsTag, semantics.supplementary_allows);
+  parse_elements(signal::Semantics::SupplementaryProhibits::kSupplementaryProhibitsTag,
+                 semantics.supplementary_prohibits);
+  parse_elements(signal::Semantics::SupplementaryDistance::kSupplementaryDistanceTag,
+                 semantics.supplementary_distances);
+  parse_elements(signal::Semantics::SupplementaryEnvironment::kSupplementaryEnvironmentTag,
+                 semantics.supplementary_environments);
+  parse_elements(signal::Semantics::SupplementaryExplanatory::kSupplementaryExplanatoryTag,
+                 semantics.supplementary_explanatories);
 
   return semantics;
 }

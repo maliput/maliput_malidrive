@@ -32,71 +32,81 @@ namespace malidrive {
 namespace xodr {
 namespace signal {
 
-bool Speed::operator==(const Speed& other) const {
+bool Semantics::Speed::operator==(const Speed& other) const {
   return type == other.type && unit == other.unit && value == other.value;
 }
 
-bool Speed::operator!=(const Speed& other) const { return !(*this == other); }
+bool Semantics::Speed::operator!=(const Speed& other) const { return !(*this == other); }
 
-bool Lane::operator==(const Lane& other) const { return type == other.type; }
+bool Semantics::Lane::operator==(const Lane& other) const { return type == other.type; }
 
-bool Lane::operator!=(const Lane& other) const { return !(*this == other); }
+bool Semantics::Lane::operator!=(const Lane& other) const { return !(*this == other); }
 
-bool Priority::operator==(const Priority& other) const { return type == other.type; }
+bool Semantics::Priority::operator==(const Priority& other) const { return type == other.type; }
 
-bool Priority::operator!=(const Priority& other) const { return !(*this == other); }
+bool Semantics::Priority::operator!=(const Priority& other) const { return !(*this == other); }
 
-bool Prohibited::operator==(const Prohibited& /*other*/) const { return true; }
+bool Semantics::Prohibited::operator==(const Prohibited& /*other*/) const { return true; }
 
-bool Prohibited::operator!=(const Prohibited& other) const { return !(*this == other); }
+bool Semantics::Prohibited::operator!=(const Prohibited& other) const { return !(*this == other); }
 
-bool Warning::operator==(const Warning& /*other*/) const { return true; }
+bool Semantics::Warning::operator==(const Warning& /*other*/) const { return true; }
 
-bool Warning::operator!=(const Warning& other) const { return !(*this == other); }
+bool Semantics::Warning::operator!=(const Warning& other) const { return !(*this == other); }
 
-bool Routing::operator==(const Routing& /*other*/) const { return true; }
+bool Semantics::Routing::operator==(const Routing& /*other*/) const { return true; }
 
-bool Routing::operator!=(const Routing& other) const { return !(*this == other); }
+bool Semantics::Routing::operator!=(const Routing& other) const { return !(*this == other); }
 
-bool StreetName::operator==(const StreetName& /*other*/) const { return true; }
+bool Semantics::StreetName::operator==(const StreetName& /*other*/) const { return true; }
 
-bool StreetName::operator!=(const StreetName& other) const { return !(*this == other); }
+bool Semantics::StreetName::operator!=(const StreetName& other) const { return !(*this == other); }
 
-bool Parking::operator==(const Parking& /*other*/) const { return true; }
+bool Semantics::Parking::operator==(const Parking& /*other*/) const { return true; }
 
-bool Parking::operator!=(const Parking& other) const { return !(*this == other); }
+bool Semantics::Parking::operator!=(const Parking& other) const { return !(*this == other); }
 
-bool Tourist::operator==(const Tourist& /*other*/) const { return true; }
+bool Semantics::Tourist::operator==(const Tourist& /*other*/) const { return true; }
 
-bool Tourist::operator!=(const Tourist& other) const { return !(*this == other); }
+bool Semantics::Tourist::operator!=(const Tourist& other) const { return !(*this == other); }
 
-bool SupplementaryTime::operator==(const SupplementaryTime& other) const {
+bool Semantics::SupplementaryTime::operator==(const SupplementaryTime& other) const {
   return type == other.type && value == other.value;
 }
 
-bool SupplementaryTime::operator!=(const SupplementaryTime& other) const { return !(*this == other); }
+bool Semantics::SupplementaryTime::operator!=(const SupplementaryTime& other) const { return !(*this == other); }
 
-bool SupplementaryAllows::operator==(const SupplementaryAllows& /*other*/) const { return true; }
+bool Semantics::SupplementaryAllows::operator==(const SupplementaryAllows& /*other*/) const { return true; }
 
-bool SupplementaryAllows::operator!=(const SupplementaryAllows& other) const { return !(*this == other); }
+bool Semantics::SupplementaryAllows::operator!=(const SupplementaryAllows& other) const { return !(*this == other); }
 
-bool SupplementaryProhibits::operator==(const SupplementaryProhibits& /*other*/) const { return true; }
+bool Semantics::SupplementaryProhibits::operator==(const SupplementaryProhibits& /*other*/) const { return true; }
 
-bool SupplementaryProhibits::operator!=(const SupplementaryProhibits& other) const { return !(*this == other); }
+bool Semantics::SupplementaryProhibits::operator!=(const SupplementaryProhibits& other) const {
+  return !(*this == other);
+}
 
-bool SupplementaryDistance::operator==(const SupplementaryDistance& other) const {
+bool Semantics::SupplementaryDistance::operator==(const SupplementaryDistance& other) const {
   return type == other.type && unit == other.unit && value == other.value;
 }
 
-bool SupplementaryDistance::operator!=(const SupplementaryDistance& other) const { return !(*this == other); }
+bool Semantics::SupplementaryDistance::operator!=(const SupplementaryDistance& other) const {
+  return !(*this == other);
+}
 
-bool SupplementaryEnvironment::operator==(const SupplementaryEnvironment& other) const { return type == other.type; }
+bool Semantics::SupplementaryEnvironment::operator==(const SupplementaryEnvironment& other) const {
+  return type == other.type;
+}
 
-bool SupplementaryEnvironment::operator!=(const SupplementaryEnvironment& other) const { return !(*this == other); }
+bool Semantics::SupplementaryEnvironment::operator!=(const SupplementaryEnvironment& other) const {
+  return !(*this == other);
+}
 
-bool SupplementaryExplanatory::operator==(const SupplementaryExplanatory& /*other*/) const { return true; }
+bool Semantics::SupplementaryExplanatory::operator==(const SupplementaryExplanatory& /*other*/) const { return true; }
 
-bool SupplementaryExplanatory::operator!=(const SupplementaryExplanatory& other) const { return !(*this == other); }
+bool Semantics::SupplementaryExplanatory::operator!=(const SupplementaryExplanatory& other) const {
+  return !(*this == other);
+}
 
 bool Semantics::operator==(const Semantics& other) const {
   return speeds == other.speeds && lanes == other.lanes && priorities == other.priorities &&
