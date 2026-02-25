@@ -256,6 +256,59 @@ TEST_F(SignalParsingTests, NodeParserController) {
   EXPECT_EQ(kExpectedController, controller);
 }
 
+// Get a XML description that contains a basic Semantics node.
+std::string GetBasicSemantics() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <speed type="maximum" value="60" unit="km/h"/>
+    <lane type="noOvertakeCars"/>
+    <priority type="stop"/>
+    <prohibited/>
+    <warning/>
+    <routing/>
+    <streetname/>
+    <parking/>
+    <tourist/>
+    <supplementaryAllows/>
+    <supplementaryProhibits/>
+    <supplementaryExplanatory/>
+    <supplementaryTime type="time" value="12.0"/>
+    <supplementaryDistance type="for" unit="m" value="100"/>
+    <supplementaryEnvironment type="rain"/>
+    </semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `signal::Semantics` parsing.
+TEST_F(SignalParsingTests, NodeParserSemantics) {
+  const Semantics kExpectedSemantics{
+      {Semantics::Speed{Semantics::SemanticsSpeed::kMaximum, Semantics::UnitSpeed::kKmh, 60.0}},
+      {Semantics::Lane{Semantics::SemanticsLane::kNoOvertakeCars}},
+      {Semantics::Priority{Semantics::SemanticsPriority::kStop}},
+      {Semantics::Prohibited{}},
+      {Semantics::Warning{}},
+      {Semantics::Routing{}},
+      {Semantics::StreetName{}},
+      {Semantics::Parking{}},
+      {Semantics::Tourist{}},
+      {Semantics::SupplementaryTime{Semantics::SemanticsSupplementaryTime::kTime, 12.0}},
+      {Semantics::SupplementaryAllows{}},
+      {Semantics::SupplementaryProhibits{}},
+      {Semantics::SupplementaryDistance{Semantics::SemanticsSupplementaryDistance::kFor, Semantics::UnitDistance::kM,
+                                        100.0}},
+      {Semantics::SupplementaryEnvironment{Semantics::SemanticsSupplementaryEnvironment::kRain}},
+      {Semantics::SupplementaryExplanatory{}}};
+
+  const std::string xml_description = GetBasicSemantics();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  const Semantics semantics = dut.As<signal::Semantics>();
+  EXPECT_EQ(kExpectedSemantics, semantics);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace signal
