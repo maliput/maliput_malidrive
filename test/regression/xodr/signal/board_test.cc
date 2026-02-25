@@ -32,8 +32,11 @@
 
 #include <gtest/gtest.h>
 
+#include "maliput_malidrive/xodr/signal/dependency.h"
+#include "maliput_malidrive/xodr/signal/reference.h"
 #include "maliput_malidrive/xodr/signal/sign.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
@@ -41,10 +44,12 @@ namespace signal {
 namespace test {
 namespace {
 
-GTEST_TEST(DisplayArea, EqualityOperator) {
-  const DisplayArea kDisplayArea{2.0 /* height */, 1 /* index */, 0.5 /* v */, 1.5 /* width */, 0.8 /* z */};
+using malidrive::xodr::Validity;
 
-  DisplayArea display_area = kDisplayArea;
+GTEST_TEST(DisplayArea, EqualityOperator) {
+  const VmsBoard::DisplayArea kDisplayArea{2.0 /* height */, 1 /* index */, 0.5 /* v */, 1.5 /* width */, 0.8 /* z */};
+
+  VmsBoard::DisplayArea display_area = kDisplayArea;
   EXPECT_EQ(kDisplayArea, display_area);
 
   display_area.height = 3.0;
@@ -68,14 +73,20 @@ GTEST_TEST(DisplayArea, EqualityOperator) {
 }
 
 GTEST_TEST(VmsBoard, EqualityOperator) {
-  const DisplayArea kDisplayArea{2.0 /* height */, 1 /* index */, 0.5 /* v */, 1.5 /* width */, 0.8 /* z */};
+  const VmsBoard::DisplayArea kDisplayArea{2.0 /* height */, 1 /* index */, 0.5 /* v */, 1.5 /* width */, 0.8 /* z */};
+  const Dependency kDependency{Dependency::SignalId("dep_1"), std::make_optional("dep_type")};
+  const Reference kReference{"ref_1", Reference::ElementType::kObject, std::make_optional("ref_type")};
+  const Validity kValidity{Validity::Id("lane_1"), Validity::Id("lane_2")};
   const VmsBoard kVmsBoard{
       std::make_optional(3.0) /* display_height */,
-      DisplayType::kLed /* display_type */,
+      VmsBoard::DisplayType::kLed /* display_type */,
       std::make_optional(5.0) /* display_width */,
       0.5 /* v */,
       1.2 /* z */,
-      {{kDisplayArea}} /* display_areas */
+      {{kDisplayArea}} /* display_areas */,
+      {{kDependency}} /* dependencies */,
+      {{kReference}} /* references */,
+      {{kValidity}} /* validities */
   };
 
   VmsBoard vms_board = kVmsBoard;
@@ -85,7 +96,7 @@ GTEST_TEST(VmsBoard, EqualityOperator) {
   EXPECT_NE(kVmsBoard, vms_board);
   vms_board = kVmsBoard;
 
-  vms_board.display_type = DisplayType::kMonochromeGraphic;
+  vms_board.display_type = VmsBoard::DisplayType::kMonochromeGraphic;
   EXPECT_NE(kVmsBoard, vms_board);
   vms_board = kVmsBoard;
 
@@ -102,6 +113,18 @@ GTEST_TEST(VmsBoard, EqualityOperator) {
   vms_board = kVmsBoard;
 
   vms_board.display_areas.clear();
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.dependencies.clear();
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.references.clear();
+  EXPECT_NE(kVmsBoard, vms_board);
+  vms_board = kVmsBoard;
+
+  vms_board.validities.clear();
   EXPECT_NE(kVmsBoard, vms_board);
 }
 
@@ -128,12 +151,30 @@ GTEST_TEST(StaticBoard, EqualityOperator) {
       std::make_optional("signal_text") /* text */
   };
   const Sign kSign = Sign(kSignal, 0.0 /* v */, 0.0 /* z */);
-  const StaticBoard kStaticBoard{{kSign}};
+  const Dependency kDependency{Dependency::SignalId("dep_1"), std::make_optional("dep_type")};
+  const Reference kReference{"ref_1", Reference::ElementType::kObject, std::make_optional("ref_type")};
+  const Validity kValidity{Validity::Id("lane_1"), Validity::Id("lane_2")};
+  const StaticBoard kStaticBoard{{kSign} /* signs */,
+                                 {{kDependency}} /* dependencies */,
+                                 {{kReference}} /* references */,
+                                 {{kValidity}} /* validities */};
 
   StaticBoard static_board = kStaticBoard;
   EXPECT_EQ(kStaticBoard, static_board);
 
   static_board.signs.clear();
+  EXPECT_NE(kStaticBoard, static_board);
+  static_board = kStaticBoard;
+
+  static_board.dependencies.clear();
+  EXPECT_NE(kStaticBoard, static_board);
+  static_board = kStaticBoard;
+
+  static_board.references.clear();
+  EXPECT_NE(kStaticBoard, static_board);
+  static_board = kStaticBoard;
+
+  static_board.validities.clear();
   EXPECT_NE(kStaticBoard, static_board);
 }
 

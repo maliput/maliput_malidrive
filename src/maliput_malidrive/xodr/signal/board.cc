@@ -42,36 +42,31 @@ StaticBoard& StaticBoard::operator=(const StaticBoard&) = default;
 StaticBoard::StaticBoard(StaticBoard&&) noexcept = default;
 StaticBoard& StaticBoard::operator=(StaticBoard&&) noexcept = default;
 
-StaticBoard::StaticBoard(const std::vector<Sign>& signs_init) : signs(signs_init) {}
+StaticBoard::StaticBoard(const std::vector<Sign>& signs_init, const std::vector<Dependency>& dependencies_init,
+                         const std::vector<Reference>& references_init,
+                         const std::vector<malidrive::xodr::Validity>& validities_init)
+    : signs(signs_init), dependencies(dependencies_init), references(references_init), validities(validities_init) {}
 
-bool StaticBoard::operator==(const StaticBoard& other) const { return signs == other.signs; }
+bool StaticBoard::operator==(const StaticBoard& other) const {
+  return signs == other.signs && dependencies == other.dependencies && references == other.references &&
+         validities == other.validities;
+}
 
 bool StaticBoard::operator!=(const StaticBoard& other) const { return !(*this == other); }
 
-bool DisplayArea::operator==(const DisplayArea& other) const {
+bool VmsBoard::DisplayArea::operator==(const DisplayArea& other) const {
   return height == other.height && index == other.index && v == other.v && width == other.width && z == other.z;
 }
 
-bool DisplayArea::operator!=(const DisplayArea& other) const { return !(*this == other); }
+bool VmsBoard::DisplayArea::operator!=(const DisplayArea& other) const { return !(*this == other); }
 
 bool VmsBoard::operator==(const VmsBoard& other) const {
   return display_height == other.display_height && display_type == other.display_type &&
-         display_width == other.display_width && v == other.v && z == other.z && display_areas == other.display_areas;
+         display_width == other.display_width && v == other.v && z == other.z && display_areas == other.display_areas &&
+         dependencies == other.dependencies && references == other.references && validities == other.validities;
 }
 
 bool VmsBoard::operator!=(const VmsBoard& other) const { return !(*this == other); }
-
-bool VmsBoardReference::operator==(const VmsBoardReference& other) const {
-  return group_index == other.group_index && signal_id == other.signal_id && vms_index == other.vms_index;
-}
-
-bool VmsBoardReference::operator!=(const VmsBoardReference& other) const { return !(*this == other); }
-
-bool VmsGroup::operator==(const VmsGroup& other) const {
-  return id == other.id && vms_board_references == other.vms_board_references;
-}
-
-bool VmsGroup::operator!=(const VmsGroup& other) const { return !(*this == other); }
 
 }  // namespace signal
 }  // namespace xodr

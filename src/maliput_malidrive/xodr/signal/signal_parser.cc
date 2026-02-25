@@ -227,18 +227,20 @@ signal::Sign NodeParser::As() const {
   return {signal, v, z};
 }
 
-// Specialization to parse `signal::DisplayArea`'s node.
+// Specialization to parse `signal::VmsBoard::DisplayArea`'s node.
 template <>
-signal::DisplayArea NodeParser::As() const {
+signal::VmsBoard::DisplayArea NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
   // Non-optional attributes.
   // @{
-  const double height = ValidateDouble(attribute_parser.As<double>(signal::DisplayArea::kHeight), kDontAllowNan);
-  const int index = attribute_parser.As<int>(signal::DisplayArea::kIndex).value_or(0);
-  const double v = ValidateDouble(attribute_parser.As<double>(signal::DisplayArea::kV), kDontAllowNan);
-  const double width = ValidateDouble(attribute_parser.As<double>(signal::DisplayArea::kWidth), kDontAllowNan);
-  const double z = ValidateDouble(attribute_parser.As<double>(signal::DisplayArea::kZ), kDontAllowNan);
+  const double height =
+      ValidateDouble(attribute_parser.As<double>(signal::VmsBoard::DisplayArea::kHeight), kDontAllowNan);
+  const int index = attribute_parser.As<int>(signal::VmsBoard::DisplayArea::kIndex).value_or(0);
+  const double v = ValidateDouble(attribute_parser.As<double>(signal::VmsBoard::DisplayArea::kV), kDontAllowNan);
+  const double width =
+      ValidateDouble(attribute_parser.As<double>(signal::VmsBoard::DisplayArea::kWidth), kDontAllowNan);
+  const double z = ValidateDouble(attribute_parser.As<double>(signal::VmsBoard::DisplayArea::kZ), kDontAllowNan);
   // @}
 
   return {height, index, v, width, z};
@@ -254,19 +256,19 @@ signal::VmsBoard NodeParser::As() const {
   const auto display_type_str = attribute_parser.As<std::string>(signal::VmsBoard::kDisplayType);
   MALIDRIVE_THROW_UNLESS(display_type_str != std::nullopt, maliput::common::road_network_description_parser_error);
 
-  signal::DisplayType display_type;
+  signal::VmsBoard::DisplayType display_type;
   if (display_type_str.value() == "led") {
-    display_type = signal::DisplayType::kLed;
+    display_type = signal::VmsBoard::DisplayType::kLed;
   } else if (display_type_str.value() == "monochromeGraphic") {
-    display_type = signal::DisplayType::kMonochromeGraphic;
+    display_type = signal::VmsBoard::DisplayType::kMonochromeGraphic;
   } else if (display_type_str.value() == "rotatingPrismHorizontal") {
-    display_type = signal::DisplayType::kRotatingPrismHorizontal;
+    display_type = signal::VmsBoard::DisplayType::kRotatingPrismHorizontal;
   } else if (display_type_str.value() == "rotatingPrismVertical") {
-    display_type = signal::DisplayType::kRotatingPrismVertical;
+    display_type = signal::VmsBoard::DisplayType::kRotatingPrismVertical;
   } else if (display_type_str.value() == "simpleMatrix") {
-    display_type = signal::DisplayType::kSimpleMatrix;
+    display_type = signal::VmsBoard::DisplayType::kSimpleMatrix;
   } else {
-    display_type = signal::DisplayType::kOther;
+    display_type = signal::VmsBoard::DisplayType::kOther;
   }
 
   const double v = ValidateDouble(attribute_parser.As<double>(signal::VmsBoard::kV), kDontAllowNan);
@@ -279,22 +281,77 @@ signal::VmsBoard NodeParser::As() const {
   const auto display_width = attribute_parser.As<double>(signal::VmsBoard::kDisplayWidth);
   // @}
 
-  // DisplayArea elements
-  tinyxml2::XMLElement* display_area_element_xml = element_->FirstChildElement(signal::DisplayArea::kDisplayAreaTag);
-  std::vector<signal::DisplayArea> display_areas;
-  while (display_area_element_xml) {
-    auto display_area = NodeParser(display_area_element_xml, parser_configuration_).As<signal::DisplayArea>();
-    display_areas.push_back(display_area);
-    display_area_element_xml = display_area_element_xml->NextSiblingElement(signal::DisplayArea::kDisplayAreaTag);
+  // Elements
+  // @{
+  // Validity elements
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
+  while (validity_element_xml) {
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
+    validities.push_back(validity);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
+  // signal::Dependency elements
+  tinyxml2::XMLElement* dependency_element_xml = element_->FirstChildElement(signal::Dependency::kDependencyTag);
+  std::vector<signal::Dependency> dependencies;
+  while (dependency_element_xml) {
+    auto dependency = NodeParser(dependency_element_xml, parser_configuration_).As<signal::Dependency>();
+    dependencies.push_back(dependency);
+    dependency_element_xml = dependency_element_xml->NextSiblingElement(signal::Dependency::kDependencyTag);
+  }
+  // signal::Reference elements
+  tinyxml2::XMLElement* reference_element_xml = element_->FirstChildElement(signal::Reference::kReferenceTag);
+  std::vector<signal::Reference> references;
+  while (reference_element_xml) {
+    auto reference = NodeParser(reference_element_xml, parser_configuration_).As<signal::Reference>();
+    references.push_back(reference);
+    reference_element_xml = reference_element_xml->NextSiblingElement(signal::Reference::kReferenceTag);
+  }
+  // signal::VmsBoard::DisplayArea elements
+  tinyxml2::XMLElement* display_area_element_xml =
+      element_->FirstChildElement(signal::VmsBoard::DisplayArea::kDisplayAreaTag);
+  std::vector<signal::VmsBoard::DisplayArea> display_areas;
+  while (display_area_element_xml) {
+    auto display_area = NodeParser(display_area_element_xml, parser_configuration_).As<signal::VmsBoard::DisplayArea>();
+    display_areas.push_back(display_area);
+    display_area_element_xml =
+        display_area_element_xml->NextSiblingElement(signal::VmsBoard::DisplayArea::kDisplayAreaTag);
+  }
+  // @}
 
-  return {display_height, display_type, display_width, v, z, display_areas};
+  return {display_height, display_type, display_width, v, z, display_areas, dependencies, references, validities};
 }
 
 // Specialization to parse `signal::StaticBoard`'s node.
 template <>
 signal::StaticBoard NodeParser::As() const {
-  // Sign elements
+  // Elements
+  // @{
+  // Validity elements
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
+  while (validity_element_xml) {
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
+    validities.push_back(validity);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
+  }
+  // signal::Dependency elements
+  tinyxml2::XMLElement* dependency_element_xml = element_->FirstChildElement(signal::Dependency::kDependencyTag);
+  std::vector<signal::Dependency> dependencies;
+  while (dependency_element_xml) {
+    auto dependency = NodeParser(dependency_element_xml, parser_configuration_).As<signal::Dependency>();
+    dependencies.push_back(dependency);
+    dependency_element_xml = dependency_element_xml->NextSiblingElement(signal::Dependency::kDependencyTag);
+  }
+  // signal::Reference elements
+  tinyxml2::XMLElement* reference_element_xml = element_->FirstChildElement(signal::Reference::kReferenceTag);
+  std::vector<signal::Reference> references;
+  while (reference_element_xml) {
+    auto reference = NodeParser(reference_element_xml, parser_configuration_).As<signal::Reference>();
+    references.push_back(reference);
+    reference_element_xml = reference_element_xml->NextSiblingElement(signal::Reference::kReferenceTag);
+  }
+  // signal::Sign elements
   tinyxml2::XMLElement* sign_element_xml = element_->FirstChildElement(signal::Sign::kSignTag);
   std::vector<signal::Sign> signs;
   while (sign_element_xml) {
@@ -302,8 +359,9 @@ signal::StaticBoard NodeParser::As() const {
     signs.push_back(sign);
     sign_element_xml = sign_element_xml->NextSiblingElement(signal::Sign::kSignTag);
   }
+  // @}
 
-  return {signs};
+  return {signs, dependencies, references, validities};
 }
 
 // Specialization to parse `signal::Semantics::Speed`'s node.

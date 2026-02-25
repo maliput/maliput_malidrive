@@ -79,15 +79,15 @@ std::string GetBasicDisplayArea() {
   return ss.str();
 }
 
-// Tests `signal::DisplayArea` parsing.
+// Tests `signal::VmsBoard::DisplayArea` parsing.
 TEST_F(SignalParsingTests, NodeParserDisplayArea) {
-  const DisplayArea kExpectedDisplayArea{2.5, 1, 0.75, 1.8, 0.5};
+  const VmsBoard::DisplayArea kExpectedDisplayArea{2.5, 1, 0.75, 1.8, 0.5};
 
   const std::string xml_description = GetBasicDisplayArea();
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, DisplayArea::kDisplayAreaTag),
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, VmsBoard::DisplayArea::kDisplayAreaTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(DisplayArea::kDisplayAreaTag, dut.GetName());
-  const DisplayArea display_area = dut.As<DisplayArea>();
+  EXPECT_EQ(VmsBoard::DisplayArea::kDisplayAreaTag, dut.GetName());
+  const VmsBoard::DisplayArea display_area = dut.As<VmsBoard::DisplayArea>();
   EXPECT_EQ(kExpectedDisplayArea, display_area);
 }
 
@@ -104,9 +104,9 @@ std::string GetBasicVmsBoard() {
 
 // Tests `signal::VmsBoard` parsing.
 TEST_F(SignalParsingTests, NodeParserVmsBoard) {
-  const DisplayArea kDisplayArea{2.0, 0, 0.25, 1.5, 0.3};
-  const VmsBoard kExpectedVmsBoard{std::make_optional(3.0), DisplayType::kLed, std::make_optional(5.0), 0.5, 1.2,
-                                   {{kDisplayArea}}};
+  const VmsBoard::DisplayArea kDisplayArea{2.0, 0, 0.25, 1.5, 0.3};
+  const VmsBoard kExpectedVmsBoard{
+      std::make_optional(3.0), VmsBoard::DisplayType::kLed, std::make_optional(5.0), 0.5, 1.2, {{kDisplayArea}}};
 
   const std::string xml_description = GetBasicVmsBoard();
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, VmsBoard::kVmsBoardTag),
