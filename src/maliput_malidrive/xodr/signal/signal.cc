@@ -28,8 +28,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/signal/signal.h"
 
-#include "maliput_malidrive/xodr/signal/board.h"
-
 namespace malidrive {
 namespace xodr {
 namespace signal {
@@ -41,8 +39,7 @@ bool Signal::operator==(const Signal& other) const {
          value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
          length == other.length && pitch == other.pitch && roll == other.roll && text == other.text &&
          validities == other.validities && dependencies == other.dependencies && references == other.references &&
-         signal_references == other.signal_references && controllers == other.controllers &&
-         static_boards == other.static_boards && vms_boards == other.vms_boards;
+         signal_references == other.signal_references && controllers == other.controllers;
 }
 
 bool Signal::operator!=(const Signal& other) const { return !(*this == other); }

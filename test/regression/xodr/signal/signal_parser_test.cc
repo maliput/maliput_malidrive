@@ -32,11 +32,9 @@
 #include <tinyxml2.h>
 
 #include "maliput_malidrive/xodr/parser.h"
-#include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
-#include "maliput_malidrive/xodr/signal/sign.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"
 
@@ -68,75 +66,6 @@ class SignalParsingTests : public ::testing::Test {
 
   tinyxml2::XMLDocument xml_doc_;
 };
-
-// Get a XML description that contains a basic DisplayArea node.
-std::string GetBasicDisplayArea() {
-  std::stringstream ss;
-  ss << "<root>";
-  ss << R"R(<displayArea height="2.5" index="1" v="0.75" width="1.8" z="0.5"/>)R";
-  ss << "</root>";
-  return ss.str();
-}
-
-// Tests `signal::DisplayArea` parsing.
-TEST_F(SignalParsingTests, NodeParserDisplayArea) {
-  const DisplayArea kExpectedDisplayArea{2.5, 1, 0.75, 1.8, 0.5};
-
-  const std::string xml_description = GetBasicDisplayArea();
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, DisplayArea::kDisplayAreaTag),
-                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(DisplayArea::kDisplayAreaTag, dut.GetName());
-  const DisplayArea display_area = dut.As<DisplayArea>();
-  EXPECT_EQ(kExpectedDisplayArea, display_area);
-}
-
-// Get a XML description that contains a basic VmsBoard node.
-std::string GetBasicVmsBoard() {
-  std::stringstream ss;
-  ss << "<root>";
-  ss << R"R(<vmsBoard displayHeight="3.0" displayType="led" displayWidth="5.0" v="0.5" z="1.2">
-    <displayArea height="2.0" index="0" v="0.25" width="1.5" z="0.3"/>
-</vmsBoard>)R";
-  ss << "</root>";
-  return ss.str();
-}
-
-// Tests `signal::VmsBoard` parsing.
-TEST_F(SignalParsingTests, NodeParserVmsBoard) {
-  const DisplayArea kDisplayArea{2.0, 0, 0.25, 1.5, 0.3};
-  const VmsBoard kExpectedVmsBoard{std::make_optional(3.0), DisplayType::kLed, std::make_optional(5.0), 0.5, 1.2,
-                                   {{kDisplayArea}}};
-
-  const std::string xml_description = GetBasicVmsBoard();
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, VmsBoard::kVmsBoardTag),
-                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(VmsBoard::kVmsBoardTag, dut.GetName());
-  const VmsBoard vms_board = dut.As<VmsBoard>();
-  EXPECT_EQ(kExpectedVmsBoard, vms_board);
-}
-
-// Get a XML description that contains a basic StaticBoard node.
-std::string GetBasicStaticBoard() {
-  std::stringstream ss;
-  ss << "<root>";
-  ss << R"R(<staticBoard>
-    <sign id="1" s="1.0" t="2.0" dynamic="no" orientation="+" zOffset="0.1" country="DE" type="274" subtype="60" height="0.77" width="0.77" v="0.5" z="1.2"/>
-</staticBoard>)R";
-  ss << "</root>";
-  return ss.str();
-}
-
-// Tests `signal::StaticBoard` parsing.
-TEST_F(SignalParsingTests, NodeParserStaticBoard) {
-  const std::string xml_description = GetBasicStaticBoard();
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, StaticBoard::kStaticBoardTag),
-                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(StaticBoard::kStaticBoardTag, dut.GetName());
-  const StaticBoard static_board = dut.As<StaticBoard>();
-  EXPECT_EQ(1u, static_board.signs.size());
-  EXPECT_DOUBLE_EQ(0.5, static_board.signs[0].v);
-  EXPECT_DOUBLE_EQ(1.2, static_board.signs[0].z);
-}
 
 // Get a XML description that contains a basic Reference node.
 std::string GetBasicReference() {
