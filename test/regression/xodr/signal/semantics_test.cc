@@ -66,7 +66,7 @@ GTEST_TEST(Lane, EqualityOperator) {
   EXPECT_NE(kLane, lane);
 }
 
-// Tests for Priority
+// Tests for Semantics::Priority
 GTEST_TEST(Priority, EqualityOperator) {
   const Semantics::Priority kPriority{Semantics::SemanticsPriority::kStop};
 
