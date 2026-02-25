@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -31,52 +30,37 @@
 
 #include <optional>
 #include <string>
-#include <vector>
-
-#include <maliput/api/type_specific_identifier.h>
-
-#include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/xodr/object/common.h"
-#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 
-/// Holds the values of a XODR Object objectReference element.
-struct ObjectReference {
-  /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct ObjectReference>;
+struct Signal;
 
-  /// Convenient constants that hold the tag names in the XODR element attributes description.
-  static constexpr const char* kObjectReferenceTag = "objectReference";
-  static constexpr const char* kId = "id";
-  static constexpr const char* kOrientation = "orientation";
-  static constexpr const char* kS = "s";
-  static constexpr const char* kT = "t";
-  static constexpr const char* kValidLength = "validLength";
-  static constexpr const char* kZOffset = "zOffset";
+/// Holds the values of a XODR reference element.
+struct Reference {
+  /// Convenient constants that hold the tag names in the XODR reference description.
+  static constexpr const char* kReferenceTag = "reference";
+  static constexpr const char* kElementId = "elementId";
+  static constexpr const char* kElementType = "elementType";
+  static constexpr const char* kType = "type";
 
-  /// Unique ID of the referred object within the database.
-  Id id{"none"};
-  /// Orientation.
-  Orientation orientation{};
-  /// m	s-coordinate.
-  double s{};
-  /// m	t-coordinate.
-  double t{};
-  /// Validity of the object along s-axis.
-  std::optional<double> valid_length{std::nullopt};
-  /// z offset relative to the elevation of the road reference line.
-  std::optional<double> z_offset{std::nullopt};
+  enum class ElementType { kObject, kSignal };
 
-  /// Lane validities restrict signals and objects to specific lanes.
-  std::vector<malidrive::xodr::Validity> validities{};
+  /// Unique ID of the linked element.
+  std::string element_id{};
+  /// Type of the linked element.
+  ElementType element_type{};
+  /// Type of the linkage.
+  std::optional<std::string> type{};
 
-  bool operator==(const ObjectReference& other) const;
-  bool operator!=(const ObjectReference& other) const;
+  /// Equality operator.
+  bool operator==(const Reference& other) const;
+
+  /// Inequality operator.
+  bool operator!=(const Reference& other) const;
 };
 
-}  // namespace object
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

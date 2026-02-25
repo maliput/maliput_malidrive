@@ -404,22 +404,6 @@ object::Material NodeParser::As() const {
   return {friction, color, roughness, surface};
 }
 
-// Specialization to parse `object::Validity`'s node.
-template <>
-object::Validity NodeParser::As() const {
-  const AttributeParser attribute_parser(element_, parser_configuration_);
-
-  // Non-optional attributes.
-  // @{
-  const auto from_lane = attribute_parser.As<std::string>(object::Validity::kFromLane);
-  MALIDRIVE_THROW_UNLESS(from_lane != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto to_lane = attribute_parser.As<std::string>(object::Validity::kToLane);
-  MALIDRIVE_THROW_UNLESS(to_lane != std::nullopt, maliput::common::road_network_description_parser_error);
-  // @}
-
-  return {object::Validity::Id(from_lane.value_or("none")), object::Validity::Id(to_lane.value_or("none"))};
-}
-
 // Specialization to parse `object::ParkingSpace`'s node.
 template <>
 object::ParkingSpace NodeParser::As() const {
@@ -577,12 +561,12 @@ object::ObjectReference NodeParser::As() const {
   // @}
 
   // Validity elements
-  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(object::Validity::kValidityTag);
-  std::vector<object::Validity> validities;
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
   while (validity_element_xml) {
-    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<object::Validity>();
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
     validities.push_back(validity);
-    validity_element_xml = validity_element_xml->NextSiblingElement(object::Validity::kValidityTag);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
 
   return {object::ObjectReference::Id(id.value_or("none")),
@@ -619,12 +603,12 @@ object::Tunnel NodeParser::As() const {
   // @}
 
   // Validity elements
-  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(object::Validity::kValidityTag);
-  std::vector<object::Validity> validities;
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
   while (validity_element_xml) {
-    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<object::Validity>();
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
     validities.push_back(validity);
-    validity_element_xml = validity_element_xml->NextSiblingElement(object::Validity::kValidityTag);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
 
   return {daylight,  object::Tunnel::Id(id.value_or("none")), length.value(), lighting, name, s.value(), type.value(),
@@ -654,12 +638,12 @@ object::Bridge NodeParser::As() const {
   // @}
 
   // Validity elements
-  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(object::Validity::kValidityTag);
-  std::vector<object::Validity> validities;
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
   while (validity_element_xml) {
-    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<object::Validity>();
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
     validities.push_back(validity);
-    validity_element_xml = validity_element_xml->NextSiblingElement(object::Validity::kValidityTag);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
 
   return {object::Bridge::Id(id.value_or("none")), length.value(), name, s.value(), type.value(), validities};
@@ -770,12 +754,12 @@ object::Object NodeParser::As() const {
   }
 
   // Validity elements
-  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(object::Validity::kValidityTag);
-  std::vector<object::Validity> validities;
+  tinyxml2::XMLElement* validity_element_xml = element_->FirstChildElement(Validity::kValidityTag);
+  std::vector<Validity> validities;
   while (validity_element_xml) {
-    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<object::Validity>();
+    auto validity = NodeParser(validity_element_xml, parser_configuration_).As<Validity>();
     validities.push_back(validity);
-    validity_element_xml = validity_element_xml->NextSiblingElement(object::Validity::kValidityTag);
+    validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
 
   // ParkingSpace element
