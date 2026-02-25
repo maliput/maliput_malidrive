@@ -29,6 +29,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 
 #include <maliput/api/type_specific_identifier.h>
 

@@ -29,6 +29,7 @@
 #pragma once
 
 #include <optional>
+#include <string>
 
 namespace malidrive {
 namespace xodr {

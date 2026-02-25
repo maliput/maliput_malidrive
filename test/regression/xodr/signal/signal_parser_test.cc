@@ -36,6 +36,7 @@
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
+#include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/sign.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"
