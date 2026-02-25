@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2025-2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -29,54 +28,33 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <optional>
-#include <string>
-#include <vector>
-
 #include <maliput/api/type_specific_identifier.h>
-
-#include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/xodr/object/common.h"
-#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
 
-/// Holds the values of a XODR Object objectReference element.
-struct ObjectReference {
+/// Holds the values of a XODR validity element.
+struct Validity {
   /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct ObjectReference>;
+  using Id = maliput::api::TypeSpecificIdentifier<struct Validity>;
 
-  /// Convenient constants that hold the tag names in the XODR element attributes description.
-  static constexpr const char* kObjectReferenceTag = "objectReference";
-  static constexpr const char* kId = "id";
-  static constexpr const char* kOrientation = "orientation";
-  static constexpr const char* kS = "s";
-  static constexpr const char* kT = "t";
-  static constexpr const char* kValidLength = "validLength";
-  static constexpr const char* kZOffset = "zOffset";
+  /// Convenient constants that hold the tag names in the XODR validity description.
+  static constexpr const char* kValidityTag = "validity";
+  static constexpr const char* kFromLane = "fromLane";
+  static constexpr const char* kToLane = "toLane";
 
-  /// Unique ID of the referred object within the database.
-  Id id{"none"};
-  /// Orientation.
-  Orientation orientation{};
-  /// m	s-coordinate.
-  double s{};
-  /// m	t-coordinate.
-  double t{};
-  /// Validity of the object along s-axis.
-  std::optional<double> valid_length{std::nullopt};
-  /// z offset relative to the elevation of the road reference line.
-  std::optional<double> z_offset{std::nullopt};
+  /// Minimum ID of the lanes for which the parent element is valid. The value of the @fromLane attribute shall be lower
+  /// than or equal to the value of the @toLane attribute.
+  Id from_lane{"none"};
+  /// Maximum ID of the lanes for which the parent element is valid.
+  Id to_lane{"none"};
 
-  /// Lane validities restrict signals and objects to specific lanes.
-  std::vector<malidrive::xodr::Validity> validities{};
+  /// Equality operator.
+  bool operator==(const Validity& other) const;
 
-  bool operator==(const ObjectReference& other) const;
-  bool operator!=(const ObjectReference& other) const;
+  /// Inequality operator.
+  bool operator!=(const Validity& other) const;
 };
 
-}  // namespace object
 }  // namespace xodr
 }  // namespace malidrive

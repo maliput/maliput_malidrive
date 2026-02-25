@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,37 +26,18 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#pragma once
-
-#include <maliput/api/type_specific_identifier.h>
+#include "maliput_malidrive/xodr/signal/reference.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 
-/// Holds the values of a XODR Object validity element.
-struct Validity {
-  /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct Validity>;
+bool Reference::operator==(const Reference& other) const {
+  return element_id == other.element_id && element_type == other.element_type && type == other.type;
+}
 
-  /// Convenient constants that hold the tag names in the XODR object validity description.
-  static constexpr const char* kValidityTag = "validity";
-  static constexpr const char* kFromLane = "fromLane";
-  static constexpr const char* kToLane = "toLane";
+bool Reference::operator!=(const Reference& other) const { return !(*this == other); }
 
-  /// Minimum ID of the lanes for which the object is valid. The value of the @fromLane attribute shall be lower than or
-  /// equal to the value of the @toLane attribute.
-  Id from_lane{"none"};
-  /// Maximum ID of the lanes for which the object is valid.
-  Id to_lane{"none"};
-
-  /// Equality operator.
-  bool operator==(const Validity& other) const;
-
-  /// Inequality operator.
-  bool operator!=(const Validity& other) const;
-};
-
-}  // namespace object
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

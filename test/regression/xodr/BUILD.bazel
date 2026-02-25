@@ -10,5 +10,5 @@ load("//:bazel/testing.bzl", "generate_unit_tests")
 ###############################################################################
 
 generate_unit_tests(
-   sources = glob(["*.cc"])
+   sources = glob(["**/*.cc"])
 )

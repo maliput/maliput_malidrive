@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,7 +26,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 #include <optional>
 
@@ -34,6 +34,7 @@
 
 namespace malidrive {
 namespace xodr {
+namespace signal {
 namespace test {
 namespace {
 
@@ -41,7 +42,7 @@ GTEST_TEST(Signal, EqualityOperator) {
   const Signal kSignal{
       1.0 /* s */,
       2.0 /* t */,
-      "signal_id" /* id */,
+      signal::Signal::Id("signal_id") /* id */,
       std::make_optional("signal_name") /* name */,
       false /* dynamic */,
       "+" /* orientation */,
@@ -84,7 +85,38 @@ GTEST_TEST(Value, EqualityOperatorEmptyUnit) {
   EXPECT_EQ(kSignalValue, signal_value);
 }
 
+GTEST_TEST(Signals, EqualityOperator) {
+  const Signal kSignal{
+      1.0 /* s */,
+      2.0 /* t */,
+      signal::Signal::Id("signal_id") /* id */,
+      std::make_optional("signal_name") /* name */,
+      false /* dynamic */,
+      "+" /* orientation */,
+      0.1 /* z_offset */,
+      std::make_optional("signal_country") /* country */,
+      std::make_optional("signal_country_revision") /* country_revision */,
+      "signal_type" /* type */,
+      "signal_subtype" /* subtype */,
+      std::nullopt /* value */,
+      std::make_optional(1.0) /* height */,
+      std::make_optional(1.0) /* width */,
+      std::make_optional(1.0) /* h_offset */,
+      std::make_optional(1.0) /* length */,
+      std::make_optional(1.0) /* pitch */,
+      std::make_optional(1.0) /* roll */,
+      std::make_optional("signal_text") /* text */
+  };
+  const Signals kSignals{{{kSignal}}};
+
+  Signals signals = kSignals;
+  EXPECT_EQ(kSignals, signals);
+  signals.signals[0].s = 2.;
+  EXPECT_NE(kSignals, signals);
+}
+
 }  // namespace
 }  // namespace test
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

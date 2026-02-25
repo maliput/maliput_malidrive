@@ -36,7 +36,7 @@
 #include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/xodr/object/validity.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
@@ -78,7 +78,7 @@ struct Tunnel {
   Type type;
 
   /// Lane validities restrict signals and objects to specific lanes.
-  std::vector<Validity> validities{};
+  std::vector<malidrive::xodr::Validity> validities{};
 
   /// Matches string with a Type.
   /// @param type Is a Type.
