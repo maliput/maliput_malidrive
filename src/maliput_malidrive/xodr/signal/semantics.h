@@ -276,7 +276,7 @@ struct Semantics {
   std::vector<Speed> speeds{};
   std::vector<Lane> lanes{};
   std::vector<Priority> priorities{};
-  std::vector<Prohibited> prohibiteds{};
+  std::vector<Prohibited> prohibited{};
   std::vector<Warning> warnings{};
   std::vector<Routing> routings{};
   std::vector<StreetName> street_names{};

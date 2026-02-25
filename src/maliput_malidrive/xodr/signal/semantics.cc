@@ -100,7 +100,7 @@ bool SupplementaryExplanatory::operator!=(const SupplementaryExplanatory& other)
 
 bool Semantics::operator==(const Semantics& other) const {
   return speeds == other.speeds && lanes == other.lanes && priorities == other.priorities &&
-         prohibiteds == other.prohibiteds && warnings == other.warnings && routings == other.routings &&
+         prohibited == other.prohibited && warnings == other.warnings && routings == other.routings &&
          street_names == other.street_names && parkings == other.parkings && tourists == other.tourists &&
          supplementary_times == other.supplementary_times && supplementary_allows == other.supplementary_allows &&
          supplementary_prohibits == other.supplementary_prohibits &&

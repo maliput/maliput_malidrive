@@ -468,7 +468,7 @@ signal::Semantics NodeParser::As() const {
   parse_elements(signal::Speed::kSpeedTag, semantics.speeds);
   parse_elements(signal::Lane::kLaneTag, semantics.lanes);
   parse_elements(signal::Priority::kPriorityTag, semantics.priorities);
-  parse_elements(signal::Prohibited::kProhibitedTag, semantics.prohibiteds);
+  parse_elements(signal::Prohibited::kProhibitedTag, semantics.prohibited);
   parse_elements(signal::Warning::kWarningTag, semantics.warnings);
   parse_elements(signal::Routing::kRoutingTag, semantics.routings);
   parse_elements(signal::StreetName::kStreetNameTag, semantics.street_names);
