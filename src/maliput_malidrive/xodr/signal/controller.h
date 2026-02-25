@@ -28,6 +28,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <optional>
+#include <string>
+#include <vector>
+
 #include <maliput/api/type_specific_identifier.h>
 
 namespace malidrive {

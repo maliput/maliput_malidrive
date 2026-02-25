@@ -54,7 +54,6 @@
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
-#include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
@@ -1368,22 +1367,6 @@ signal::Signal NodeParser::As() const {
     controllers.push_back(controller);
     controller_element_xml = controller_element_xml->NextSiblingElement(signal::Controller::kControllerTag);
   }
-  // signal::StaticBoard elements
-  tinyxml2::XMLElement* static_board_element_xml = element_->FirstChildElement(signal::StaticBoard::kStaticBoardTag);
-  std::vector<signal::StaticBoard> static_boards;
-  while (static_board_element_xml) {
-    auto static_board = NodeParser(static_board_element_xml, parser_configuration_).As<signal::StaticBoard>();
-    static_boards.push_back(static_board);
-    static_board_element_xml = static_board_element_xml->NextSiblingElement(signal::StaticBoard::kStaticBoardTag);
-  }
-  // signal::VmsBoard elements
-  tinyxml2::XMLElement* vms_board_element_xml = element_->FirstChildElement(signal::VmsBoard::kVmsBoardTag);
-  std::vector<signal::VmsBoard> vms_boards;
-  while (vms_board_element_xml) {
-    auto vms_board = NodeParser(vms_board_element_xml, parser_configuration_).As<signal::VmsBoard>();
-    vms_boards.push_back(vms_board);
-    vms_board_element_xml = vms_board_element_xml->NextSiblingElement(signal::VmsBoard::kVmsBoardTag);
-  }
   // signal::Semantics elements
   tinyxml2::XMLElement* semantics_element_xml = element_->FirstChildElement(signal::Semantics::kSemanticsTag);
   std::vector<signal::Semantics> semantics;
@@ -1418,8 +1401,6 @@ signal::Signal NodeParser::As() const {
           references,
           signal_references,
           controllers,
-          static_boards,
-          vms_boards,
           semantics};
 }
 
