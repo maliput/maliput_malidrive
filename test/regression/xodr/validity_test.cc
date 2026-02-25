@@ -27,70 +27,30 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#pragma once
-
-#include <optional>
-#include <string>
-#include <vector>
-
-#include <maliput/api/type_specific_identifier.h>
-
-#include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/validity.h"
+
+#include <gtest/gtest.h>
+#include <maliput/common/error.h>
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace test {
+namespace {
 
-/// Holds the values of a XODR Object bridge element.
-struct Bridge {
-  /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct Bridge>;
+GTEST_TEST(Validity, EqualityOperator) {
+  const Validity kValidity{Validity::Id("test"), Validity::Id("test2")};
+  Validity validity = kValidity;
 
-  /// Convenient constants that hold the tag names in the XODR element attributes description.
-  static constexpr const char* kBridgeTag = "bridge";
-  static constexpr const char* kId = "id";
-  static constexpr const char* kLength = "length";
-  static constexpr const char* kName = "name";
-  static constexpr const char* kS = "s";
-  static constexpr const char* kType = "type";
+  EXPECT_EQ(kValidity, validity);
+  // Test inequality
+  validity.from_lane = Validity::Id("test2");
+  EXPECT_NE(kValidity, validity);
+  validity.from_lane = Validity::Id("test");
+  validity.to_lane = Validity::Id("test3");
+  EXPECT_NE(kValidity, validity);
+}
 
-  enum class Type {
-    kBrick,
-    kConcrete,
-    kSteel,
-    kWood,
-  };
-
-  /// Unique ID within database.
-  Id id{"none"};
-  /// Length of the tunnel (in s-direction).
-  double length;
-  /// Name of the tunnel. May be chosen freely.
-  std::optional<std::string> name{std::nullopt};
-  /// Starting coordinate.
-  double s;
-  /// Type of tunnel.
-  Type type;
-
-  /// Lane validities restrict signals and objects to specific lanes.
-  std::vector<malidrive::xodr::Validity> validities{};
-
-  /// Matches string with a Type.
-  /// @param type Is a Type.
-  /// @returns A string that matches with `type`.
-  static std::string type_to_str(Type type);
-
-  /// Matches Type with a string.
-  /// @param type Is a string.
-  /// @returns A Type that matches with `type`.
-  /// @throw maliput::common::assertion_error When `type` doesn't match with a Type.
-  static Type str_to_type(const std::string& type);
-
-  bool operator==(const Bridge& other) const;
-  bool operator!=(const Bridge& other) const;
-};
-
-}  // namespace object
+}  // namespace
+}  // namespace test
 }  // namespace xodr
 }  // namespace malidrive

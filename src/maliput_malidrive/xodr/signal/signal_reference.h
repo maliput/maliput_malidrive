@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,18 +26,52 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/validity.h"
+#pragma once
+
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
+
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 
-bool Validity::operator==(const Validity& other) const {
-  return from_lane == other.from_lane && to_lane == other.to_lane;
-}
+struct Signal;
 
-bool Validity::operator!=(const Validity& other) const { return !(*this == other); }
+/// Holds the values of a XODR signal reference element.
+struct SignalReference {
+  /// SignalId alias.
+  using SignalId = maliput::api::TypeSpecificIdentifier<struct SignalReference>;
+  /// Convenient constants that hold the tag names in the XODR signal reference description.
+  static constexpr const char* kSignalReferenceTag = "signalReference";
+  static constexpr const char* kSignalId = "id";
+  static constexpr const char* kOrientation = "orientation";
+  static constexpr const char* kS = "s";
+  static constexpr const char* kT = "t";
 
-}  // namespace object
+  enum class Orientation { kWithS, kAgainstS, kBidirectional };
+
+  /// Unique ID of the referenced signal.
+  SignalId signal_id;
+  /// Orientation of the reference. It can be "+" for positive s-direction, "-" for negative s-direction, or "none" for
+  /// bidirectional.
+  Orientation orientation{};
+  /// s-coordinate.
+  double s{};
+  /// t-coordinate.
+  double t{};
+  /// Validity element.
+  std::vector<Validity> validities{};
+
+  /// Equality operator.
+  bool operator==(const SignalReference& other) const;
+
+  /// Inequality operator.
+  bool operator!=(const SignalReference& other) const;
+};
+
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

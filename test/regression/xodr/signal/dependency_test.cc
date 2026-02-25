@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,40 +26,35 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#pragma once
+#include "maliput_malidrive/xodr/signal/dependency.h"
 
-#include <vector>
+#include <optional>
 
-#include "maliput_malidrive/xodr/signal.h"
+#include <gtest/gtest.h>
 
 namespace malidrive {
 namespace xodr {
+namespace signal {
+namespace test {
+namespace {
 
-/// Holds the values of a XODR Signals node.
-/// For example, a XML node describing a XODR's signals node:
-/// @code{.xml}
-///  <OpenDRIVE>
-///       ...
-///   <signals>
-///      <signal s="0.0000000000000000e+0" id="1" name="signal1" ... />
-///      <signal s="3.8268524704053952e-2" id="2" name="signal2" ... />
-///   </signals>
-///     ...
-///  </OpenDRIVE>
-/// @endcode
-struct Signals {
-  /// Hold the tag for the signals in the XODR signals description.
-  static constexpr const char* kSignalsTag = "signals";
+GTEST_TEST(Dependency, EqualityOperator) {
+  const Dependency kDependency{Dependency::SignalId("signal_id") /* signal_id */,
+                               std::make_optional("dependency_type") /* type */};
 
-  /// Equality operator.
-  bool operator==(const Signals& other) const;
+  Dependency dependency = kDependency;
+  EXPECT_EQ(kDependency, dependency);
 
-  /// Inequality operator.
-  bool operator!=(const Signals& other) const;
+  dependency.signal_id = Dependency::SignalId("new_signal_id");
+  EXPECT_NE(kDependency, dependency);
+  dependency = kDependency;
 
-  /// Holds all the `Signal`s in the road.
-  std::vector<Signal> signals{};
-};
+  dependency.type = std::make_optional("new_type");
+  EXPECT_NE(kDependency, dependency);
+}
 
+}  // namespace
+}  // namespace test
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

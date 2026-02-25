@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -30,12 +30,22 @@
 
 #include <optional>
 #include <string>
+#include <vector>
+
+#include <maliput/api/type_specific_identifier.h>
+
+#include "maliput_malidrive/xodr/signal/controller.h"
+#include "maliput_malidrive/xodr/signal/dependency.h"
+#include "maliput_malidrive/xodr/signal/reference.h"
+#include "maliput_malidrive/xodr/signal/signal_reference.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
+namespace signal {
 
-/// Holds the values of a XODR Signal Offset.
-/// For example, a XML node describing a XODR's signal offset:
+/// Holds the values of a XODR Signal.
+/// For example, a XML node describing a XODR's signal:
 /// @code{.xml}
 ///   <OpenDRIVE>
 ///       ...
@@ -66,6 +76,8 @@ namespace xodr {
 ///   </OpenDRIVE>
 /// @endcode
 struct Signal {
+  using Id = maliput::api::TypeSpecificIdentifier<struct Signal>;
+
   /// Holds the value and unit of a XODR Signal.
   /// If @value is given, @unit is mandatory.
   struct Value {
@@ -117,7 +129,7 @@ struct Signal {
   double t{};
 
   /// Unique ID of the signal within the OpenDRIVE file.
-  std::string id{};
+  Id id;
 
   /// Name of the signal. May be chosen freely.
   std::optional<std::string> name{std::nullopt};
@@ -167,7 +179,49 @@ struct Signal {
 
   /// Additional text associated with the signal.
   std::optional<std::string> text{std::nullopt};
+
+  /// Validity elements.
+  std::vector<malidrive::xodr::Validity> validities{};
+
+  /// Dependency elements.
+  std::vector<Dependency> dependencies{};
+
+  /// Reference elements.
+  std::vector<Reference> references{};
+
+  /// SignalReference elements.
+  std::vector<SignalReference> signal_references{};
+
+  /// Controller elements.
+  std::vector<Controller> controllers{};
 };
 
+/// Holds the values of a XODR Signals node.
+/// For example, a XML node describing a XODR's signals node:
+/// @code{.xml}
+///  <OpenDRIVE>
+///       ...
+///   <signals>
+///      <signal s="0.0000000000000000e+0" id="1" name="signal1" ... />
+///      <signal s="3.8268524704053952e-2" id="2" name="signal2" ... />
+///   </signals>
+///     ...
+///  </OpenDRIVE>
+/// @endcode
+struct Signals {
+  /// Hold the tag for the signals in the XODR signals description.
+  static constexpr const char* kSignalsTag = "signals";
+
+  /// Equality operator.
+  bool operator==(const Signals& other) const { return signals == other.signals; }
+
+  /// Inequality operator.
+  bool operator!=(const Signals& other) const { return !(*this == other); }
+
+  /// Holds all the `Signal`s in the road.
+  std::vector<Signal> signals{};
+};
+
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

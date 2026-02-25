@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,32 +26,24 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/validity.h"
-
-#include <gtest/gtest.h>
-#include <maliput/common/error.h>
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
-namespace test {
-namespace {
+namespace signal {
 
-GTEST_TEST(Validity, EqualityOperator) {
-  const Validity kValidity{object::Validity::Id("test"), object::Validity::Id("test2")};
-  Validity validity = kValidity;
-
-  EXPECT_EQ(kValidity, validity);
-  // Test inequality
-  validity.from_lane = object::Validity::Id("test2");
-  EXPECT_NE(kValidity, validity);
-  validity.from_lane = object::Validity::Id("test");
-  validity.to_lane = object::Validity::Id("test3");
-  EXPECT_NE(kValidity, validity);
+bool Signal::operator==(const Signal& other) const {
+  return s == other.s && t == other.t && id == other.id && name == other.name && dynamic == other.dynamic &&
+         orientation == other.orientation && z_offset == other.z_offset && country == other.country &&
+         country_revision == other.country_revision && type == other.type && subtype == other.subtype &&
+         value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
+         length == other.length && pitch == other.pitch && roll == other.roll && text == other.text &&
+         validities == other.validities && dependencies == other.dependencies && references == other.references &&
+         signal_references == other.signal_references && controllers == other.controllers;
 }
 
-}  // namespace
-}  // namespace test
-}  // namespace object
+bool Signal::operator!=(const Signal& other) const { return !(*this == other); }
+
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive
