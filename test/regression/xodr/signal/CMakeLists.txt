@@ -2,6 +2,7 @@ set(UNIT_TEST_XODR_OBJECT_SOURCES
   controller_test.cc
   dependency_test.cc
   reference_test.cc
+  semantics_test.cc
   signal_reference_test.cc
   signal_test.cc
   signal_parser_test.cc

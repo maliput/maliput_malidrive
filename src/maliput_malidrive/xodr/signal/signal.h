@@ -37,6 +37,7 @@
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
+#include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"
 #include "maliput_malidrive/xodr/validity.h"
 
@@ -194,6 +195,9 @@ struct Signal {
 
   /// Controller elements.
   std::vector<Controller> controllers{};
+
+  /// Semantics element.
+  std::vector<Semantics> semantics{};
 };
 
 /// Holds the values of a XODR Signals node.
