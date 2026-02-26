@@ -39,6 +39,7 @@ add_library(xodr
   signal/controller.cc
   signal/dependency.cc
   signal/reference.cc
+  signal/semantics.cc
   signal/signal_parser.cc
   signal/signal_reference.cc
   signal/signal.cc
