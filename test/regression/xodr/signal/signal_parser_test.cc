@@ -809,6 +809,135 @@ TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryEnvironmentTyp
   EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
 }
 
+// Get a XML description that contains a basic Sign node.
+std::string GetBasicSign() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R( 
+          <sign s="100.10"
+              t="-1.5"
+              id="12345"
+              name="Test Signal"
+              dynamic="no"
+              orientation="+"
+              zOffset="2.22"
+              country="DE"
+              countryRevision="2017"
+              type="274"
+              subtype="100"
+              value="100"
+              unit="km/h"
+              height="0.5"
+              width="1.0"
+              hOffset="0.5"
+              length="1.5"
+              pitch="0.1"
+              roll="0.2"
+              text="Sample Text"
+              v="0.5"
+              z="1.2">
+            <validity fromLane="1" toLane="2"/>
+          </sign>
+        )R";
+  ss << "</root>";
+  return ss.str();
+}
+
+// Tests `signal::Sign` parsing.
+TEST_F(SignalParsingTests, NodeParserSign) {
+  const Validity kValidity{Validity::Id("1"), Validity::Id("2")};
+  const Signal kBaseSignal{100.10, -1.5, Signal::Id("12345"), std::make_optional("Test Signal"), false, "+", 2.22, std::make_optional("DE"),
+                      std::make_optional("2017"), "274", "100", signal::Signal::Value{100.0, "km/h"}, 0.5, 1.0, 0.5, 1.5, 0.1, 0.2, "Sample Text", {{kValidity}}};
+  const Sign kExpectedSign{kBaseSignal, 0.5, 1.2};
+
+  const std::string xml_description = GetBasicSign();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Sign::kSignTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Sign::kSignTag, dut.GetName());
+  const Sign sign = dut.As<Sign>();
+  EXPECT_EQ(kExpectedSign, sign);
+}
+
+std::string GetSignMissingV() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R( 
+          <sign s="100.10"
+              t="-1.5"
+              id="12345"
+              name="Test Signal"
+              dynamic="no"
+              orientation="+"
+              zOffset="2.22"
+              country="DE"
+              countryRevision="2017"
+              type="274"
+              subtype="100"
+              value="100"
+              unit="km/h"
+              height="0.5"
+              width="1.0"
+              hOffset="0.5"
+              length="1.5"
+              pitch="0.1"
+              roll="0.2"
+              text="Sample Text"
+              z="1.2">
+            <validity fromLane="1" toLane="2"/>
+          </sign>
+        )R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignMissingV) {
+  const std::string xml_description = GetSignMissingV();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Sign::kSignTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Sign::kSignTag, dut.GetName());
+  EXPECT_THROW(dut.As<Sign>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSignMissingZ() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R( 
+          <sign s="100.10"
+              t="-1.5"
+              id="12345"
+              name="Test Signal"
+              dynamic="no"
+              orientation="+"
+              zOffset="2.22"
+              country="DE"
+              countryRevision="2017"
+              type="274"
+              subtype="100"
+              value="100"
+              unit="km/h"
+              height="0.5"
+              width="1.0"
+              hOffset="0.5"
+              length="1.5"
+              pitch="0.1"
+              roll="0.2"
+              text="Sample Text"
+              v="0.5">
+            <validity fromLane="1" toLane="2"/>
+          </sign>
+        )R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignMissingZ) {
+  const std::string xml_description = GetSignMissingZ();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Sign::kSignTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Sign::kSignTag, dut.GetName());
+  EXPECT_THROW(dut.As<Sign>(), maliput::common::road_network_description_parser_error);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace signal
