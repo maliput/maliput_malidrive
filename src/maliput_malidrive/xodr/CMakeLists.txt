@@ -36,10 +36,12 @@ add_library(xodr
   road_header.cc
   road_link.cc
   road_type.cc
+  signal/board.cc
   signal/controller.cc
   signal/dependency.cc
   signal/reference.cc
   signal/semantics.cc
+  signal/sign.cc
   signal/signal_parser.cc
   signal/signal_reference.cc
   signal/signal.cc

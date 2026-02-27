@@ -34,6 +34,7 @@
 
 #include <maliput/api/type_specific_identifier.h>
 
+#include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
@@ -195,6 +196,12 @@ struct Signal {
 
   /// Controller elements.
   std::vector<Controller> controllers{};
+
+  /// StaticBoard element.
+  std::vector<StaticBoard> static_boards{};
+
+  /// VmsBoard element.
+  std::vector<VmsBoard> vms_boards{};
 
   /// Semantics element.
   std::vector<Semantics> semantics{};
