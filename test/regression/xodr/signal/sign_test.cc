@@ -26,27 +26,57 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/xodr/signal/sign.h"
 
-#include "maliput_malidrive/xodr/signal/board.h"
+#include <optional>
+
+#include <gtest/gtest.h>
+
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 namespace malidrive {
 namespace xodr {
 namespace signal {
+namespace test {
+namespace {
 
-bool Signal::operator==(const Signal& other) const {
-  return s == other.s && t == other.t && id == other.id && name == other.name && dynamic == other.dynamic &&
-         orientation == other.orientation && z_offset == other.z_offset && country == other.country &&
-         country_revision == other.country_revision && type == other.type && subtype == other.subtype &&
-         value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
-         length == other.length && pitch == other.pitch && roll == other.roll && text == other.text &&
-         validities == other.validities && dependencies == other.dependencies && references == other.references &&
-         signal_references == other.signal_references && controllers == other.controllers &&
-         static_boards == other.static_boards && vms_boards == other.vms_boards && semantics == other.semantics;
+GTEST_TEST(Sign, EqualityOperator) {
+  const Signal kSignal{
+      1.0 /* s */,
+      2.0 /* t */,
+      signal::Signal::Id("signal_id") /* id */,
+      std::make_optional("signal_name") /* name */,
+      false /* dynamic */,
+      "+" /* orientation */,
+      0.1 /* z_offset */,
+      std::make_optional("signal_country") /* country */,
+      std::make_optional("signal_country_revision") /* country_revision */,
+      "signal_type" /* type */,
+      "signal_subtype" /* subtype */,
+      std::nullopt /* value */,
+      std::make_optional(1.0) /* height */,
+      std::make_optional(1.0) /* width */,
+      std::make_optional(1.0) /* h_offset */,
+      std::make_optional(1.0) /* length */,
+      std::make_optional(1.0) /* pitch */,
+      std::make_optional(1.0) /* roll */,
+      std::make_optional("signal_text") /* text */
+  };
+  const Sign kSign = Sign(kSignal, 0.5 /* v */, 1.2 /* z */);
+
+  Sign sign = kSign;
+  EXPECT_EQ(kSign, sign);
+
+  sign.v = 1.0;
+  EXPECT_NE(kSign, sign);
+  sign = kSign;
+
+  sign.z = 2.0;
+  EXPECT_NE(kSign, sign);
 }
 
-bool Signal::operator!=(const Signal& other) const { return !(*this == other); }
-
+}  // namespace
+}  // namespace test
 }  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive
