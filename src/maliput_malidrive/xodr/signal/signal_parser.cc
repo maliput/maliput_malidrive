@@ -177,7 +177,6 @@ signal::SignalReference NodeParser::As() const {
     validities.push_back(validity);
     validity_element_xml = validity_element_xml->NextSiblingElement(Validity::kValidityTag);
   }
-  MALIDRIVE_THROW_UNLESS(!validities.empty(), maliput::common::road_network_description_parser_error);
 
   return {signal::SignalReference::SignalId(signal_id.value_or("none")), orientation, s.value(), t.value(), validities};
 }

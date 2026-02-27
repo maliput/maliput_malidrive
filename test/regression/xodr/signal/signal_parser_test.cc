@@ -160,6 +160,54 @@ TEST_F(SignalParsingTests, NodeParserReference) {
   EXPECT_EQ(kExpectedReference, reference);
 }
 
+std::string GetReferenceMissingElementId() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<reference elementType="object" type="reference_type"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserReferenceMissingElementId) {
+  const std::string xml_description = GetReferenceMissingElementId();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Reference::kReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Reference::kReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<Reference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetReferenceMissingElementType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<reference elementId="10" type="reference_type"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserReferenceMissingElementType) {
+  const std::string xml_description = GetReferenceMissingElementType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Reference::kReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Reference::kReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<Reference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetReferenceInvalidElementType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<reference elementId="10" elementType="invalid" type="reference_type"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserReferenceInvalidElementType) {
+  const std::string xml_description = GetReferenceInvalidElementType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Reference::kReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Reference::kReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<Reference>(), maliput::common::road_network_description_parser_error);
+}
+
 // Get a XML description that contains a basic SignalReference node.
 std::string GetBasicSignalReference() {
   std::stringstream ss;
@@ -178,6 +226,117 @@ TEST_F(SignalParsingTests, NodeParserSignalReference) {
       SignalReference::SignalId("signal_1"), SignalReference::Orientation::kWithS, 10.0, 5.0, {{kValidity}}};
 
   const std::string xml_description = GetBasicSignalReference();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
+  const SignalReference signal_reference = dut.As<SignalReference>();
+  EXPECT_EQ(kExpectedSignalReference, signal_reference);
+}
+
+std::string GetSignalReferenceMissingId() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<signalReference orientation="+" s="10.0" t="5.0">
+    <validity fromLane="1" toLane="3"/>
+</signalReference>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignalReferenceMissingId) {
+  const std::string xml_description = GetSignalReferenceMissingId();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<SignalReference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSignalReferenceMissingOrientation() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<signalReference id="signal_1" s="10.0" t="5.0">
+    <validity fromLane="1" toLane="3"/>
+</signalReference>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignalReferenceMissingOrientation) {
+  const std::string xml_description = GetSignalReferenceMissingOrientation();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<SignalReference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSignalReferenceInvalidOrientation() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<signalReference id="signal_1" orientation="invalid" s="10.0" t="5.0">
+    <validity fromLane="1" toLane="3"/>
+</signalReference>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignalReferenceInvalidOrientation) {
+  const std::string xml_description = GetSignalReferenceInvalidOrientation();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<SignalReference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSignalReferenceMissingS() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<signalReference id="signal_1" orientation="+" t="5.0">
+    <validity fromLane="1" toLane="3"/>
+</signalReference>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignalReferenceMissingS) {
+  const std::string xml_description = GetSignalReferenceMissingS();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<SignalReference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSignalReferenceMissingT() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<signalReference id="signal_1" orientation="+" s="10.0">
+    <validity fromLane="1" toLane="3"/>
+</signalReference>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignalReferenceMissingT) {
+  const std::string xml_description = GetSignalReferenceMissingT();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
+  EXPECT_THROW(dut.As<SignalReference>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSignalReferenceMissingValidity() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<signalReference id="signal_1" orientation="+" s="10.0" t="5.0">
+</signalReference>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSignalReferenceMissingValidity) {
+  const SignalReference kExpectedSignalReference{
+      SignalReference::SignalId("signal_1"), SignalReference::Orientation::kWithS, 10.0, 5.0, {}};
+
+  const std::string xml_description = GetSignalReferenceMissingValidity();
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(SignalReference::kSignalReferenceTag, dut.GetName());
@@ -206,6 +365,41 @@ TEST_F(SignalParsingTests, NodeParserDependency) {
   EXPECT_EQ(kExpectedDependency, dependency);
 }
 
+std::string GetDependencyMissingId() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<dependency type="dependency_type"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserDependencyMissingId) {
+  const std::string xml_description = GetDependencyMissingId();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Dependency::kDependencyTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Dependency::kDependencyTag, dut.GetName());
+  EXPECT_THROW(dut.As<Dependency>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetDependencyMissingType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<dependency id="dep_signal_1"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserDependencyMissingType) {
+  const Dependency kExpectedDependency{Dependency::SignalId("dep_signal_1"), std::nullopt};
+
+  const std::string xml_description = GetDependencyMissingType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Dependency::kDependencyTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Dependency::kDependencyTag, dut.GetName());
+  const Dependency dependency = dut.As<Dependency>();
+  EXPECT_EQ(kExpectedDependency, dependency);
+}
+
 // Get a XML description that contains a basic Control node.
 std::string GetBasicControl() {
   std::stringstream ss;
@@ -220,6 +414,41 @@ TEST_F(SignalParsingTests, NodeParserControl) {
   const Control kExpectedControl{Control::SignalId("control_signal"), std::make_optional("control_type")};
 
   const std::string xml_description = GetBasicControl();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Control::kControlTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Control::kControlTag, dut.GetName());
+  const Control control = dut.As<Control>();
+  EXPECT_EQ(kExpectedControl, control);
+}
+
+std::string GetControlMissingId() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<control type="control_type"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserControlMissingId) {
+  const std::string xml_description = GetControlMissingId();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Control::kControlTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Control::kControlTag, dut.GetName());
+  EXPECT_THROW(dut.As<Control>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetControlMissingType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<control signalId="control_signal"/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserControlMissingType) {
+  const Control kExpectedControl{Control::SignalId("control_signal"), std::nullopt};
+
+  const std::string xml_description = GetControlMissingType();
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Control::kControlTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(Control::kControlTag, dut.GetName());
@@ -254,6 +483,66 @@ TEST_F(SignalParsingTests, NodeParserController) {
   EXPECT_EQ(Controller::kControllerTag, dut.GetName());
   const Controller controller = dut.As<Controller>();
   EXPECT_EQ(kExpectedController, controller);
+}
+
+std::string GetControllerMissingId() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<controller name="MyController" sequence="1">
+    <control signalId="signal_1" type="control_type"/>
+    <control signalId="signal_2"/>
+</controller>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserControllerMissingId) {
+  const std::string xml_description = GetControllerMissingId();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Controller::kControllerTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Controller::kControllerTag, dut.GetName());
+  EXPECT_THROW(dut.As<Controller>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetControllerMissingNameAndSequence() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<controller id="controller_1">
+    <control signalId="signal_1" type="control_type"/>
+    <control signalId="signal_2"/>
+</controller>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserControllerMissingNameAndSequence) {
+  const Control kControl1{Control::SignalId("signal_1"), std::make_optional("control_type")};
+  const Control kControl2{Control::SignalId("signal_2"), std::nullopt};
+  const Controller kExpectedController{Controller::Id("controller_1"), std::nullopt, std::nullopt, {{kControl1, kControl2}}};
+
+  const std::string xml_description = GetControllerMissingNameAndSequence();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Controller::kControllerTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Controller::kControllerTag, dut.GetName());
+  const Controller controller = dut.As<Controller>();
+  EXPECT_EQ(kExpectedController, controller);
+}
+
+std::string GetControllerMissingControls() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<controller id="controller_1" name="MyController" sequence="1">
+</controller>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserControllerMissingControls) {
+  const std::string xml_description = GetControllerMissingControls();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Controller::kControllerTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(Controller::kControllerTag, dut.GetName());
+  EXPECT_THROW(dut.As<Controller>(), maliput::common::road_network_description_parser_error);
 }
 
 // Get a XML description that contains a basic Semantics node.
@@ -307,6 +596,217 @@ TEST_F(SignalParsingTests, NodeParserSemantics) {
   EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
   const Semantics semantics = dut.As<signal::Semantics>();
   EXPECT_EQ(kExpectedSemantics, semantics);
+}
+
+std::string GetEmptySemantics() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics/>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserEmptySemantics) {
+  const std::string xml_description = GetEmptySemantics();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  const Semantics semantics = dut.As<signal::Semantics>();
+  EXPECT_TRUE(semantics.speeds.empty());
+  EXPECT_TRUE(semantics.lanes.empty());
+  EXPECT_TRUE(semantics.priorities.empty());
+  EXPECT_TRUE(semantics.prohibited.empty());
+  EXPECT_TRUE(semantics.warnings.empty());
+  EXPECT_TRUE(semantics.routings.empty());
+  EXPECT_TRUE(semantics.street_names.empty());
+  EXPECT_TRUE(semantics.parkings.empty());
+  EXPECT_TRUE(semantics.tourists.empty());
+  EXPECT_TRUE(semantics.supplementary_allows.empty());
+  EXPECT_TRUE(semantics.supplementary_prohibits.empty());
+  EXPECT_TRUE(semantics.supplementary_explanatories.empty());
+  EXPECT_TRUE(semantics.supplementary_times.empty());
+  EXPECT_TRUE(semantics.supplementary_distances.empty());
+  EXPECT_TRUE(semantics.supplementary_environments.empty());
+}
+
+std::string GetSemanticsMissingSpeedValue() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <speed type="maximum" unit="km/h"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSpeedValue) {
+  const std::string xml_description = GetSemanticsMissingSpeedValue();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSpeedType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <speed value="60" unit="km/h"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSpeedType) {
+  const std::string xml_description = GetSemanticsMissingSpeedType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingLaneType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <lane/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingLaneType) {
+  const std::string xml_description = GetSemanticsMissingLaneType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingPriorityType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <priority/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsSpeedMissingPriorityType) {
+  const std::string xml_description = GetSemanticsMissingPriorityType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSupplementaryTimeType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <supplementaryTime value="12.0"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryTimeType) {
+  const std::string xml_description = GetSemanticsMissingSupplementaryTimeType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSupplementaryTimeValue() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <supplementaryTime type="time"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryTimeValue) {
+  const std::string xml_description = GetSemanticsMissingSupplementaryTimeValue();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSupplementaryDistanceType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <supplementaryDistance value="100" unit="m"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryDistanceType) {
+  const std::string xml_description = GetSemanticsMissingSupplementaryDistanceType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSupplementaryDistanceValue() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <supplementaryDistance type="for" unit="m"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryDistanceValue) {
+  const std::string xml_description = GetSemanticsMissingSupplementaryDistanceValue();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSupplementaryDistanceUnit() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <supplementaryDistance type="for" value="100"/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryDistanceUnit) {
+  const std::string xml_description = GetSemanticsMissingSupplementaryDistanceUnit();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
+}
+
+std::string GetSemanticsMissingSupplementaryEnvironmentType() {
+  std::stringstream ss;
+  ss << "<root>";
+  ss << R"R(<semantics>
+    <supplementaryEnvironment/>
+</semantics>)R";
+  ss << "</root>";
+  return ss.str();
+}
+
+TEST_F(SignalParsingTests, NodeParserSemanticsMissingSupplementaryEnvironmentType) {
+  const std::string xml_description = GetSemanticsMissingSupplementaryEnvironmentType();
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Semantics::kSemanticsTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  EXPECT_EQ(signal::Semantics::kSemanticsTag, dut.GetName());
+  EXPECT_THROW(dut.As<signal::Semantics>(), maliput::common::road_network_description_parser_error);
 }
 
 }  // namespace
