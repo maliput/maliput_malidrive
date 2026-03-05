@@ -660,7 +660,7 @@ maliput::math::RollPitchYaw RoadGeometry::GetRoadOrientationAtOpenScenarioRoadPo
   return target_segment->road_curve()->Orientation(p);
 }
 
-std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindRoadPositionsAtXY(double x, double y,
+std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindSurfaceRoadPositionsAtXY(double x, double y,
                                                                                     double radius) const {
   MALIDRIVE_VALIDATE(radius >= 0., maliput::common::assertion_error, "radius must be non-negative.");
   std::vector<maliput::api::RoadPositionResult> results;

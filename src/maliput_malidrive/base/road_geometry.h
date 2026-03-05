@@ -239,7 +239,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
     std::unique_ptr<road_curve::Function> reference_line_offset;
   };
 
-  std::vector<maliput::api::RoadPositionResult> DoFindRoadPositionsAtXY(double x, double y,
+  std::vector<maliput::api::RoadPositionResult> DoFindSurfaceRoadPositionsAtXY(double x, double y,
                                                                         double radius) const override;
 
   // Provide custom commands support for the backend.

@@ -1627,12 +1627,12 @@ INSTANTIATE_TEST_CASE_P(RoadGeometryGetLaneBoundaryByIdTestGroup, RoadGeometryGe
                         ::testing::ValuesIn(InstanciateLaneBoundaryParameters()));
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// FindRoadPositionsAtXY tests
+// FindSurfaceRoadPositionsAtXY tests
 // ═══════════════════════════════════════════════════════════════════════════════
 
 // Uses SShapeRoad.xodr: flat road (no superelevation), 2 lanes, S-shaped curve.
-// Tests the basic behavior of FindRoadPositionsAtXY on a flat road.
-class RoadGeometryFindRoadPositionsAtXYSShapeRoad : public ::testing::Test {
+// Tests the basic behavior of FindSurfaceRoadPositionsAtXY on a flat road.
+class RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad : public ::testing::Test {
  protected:
   void SetUp() override {
     road_geometry_configuration_.id = maliput::api::RoadGeometryId("SShapeRoad");
@@ -1651,7 +1651,7 @@ class RoadGeometryFindRoadPositionsAtXYSShapeRoad : public ::testing::Test {
 
 // Verifies that querying the XY of a known point on the lane centerline
 // returns a result with the correct lane and a near-zero distance.
-TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, FindsLaneAtCenterlinePoint) {
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad, FindsLaneAtCenterlinePoint) {
   const maliput::api::LaneId lane_id("1_0_1");
   const auto* lane = rg_->ById().GetLane(lane_id);
   ASSERT_NE(lane, nullptr);
@@ -1663,7 +1663,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, FindsLaneAtCenterlinePoint) 
 
   // Query with just the XY, using a small radius.
   const double radius = 1.0;
-  const auto results = rg_->FindRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
 
   // Should find at least the lane we picked.
   ASSERT_GE(results.size(), 1u);
@@ -1682,7 +1682,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, FindsLaneAtCenterlinePoint) 
 }
 
 // Verifies that two parallel lanes are both found when the query point is near the lane boundary.
-TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, FindsBothParallelLanes) {
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad, FindsBothParallelLanes) {
   const maliput::api::LaneId left_lane_id("1_0_1");
   const maliput::api::LaneId right_lane_id("1_0_-1");
   const auto* left_lane = rg_->ById().GetLane(left_lane_id);
@@ -1698,7 +1698,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, FindsBothParallelLanes) {
 
   // With a small radius, both adjacent lanes should be found.
   const double radius = 2.5;
-  const auto results = rg_->FindRoadPositionsAtXY(boundary_pos.x(), boundary_pos.y(), radius);
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(boundary_pos.x(), boundary_pos.y(), radius);
 
   const auto find_lane = [&](const maliput::api::LaneId& id) {
     return std::find_if(results.begin(), results.end(),
@@ -1730,10 +1730,10 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, FindsBothParallelLanes) {
 }
 
 // Verifies that no results are returned when the query point is far from the road.
-TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, NoResultsWhenFarAway) {
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad, NoResultsWhenFarAway) {
   // The S-shape road is around x ∈ [-60, 40], y ∈ [0, 80].
   // A point at (1000, 1000) is well outside.
-  const auto results = rg_->FindRoadPositionsAtXY(1000., 1000., 1.0);
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(1000., 1000., 1.0);
   EXPECT_TRUE(results.empty());
 }
 
@@ -1742,7 +1742,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeRoad, NoResultsWhenFarAway) {
 // The vertical-line-intersection approach should correctly recover the on-surface
 // position even when the road is banked.
 // ───────────────────────────────────────────────────────────────────────────────
-class RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated : public ::testing::Test {
+class RoadGeometryFindSurfaceRoadPositionsAtXYSShapeSuperelevated : public ::testing::Test {
  protected:
   void SetUp() override {
     road_geometry_configuration_.id = maliput::api::RoadGeometryId("SShapeSuperelevatedRoad");
@@ -1764,8 +1764,8 @@ class RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated : public ::testing::T
 // recovers the correct lane and the returned nearest position's XY matches
 // the query.  Tests both lanes (outermost left 1_0_2 and outermost right 1_0_-2)
 // at both r = 0 (centerline) and r ≠ 0 (off-center within the lane).
-TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated, FindsLaneOnBankedRoad) {
-  // Helper: given a lane id and an r value, queries FindRoadPositionsAtXY at s = 25% of the lane
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeSuperelevated, FindsLaneOnBankedRoad) {
+  // Helper: given a lane id and an r value, queries FindSurfaceRoadPositionsAtXY at s = 25% of the lane
   // and verifies the full RoadPositionResult.
   const auto test_case = [&](const std::string& lane_name, double r) {
     SCOPED_TRACE("lane=" + lane_name + " r=" + std::to_string(r));
@@ -1781,7 +1781,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated, FindsLaneOnBankedRo
     ASSERT_GT(std::abs(inertial_pos.z()), 0.001) << "Expected non-zero Z due to superelevation";
 
     const double radius = 0.5;
-    const auto results = rg_->FindRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+    const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
 
     ASSERT_GE(results.size(), 1u);
     const auto it = std::find_if(results.begin(), results.end(),
@@ -1811,7 +1811,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated, FindsLaneOnBankedRo
 
 // All 4 lanes of the superelevated road should be found with a large enough radius
 // at a point on the road.
-TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated, FindsAllLanesWithLargeRadius) {
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeSuperelevated, FindsAllLanesWithLargeRadius) {
   const maliput::api::LaneId lane_id("1_0_1");
   const auto* lane = rg_->ById().GetLane(lane_id);
   ASSERT_NE(lane, nullptr);
@@ -1822,7 +1822,7 @@ TEST_F(RoadGeometryFindRoadPositionsAtXYSShapeSuperelevated, FindsAllLanesWithLa
 
   // With a radius covering all 4 lanes (widths = 2m each, so total ~8m + some margin).
   const double radius = 15.0;
-  const auto results = rg_->FindRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
 
   // The road has 4 driving lanes: 1_0_2, 1_0_1, 1_0_-1, 1_0_-2.
   const auto find_lane = [&](const std::string& id) {
@@ -1878,7 +1878,7 @@ struct MultiLevelArcRoadFindParam {
 // Using radius = 0.5, only the left lanes (which contain the XY point, distance = 0)
 // are returned — the right lanes have XY distance ≥ D ≥ 0.6 and are excluded.
 // ───────────────────────────────────────────────────────────────────────────────
-class RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoad : public ::testing::TestWithParam<MultiLevelArcRoadFindParam> {
+class RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad : public ::testing::TestWithParam<MultiLevelArcRoadFindParam> {
  protected:
   void SetUp() override {
     road_geometry_configuration_.id = maliput::api::RoadGeometryId("MultiLevelArcRoad");
@@ -1895,10 +1895,10 @@ class RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoad : public ::testing::Tes
   const double tol_{1e-5};
 };
 
-// Verifies FindRoadPositionsAtXY returns exactly one left-lane result per road
+// Verifies FindSurfaceRoadPositionsAtXY returns exactly one left-lane result per road
 // and that each result's (s, r, h), nearest_position, and distance match the
 // analytically expected values.
-TEST_P(RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoad, FindsLeftLanePerRoad) {
+TEST_P(RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad, FindsLeftLanePerRoad) {
   const double r = GetParam().r_query;
 
   // Query lane: left lane of road 1 (flat, elevation 10m).
@@ -1909,7 +1909,7 @@ TEST_P(RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoad, FindsLeftLanePerRoad)
 
   // Use a small radius so only the left lanes (one per road) are returned.
   const double radius = 0.5;
-  const auto results = rg_->FindRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
   ASSERT_EQ(results.size(), 3u);
 
   // XY perpendicular offset from the reference line (road 1 is flat, so D = lane_center + r).
@@ -1975,8 +1975,8 @@ TEST_P(RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoad, FindsLeftLanePerRoad)
   }
 }
 
-INSTANTIATE_TEST_CASE_P(RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoadGroup,
-                        RoadGeometryFindRoadPositionsAtXYMultiLevelArcRoad,
+INSTANTIATE_TEST_CASE_P(RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoadGroup,
+                        RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad,
                         ::testing::Values(MultiLevelArcRoadFindParam{-0.4}, MultiLevelArcRoadFindParam{0.0},
                                           MultiLevelArcRoadFindParam{0.4}));
 
