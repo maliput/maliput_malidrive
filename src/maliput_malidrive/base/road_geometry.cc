@@ -661,7 +661,7 @@ maliput::math::RollPitchYaw RoadGeometry::GetRoadOrientationAtOpenScenarioRoadPo
 }
 
 std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindSurfaceRoadPositionsAtXY(double x, double y,
-                                                                                    double radius) const {
+                                                                                           double radius) const {
   MALIDRIVE_VALIDATE(radius >= 0., maliput::common::assertion_error, "radius must be non-negative.");
   std::vector<maliput::api::RoadPositionResult> results;
 
@@ -729,8 +729,7 @@ std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindSurfaceRoadPos
       const double residual_y = y_backend - w_center.y();
 
       const double r_hat_xy_sq = r_hat.x() * r_hat.x() + r_hat.y() * r_hat.y();
-      const double r_new =
-          (r_hat_xy_sq > 1e-30) ? (residual_x * r_hat.x() + residual_y * r_hat.y()) / r_hat_xy_sq : 0.;
+      const double r_new = (r_hat_xy_sq > 1e-30) ? (residual_x * r_hat.x() + residual_y * r_hat.y()) / r_hat_xy_sq : 0.;
 
       // Check convergence of r.
       if (std::abs(r_new - r_reference) < road_curve->linear_tolerance()) {

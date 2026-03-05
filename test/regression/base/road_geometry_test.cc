@@ -1878,7 +1878,8 @@ struct MultiLevelArcRoadFindParam {
 // Using radius = 0.5, only the left lanes (which contain the XY point, distance = 0)
 // are returned — the right lanes have XY distance ≥ D ≥ 0.6 and are excluded.
 // ───────────────────────────────────────────────────────────────────────────────
-class RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad : public ::testing::TestWithParam<MultiLevelArcRoadFindParam> {
+class RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad
+    : public ::testing::TestWithParam<MultiLevelArcRoadFindParam> {
  protected:
   void SetUp() override {
     road_geometry_configuration_.id = maliput::api::RoadGeometryId("MultiLevelArcRoad");

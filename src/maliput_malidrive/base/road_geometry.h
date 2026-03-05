@@ -240,7 +240,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   };
 
   std::vector<maliput::api::RoadPositionResult> DoFindSurfaceRoadPositionsAtXY(double x, double y,
-                                                                        double radius) const override;
+                                                                               double radius) const override;
 
   // Provide custom commands support for the backend.
   //
