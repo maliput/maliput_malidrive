@@ -232,6 +232,28 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   /// @returns A pointer to the corresponding maliput Lane, or nullptr if not found.
   const Lane* GetMaliputLaneFromOpenScenarioLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const;
 
+  /// Finds road positions where a line intersects the road surface (h=0 plane of each lane).
+  ///
+  /// This generalizes DoFindRoadPositionsAtXY (vertical line) to an arbitrary 3D line.
+  /// Uses a full 3×3 Newton solver on F(p,r,t) = W(p,r,0) − origin − t·direction = 0,
+  /// where (p,r) are road-curve coordinates and t parameterizes the line.
+  ///
+  /// @param inertial_pos Origin point of the line, in maliput's Inertial Frame.
+  /// @param direction Direction of the line. Must be non-zero.
+  /// @param radius Maximum distance from the origin along the line direction to
+  ///        consider a valid intersection (i.e. |t| ≤ radius / ‖direction‖).
+  ///        Also used as a lateral tolerance: the 3D residual at convergence must
+  ///        be within this radius.
+  /// @returns A vector of RoadPositionResult for every lane whose surface is
+  ///          intersected within the search radius. The `distance` field holds
+  ///          the 3D distance from `inertial_pos` to the intersection point.
+  ///
+  /// @throws maliput::common::assertion_error When `radius` is negative.
+  /// @throws maliput::common::assertion_error When `direction` is the zero vector.
+  std::vector<maliput::api::RoadPositionResult> FindRoadPositionsIntersectingLine(
+      const maliput::api::InertialPosition& inertial_pos, const maliput::math::Vector3& direction,
+      double radius) const;
+
  private:
   // Holds the description of the Road.
   struct RoadCharacteristics {

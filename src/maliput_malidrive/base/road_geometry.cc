@@ -764,6 +764,202 @@ std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindRoadPositionsA
   return results;
 }
 
+// Finds where a 3D line intersects the road surface (h=0 plane of each lane).
+//
+// The line is defined as:  point(t) = origin + t * direction.
+// The road surface is parameterized by the RoadCurve mapping W(p, r, 0), which maps
+// road-curve coordinates (p, r) to 3D world coordinates (x, y, z), where h=0 means
+// "on the surface."
+//
+// An intersection exists when:  W(p, r, 0) = origin + t * direction.
+// Rearranging, we define the residual:  F(p, r, t) = W(p, r, 0) - origin - t * direction = 0.
+// This is 3 equations (one per x, y, z) in 3 unknowns (p, r, t).
+//
+// We solve this with Newton-Raphson iteration. At each step the method linearizes F
+// around the current guess and solves the linear system:  J * [dp, dr, dt]^T = -F,
+// where J is the 3x3 Jacobian matrix of partial derivatives of F:
+//
+//   Column 0:  dF/dp = dW/dp  (tangent along the road)        -> WDot(p, r, 0)
+//   Column 1:  dF/dr = dW/dr  (lateral unit vector)            -> RHat(p, r, 0)
+//   Column 2:  dF/dt = -direction                               -> -direction
+//
+// The Jacobian is needed because:
+//   - It encodes the local geometry: the road's tangent, its lateral direction, and the
+//     line direction form a local coordinate frame.
+//   - It makes the problem linear locally, so solving J * delta = -F gives the exact
+//     correction for a linear surface and a very good correction for a mildly curved one.
+//   - Its determinant detects degeneracy: if det(J) ~ 0 the line is tangent/parallel to
+//     the surface, meaning no clean intersection exists.
+//
+// The 3x3 system is solved via Cramer's rule (closed-form, no matrix library needed).
+//
+// Contrast with DoFindRoadPositionsAtXY: that method handles the special case where
+// direction = (0,0,1) (vertical line).  The z-equation decouples and only x,y matter,
+// reducing to a 2D problem solvable via alternating 1D Newton + r-projection.  With an
+// arbitrary direction all three components are coupled, requiring the full 3x3 solve.
+std::vector<maliput::api::RoadPositionResult> RoadGeometry::FindRoadPositionsIntersectingLine(
+    const maliput::api::InertialPosition& inertial_pos, const maliput::math::Vector3& direction,
+    double radius) const {
+  MALIDRIVE_VALIDATE(radius >= 0., maliput::common::assertion_error, "radius must be non-negative.");
+  const double dir_sq = direction.x() * direction.x() + direction.y() * direction.y() + direction.z() * direction.z();
+  MALIDRIVE_VALIDATE(dir_sq > 0., maliput::common::assertion_error, "direction must be non-zero.");
+  const double dir_norm = std::sqrt(dir_sq);
+
+  std::vector<maliput::api::RoadPositionResult> results;
+
+  // Convert inertial origin to backend frame.
+  const maliput::math::Vector3 inertial_to_backend = inertial_to_backend_frame_translation();
+  const double ox = inertial_pos.x() + inertial_to_backend.x();
+  const double oy = inertial_pos.y() + inertial_to_backend.y();
+  const double oz = inertial_pos.z() + inertial_to_backend.z();
+  // Direction is a vector, not a position, so it is not translated.
+  const double dx = direction.x();
+  const double dy = direction.y();
+  const double dz = direction.z();
+
+  // Iterate all junctions -> segments -> lanes (brute-force).
+  for (int ji = 0; ji < num_junctions(); ++ji) {
+    const maliput::api::Junction* junction_ptr = this->junction(ji);
+    for (int si = 0; si < junction_ptr->num_segments(); ++si) {
+      const maliput::api::Segment* segment = junction_ptr->segment(si);
+      const auto* mali_segment = dynamic_cast<const Segment*>(segment);
+      MALIDRIVE_THROW_UNLESS(mali_segment != nullptr);
+      const road_curve::RoadCurve* road_curve = mali_segment->road_curve();
+      const road_curve::GroundCurve* ground_curve = road_curve->ground_curve();
+
+      for (int li = 0; li < segment->num_lanes(); ++li) {
+        const auto* mali_lane = dynamic_cast<const Lane*>(segment->lane(li));
+        MALIDRIVE_THROW_UNLESS(mali_lane != nullptr);
+
+        const double lane_p0 = mali_lane->get_track_s_start();
+        const double lane_p1 = mali_lane->get_track_s_end();
+
+        // --- 1. Initial guess for p from the ground curve (XY projection). ---
+        // For near-vertical lines the XY projection of origin is a good seed.
+        // For oblique lines we use the XY of the origin as-is (still a reasonable starting point).
+        double p = maliput::math::saturate(ground_curve->GInverse({ox, oy}), lane_p0, lane_p1);
+        double r = 0.;  // Start at the reference line.
+
+        // Initial guess for t: project W(p,0,0)−origin onto direction.
+        {
+          const maliput::math::Vector3 w0 = road_curve->W({p, 0., 0.});
+          const double rx = w0.x() - ox;
+          const double ry = w0.y() - oy;
+          const double rz = w0.z() - oz;
+          double t_init = (rx * dx + ry * dy + rz * dz) / dir_sq;
+          r = 0.;
+          // Refine p using the point on the line at t_init projected back to ground.
+          const double seed_x = ox + t_init * dx;
+          const double seed_y = oy + t_init * dy;
+          p = maliput::math::saturate(ground_curve->GInverse({seed_x, seed_y}), lane_p0, lane_p1);
+        }
+
+        // --- 2. Full 3×3 Newton iteration on F(p, r, t) = W(p, r, 0) − origin − t·direction = 0. ---
+        //     Jacobian columns:
+        //       col0 = ∂W/∂p = WDot(p, r, 0)                   (tangent)
+        //       col1 = ∂W/∂r = RHat(p, r, 0)                   (lateral unit vector)
+        //       col2 = −direction
+        //     We solve J · [dp, dr, dt]ᵀ = −F  via Cramer's rule (small 3×3 system).
+        constexpr int kMaxIterations{20};
+        double t = 0.;
+        {
+          const maliput::math::Vector3 w0 = road_curve->W({p, r, 0.});
+          t = ((w0.x() - ox) * dx + (w0.y() - oy) * dy + (w0.z() - oz) * dz) / dir_sq;
+        }
+
+        bool converged = false;
+        for (int iter = 0; iter < kMaxIterations; ++iter) {
+          p = maliput::math::saturate(p, lane_p0, lane_p1);
+
+          const maliput::math::Vector3 w = road_curve->W({p, r, 0.});
+          // F = W(p,r,0) − origin − t·direction
+          const double f0 = w.x() - ox - t * dx;
+          const double f1 = w.y() - oy - t * dy;
+          const double f2 = w.z() - oz - t * dz;
+          const double f_norm_sq = f0 * f0 + f1 * f1 + f2 * f2;
+
+          if (f_norm_sq < road_curve->linear_tolerance() * road_curve->linear_tolerance()) {
+            converged = true;
+            break;
+          }
+
+          // Jacobian columns.
+          const maliput::math::Vector3 col0 = road_curve->WDot({p, r, 0.});
+          const maliput::math::Vector3 col1 = road_curve->RHat({p, r, 0.});
+          // col2 = -direction
+          const double c2x = -dx;
+          const double c2y = -dy;
+          const double c2z = -dz;
+
+          // Determinant of J = [col0 | col1 | col2].
+          const double det = col0.x() * (col1.y() * c2z - col1.z() * c2y) -
+                             col0.y() * (col1.x() * c2z - col1.z() * c2x) +
+                             col0.z() * (col1.x() * c2y - col1.y() * c2x);
+
+          if (std::abs(det) < 1e-30) {
+            // Jacobian is singular — line is (nearly) tangent to the surface or
+            // parallel to it at this point.  Cannot converge; skip this lane.
+            break;
+          }
+
+          const double inv_det = 1.0 / det;
+
+          // Cramer's rule: solve J · delta = -F  ⟹ delta_i = det(J_i) / det(J)
+          // where J_i has the i-th column replaced by -F = (-f0, -f1, -f2).
+          const double nf0 = -f0;
+          const double nf1 = -f1;
+          const double nf2 = -f2;
+
+          // dp: replace col0 with -F.
+          const double dp = inv_det * (nf0 * (col1.y() * c2z - col1.z() * c2y) -
+                                       nf1 * (col1.x() * c2z - col1.z() * c2x) +
+                                       nf2 * (col1.x() * c2y - col1.y() * c2x));
+          // dr: replace col1 with -F.
+          const double dr = inv_det * (col0.x() * (nf1 * c2z - nf2 * c2y) -
+                                       col0.y() * (nf0 * c2z - nf2 * c2x) +
+                                       col0.z() * (nf0 * c2y - nf1 * c2x));
+          // dt: replace col2 with -F.
+          const double dt = inv_det * (col0.x() * (col1.y() * nf2 - col1.z() * nf1) -
+                                       col0.y() * (col1.x() * nf2 - col1.z() * nf0) +
+                                       col0.z() * (col1.x() * nf1 - col1.y() * nf0));
+
+          p = maliput::math::saturate(p + dp, lane_p0, lane_p1);
+          r += dr;
+          t += dt;
+        }
+
+        if (!converged) {
+          continue;  // Newton didn't converge for this lane — no intersection found.
+        }
+
+        p = maliput::math::saturate(p, lane_p0, lane_p1);
+
+        // --- 3. Convert to lane frame. ---
+        const double r_lane = mali_lane->to_lane_r(p, r);
+        const double s = mali_lane->LaneSFromTrackS(p);
+        const maliput::api::RBounds r_bounds = mali_lane->lane_bounds(s);
+        const double r_clamped = maliput::math::saturate(r_lane, r_bounds.min(), r_bounds.max());
+
+        // --- 4. Compute the on-surface inertial position (h=0). ---
+        const maliput::api::LanePosition on_surface_pos(s, r_clamped, 0.);
+        const maliput::api::InertialPosition nearest_on_surface = mali_lane->ToInertialPosition(on_surface_pos);
+
+        // --- 5. Compute 3D distance from origin to intersection. ---
+        const double ddx = inertial_pos.x() - nearest_on_surface.x();
+        const double ddy = inertial_pos.y() - nearest_on_surface.y();
+        const double ddz = inertial_pos.z() - nearest_on_surface.z();
+        const double distance_3d = std::sqrt(ddx * ddx + ddy * ddy + ddz * ddz);
+
+        if (distance_3d <= radius) {
+          results.push_back(maliput::api::RoadPositionResult{
+              maliput::api::RoadPosition{mali_lane, on_surface_pos}, nearest_on_surface, distance_3d});
+        }
+      }
+    }
+  }
+  return results;
+}
+
 std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) const {
   CommandsHandler commands_handler(this);
   return commands_handler.Execute(commands_handler.ParseCommand(command));
