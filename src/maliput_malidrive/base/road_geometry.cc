@@ -761,6 +761,11 @@ std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindSurfaceRoadPos
                                                          nearest_on_surface, distance_2d});
     }
   }
+  // Sort by ascending distance (nearest first).
+  std::sort(results.begin(), results.end(),
+            [](const maliput::api::RoadPositionResult& a, const maliput::api::RoadPositionResult& b) {
+              return a.distance < b.distance;
+            });
   return results;
 }
 
