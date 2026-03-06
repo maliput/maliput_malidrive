@@ -69,6 +69,11 @@ static constexpr char const* kRuleRegistry{"rule_registry"};
 ///   - Default: ""
 static constexpr char const* kTrafficLightBook{"traffic_light_book"};
 
+/// Path to the YAML database file that maps XODR Signal IDs to bulb/group data
+/// for constructing maliput::api::rules::TrafficLight objects.
+///   - Default: ""
+static constexpr char const* kTrafficSignalDb{"traffic_signal_db"};
+
 /// Path to the configuration file to load a PhaseRingBook
 ///   - Default: ""
 static constexpr char const* kPhaseRingBook{"phase_ring_book"};
