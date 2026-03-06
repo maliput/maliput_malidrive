@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.19.0 (2026-03-06)
+-------------------
+* Implements FindSurfaceRoadPositionsAtXY for RoadGeometry. (`#407 <https://github.com/maliput/maliput_malidrive/issues/407>`_)
+* Updating to bazel 7.5.0 (`#406 <https://github.com/maliput/maliput_malidrive/issues/406>`_)
+* Add workflow to verify bazel 6.x, 7.x, 8.x. (`#401 <https://github.com/maliput/maliput_malidrive/issues/401>`_)
+* Contributors: Franco Cipollone, Juan Carosella
+
 0.18.0 (2026-01-23)
 -------------------
 * Correctly populate LaneBoundaries when only left or right lanes are present. (`#398 <https://github.com/maliput/maliput_malidrive/issues/398>`_)
