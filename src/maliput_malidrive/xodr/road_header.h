@@ -186,7 +186,7 @@ struct RoadHeader {
   /// Holds the road's objects.
   std::optional<object::Objects> objects{};
   /// Holds the road's signals.
-  signal::Signals signals{};
+  std::optional<signal::Signals> signals{};
 };
 
 /// Streams a string representation of @p road_header into @p out. Returns
