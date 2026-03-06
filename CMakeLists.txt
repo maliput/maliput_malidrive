@@ -147,6 +147,7 @@ install (FILES resources/ArcLane.xodr
                resources/LShapeRoad.xodr
                resources/LShapeRoadVariableLanes.xodr
                resources/LShapeSection.xodr
+               resources/MultiLevelArcRoad.xodr
                resources/onramp.xodr
                resources/ParametricCubicCurveComplexRoad.xodr
                resources/ParametricCubicCurveRoad.xodr

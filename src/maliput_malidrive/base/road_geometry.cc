@@ -30,12 +30,16 @@
 #include "maliput_malidrive/base/road_geometry.h"
 
 #include <algorithm>
+#include <cmath>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
+#include <maliput/api/junction.h>
 #include <maliput/api/lane_data.h>
 #include <maliput/geometry_base/brute_force_find_road_positions_strategy.h>
 #include <maliput/geometry_base/filter_positions.h>
+#include <maliput/math/saturate.h>
 #include <string_view>
 
 #include "maliput_malidrive/base/lane.h"
@@ -654,6 +658,115 @@ maliput::math::RollPitchYaw RoadGeometry::GetRoadOrientationAtOpenScenarioRoadPo
   MALIPUT_THROW_UNLESS(target_segment != nullptr);
   const double p = target_segment->road_curve()->PFromP(xodr_road_position.s);
   return target_segment->road_curve()->Orientation(p);
+}
+
+std::vector<maliput::api::RoadPositionResult> RoadGeometry::DoFindSurfaceRoadPositionsAtXY(double x, double y,
+                                                                                           double radius) const {
+  MALIDRIVE_VALIDATE(radius >= 0., maliput::common::assertion_error, "radius must be non-negative.");
+  std::vector<maliput::api::RoadPositionResult> results;
+
+  // Use the KDTree-based spatial index to obtain candidate lanes near (x, y),
+  // instead of iterating all lanes in the road network (brute-force).
+  // The search radius is given in inertial-frame coordinates; GetCandidateLanesXY
+  // internally expands it to account for KDTree sampling resolution.
+  MALIDRIVE_THROW_UNLESS(strategy() != nullptr);
+  const std::unordered_set<const maliput::api::Lane*> candidate_lanes = strategy()->FindCandidateLanesXY(x, y, radius);
+
+  // Convert inertial (x, y) to backend frame.
+  const maliput::math::Vector3 inertial_to_backend = inertial_to_backend_frame_translation();
+  const double x_backend = x + inertial_to_backend.x();
+  const double y_backend = y + inertial_to_backend.y();
+
+  // Perform precise 2D projection only on candidate lanes.
+  for (const maliput::api::Lane* lane : candidate_lanes) {
+    const auto* mali_lane = dynamic_cast<const Lane*>(lane);
+    MALIDRIVE_THROW_UNLESS(mali_lane != nullptr);
+    const auto* mali_segment = dynamic_cast<const Segment*>(mali_lane->segment());
+    MALIDRIVE_THROW_UNLESS(mali_segment != nullptr);
+    const road_curve::RoadCurve* road_curve = mali_segment->road_curve();
+    const road_curve::GroundCurve* ground_curve = road_curve->ground_curve();
+
+    const double lane_p0 = mali_lane->get_track_s_start();
+    const double lane_p1 = mali_lane->get_track_s_end();
+
+    // 1. Get initial p estimate from the ground curve (purely 2D).
+    double p = maliput::math::saturate(ground_curve->GInverse({x_backend, y_backend}), lane_p0, lane_p1);
+
+    // 2. Alternating Newton refinement of (p, r):
+    //    - Inner loop: Newton iteration on p holding r fixed, using XY of W(p, r, 0).
+    //    - Then recompute r by projecting XY residual onto r_hat at the converged p.
+    //    - Repeat the outer loop so that p and r converge together.
+    //    On flat/mildly curved roads this converges in 1 outer iteration.
+    //    On heavily superelevated curved roads, 2-3 outer iterations suffice.
+    constexpr int kMaxOuterIterations{4};
+    constexpr int kMaxInnerIterations{16};
+    double r_reference = 0.;  // Start with road-curve r = 0 (reference line).
+
+    for (int outer = 0; outer < kMaxOuterIterations; ++outer) {
+      // Inner loop: Newton iteration on p, evaluating W at current r_reference.
+      double dp = 2.0 * road_curve->linear_tolerance();
+      for (int i = 0; i < kMaxInnerIterations && std::abs(dp) > road_curve->linear_tolerance(); ++i) {
+        p = maliput::math::saturate(p, lane_p0, lane_p1);
+        const maliput::math::Vector3 w_p = road_curve->W({p, r_reference, 0.});
+        const maliput::math::Vector3 w_dot = road_curve->WDot({p, r_reference, 0.});
+        const double w_delta_x = x_backend - w_p.x();
+        const double w_delta_y = y_backend - w_p.y();
+        const double dot_delta_wdot = w_delta_x * w_dot.x() + w_delta_y * w_dot.y();
+        const double dot_wdot_wdot = w_dot.x() * w_dot.x() + w_dot.y() * w_dot.y();
+        dp = dot_delta_wdot / dot_wdot_wdot;
+        p = maliput::math::saturate(p + dp, lane_p0, lane_p1);
+      }
+      p = maliput::math::saturate(p, lane_p0, lane_p1);
+
+      // Recompute r by projecting XY residual onto r_hat at the converged p.
+      const maliput::math::Vector3 prh_center{p, 0., 0.};
+      const maliput::math::Vector3 s_hat = road_curve->SHat(prh_center);
+      const maliput::math::Vector3 h_hat = road_curve->HHat(p, s_hat);
+      const maliput::math::Vector3 r_hat = h_hat.cross(s_hat);
+
+      const maliput::math::Vector3 w_center = road_curve->W(prh_center);
+      const double residual_x = x_backend - w_center.x();
+      const double residual_y = y_backend - w_center.y();
+
+      const double r_hat_xy_sq = r_hat.x() * r_hat.x() + r_hat.y() * r_hat.y();
+      const double r_new = (r_hat_xy_sq > 1e-30) ? (residual_x * r_hat.x() + residual_y * r_hat.y()) / r_hat_xy_sq : 0.;
+
+      // Check convergence of r.
+      if (std::abs(r_new - r_reference) < road_curve->linear_tolerance()) {
+        r_reference = r_new;
+        break;
+      }
+      r_reference = r_new;
+    }
+
+    // Convert r_reference to lane frame r.
+    const double r_lane = mali_lane->to_lane_r(p, r_reference);
+
+    // 3. Convert p to s, clamp r to lane bounds.
+    const double s = mali_lane->LaneSFromTrackS(p);
+    const maliput::api::RBounds r_bounds = mali_lane->lane_bounds(s);
+    const double r_clamped = maliput::math::saturate(r_lane, r_bounds.min(), r_bounds.max());
+
+    // 4. Compute the on-surface inertial position (h=0).
+    const maliput::api::LanePosition on_surface_pos(s, r_clamped, 0.);
+    const maliput::api::InertialPosition nearest_on_surface = mali_lane->ToInertialPosition(on_surface_pos);
+
+    // 5. Compute 2D planar distance.
+    const double dx = x - nearest_on_surface.x();
+    const double dy = y - nearest_on_surface.y();
+    const double distance_2d = std::sqrt(dx * dx + dy * dy);
+
+    if (distance_2d <= radius) {
+      results.push_back(maliput::api::RoadPositionResult{maliput::api::RoadPosition{mali_lane, on_surface_pos},
+                                                         nearest_on_surface, distance_2d});
+    }
+  }
+  // Sort by ascending distance (nearest first).
+  std::sort(results.begin(), results.end(),
+            [](const maliput::api::RoadPositionResult& a, const maliput::api::RoadPositionResult& b) {
+              return a.distance < b.distance;
+            });
+  return results;
 }
 
 std::string RoadGeometry::DoBackendCustomCommand(const std::string& command) const {

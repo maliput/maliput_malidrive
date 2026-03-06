@@ -1626,6 +1626,361 @@ TEST_P(RoadGeometryGetLaneBoundaryByIdTest, GetLaneBoundaryById) {
 INSTANTIATE_TEST_CASE_P(RoadGeometryGetLaneBoundaryByIdTestGroup, RoadGeometryGetLaneBoundaryByIdTest,
                         ::testing::ValuesIn(InstanciateLaneBoundaryParameters()));
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// FindSurfaceRoadPositionsAtXY tests
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// Uses SShapeRoad.xodr: flat road (no superelevation), 2 lanes, S-shaped curve.
+// Tests the basic behavior of FindSurfaceRoadPositionsAtXY on a flat road.
+class RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("SShapeRoad");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("SShapeRoad.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+    rg_ = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(rg_, nullptr);
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+  const RoadGeometry* rg_{nullptr};
+  const double tol_{1e-5};
+};
+
+// Verifies that querying the XY of a known point on the lane centerline
+// returns a result with the correct lane and a near-zero distance.
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad, FindsLaneAtCenterlinePoint) {
+  const maliput::api::LaneId lane_id("1_0_1");
+  const auto* lane = rg_->ById().GetLane(lane_id);
+  ASSERT_NE(lane, nullptr);
+
+  // Pick a point at the middle of the lane, on the centerline (r=0, h=0).
+  const double s = lane->length() / 2.;
+  const maliput::api::LanePosition lane_pos(s, 0., 0.);
+  const maliput::api::InertialPosition inertial_pos = lane->ToInertialPosition(lane_pos);
+
+  // Query with just the XY, using a small radius.
+  const double radius = 1.0;
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+
+  // Should find at least the lane we picked.
+  ASSERT_GE(results.size(), 1u);
+  const auto it = std::find_if(results.begin(), results.end(),
+                               [&](const auto& r) { return r.road_position.lane->id() == lane_id; });
+  ASSERT_NE(it, results.end());
+
+  // Verify the full RoadPositionResult.
+  EXPECT_NEAR(it->road_position.pos.s(), s, tol_);
+  EXPECT_NEAR(it->road_position.pos.r(), 0., tol_);
+  EXPECT_NEAR(it->road_position.pos.h(), 0., tol_);
+  EXPECT_NEAR(it->nearest_position.x(), inertial_pos.x(), tol_);
+  EXPECT_NEAR(it->nearest_position.y(), inertial_pos.y(), tol_);
+  EXPECT_NEAR(it->nearest_position.z(), inertial_pos.z(), tol_);
+  EXPECT_NEAR(it->distance, 0., tol_);
+}
+
+// Verifies that two parallel lanes are both found when the query point is near the lane boundary.
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad, FindsBothParallelLanes) {
+  const maliput::api::LaneId left_lane_id("1_0_1");
+  const maliput::api::LaneId right_lane_id("1_0_-1");
+  const auto* left_lane = rg_->ById().GetLane(left_lane_id);
+  const auto* right_lane = rg_->ById().GetLane(right_lane_id);
+  ASSERT_NE(left_lane, nullptr);
+  ASSERT_NE(right_lane, nullptr);
+
+  // Query at the reference line position (boundary between lanes), at the middle of the road.
+  const double s_left = left_lane->length() / 2.;
+  const double r_left_min = left_lane->lane_bounds(s_left).min();
+  const maliput::api::LanePosition left_at_boundary(s_left, r_left_min, 0.);
+  const maliput::api::InertialPosition boundary_pos = left_lane->ToInertialPosition(left_at_boundary);
+
+  // With a small radius, both adjacent lanes should be found.
+  const double radius = 2.5;
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(boundary_pos.x(), boundary_pos.y(), radius);
+
+  const auto find_lane = [&](const maliput::api::LaneId& id) {
+    return std::find_if(results.begin(), results.end(),
+                        [&](const auto& r) { return r.road_position.lane->id() == id; });
+  };
+
+  // Verify the left lane result.
+  const auto left_it = find_lane(left_lane_id);
+  ASSERT_NE(left_it, results.end());
+  EXPECT_NEAR(left_it->road_position.pos.s(), s_left, tol_);
+  EXPECT_NEAR(left_it->road_position.pos.r(), r_left_min, tol_);
+  EXPECT_NEAR(left_it->road_position.pos.h(), 0., tol_);
+  EXPECT_NEAR(left_it->nearest_position.x(), boundary_pos.x(), tol_);
+  EXPECT_NEAR(left_it->nearest_position.y(), boundary_pos.y(), tol_);
+  EXPECT_NEAR(left_it->nearest_position.z(), boundary_pos.z(), tol_);
+  EXPECT_NEAR(left_it->distance, 0., tol_);
+
+  // Verify the right lane result.
+  const auto right_it = find_lane(right_lane_id);
+  ASSERT_NE(right_it, results.end());
+  const double s_right_mid = right_lane->length() / 2.;
+  const double r_right_max = right_lane->lane_bounds(s_right_mid).max();
+  EXPECT_NEAR(right_it->road_position.pos.r(), r_right_max, tol_);
+  EXPECT_NEAR(right_it->road_position.pos.h(), 0., tol_);
+  EXPECT_NEAR(right_it->nearest_position.x(), boundary_pos.x(), tol_);
+  EXPECT_NEAR(right_it->nearest_position.y(), boundary_pos.y(), tol_);
+  EXPECT_NEAR(right_it->nearest_position.z(), boundary_pos.z(), tol_);
+  EXPECT_NEAR(right_it->distance, 0., tol_);
+}
+
+// Verifies that no results are returned when the query point is far from the road.
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeRoad, NoResultsWhenFarAway) {
+  // The S-shape road is around x ∈ [-60, 40], y ∈ [0, 80].
+  // A point at (1000, 1000) is well outside.
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(1000., 1000., 1.0);
+  EXPECT_TRUE(results.empty());
+}
+
+// ───────────────────────────────────────────────────────────────────────────────
+// SShapeSuperelevatedRoad: same S-shape but with superelevation reaching ±0.75 rad.
+// The vertical-line-intersection approach should correctly recover the on-surface
+// position even when the road is banked.
+// ───────────────────────────────────────────────────────────────────────────────
+class RoadGeometryFindSurfaceRoadPositionsAtXYSShapeSuperelevated : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("SShapeSuperelevatedRoad");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("SShapeSuperelevatedRoad.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+    rg_ = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(rg_, nullptr);
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+  const RoadGeometry* rg_{nullptr};
+  const double tol_{1e-5};
+};
+
+// On a superelevated lane, the on-surface inertial position has a Z ≠ 0.
+// This test verifies that querying (x, y) of a known on-surface point
+// recovers the correct lane and the returned nearest position's XY matches
+// the query.  Tests both lanes (outermost left 1_0_2 and outermost right 1_0_-2)
+// at both r = 0 (centerline) and r ≠ 0 (off-center within the lane).
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeSuperelevated, FindsLaneOnBankedRoad) {
+  // Helper: given a lane id and an r value, queries FindSurfaceRoadPositionsAtXY at s = 25% of the lane
+  // and verifies the full RoadPositionResult.
+  const auto test_case = [&](const std::string& lane_name, double r) {
+    SCOPED_TRACE("lane=" + lane_name + " r=" + std::to_string(r));
+    const maliput::api::LaneId lane_id(lane_name);
+    const auto* lane = rg_->ById().GetLane(lane_id);
+    ASSERT_NE(lane, nullptr);
+
+    const double s = lane->length() * 0.25;
+    const maliput::api::LanePosition lane_pos(s, r, 0.);
+    const maliput::api::InertialPosition inertial_pos = lane->ToInertialPosition(lane_pos);
+
+    // The point should have non-zero Z due to superelevation.
+    ASSERT_GT(std::abs(inertial_pos.z()), 0.001) << "Expected non-zero Z due to superelevation";
+
+    const double radius = 0.5;
+    const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+
+    ASSERT_GE(results.size(), 1u);
+    const auto it = std::find_if(results.begin(), results.end(),
+                                 [&](const auto& res) { return res.road_position.lane->id() == lane_id; });
+    ASSERT_NE(it, results.end());
+
+    // Verify the full RoadPositionResult.
+    EXPECT_NEAR(it->road_position.pos.s(), s, tol_);
+    EXPECT_NEAR(it->road_position.pos.r(), r, tol_);
+    EXPECT_NEAR(it->road_position.pos.h(), 0., tol_);
+    EXPECT_NEAR(it->nearest_position.x(), inertial_pos.x(), tol_);
+    EXPECT_NEAR(it->nearest_position.y(), inertial_pos.y(), tol_);
+    EXPECT_NEAR(it->nearest_position.z(), inertial_pos.z(), tol_);
+    EXPECT_NEAR(it->distance, 0., tol_);
+  };
+
+  // Outermost left lane at centerline and off-center.
+  test_case("1_0_2", 0.);
+  test_case("1_0_2", 0.5);
+  test_case("1_0_2", -0.5);
+
+  // Outermost right lane at centerline and off-center.
+  test_case("1_0_-2", 0.);
+  test_case("1_0_-2", 0.5);
+  test_case("1_0_-2", -0.5);
+}
+
+// All 4 lanes of the superelevated road should be found with a large enough radius
+// at a point on the road.
+TEST_F(RoadGeometryFindSurfaceRoadPositionsAtXYSShapeSuperelevated, FindsAllLanesWithLargeRadius) {
+  const maliput::api::LaneId lane_id("1_0_1");
+  const auto* lane = rg_->ById().GetLane(lane_id);
+  ASSERT_NE(lane, nullptr);
+
+  const double s = lane->length() / 2.;
+  const maliput::api::LanePosition lane_pos(s, 0., 0.);
+  const maliput::api::InertialPosition inertial_pos = lane->ToInertialPosition(lane_pos);
+
+  // With a radius covering all 4 lanes (widths = 2m each, so total ~8m + some margin).
+  const double radius = 15.0;
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+
+  // The road has 4 driving lanes: 1_0_2, 1_0_1, 1_0_-1, 1_0_-2.
+  const auto find_lane = [&](const std::string& id) {
+    return std::find_if(results.begin(), results.end(),
+                        [&](const auto& r) { return r.road_position.lane->id() == maliput::api::LaneId(id); });
+  };
+  ASSERT_NE(find_lane("1_0_2"), results.end());
+  ASSERT_NE(find_lane("1_0_1"), results.end());
+  ASSERT_NE(find_lane("1_0_-1"), results.end());
+  ASSERT_NE(find_lane("1_0_-2"), results.end());
+
+  // Verify the queried lane (1_0_1) has the full expected result.
+  const auto it = find_lane("1_0_1");
+  EXPECT_NEAR(it->road_position.pos.s(), s, tol_);
+  EXPECT_NEAR(it->road_position.pos.r(), 0., tol_);
+  EXPECT_NEAR(it->road_position.pos.h(), 0., tol_);
+  EXPECT_NEAR(it->nearest_position.x(), inertial_pos.x(), tol_);
+  EXPECT_NEAR(it->nearest_position.y(), inertial_pos.y(), tol_);
+  EXPECT_NEAR(it->nearest_position.z(), inertial_pos.z(), tol_);
+  EXPECT_NEAR(it->distance, 0., tol_);
+
+  // All other lanes should have h ≈ 0 (on-surface) and non-zero distance.
+  for (const auto& result : results) {
+    EXPECT_NEAR(result.road_position.pos.h(), 0., constants::kLinearTolerance);
+  }
+}
+
+// Holds the r-query value for the multi-level arc road parametrized test.
+struct MultiLevelArcRoadFindParam {
+  double r_query;
+};
+
+// ───────────────────────────────────────────────────────────────────────────────
+// MultiLevelArcRoad: 3 arc roads at different levels with different superelevation.
+// All share the same arc in XY (curvature = 0.025, R = 40m, length = 100m, lane width = 2m).
+//   Road 0: Elevation  0m, superelevation = −π/4 (≈ −45°)
+//   Road 1: Elevation 10m, superelevation =  0°
+//   Road 2: Elevation 20m, superelevation = +π/4 (≈ +45°)
+//
+// Queries use lane 1_0_1 (left lane of road 1, flat) at s = length/2 and various
+// r offsets.  Because road 1 is flat, the XY perpendicular offset from the
+// reference line is D = lane_center_offset + r = 1.0 + r.
+//
+// A vertical line at the query (x, y) intersects the left lane surface of every
+// road.  For superelevated roads (θ = ±π/4), the on-surface r_total = D / cos(θ)
+// = D√2, so the lane-frame r = D√2 − 1.0.
+//
+// Elevation at the on-surface point:
+//   Road 0: z = 0  + r_total · sin(−π/4) = −D
+//   Road 1: z = 10 (flat)
+//   Road 2: z = 20 + r_total · sin(+π/4) = 20 + D
+//
+// Using radius = 0.5, only the left lanes (which contain the XY point, distance = 0)
+// are returned — the right lanes have XY distance ≥ D ≥ 0.6 and are excluded.
+// ───────────────────────────────────────────────────────────────────────────────
+class RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad
+    : public ::testing::TestWithParam<MultiLevelArcRoadFindParam> {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("MultiLevelArcRoad");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("MultiLevelArcRoad.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+    rg_ = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(rg_, nullptr);
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+  const RoadGeometry* rg_{nullptr};
+  const double tol_{1e-5};
+};
+
+// Verifies FindSurfaceRoadPositionsAtXY returns exactly one left-lane result per road
+// and that each result's (s, r, h), nearest_position, and distance match the
+// analytically expected values.
+TEST_P(RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad, FindsLeftLanePerRoad) {
+  const double r = GetParam().r_query;
+
+  // Query lane: left lane of road 1 (flat, elevation 10m).
+  const auto* lane_1 = rg_->ById().GetLane(maliput::api::LaneId("1_0_1"));
+  ASSERT_NE(lane_1, nullptr);
+  const double s_1 = lane_1->length() / 2.;
+  const maliput::api::InertialPosition inertial_pos = lane_1->ToInertialPosition({s_1, r, 0.});
+
+  // Use a small radius so only the left lanes (one per road) are returned.
+  const double radius = 0.5;
+  const auto results = rg_->FindSurfaceRoadPositionsAtXY(inertial_pos.x(), inertial_pos.y(), radius);
+  ASSERT_EQ(results.size(), 3u);
+
+  // XY perpendicular offset from the reference line (road 1 is flat, so D = lane_center + r).
+  const double D = 1.0 + r;
+  // On superelevated roads (|θ| = π/4): r_total = D / cos(π/4) = D√2, r_lane = r_total − 1.
+  const double expected_r_banked = D * std::sqrt(2.) - 1.0;
+
+  // Left lanes of roads 0 and 2.
+  const auto* lane_0 = rg_->ById().GetLane(maliput::api::LaneId("0_0_1"));
+  const auto* lane_2 = rg_->ById().GetLane(maliput::api::LaneId("2_0_1"));
+  ASSERT_NE(lane_0, nullptr);
+  ASSERT_NE(lane_2, nullptr);
+
+  // All left lanes lie at the same angular position on the arc,
+  // so the expected s for each lane is its own length / 2.
+  const double s_0 = lane_0->length() / 2.;
+  const double s_2 = lane_2->length() / 2.;
+
+  const auto find_lane = [&](const std::string& id) {
+    return std::find_if(results.begin(), results.end(),
+                        [&](const auto& res) { return res.road_position.lane->id() == maliput::api::LaneId(id); });
+  };
+
+  // ── Road 1 — left lane (θ = 0, elevation = 10m): exact match with the query. ──
+  {
+    const auto it = find_lane("1_0_1");
+    ASSERT_NE(it, results.end());
+    EXPECT_NEAR(it->road_position.pos.s(), s_1, tol_);
+    EXPECT_NEAR(it->road_position.pos.r(), r, tol_);
+    EXPECT_NEAR(it->road_position.pos.h(), 0., tol_);
+    EXPECT_NEAR(it->nearest_position.x(), inertial_pos.x(), tol_);
+    EXPECT_NEAR(it->nearest_position.y(), inertial_pos.y(), tol_);
+    EXPECT_NEAR(it->nearest_position.z(), inertial_pos.z(), tol_);
+    EXPECT_NEAR(it->distance, 0., tol_);
+  }
+
+  // ── Road 0 — left lane (θ = −π/4, elevation = 0m). ──
+  // z = 0 + D√2 · sin(−π/4) = −D.
+  {
+    const auto it = find_lane("0_0_1");
+    ASSERT_NE(it, results.end());
+    EXPECT_NEAR(it->road_position.pos.s(), s_0, tol_);
+    EXPECT_NEAR(it->road_position.pos.r(), expected_r_banked, tol_);
+    EXPECT_NEAR(it->road_position.pos.h(), 0., tol_);
+    EXPECT_NEAR(it->nearest_position.x(), inertial_pos.x(), tol_);
+    EXPECT_NEAR(it->nearest_position.y(), inertial_pos.y(), tol_);
+    EXPECT_NEAR(it->nearest_position.z(), -D, tol_);
+    EXPECT_NEAR(it->distance, 0., tol_);
+  }
+
+  // ── Road 2 — left lane (θ = +π/4, elevation = 20m). ──
+  // z = 20 + D√2 · sin(π/4) = 20 + D.
+  {
+    const auto it = find_lane("2_0_1");
+    ASSERT_NE(it, results.end());
+    EXPECT_NEAR(it->road_position.pos.s(), s_2, tol_);
+    EXPECT_NEAR(it->road_position.pos.r(), expected_r_banked, tol_);
+    EXPECT_NEAR(it->road_position.pos.h(), 0., tol_);
+    EXPECT_NEAR(it->nearest_position.x(), inertial_pos.x(), tol_);
+    EXPECT_NEAR(it->nearest_position.y(), inertial_pos.y(), tol_);
+    EXPECT_NEAR(it->nearest_position.z(), 20. + D, tol_);
+    EXPECT_NEAR(it->distance, 0., tol_);
+  }
+}
+
+INSTANTIATE_TEST_CASE_P(RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoadGroup,
+                        RoadGeometryFindSurfaceRoadPositionsAtXYMultiLevelArcRoad,
+                        ::testing::Values(MultiLevelArcRoadFindParam{-0.4}, MultiLevelArcRoadFindParam{0.0},
+                                          MultiLevelArcRoadFindParam{0.4}));
+
 }  // namespace
 }  // namespace tests
 }  // namespace malidrive
