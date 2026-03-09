@@ -1349,17 +1349,6 @@ signal::Signal NodeParser::As() const {
     references.push_back(reference);
     reference_element_xml = reference_element_xml->NextSiblingElement(signal::Reference::kReferenceTag);
   }
-  // signal::SignalReference elements
-  tinyxml2::XMLElement* signal_reference_element_xml =
-      element_->FirstChildElement(signal::SignalReference::kSignalReferenceTag);
-  std::vector<signal::SignalReference> signal_references;
-  while (signal_reference_element_xml) {
-    auto signal_reference =
-        NodeParser(signal_reference_element_xml, parser_configuration_).As<signal::SignalReference>();
-    signal_references.push_back(signal_reference);
-    signal_reference_element_xml =
-        signal_reference_element_xml->NextSiblingElement(signal::SignalReference::kSignalReferenceTag);
-  }
   // signal::Controller elements
   tinyxml2::XMLElement* controller_element_xml = element_->FirstChildElement(signal::Controller::kControllerTag);
   std::vector<signal::Controller> controllers;
@@ -1416,19 +1405,18 @@ signal::Signal NodeParser::As() const {
           validities,
           dependencies,
           references,
-          signal_references,
           controllers,
           static_boards,
           vms_boards,
           semantics};
 }
 
-// Specialization to parse `Signals`'s node.
+// Specialization to parse `signal::Signals`'s node.
 template <>
 signal::Signals NodeParser::As() const {
   const AttributeParser attribute_parser(element_, parser_configuration_);
 
-  // Signal elements.
+  // signal::Signal elements.
   tinyxml2::XMLElement* signals_element_xml = element_->FirstChildElement(signal::Signal::kSignalTag);
   std::vector<signal::Signal> signals;
   while (signals_element_xml) {
@@ -1436,8 +1424,19 @@ signal::Signals NodeParser::As() const {
     signals.push_back(signal);
     signals_element_xml = signals_element_xml->NextSiblingElement(signal::Signal::kSignalTag);
   }
+  // signal::SignalReference elements
+  tinyxml2::XMLElement* signal_reference_element_xml =
+      element_->FirstChildElement(signal::SignalReference::kSignalReferenceTag);
+  std::vector<signal::SignalReference> signal_references;
+  while (signal_reference_element_xml) {
+    auto signal_reference =
+        NodeParser(signal_reference_element_xml, parser_configuration_).As<signal::SignalReference>();
+    signal_references.push_back(signal_reference);
+    signal_reference_element_xml =
+        signal_reference_element_xml->NextSiblingElement(signal::SignalReference::kSignalReferenceTag);
+  }
 
-  return {signals};
+  return {signals, signal_references};
 }
 
 // Specialization to parse `Road`'s node.
