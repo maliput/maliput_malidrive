@@ -44,11 +44,9 @@
 #include <maliput/base/phase_ring_book_loader.h>
 #include <maliput/base/rule_registry.h>
 #include <maliput/base/traffic_light_book.h>
-#include <maliput/base/traffic_light_book_loader.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_unused.h>
 
-#include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/builder/direction_usage_builder.h"
 #include "maliput_malidrive/builder/discrete_value_rule_state_provider_builder.h"
@@ -60,11 +58,10 @@
 #include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 #include "maliput_malidrive/builder/speed_limit_builder.h"
-#include "maliput_malidrive/builder/traffic_light_builder.h"
+#include "maliput_malidrive/builder/traffic_light_book_builder.h"
 #include "maliput_malidrive/builder/xodr_parser_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/constants.h"
-#include "maliput_malidrive/traffic_signal/traffic_signal_loader.h"
 #include "maliput_malidrive/xodr/parser_configuration.h"
 #include "maliput_malidrive/xodr/unit.h"
 
@@ -89,7 +86,8 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::common::unused(speed_limits);
 
   maliput::log()->trace("Building TrafficLightBook...");
-  auto traffic_light_book = BuildTrafficLightBook(rn_config, rg.get());
+  auto traffic_light_book =
+      TrafficLightBookBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_signal_db)();
   maliput::log()->trace("Built TrafficLightBook.");
 
   maliput::log()->trace("Building RuleRegistry...");
@@ -150,40 +148,6 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
       std::move(rg), std::move(rule_book), std::move(traffic_light_book), std::move(intersection_book),
       std::move(phase_ring_book), std::move(state_provider), std::move(manual_phase_provider), std::move(rule_registry),
       std::move(discrete_value_rule_state_provider), std::move(range_value_rule_state_provider));
-}
-
-std::unique_ptr<maliput::api::rules::TrafficLightBook> RoadNetworkBuilder::BuildTrafficLightBook(
-    const RoadNetworkConfiguration& rn_config, const maliput::api::RoadGeometry* rg) const {
-  auto traffic_light_book = !rn_config.traffic_light_book.has_value()
-                                ? std::make_unique<maliput::TrafficLightBook>()
-                                : maliput::LoadTrafficLightBookFromFile(rn_config.traffic_light_book.value());
-  if (!rn_config.traffic_signal_db.has_value()) {
-    // Fall back to the file-based book or an empty book.
-    return traffic_light_book;
-  }
-
-  // Obtain the DBManager via the concrete malidrive::RoadGeometry.
-  const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(rg);
-  MALIDRIVE_VALIDATE(mali_rg != nullptr, std::runtime_error, "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
-
-  const traffic_signal::TrafficSignalLoader loader(rn_config.traffic_signal_db);
-
-  maliput::log()->trace("Building TrafficLights from XODR signals and YAML database...");
-  for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
-    if (!road_header.signals.has_value()) {
-      continue;
-    }
-    for (const auto& signal : road_header.signals->signals) {
-      auto tl = builder::TrafficLightBuilder(signal, road_id, loader, rg)();
-      if (tl) {
-        auto* tlb = dynamic_cast<maliput::TrafficLightBook*>(traffic_light_book.get());
-        tlb->AddTrafficLight(std::move(tl));
-      }
-    }
-  }
-  maliput::log()->trace("Built TrafficLights from XODR signals.");
-
-  return traffic_light_book;
 }
 
 }  // namespace builder

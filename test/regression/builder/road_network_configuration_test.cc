@@ -57,6 +57,7 @@ class RoadNetworkConfigurationTest : public ::testing::Test {
   const std::optional<std::string> kTrafficLightBook{"traffic_light_book_test.xodr"};
   const std::optional<std::string> kPhaseRingBook{"phase_ring_book_test.xodr"};
   const std::optional<std::string> kIntersectionBook{"intersection_book_test.xodr"};
+  const std::optional<std::string> kTrafficSignalDb{"traffic_signal_db_test.yaml"};
   const double kLinearTolerance{5e-5};
   const double kMaxLinearTolerance{5e-4};
   const double kAngularTolerance{5e-5};
@@ -69,6 +70,7 @@ class RoadNetworkConfigurationTest : public ::testing::Test {
     EXPECT_EQ(lhs.traffic_light_book, rhs.traffic_light_book);
     EXPECT_EQ(lhs.phase_ring_book, rhs.phase_ring_book);
     EXPECT_EQ(lhs.intersection_book, rhs.intersection_book);
+    EXPECT_EQ(lhs.traffic_signal_db, rhs.traffic_signal_db);
     // RoadGeometryConfiguration parameteres.
     EXPECT_EQ(lhs.road_geometry_configuration.id, rhs.road_geometry_configuration.id);
     EXPECT_EQ(lhs.road_geometry_configuration.opendrive_file, rhs.road_geometry_configuration.opendrive_file);
@@ -104,8 +106,8 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       kSimplificationPolicy,
       kStandardStrictnessPolicy,
       kOmitNondrivableLanes};
-  RoadNetworkConfiguration dut1{rg_config,         kRuleRegistry,  kRoadRuleBook,
-                                kTrafficLightBook, kPhaseRingBook, kIntersectionBook};
+  RoadNetworkConfiguration dut1{rg_config,      kRuleRegistry,     kRoadRuleBook,   kTrafficLightBook,
+                                kPhaseRingBook, kIntersectionBook, kTrafficSignalDb};
 
   const std::map<std::string, std::string> rn_config_map{
       {params::kRoadGeometryId, kRgId},
@@ -125,6 +127,7 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       {params::kTrafficLightBook, kTrafficLightBook.value()},
       {params::kPhaseRingBook, kPhaseRingBook.value()},
       {params::kIntersectionBook, kIntersectionBook.value()},
+      {params::kTrafficSignalDb, kTrafficSignalDb.value()},
   };
 
   const RoadNetworkConfiguration dut2{RoadNetworkConfiguration::FromMap(rn_config_map)};
@@ -142,7 +145,8 @@ TEST_F(RoadNetworkConfigurationTest, ToStringMap) {
       kRoadRuleBook,
       kTrafficLightBook,
       kPhaseRingBook,
-      kIntersectionBook};
+      kIntersectionBook,
+      kTrafficSignalDb};
 
   const RoadNetworkConfiguration dut2{RoadNetworkConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);

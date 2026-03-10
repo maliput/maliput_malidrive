@@ -35,7 +35,6 @@
 
 #include <maliput/api/road_network.h>
 
-#include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
@@ -56,21 +55,6 @@ class RoadNetworkBuilder {
   std::unique_ptr<maliput::api::RoadNetwork> operator()() const;
 
  private:
-  /// Builds the @ref maliput::api::rules::TrafficLightBook.
-  ///
-  /// An initial @ref maliput::api::rules::TrafficLightBook is constructed from the file specified in
-  /// @p rn_config.traffic_light_book. When @p rn_config.traffic_signal_db is set, the book is also populated by
-  /// iterating all XODR signals in @p rg and constructing one
-  /// @ref maliput::api::rules::TrafficLight per signal that has a matching
-  /// entry in the YAML database. Otherwise, the existing file-based
-  /// @p rn_config.traffic_light_book path is used (or an empty book when
-  /// neither parameter is set).
-  ///
-  /// @param rn_config Parsed RoadNetwork configuration.
-  /// @param rg Pointer to the built RoadGeometry. Must not be nullptr.
-  std::unique_ptr<maliput::api::rules::TrafficLightBook> BuildTrafficLightBook(
-      const RoadNetworkConfiguration& rn_config, const maliput::api::RoadGeometry* rg) const;
-
   const std::map<std::string, std::string> road_network_configuration_;
 };
 

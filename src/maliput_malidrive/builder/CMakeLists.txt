@@ -20,6 +20,7 @@ add_library(builder
   rule_tools.cc
   simplify_geometries.cc
   speed_limit_builder.cc
+  traffic_light_book_builder.cc
   traffic_light_builder.cc
   xodr_parser_configuration.cc
 )

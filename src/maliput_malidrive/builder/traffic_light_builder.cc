@@ -108,15 +108,23 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
       maliput::api::rules::BulbGroup::Id(traffic_light_id.string() + "_Bulbs"),
       maliput::api::InertialPosition(0., 0., 0.), maliput::api::Rotation(), std::move(bulbs)));
 
-  // TODO: Compute the actual inertial position from the signal's (s, t, z_offset)
-  // road-frame coordinates using the RoadGeometry. For now, use the origin.
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
   malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_.s,
                                                                       signal_.t};
+  // We allow off-road positions conversions here since traffic lights in XODR files tend to be placed slightly off the road.
+  maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+  // The traffic light's orientation is set based on the lane's orientation at the traffic light's position.
+  maliput::api::Rotation orientation_road_network = rp.lane->GetOrientation(rp.pos);
+
+  maliput::log()->debug("TrafficLightBuilder: creating TrafficLight for signal id='", signal_.id.string(), "' type='",
+                        signal_.type, "' subtype='", signal_.subtype, "'. TrafficLight position in road network frame: (",
+                        rp.pos.s(), ", ", rp.pos.r(), ", ", rp.pos.h(), ") with orientation (roll=0, pitch=0, yaw=",
+                        orientation_road_network.yaw(), ").");
+
   return std::make_unique<maliput::api::rules::TrafficLight>(
       maliput::api::rules::TrafficLight::Id(signal_.id.string()),
-      mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position).ToInertialPosition(),
-      maliput::api::Rotation(), std::move(bulb_groups));
+      rp.ToInertialPosition(),
+      orientation_road_network, std::move(bulb_groups));
 }
 
 }  // namespace builder

@@ -51,10 +51,6 @@ RoadNetworkConfiguration RoadNetworkConfiguration::FromMap(
   if (it != road_network_configuration.end()) {
     rn_config.traffic_light_book = std::make_optional(it->second);
   }
-  it = road_network_configuration.find(params::kTrafficSignalDb);
-  if (it != road_network_configuration.end()) {
-    rn_config.traffic_signal_db = std::make_optional(it->second);
-  }
   it = road_network_configuration.find(params::kPhaseRingBook);
   if (it != road_network_configuration.end()) {
     rn_config.phase_ring_book = std::make_optional(it->second);
@@ -62,6 +58,10 @@ RoadNetworkConfiguration RoadNetworkConfiguration::FromMap(
   it = road_network_configuration.find(params::kIntersectionBook);
   if (it != road_network_configuration.end()) {
     rn_config.intersection_book = std::make_optional(it->second);
+  }
+  it = road_network_configuration.find(params::kTrafficSignalDb);
+  if (it != road_network_configuration.end()) {
+    rn_config.traffic_signal_db = std::make_optional(it->second);
   }
   return rn_config;
 }
@@ -77,14 +77,14 @@ std::map<std::string, std::string> RoadNetworkConfiguration::ToStringMap() const
   if (traffic_light_book.has_value()) {
     rg_config.emplace(params::kTrafficLightBook, traffic_light_book.value());
   }
-  if (traffic_signal_db.has_value()) {
-    rg_config.emplace(params::kTrafficSignalDb, traffic_signal_db.value());
-  }
   if (phase_ring_book.has_value()) {
     rg_config.emplace(params::kPhaseRingBook, phase_ring_book.value());
   }
   if (intersection_book.has_value()) {
     rg_config.emplace(params::kIntersectionBook, intersection_book.value());
+  }
+  if (traffic_signal_db.has_value()) {
+    rg_config.emplace(params::kTrafficSignalDb, traffic_signal_db.value());
   }
   return rg_config;
 }
