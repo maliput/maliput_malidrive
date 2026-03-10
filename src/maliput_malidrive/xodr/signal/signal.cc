@@ -41,8 +41,8 @@ bool Signal::operator==(const Signal& other) const {
          value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
          length == other.length && pitch == other.pitch && roll == other.roll && text == other.text &&
          validities == other.validities && dependencies == other.dependencies && references == other.references &&
-         signal_references == other.signal_references && controllers == other.controllers &&
-         static_boards == other.static_boards && vms_boards == other.vms_boards && semantics == other.semantics;
+         controllers == other.controllers && static_boards == other.static_boards && vms_boards == other.vms_boards &&
+         semantics == other.semantics;
 }
 
 bool Signal::operator!=(const Signal& other) const { return !(*this == other); }

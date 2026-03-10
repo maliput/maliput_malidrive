@@ -191,9 +191,6 @@ struct Signal {
   /// Reference elements.
   std::vector<Reference> references{};
 
-  /// SignalReference elements.
-  std::vector<SignalReference> signal_references{};
-
   /// Controller elements.
   std::vector<Controller> controllers{};
 
@@ -224,13 +221,18 @@ struct Signals {
   static constexpr const char* kSignalsTag = "signals";
 
   /// Equality operator.
-  bool operator==(const Signals& other) const { return signals == other.signals; }
+  bool operator==(const Signals& other) const {
+    return signals == other.signals && signal_references == other.signal_references;
+  }
 
   /// Inequality operator.
   bool operator!=(const Signals& other) const { return !(*this == other); }
 
   /// Holds all the `Signal`s in the road.
   std::vector<Signal> signals{};
+
+  /// SignalReference elements.
+  std::vector<SignalReference> signal_references{};
 };
 
 }  // namespace signal
