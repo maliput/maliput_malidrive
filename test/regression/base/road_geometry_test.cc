@@ -470,6 +470,59 @@ TEST_F(RoadGeometryOpenScenarioConversionsArcLane, RoundTripOpenScenarioRoadPosi
   }
 }
 
+TEST_F(RoadGeometryOpenScenarioConversionsArcLane, OpenScenarioRoadPositionToMaliputRoadPositionOffRoad) {
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+
+  // 1. A point to the right of the rightmost lane.
+  {
+    // OpenScenario/OpenDrive parameters.
+    // The rightmost lane is "1_0_-1". Its right edge is at t = -2.0, its center at t = -1.0.
+    // We select a point with t = -3.0, which is 1 meter to the right of the edge.
+    const RoadGeometry::OpenScenarioRoadPosition input_xodr_road_position{1, 50., -3.};
+    // Maliput expected results.
+    // The closest lane should be "1_0_-1".
+    const maliput::api::LaneId expected_lane_id("1_0_-1");
+    // s-coordinate should be the same as in other tests for xodr s=50: 51.25
+    // For this lane, r = t_projected - t_center = -3.0 - (-1.0) = -2.0
+    const maliput::api::LanePosition expected_lane_position(51.25, -2.0, 0.);
+
+    // First, test that it throws without the flag.
+    EXPECT_THROW(rg->OpenScenarioRoadPositionToMaliputRoadPosition(input_xodr_road_position, false),
+                 maliput::common::assertion_error);
+
+    // Now, test with the flag.
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRoadPositionToMaliputRoadPosition(input_xodr_road_position, true);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+
+  // 2. A point to the left of the leftmost lane.
+  {
+    // OpenScenario/OpenDrive parameters.
+    // The leftmost lane is "1_0_1". Its left edge is at t = 2.0, its center at t=1.0.
+    // We select a point with t = 3.0, which is 1 meter to the left of the edge.
+    const RoadGeometry::OpenScenarioRoadPosition input_xodr_road_position{1, 50., 3.};
+    // Maliput expected results.
+    // The closest lane should be "1_0_1".
+    const maliput::api::LaneId expected_lane_id("1_0_1");
+    // For this lane, r = t_projected - t_center = 3.0 - 1.0 = 2.0
+    const maliput::api::LanePosition expected_lane_position(48.75, 2.0, 0.);
+
+    // First, test that it throws without the flag.
+    EXPECT_THROW(rg->OpenScenarioRoadPositionToMaliputRoadPosition(input_xodr_road_position, false),
+                 maliput::common::assertion_error);
+
+    // Now, test with the flag.
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRoadPositionToMaliputRoadPosition(input_xodr_road_position, true);
+    EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+    EXPECT_TRUE(
+        AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+  }
+}
+
 TEST_F(RoadGeometryOpenScenarioConversionsArcLane, OpenScenarioRelativeRoadPositionToMaliputRoadPosition) {
   // OpenScenario/OpenDrive parameters.
   const RoadGeometry::OpenScenarioRoadPosition input_xodr_road_position{1, 0., 1.};

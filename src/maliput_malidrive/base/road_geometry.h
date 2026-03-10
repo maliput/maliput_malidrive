@@ -152,7 +152,7 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   ///
   /// @returns A maliput RoadPosition.
   maliput::api::RoadPosition OpenScenarioRoadPositionToMaliputRoadPosition(
-      const OpenScenarioRoadPosition& xodr_road_position) const;
+      const OpenScenarioRoadPosition& xodr_road_position, bool allow_off_road_coordinates = false) const;
 
   /// Converts a maliput RoadPosition to an OpenScenario RoadPosition.
   /// See
