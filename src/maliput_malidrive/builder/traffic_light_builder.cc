@@ -111,20 +111,20 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
   malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_.s,
                                                                       signal_.t};
-  // We allow off-road positions conversions here since traffic lights in XODR files tend to be placed slightly off the road.
+  // We allow off-road positions conversions here since traffic lights in XODR files tend to be placed slightly off the
+  // road.
   maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
   // The traffic light's orientation is set based on the lane's orientation at the traffic light's position.
   maliput::api::Rotation orientation_road_network = rp.lane->GetOrientation(rp.pos);
 
   maliput::log()->debug("TrafficLightBuilder: creating TrafficLight for signal id='", signal_.id.string(), "' type='",
-                        signal_.type, "' subtype='", signal_.subtype, "'. TrafficLight position in road network frame: (",
-                        rp.pos.s(), ", ", rp.pos.r(), ", ", rp.pos.h(), ") with orientation (roll=0, pitch=0, yaw=",
-                        orientation_road_network.yaw(), ").");
+                        signal_.type, "' subtype='", signal_.subtype,
+                        "'. TrafficLight position in road network frame: (", rp.pos.s(), ", ", rp.pos.r(), ", ",
+                        rp.pos.h(), ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(), ").");
 
-  return std::make_unique<maliput::api::rules::TrafficLight>(
-      maliput::api::rules::TrafficLight::Id(signal_.id.string()),
-      rp.ToInertialPosition(),
-      orientation_road_network, std::move(bulb_groups));
+  return std::make_unique<maliput::api::rules::TrafficLight>(maliput::api::rules::TrafficLight::Id(signal_.id.string()),
+                                                             rp.ToInertialPosition(), orientation_road_network,
+                                                             std::move(bulb_groups));
 }
 
 }  // namespace builder
