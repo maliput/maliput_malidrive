@@ -33,7 +33,7 @@
 #include <maliput/api/road_geometry.h>
 #include <maliput/api/rules/traffic_lights.h>
 
-#include "maliput_malidrive/traffic_signal/traffic_signal_loader.h"
+#include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
 
@@ -61,12 +61,12 @@ class TrafficLightBuilder {
   ///
   /// @param signal The XODR signal to build a @ref maliput::api::rules::TrafficLight from.
   /// @param road_id The XODR road's ID the @p signal belongs to.
-  /// @param loader The @ref traffic_signal::TrafficSignalLoader providing access
+  /// @param loader The @ref traffic_signal::TrafficSignalDatabaseLoader providing access
   ///        to the traffic signal YAML database.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
   /// @throws std::invalid_argument if @p road_geometry is nullptr.
   TrafficLightBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
-                      const traffic_signal::TrafficSignalLoader& loader,
+                      const traffic_signal::TrafficSignalDatabaseLoader& loader,
                       const maliput::api::RoadGeometry* road_geometry);
 
   /// Builds and returns the @ref maliput::api::rules::TrafficLight.
@@ -78,7 +78,7 @@ class TrafficLightBuilder {
  private:
   const xodr::signal::Signal& signal_;
   const xodr::RoadHeader::Id& road_id_;
-  const traffic_signal::TrafficSignalLoader& loader_;
+  const traffic_signal::TrafficSignalDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
 };
 

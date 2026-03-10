@@ -60,7 +60,7 @@ std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
 }  // namespace
 
 TrafficLightBuilder::TrafficLightBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
-                                         const traffic_signal::TrafficSignalLoader& loader,
+                                         const traffic_signal::TrafficSignalDatabaseLoader& loader,
                                          const maliput::api::RoadGeometry* road_geometry)
     : signal_(signal), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");

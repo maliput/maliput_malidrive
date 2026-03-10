@@ -36,7 +36,7 @@
 
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/builder/traffic_light_builder.h"
-#include "maliput_malidrive/traffic_signal/traffic_signal_loader.h"
+#include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
 
 namespace malidrive {
 namespace builder {
@@ -64,7 +64,7 @@ std::unique_ptr<maliput::api::rules::TrafficLightBook> TrafficLightBookBuilder::
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
   MALIDRIVE_VALIDATE(mali_rg != nullptr, std::runtime_error, "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
 
-  const traffic_signal::TrafficSignalLoader loader(traffic_signal_db_path_);
+  const traffic_signal::TrafficSignalDatabaseLoader loader(traffic_signal_db_path_);
 
   maliput::log()->trace("Building TrafficLights from XODR signals and YAML database...");
   for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {

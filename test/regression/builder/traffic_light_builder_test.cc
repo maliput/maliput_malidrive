@@ -54,7 +54,7 @@ static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 
 // Test fixture for TrafficLightBuilder.
 // Builds a RoadNetwork from the figure8_trafficlights XODR (which contains 4
-// signals, all of type "1000001") and prepares a TrafficSignalLoader backed by
+// signals, all of type "1000001") and prepares a TrafficSignalDatabaseLoader backed by
 // the example YAML database.
 class TrafficLightBuilderFigure8Test : public ::testing::Test {
  protected:
@@ -83,14 +83,14 @@ class TrafficLightBuilderFigure8Test : public ::testing::Test {
     ASSERT_TRUE(road_header->second.signals.has_value());
     ASSERT_FALSE(road_header->second.signals->signals.empty());
     signal_ = road_header->second.signals->signals[0];
-    loader_ = std::make_unique<traffic_signal::TrafficSignalLoader>(traffic_signal_db_path_);
+    loader_ = std::make_unique<traffic_signal::TrafficSignalDatabaseLoader>(traffic_signal_db_path_);
   }
 
   std::string traffic_signal_db_path_;
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
   const malidrive::RoadGeometry* road_geometry_{};
   xodr::signal::Signal signal_{0.0, 0.0, xodr::signal::Signal::Id("none")};
-  std::unique_ptr<traffic_signal::TrafficSignalLoader> loader_;
+  std::unique_ptr<traffic_signal::TrafficSignalDatabaseLoader> loader_;
 };
 
 TEST_F(TrafficLightBuilderFigure8Test, Constructor) {
