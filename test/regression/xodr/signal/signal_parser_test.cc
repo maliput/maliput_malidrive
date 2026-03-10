@@ -518,7 +518,8 @@ std::string GetControllerMissingNameAndSequence() {
 TEST_F(SignalParsingTests, NodeParserControllerMissingNameAndSequence) {
   const Control kControl1{Control::SignalId("signal_1"), std::make_optional("control_type")};
   const Control kControl2{Control::SignalId("signal_2"), std::nullopt};
-  const Controller kExpectedController{Controller::Id("controller_1"), std::nullopt, std::nullopt, {{kControl1, kControl2}}};
+  const Controller kExpectedController{
+      Controller::Id("controller_1"), std::nullopt, std::nullopt, {{kControl1, kControl2}}};
 
   const std::string xml_description = GetControllerMissingNameAndSequence();
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Controller::kControllerTag),
@@ -846,8 +847,26 @@ std::string GetBasicSign() {
 // Tests `signal::Sign` parsing.
 TEST_F(SignalParsingTests, NodeParserSign) {
   const Validity kValidity{Validity::Id("1"), Validity::Id("2")};
-  const Signal kBaseSignal{100.10, -1.5, Signal::Id("12345"), std::make_optional("Test Signal"), false, "+", 2.22, std::make_optional("DE"),
-                      std::make_optional("2017"), "274", "100", signal::Signal::Value{100.0, "km/h"}, 0.5, 1.0, 0.5, 1.5, 0.1, 0.2, "Sample Text", {{kValidity}}};
+  const Signal kBaseSignal{100.10,
+                           -1.5,
+                           Signal::Id("12345"),
+                           std::make_optional("Test Signal"),
+                           false,
+                           "+",
+                           2.22,
+                           std::make_optional("DE"),
+                           std::make_optional("2017"),
+                           "274",
+                           "100",
+                           signal::Signal::Value{100.0, "km/h"},
+                           0.5,
+                           1.0,
+                           0.5,
+                           1.5,
+                           0.1,
+                           0.2,
+                           "Sample Text",
+                           {{kValidity}}};
   const Sign kExpectedSign{kBaseSignal, 0.5, 1.2};
 
   const std::string xml_description = GetBasicSign();
