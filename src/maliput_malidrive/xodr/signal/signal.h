@@ -37,6 +37,7 @@
 #include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
+#include "maliput_malidrive/xodr/signal/orientation.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
 #include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"
@@ -141,7 +142,7 @@ struct Signal {
 
   /// "+" = valid in positive s-direction, "-" = valid in negative s-direction,
   /// "none" = valid in both directions.
-  std::string orientation{};
+  Orientation orientation{};
 
   /// z-offset of signal's origin relative to the elevation of the road reference line.
   double z_offset{};

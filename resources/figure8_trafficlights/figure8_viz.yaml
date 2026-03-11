@@ -1,0 +1,8 @@
+maliput_viz:
+  maliput_backend: maliput_malidrive
+  parameters:
+    opendrive_file: src/maliput_malidrive/resources/figure8_trafficlights/figure8_trafficlights.xodr
+    # traffic_light_book: src/maliput_malidrive/resources/figure8_trafficlights/figure8_trafficlights_new_rules.yaml
+    traffic_signal_db: src/maliput_malidrive/resources/traffic_signal_db/traffic_signal_db_example.yaml
+    omit_nondrivable_lanes: false
+ 

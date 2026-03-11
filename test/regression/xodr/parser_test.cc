@@ -1718,13 +1718,13 @@ TEST_F(ParsingTests, NodeParserSignals) {
   const signal::Signals kExpectedSignals{
       {signal::Signal{
           100.10 /* s */, -1.5 /* t */, signal::Signal::Id("12345") /* id */, "Test Signal" /* name */,
-          false /* dynamic */, "+" /* orientation */, 2.22 /* z_offset */, "DE" /* country */,
+          false /* dynamic */, signal::Orientation::kWithS /* orientation */, 2.22 /* z_offset */, "DE" /* country */,
           "2017" /* country_revision */, "274" /* type */, "100" /* subtype */,
           signal::Signal::Value{100, "km/h"} /* value */, 0.5 /* height */, 1.0 /* width */, 0.5 /* h_offset */,
           1.5 /* length */, 0.1 /* pitch */, 0.2 /* roll */, "Sample Text" /* text */
       }},
       {signal::SignalReference{signal::SignalReference::SignalId("54321") /* id */,
-                               signal::SignalReference::Orientation::kAgainstS /* orientation */, 100 /* s */,
+                               signal::Orientation::kAgainstS /* orientation */, 100 /* s */,
                                1.5 /* t */}}};
 
   const std::string xml_description = GetSignals();
@@ -1783,7 +1783,7 @@ TEST_F(ParsingTests, NodeParserSignalMissingUnitAllowingSchemaError) {
       signal::Signal::Id("12345") /* id */,
       "Test Signal" /* name */,
       false /* dynamic */,
-      "+" /* orientation */,
+      signal::Orientation::kWithS /* orientation */,
       2.22 /* z_offset */,
       "DE" /* country */,
       "2017" /* country_revision */,

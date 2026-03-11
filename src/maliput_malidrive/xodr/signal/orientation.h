@@ -28,46 +28,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <vector>
-
-#include <maliput/api/type_specific_identifier.h>
-
-#include "maliput_malidrive/xodr/signal/orientation.h"
-#include "maliput_malidrive/xodr/validity.h"
-
 namespace malidrive {
 namespace xodr {
 namespace signal {
 
-/// Holds the values of a XODR signal reference element.
-struct SignalReference {
-  /// SignalId alias.
-  using SignalId = maliput::api::TypeSpecificIdentifier<struct SignalReference>;
-  /// Convenient constants that hold the tag names in the XODR signal reference description.
-  static constexpr const char* kSignalReferenceTag = "signalReference";
-  static constexpr const char* kSignalId = "id";
-  static constexpr const char* kOrientation = "orientation";
-  static constexpr const char* kS = "s";
-  static constexpr const char* kT = "t";
-
-  /// Unique ID of the referenced signal.
-  SignalId signal_id;
-  /// Orientation of the reference. It can be "+" for positive s-direction, "-" for negative s-direction, or "none" for
-  /// bidirectional.
-  Orientation orientation{};
-  /// s-coordinate.
-  double s{};
-  /// t-coordinate.
-  double t{};
-  /// Validity element.
-  std::vector<Validity> validities{};
-
-  /// Equality operator.
-  bool operator==(const SignalReference& other) const;
-
-  /// Inequality operator.
-  bool operator!=(const SignalReference& other) const;
-};
+enum class Orientation { kWithS, kAgainstS, kBidirectional };
 
 }  // namespace signal
 }  // namespace xodr

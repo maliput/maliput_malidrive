@@ -40,7 +40,7 @@ GTEST_TEST(SignalReference, EqualityOperator) {
   const Validity kValidity{Validity::Id("from"), Validity::Id("to")};
   const SignalReference kSignalReference{
       SignalReference::SignalId("signal_id") /* signal_id */,
-      SignalReference::Orientation::kWithS /* orientation */,
+      Orientation::kWithS /* orientation */,
       10.0 /* s */,
       5.0 /* t */,
       {{kValidity}} /* validities */
@@ -53,7 +53,7 @@ GTEST_TEST(SignalReference, EqualityOperator) {
   EXPECT_NE(kSignalReference, signal_reference);
   signal_reference = kSignalReference;
 
-  signal_reference.orientation = SignalReference::Orientation::kAgainstS;
+  signal_reference.orientation = Orientation::kAgainstS;
   EXPECT_NE(kSignalReference, signal_reference);
   signal_reference = kSignalReference;
 
