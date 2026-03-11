@@ -23,6 +23,8 @@ set(UNIT_BUILDER_TEST_SOURCES
   road_geometry_configuration_test.cc
   road_network_configuration_test.cc
   simplify_geometries_test.cc
+  traffic_light_builder_test.cc
+  road_network_builder_traffic_lights_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_BUILDER_TEST_SOURCES})

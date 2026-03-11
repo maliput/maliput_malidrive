@@ -26,49 +26,25 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#pragma once
-
-#include <vector>
-
-#include <maliput/api/type_specific_identifier.h>
-
-#include "maliput_malidrive/xodr/signal/orientation.h"
-#include "maliput_malidrive/xodr/validity.h"
+#include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
 
 namespace malidrive {
-namespace xodr {
-namespace signal {
+namespace traffic_signal {
 
-/// Holds the values of a XODR signal reference element.
-struct SignalReference {
-  /// SignalId alias.
-  using SignalId = maliput::api::TypeSpecificIdentifier<struct SignalReference>;
-  /// Convenient constants that hold the tag names in the XODR signal reference description.
-  static constexpr const char* kSignalReferenceTag = "signalReference";
-  static constexpr const char* kSignalId = "id";
-  static constexpr const char* kOrientation = "orientation";
-  static constexpr const char* kS = "s";
-  static constexpr const char* kT = "t";
+TrafficSignalDatabaseLoader::TrafficSignalDatabaseLoader(const std::optional<std::string>& file_path) {
+  if (file_path.has_value()) {
+    definitions_ = TrafficSignalParser::LoadFromFile(file_path.value());
+  }
+}
 
-  /// Unique ID of the referenced signal.
-  SignalId signal_id;
-  /// Orientation of the reference. It can be "+" for positive s-direction, "-" for negative s-direction, or "none" for
-  /// bidirectional.
-  Orientation orientation{};
-  /// s-coordinate.
-  double s{};
-  /// t-coordinate.
-  double t{};
-  /// Validity element.
-  std::vector<Validity> validities{};
+std::optional<TrafficSignalDefinition> TrafficSignalDatabaseLoader::Lookup(
+    const TrafficSignalFingerprint& fingerprint) const {
+  const auto it = definitions_.find(fingerprint);
+  if (it == definitions_.end()) {
+    return std::nullopt;
+  }
+  return it->second;
+}
 
-  /// Equality operator.
-  bool operator==(const SignalReference& other) const;
-
-  /// Inequality operator.
-  bool operator!=(const SignalReference& other) const;
-};
-
-}  // namespace signal
-}  // namespace xodr
+}  // namespace traffic_signal
 }  // namespace malidrive

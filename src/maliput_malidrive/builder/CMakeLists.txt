@@ -20,6 +20,8 @@ add_library(builder
   rule_tools.cc
   simplify_geometries.cc
   speed_limit_builder.cc
+  traffic_light_book_builder.cc
+  traffic_light_builder.cc
   xodr_parser_configuration.cc
 )
 add_library(maliput_malidrive::builder ALIAS builder)
@@ -51,6 +53,7 @@ target_link_libraries(
       maliput::drake_systems_framework
       maliput_malidrive::base
       maliput_malidrive::road_curve
+      maliput_malidrive::traffic_signal
       maliput_malidrive::xodr
 )
 
