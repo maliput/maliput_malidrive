@@ -1724,8 +1724,7 @@ TEST_F(ParsingTests, NodeParserSignals) {
           1.5 /* length */, 0.1 /* pitch */, 0.2 /* roll */, "Sample Text" /* text */
       }},
       {signal::SignalReference{signal::SignalReference::SignalId("54321") /* id */,
-                               signal::Orientation::kAgainstS /* orientation */, 100 /* s */,
-                               1.5 /* t */}}};
+                               signal::Orientation::kAgainstS /* orientation */, 100 /* s */, 1.5 /* t */}}};
 
   const std::string xml_description = GetSignals();
 

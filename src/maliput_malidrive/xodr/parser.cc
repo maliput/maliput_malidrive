@@ -1300,10 +1300,9 @@ signal::Signal NodeParser::As() const {
   } else if (orientation_str.value() == "none") {
     orientation = signal::Orientation::kBidirectional;
   } else {
-    MALIDRIVE_THROW_MESSAGE(
-        "Signal with id '" + id.value() + "' has an invalid 'orientation' attribute: '" + orientation_str.value() +
-            "'. Valid values are '+', '-' and 'none'.",
-        maliput::common::road_network_description_parser_error);
+    MALIDRIVE_THROW_MESSAGE("Signal with id '" + id.value() + "' has an invalid 'orientation' attribute: '" +
+                                orientation_str.value() + "'. Valid values are '+', '-' and 'none'.",
+                            maliput::common::road_network_description_parser_error);
   }
   const double z_offset = ValidateDouble(attribute_parser.As<double>(signal::Signal::kZOffset), kDontAllowNan);
   const auto type = attribute_parser.As<std::string>(signal::Signal::kType);

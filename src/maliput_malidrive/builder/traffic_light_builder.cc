@@ -38,8 +38,8 @@
 
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/xodr/signal/orientation.h"
 #include "maliput_malidrive/traffic_signal/parser.h"
+#include "maliput_malidrive/xodr/signal/orientation.h"
 
 namespace malidrive {
 namespace builder {
@@ -119,16 +119,18 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
   maliput::api::InertialPosition pos = rp.ToInertialPosition();
   pos.set_z(signal_.z_offset);
   // The traffic light's orientation is set based on the lane's orientation at the traffic light's position.
-  double orientation = rp.lane->GetOrientation(rp.pos).yaw() + (signal_.h_offset.has_value() ? signal_.h_offset.value() : 0.);
-  maliput::api::Rotation orientation_road_network = maliput::api::Rotation::FromRpy(0., 0., orientation + (signal_.orientation == xodr::signal::Orientation::kAgainstS ? M_PI : 0.));
+  double orientation =
+      rp.lane->GetOrientation(rp.pos).yaw() + (signal_.h_offset.has_value() ? signal_.h_offset.value() : 0.);
+  maliput::api::Rotation orientation_road_network = maliput::api::Rotation::FromRpy(
+      0., 0., orientation + (signal_.orientation == xodr::signal::Orientation::kAgainstS ? M_PI : 0.));
 
   maliput::log()->debug("TrafficLightBuilder: creating TrafficLight for signal id='", signal_.id.string(), "' type='",
-                        signal_.type, "' subtype='", signal_.subtype,
-                        "'. TrafficLight position: (x=", pos.x(), ", y=", pos.y(), ", z=", pos.z(), ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(), ").");
+                        signal_.type, "' subtype='", signal_.subtype, "'. TrafficLight position: (x=", pos.x(),
+                        ", y=", pos.y(), ", z=", pos.z(),
+                        ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(), ").");
 
   return std::make_unique<maliput::api::rules::TrafficLight>(maliput::api::rules::TrafficLight::Id(signal_.id.string()),
-                                                             pos, orientation_road_network,
-                                                             std::move(bulb_groups));
+                                                             pos, orientation_road_network, std::move(bulb_groups));
 }
 
 }  // namespace builder
