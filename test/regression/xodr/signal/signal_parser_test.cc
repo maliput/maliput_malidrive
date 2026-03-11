@@ -223,7 +223,7 @@ std::string GetBasicSignalReference() {
 TEST_F(SignalParsingTests, NodeParserSignalReference) {
   const Validity kValidity{Validity::Id("1"), Validity::Id("3")};
   const SignalReference kExpectedSignalReference{
-      SignalReference::SignalId("signal_1"), SignalReference::Orientation::kWithS, 10.0, 5.0, {{kValidity}}};
+      SignalReference::SignalId("signal_1"), Orientation::kWithS, 10.0, 5.0, {{kValidity}}};
 
   const std::string xml_description = GetBasicSignalReference();
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
@@ -334,7 +334,7 @@ std::string GetSignalReferenceMissingValidity() {
 
 TEST_F(SignalParsingTests, NodeParserSignalReferenceMissingValidity) {
   const SignalReference kExpectedSignalReference{
-      SignalReference::SignalId("signal_1"), SignalReference::Orientation::kWithS, 10.0, 5.0, {}};
+      SignalReference::SignalId("signal_1"), Orientation::kWithS, 10.0, 5.0, {}};
 
   const std::string xml_description = GetSignalReferenceMissingValidity();
   const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, SignalReference::kSignalReferenceTag),
@@ -852,7 +852,7 @@ TEST_F(SignalParsingTests, NodeParserSign) {
                            Signal::Id("12345"),
                            std::make_optional("Test Signal"),
                            false,
-                           "+",
+                           signal::Orientation::kWithS,
                            2.22,
                            std::make_optional("DE"),
                            std::make_optional("2017"),

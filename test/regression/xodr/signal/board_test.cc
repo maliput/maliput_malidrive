@@ -135,7 +135,7 @@ GTEST_TEST(StaticBoard, EqualityOperator) {
       signal::Signal::Id("signal_id") /* id */,
       std::make_optional("signal_name") /* name */,
       false /* dynamic */,
-      "+" /* orientation */,
+      signal::Orientation::kWithS /* orientation */,
       0.1 /* z_offset */,
       std::make_optional("signal_country") /* country */,
       std::make_optional("signal_country_revision") /* country_revision */,

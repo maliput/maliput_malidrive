@@ -53,8 +53,8 @@ namespace params {
 ///
 /// Parameters related to the creation of the RoadGeometry can be seen at @ref road_geometry_configuration_builder_keys.
 ///
-/// Parameters for passing filepath to road rulebook, traffic light book, phase ring book and intersection book are
-/// listed below.
+/// Parameters for passing filepath to road rulebook, rule registry, traffic light book, phase ring book, intersection
+/// book and traffic signal database are listed below.
 /// @{
 
 /// Path to the configuration file to load a RoadRulebook
@@ -76,6 +76,11 @@ static constexpr char const* kPhaseRingBook{"phase_ring_book"};
 /// Path to the configuration file to load a IntersectionBook
 ///   - Default: ""
 static constexpr char const* kIntersectionBook{"intersection_book"};
+
+/// Path to the YAML database file that maps XODR Signal IDs to bulb/group data
+/// for constructing maliput::api::rules::TrafficLight objects.
+///   - Default: ""
+static constexpr char const* kTrafficSignalDb{"traffic_signal_db"};
 
 /// @}
 

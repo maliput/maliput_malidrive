@@ -35,6 +35,7 @@
 #include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
+#include "maliput_malidrive/xodr/signal/orientation.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
 #include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/sign.h"
@@ -157,13 +158,13 @@ signal::SignalReference NodeParser::As() const {
   MALIDRIVE_THROW_UNLESS(t != std::nullopt, maliput::common::road_network_description_parser_error);
   // @}
 
-  signal::SignalReference::Orientation orientation;
+  signal::Orientation orientation;
   if (orientation_str.value() == "+") {
-    orientation = signal::SignalReference::Orientation::kWithS;
+    orientation = signal::Orientation::kWithS;
   } else if (orientation_str.value() == "-") {
-    orientation = signal::SignalReference::Orientation::kAgainstS;
+    orientation = signal::Orientation::kAgainstS;
   } else if (orientation_str.value() == "none") {
-    orientation = signal::SignalReference::Orientation::kBidirectional;
+    orientation = signal::Orientation::kBidirectional;
   } else {
     MALIDRIVE_THROW_MESSAGE("Orientation must be \"+\", \"-\", or \"none\".",
                             maliput::common::road_network_description_parser_error);

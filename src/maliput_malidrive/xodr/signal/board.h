@@ -44,13 +44,6 @@ namespace signal {
 
 struct Sign;
 
-/// Represents the e_orientation of a signal.
-enum class Orientation {
-  kPlus,
-  kMinus,
-  kNone,
-};
-
 /// Holds the values of an XODR StaticBoard.
 struct StaticBoard {
   static constexpr const char* kStaticBoardTag = "staticBoard";

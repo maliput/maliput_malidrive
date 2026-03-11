@@ -44,7 +44,6 @@
 #include <maliput/base/phase_ring_book_loader.h>
 #include <maliput/base/rule_registry.h>
 #include <maliput/base/traffic_light_book.h>
-#include <maliput/base/traffic_light_book_loader.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_unused.h>
 
@@ -59,6 +58,7 @@
 #include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 #include "maliput_malidrive/builder/speed_limit_builder.h"
+#include "maliput_malidrive/builder/traffic_light_book_builder.h"
 #include "maliput_malidrive/builder/xodr_parser_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/constants.h"
@@ -86,9 +86,8 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::common::unused(speed_limits);
 
   maliput::log()->trace("Building TrafficLightBook...");
-  auto traffic_light_book = !rn_config.traffic_light_book.has_value()
-                                ? std::make_unique<maliput::TrafficLightBook>()
-                                : maliput::LoadTrafficLightBookFromFile(rn_config.traffic_light_book.value());
+  auto traffic_light_book =
+      TrafficLightBookBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_signal_db)();
   maliput::log()->trace("Built TrafficLightBook.");
 
   maliput::log()->trace("Building RuleRegistry...");
