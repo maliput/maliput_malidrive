@@ -2,6 +2,7 @@
 # Malidrive traffic signal
 ##############################################################################
 add_library(traffic_signal
+  traffic_signal_database_loader.cc
   yaml_helper.cc
   parser.cc
 )

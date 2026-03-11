@@ -26,57 +26,47 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal/sign.h"
+#pragma once
 
 #include <optional>
+#include <string>
+#include <unordered_map>
 
-#include <gtest/gtest.h>
-
-#include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/traffic_signal/parser.h"
 
 namespace malidrive {
-namespace xodr {
-namespace signal {
-namespace test {
-namespace {
+namespace traffic_signal {
 
-GTEST_TEST(Sign, EqualityOperator) {
-  const Signal kSignal{
-      1.0 /* s */,
-      2.0 /* t */,
-      signal::Signal::Id("signal_id") /* id */,
-      std::make_optional("signal_name") /* name */,
-      false /* dynamic */,
-      signal::Orientation::kWithS /* orientation */,
-      0.1 /* z_offset */,
-      std::make_optional("signal_country") /* country */,
-      std::make_optional("signal_country_revision") /* country_revision */,
-      "signal_type" /* type */,
-      "signal_subtype" /* subtype */,
-      std::nullopt /* value */,
-      std::make_optional(1.0) /* height */,
-      std::make_optional(1.0) /* width */,
-      std::make_optional(1.0) /* h_offset */,
-      std::make_optional(1.0) /* length */,
-      std::make_optional(1.0) /* pitch */,
-      std::make_optional(1.0) /* roll */,
-      std::make_optional("signal_text") /* text */
-  };
-  const Sign kSign = Sign(kSignal, 0.5 /* v */, 1.2 /* z */);
+/// Loads traffic signal definitions from a YAML database file and provides a
+/// lookup interface for querying definitions by @ref TrafficSignalFingerprint.
+///
+/// The loader is backed by the @ref TrafficSignalParser. When a file path is
+/// provided at construction time the file is parsed immediately; subsequent
+/// @ref Lookup calls are O(1) map lookups with no additional I/O.
+///
+/// If no file path is provided (std::nullopt) the loader starts empty and all
+/// @ref Lookup calls will return std::nullopt.
+class TrafficSignalDatabaseLoader {
+ public:
+  /// Constructs a TrafficSignalDatabaseLoader.
+  ///
+  /// @param file_path Optional path to the YAML traffic signal database file.
+  ///        When nullopt, the loader contains no definitions and all lookups
+  ///        return std::nullopt.
+  /// @throws maliput::common::road_network_description_parser_error if the file
+  ///         cannot be parsed or fails schema validation.
+  explicit TrafficSignalDatabaseLoader(const std::optional<std::string>& file_path);
 
-  Sign sign = kSign;
-  EXPECT_EQ(kSign, sign);
+  /// Looks up a TrafficSignalDefinition by fingerprint.
+  ///
+  /// @param fingerprint The @ref TrafficSignalFingerprint to look up.
+  /// @returns An optional containing the matching @ref TrafficSignalDefinition
+  ///          if found, std::nullopt otherwise.
+  std::optional<TrafficSignalDefinition> Lookup(const TrafficSignalFingerprint& fingerprint) const;
 
-  sign.v = 1.0;
-  EXPECT_NE(kSign, sign);
-  sign = kSign;
+ private:
+  std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> definitions_;
+};
 
-  sign.z = 2.0;
-  EXPECT_NE(kSign, sign);
-}
-
-}  // namespace
-}  // namespace test
-}  // namespace signal
-}  // namespace xodr
+}  // namespace traffic_signal
 }  // namespace malidrive

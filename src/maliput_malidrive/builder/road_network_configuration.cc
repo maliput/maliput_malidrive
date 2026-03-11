@@ -59,6 +59,10 @@ RoadNetworkConfiguration RoadNetworkConfiguration::FromMap(
   if (it != road_network_configuration.end()) {
     rn_config.intersection_book = std::make_optional(it->second);
   }
+  it = road_network_configuration.find(params::kTrafficSignalDb);
+  if (it != road_network_configuration.end()) {
+    rn_config.traffic_signal_db = std::make_optional(it->second);
+  }
   return rn_config;
 }
 
@@ -78,6 +82,9 @@ std::map<std::string, std::string> RoadNetworkConfiguration::ToStringMap() const
   }
   if (intersection_book.has_value()) {
     rg_config.emplace(params::kIntersectionBook, intersection_book.value());
+  }
+  if (traffic_signal_db.has_value()) {
+    rg_config.emplace(params::kTrafficSignalDb, traffic_signal_db.value());
   }
   return rg_config;
 }
