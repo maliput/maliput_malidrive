@@ -130,7 +130,8 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(), ").");
 
   return std::make_unique<maliput::api::rules::TrafficLight>(maliput::api::rules::TrafficLight::Id(signal_.id.string()),
-                                                             pos, orientation_road_network, std::move(bulb_groups));
+                                                             pos, orientation_road_network, std::move(bulb_groups),
+                                                             std::vector<maliput::api::LaneId>{});
 }
 
 }  // namespace builder
