@@ -40,20 +40,12 @@ Each YAML file in this directory should define a list of signal types under the 
   country: "OpenDRIVE"          # Optional: country code or standard
   country_revision: null        # Optional: country standard revision
   description: "..."            # Human-readable description
-  is_traffic_light: "true"      # Required: "true" if this is a traffic light, "false" if a traffic sign
-  sign_type: "stop"             # Optional: sign type identifier, only used when is_traffic_light is "false"
+  sign_type: "stop"             # Optional: sign type identifier, only used if signal is not a Traffic Light
 ```
-
-#### `is_traffic_light`
-
-Required boolean-as-string field that distinguishes traffic lights from traffic signs:
-
-- **`"true"`**: The signal is a traffic light (e.g., a red/yellow/green signal head). A `TrafficLight` object with bulbs will be created.
-- **`"false"`**: The signal is a static traffic sign (e.g., a stop sign, yield sign). A `TrafficSign` object is created.
 
 #### `sign_type`
 
-Optional string field that identifies the specific sign variant. Only meaningful when `is_traffic_light` is `"false"`. It can be used to distinguish between different static sign types (e.g., `"stop"`, `"yield"`, `"speed_limit"`).
+Optional string field that identifies the specific sign variant. Only present for traffic signs (i.e., signals that are not traffic lights). It can be used to distinguish between different static sign types (e.g., `"stop"`, `"yield"`, `"speed_limit"`). When absent, the signal is treated as a traffic light.
 
 ### Bulbs
 

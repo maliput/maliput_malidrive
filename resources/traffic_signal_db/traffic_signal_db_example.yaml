@@ -57,7 +57,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Standard three-bulb vertical traffic light with red, yellow, and green bulbs."
-    is_traffic_light: "true"
 
     # List of bulbs
     bulbs:
@@ -152,7 +151,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Three-bulb traffic light with optional arrow support (left/straight/right)."
-    is_traffic_light: "true"
 
     bulbs:
       - id: "RedBulb"
@@ -215,7 +213,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Pedestrian walk/don't walk signal (red standing figure on black background / green walking figure on black background)."
-    is_traffic_light: "true"
 
     bulbs:
       # Black background with red standing figure hand (Don't Walk).

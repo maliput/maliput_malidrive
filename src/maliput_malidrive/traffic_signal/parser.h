@@ -125,9 +125,8 @@ struct TrafficSignalDefinition {
   TrafficSignalFingerprint fingerprint;
   /// Human-readable description of this signal definition.
   std::string description;
-  /// Whether this signal is a traffic light (true) or a traffic sign (false).
-  bool is_traffic_light;
-  /// Type of traffic sign (only applicable if is_traffic_light is false).
+  /// Type of traffic sign. Only present when this signal is not a traffic light.
+  /// When absent, the signal is treated as a traffic light.
   std::optional<std::string> sign_type;
   /// Bulbs in this traffic signal.
   std::vector<BulbDefinition> bulbs;
@@ -135,8 +134,8 @@ struct TrafficSignalDefinition {
   std::vector<RuleState> rule_states;
 
   bool operator==(const TrafficSignalDefinition& other) const {
-    return fingerprint == other.fingerprint && description == other.description && is_traffic_light == other.is_traffic_light &&
-           sign_type == other.sign_type && bulbs == other.bulbs && rule_states == other.rule_states;
+    return fingerprint == other.fingerprint && description == other.description && sign_type == other.sign_type &&
+           bulbs == other.bulbs && rule_states == other.rule_states;
   }
   bool operator!=(const TrafficSignalDefinition& other) const { return !(*this == other); }
 };

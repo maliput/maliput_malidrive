@@ -51,7 +51,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Standard three-bulb vertical traffic light"
-    is_traffic_light: "true"
     bulbs:
       - id: "RedBulb"
         position_traffic_light: [0.0, 0.0, 0.4]
@@ -96,7 +95,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Traffic light with arrow"
-    is_traffic_light: "true"
     bulbs:
       - id: "GreenArrow"
         position_traffic_light: [0.0, 0.0, 0.0]
@@ -115,7 +113,6 @@ traffic_signal_types:
     country: null
     country_revision: null
     description: "Signal with default bulb states and bounding box"
-    is_traffic_light: "true"
     bulbs:
       - id: "DefaultBulb"
         position_traffic_light: [0.0, 0.0, 0.0]
@@ -128,7 +125,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "No overtaking sign"
-    is_traffic_light: "false"
     sign_type: "no_overtaking"
     bulbs: []
     rule_states:
@@ -143,7 +139,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Single red bulb traffic light"
-    is_traffic_light: "true"
     bulbs:
       - id: "RedBulb"
         position_traffic_light: [0.0, 0.0, 0.4]
@@ -168,7 +163,6 @@ traffic_signal_types:
     country: "OpenDRIVE"
     country_revision: null
     description: "Single green bulb traffic light"
-    is_traffic_light: "true"
     bulbs:
       - id: "GreenBulb"
         position_traffic_light: [0.0, 0.0, 0.4]
@@ -230,7 +224,6 @@ TEST_F(TrafficSignalParserTest, ValidateTrafficSign) {
   EXPECT_EQ(dut.fingerprint.subtype, "30");
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "No overtaking sign");
-  EXPECT_FALSE(dut.is_traffic_light);
   EXPECT_TRUE(dut.sign_type.has_value());
   EXPECT_EQ(dut.sign_type.value(), "no_overtaking");
 
@@ -253,7 +246,7 @@ TEST_F(TrafficSignalParserTest, ValidateSignalType1000001) {
   EXPECT_EQ(dut.fingerprint.subtype, std::nullopt);
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "Standard three-bulb vertical traffic light");
-  EXPECT_TRUE(dut.is_traffic_light);
+  EXPECT_FALSE(dut.sign_type.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 3);
 
@@ -286,7 +279,7 @@ TEST_F(TrafficSignalParserTest, ValidateArrowSignal) {
   EXPECT_EQ(dut.fingerprint.type, "1000011");
   EXPECT_EQ(dut.fingerprint.subtype, "10");
   EXPECT_EQ(dut.description, "Traffic light with arrow");
-  EXPECT_TRUE(dut.is_traffic_light);
+  EXPECT_FALSE(dut.sign_type.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 1);
 
@@ -307,7 +300,7 @@ TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
 
   EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
   EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
-  EXPECT_TRUE(dut.is_traffic_light);
+  EXPECT_FALSE(dut.sign_type.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 1);
 
@@ -342,7 +335,7 @@ GTEST_TEST(RepeatedTrafficSignalParserTest, RepeatedFingerprintOverwrites) {
   EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
   const auto& definition = signal_definitions.at(fingerprint);
   EXPECT_EQ(definition.description, "Single green bulb traffic light");
-  EXPECT_TRUE(definition.is_traffic_light);
+  EXPECT_FALSE(definition.sign_type.has_value());
   EXPECT_EQ(definition.bulbs.size(), 1);
   EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
 }

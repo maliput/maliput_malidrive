@@ -206,7 +206,6 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
   // Parse required fields.
   signal_definition.fingerprint.type = GetRequiredStringField(signal_node, TrafficSignalConstants::kType);
   signal_definition.description = GetRequiredStringField(signal_node, TrafficSignalConstants::kDescription);
-  signal_definition.is_traffic_light = GetRequiredStringField(signal_node, TrafficSignalConstants::kIsTrafficLight) == "true";
 
   // Parse optional fields.
   if (const auto subtype = GetOptionalStringField(signal_node, TrafficSignalConstants::kSubtype)) {
@@ -225,10 +224,8 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
     signal_definition.fingerprint.country_revision = revision;
   }
 
-  // Parse signal type.
-  if (!signal_definition.is_traffic_light) {
-    signal_definition.sign_type = GetOptionalStringField(signal_node, TrafficSignalConstants::kSignType);
-  }
+  // Parse sign type (optional, only present for traffic signs).
+  signal_definition.sign_type = GetOptionalStringField(signal_node, TrafficSignalConstants::kSignType);
 
   // Parse bulbs.
   ValidateSequenceSize(signal_node[TrafficSignalConstants::kBulbs], TrafficSignalConstants::kBulbs);
