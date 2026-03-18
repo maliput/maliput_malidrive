@@ -203,7 +203,8 @@ class TrafficLightBuilderTwoRoadsTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file =
         utility::FindResourceInPath("TwoRoadsWithTrafficLights.xodr", kMalidriveResourceFolder);
-    const std::string yaml_db = utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml.yaml", kMalidriveResourceFolder);
+    const std::string yaml_db =
+        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file},
