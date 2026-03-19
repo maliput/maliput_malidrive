@@ -177,7 +177,7 @@ TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests using TwoRoadsWithTrafficLights.xodr / TwoRoadsWithTrafficLights.yaml.
+// Tests using TwoRoadsWithTrafficLights.xodr / traffic_signal_db/traffic_signal_db_example.yaml.
 //
 // This lightweight map defines two straight roads (Road 1 and Road 2), each
 // with a single lane section (lanes {1, 0, -1}).
@@ -190,8 +190,9 @@ TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
 //     - Signal S2: type="1000001", s=40, t=-2, orientation="-",
 //       no explicit validity (all lanes), signalReference to S1.
 //
-// The companion YAML database defines type "1000001" as a two-bulb traffic
-// light (RedBulb + GreenBulb), each with states ["Off", "On"].
+// The companion YAML database (traffic_signal_db_example.yaml) defines type
+// "1000001" as a three-bulb vertical traffic light (RedBulb, YellowBulb,
+// GreenBulb).
 //
 // Expected maliput lane IDs:
 //   Road 1: "1_0_1" (left), "1_0_-1" (right)
@@ -204,7 +205,7 @@ class TrafficLightBuilderTwoRoadsTest : public ::testing::Test {
     const std::string xodr_file =
         utility::FindResourceInPath("TwoRoadsWithTrafficLights.xodr", kMalidriveResourceFolder);
     const std::string yaml_db =
-        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml.yaml", kMalidriveResourceFolder);
+        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file},
@@ -254,19 +255,19 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS1Fields) {
   ASSERT_EQ(1u, bulb_groups.size());
   EXPECT_EQ(maliput::api::rules::BulbGroup::Id("TrafficLight_S1_Bulbs"), bulb_groups[0]->id());
 
-  // Bulbs: RedBulb and GreenBulb.
+  // Bulbs: RedBulb, YellowBulb and GreenBulb (from traffic_signal_db_example.yaml, type "1000001").
   const auto bulbs = bulb_groups[0]->bulbs();
-  ASSERT_EQ(2u, bulbs.size());
+  ASSERT_EQ(3u, bulbs.size());
 
   const auto* red = bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("RedBulb"));
   ASSERT_NE(red, nullptr);
   EXPECT_EQ(maliput::api::rules::BulbColor::kRed, red->color());
   EXPECT_EQ(maliput::api::rules::BulbType::kRound, red->type());
-  EXPECT_EQ(2u, red->states().size());  // Off, On
+  EXPECT_EQ(3u, red->states().size());  // Off, On, Blinking
   // Position relative to traffic light frame.
   EXPECT_NEAR(0., red->position_bulb_group().x(), 1e-6);
   EXPECT_NEAR(0., red->position_bulb_group().y(), 1e-6);
-  EXPECT_NEAR(0.2, red->position_bulb_group().z(), 1e-6);
+  EXPECT_NEAR(0.4, red->position_bulb_group().z(), 1e-6);
   // Bounding box (explicitly set in the YAML).
   const auto& bb = red->bounding_box();
   EXPECT_NEAR(-0.0889, bb.p_BMin.x(), 1e-6);
@@ -276,6 +277,15 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS1Fields) {
   EXPECT_NEAR(0.1778, bb.p_BMax.y(), 1e-6);
   EXPECT_NEAR(0.1778, bb.p_BMax.z(), 1e-6);
 
+  const auto* yellow = bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("YellowBulb"));
+  ASSERT_NE(yellow, nullptr);
+  EXPECT_EQ(maliput::api::rules::BulbColor::kYellow, yellow->color());
+  EXPECT_EQ(maliput::api::rules::BulbType::kRound, yellow->type());
+  EXPECT_EQ(3u, yellow->states().size());  // Off, On, Blinking
+  EXPECT_NEAR(0., yellow->position_bulb_group().x(), 1e-6);
+  EXPECT_NEAR(0., yellow->position_bulb_group().y(), 1e-6);
+  EXPECT_NEAR(0., yellow->position_bulb_group().z(), 1e-6);
+
   const auto* green = bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("GreenBulb"));
   ASSERT_NE(green, nullptr);
   EXPECT_EQ(maliput::api::rules::BulbColor::kGreen, green->color());
@@ -283,8 +293,7 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS1Fields) {
   EXPECT_EQ(2u, green->states().size());  // Off, On
   EXPECT_NEAR(0., green->position_bulb_group().x(), 1e-6);
   EXPECT_NEAR(0., green->position_bulb_group().y(), 1e-6);
-  EXPECT_NEAR(-0.2, green->position_bulb_group().z(), 1e-6);
-  // GreenBulb uses default bounding box values (no explicit bounding_box in YAML).
+  EXPECT_NEAR(-0.4, green->position_bulb_group().z(), 1e-6);
 
   // Related lanes for S1:
   //   - From signal's own validity (fromLane=-1, toLane=-1) on road 1 → {"1_0_-1"}
@@ -327,10 +336,11 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS2Fields) {
   ASSERT_EQ(1u, bulb_groups.size());
   EXPECT_EQ(maliput::api::rules::BulbGroup::Id("TrafficLight_S2_Bulbs"), bulb_groups[0]->id());
 
-  // Bulbs.
+  // Bulbs: RedBulb, YellowBulb and GreenBulb (from traffic_signal_db_example.yaml, type "1000001").
   const auto bulbs = bulb_groups[0]->bulbs();
-  ASSERT_EQ(2u, bulbs.size());
+  ASSERT_EQ(3u, bulbs.size());
   EXPECT_NE(bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("RedBulb")), nullptr);
+  EXPECT_NE(bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("YellowBulb")), nullptr);
   EXPECT_NE(bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("GreenBulb")), nullptr);
 
   // Related lanes for S2:
