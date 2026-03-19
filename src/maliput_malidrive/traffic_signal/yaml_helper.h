@@ -45,6 +45,7 @@ struct TrafficSignalConstants {
   static constexpr const char* kCountry = "country";
   static constexpr const char* kCountryRevision = "country_revision";
   static constexpr const char* kDescription = "description";
+  static constexpr const char* kSignType = "sign_type";
   static constexpr const char* kBulbs = "bulbs";
   static constexpr const char* kRuleStates = "rule_states";
 };
