@@ -57,7 +57,7 @@ Each signal type contains a list of `bulbs`:
       position_traffic_light: [x, y, z]          # Position relative to traffic light frame
       orientation_traffic_light: [w, x, y, z]    # Orientation relative to traffic light frame
       color: "Red"           # One of: Red, Yellow, Green
-      type: "Round"          # One of: Round, Arrow
+      type: "Round"          # One of: Round, Arrow, ArrowLeft, ArrowRight, ArrowUp, ArrowUpperLeft, ArrowUpperRight, UTurnLeft, UTurnRight, Walk, DontWalk
       states: ["Off", "On", "Blinking"]  # Possible states for this bulb
       bounding_box: (optional)  # Custom bounding box if needed
         p_min: [x, y, z]
@@ -150,6 +150,15 @@ YAML types map to `maliput::api::rules::BulbType` enum:
 
 - `"Round"` → `BulbType::kRound`
 - `"Arrow"` → `BulbType::kArrow`
+- `"ArrowLeft"` → `BulbType::kArrowLeft`
+- `"ArrowRight"` → `BulbType::kArrowRight`
+- `"ArrowUp"` → `BulbType::kArrowUp`
+- `"ArrowUpperLeft"` → `BulbType::kArrowUpperLeft`
+- `"ArrowUpperRight"` → `BulbType::kArrowUpperRight`
+- `"UTurnLeft"` → `BulbType::kUTurnLeft`
+- `"UTurnRight"` → `BulbType::kUTurnRight`
+- `"Walk"` → `BulbType::kWalk`
+- `"DontWalk"` → `BulbType::kDontWalk`
 
 ## State Mapping to maliput
 
