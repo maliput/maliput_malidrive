@@ -39,7 +39,7 @@
 #include <maliput/api/lane_data.h>
 #include <maliput/api/rules/traffic_sign.h>
 #include <maliput/common/logger.h>
-#include "maliput/common/maliput_hash.h"
+#include <maliput/common/maliput_hash.h>
 #include <maliput/math/bounding_box.h>
 #include <maliput/math/roll_pitch_yaw.h>
 #include <maliput/math/vector.h>
@@ -68,7 +68,8 @@ std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
   return subtype;
 }
 
-std::unordered_map<std::string, maliput::api::rules::TrafficSignType, maliput::common::DefaultHash> YamlToTrafficSignTypeMapper() {
+std::unordered_map<std::string, maliput::api::rules::TrafficSignType, maliput::common::DefaultHash>
+YamlToTrafficSignTypeMapper() {
   std::unordered_map<std::string, maliput::api::rules::TrafficSignType, maliput::common::DefaultHash> result;
   result.emplace("stop", maliput::api::rules::TrafficSignType::kStop);
   result.emplace("yield", maliput::api::rules::TrafficSignType::kYield);
@@ -104,7 +105,10 @@ TrafficSignBuilder::TrafficSignBuilder(const xodr::signal::Signal& signal, const
                                        const traffic_signal::TrafficSignalDatabaseLoader& loader,
                                        const maliput::api::RoadGeometry* road_geometry,
                                        std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
-    : signal_(signal), road_id_(road_id), loader_(loader), road_geometry_(road_geometry),
+    : signal_(signal),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
       signal_references_(std::move(signal_references)) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
 }
@@ -153,9 +157,11 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   const double depth = signal_.length.value_or(0.);
   const double width = signal_.width.value_or(0.);
   const double height = signal_.height.value_or(0.);
-  const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(pos.x(), pos.y(), pos.z()),
-                                                maliput::math::Vector3(depth, width, height),
-                                                maliput::math::RollPitchYaw(orientation_road_network.roll(), orientation_road_network.pitch(), orientation_road_network.yaw()), 1e-3};
+  const maliput::math::BoundingBox bounding_box{
+      maliput::math::Vector3(pos.x(), pos.y(), pos.z()), maliput::math::Vector3(depth, width, height),
+      maliput::math::RollPitchYaw(orientation_road_network.roll(), orientation_road_network.pitch(),
+                                  orientation_road_network.yaw()),
+      1e-3};
 
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' sign_type='", definition.sign_type,
@@ -163,9 +169,9 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(),
                         "), related_lanes=", related_lanes.size(), ".");
 
-  return std::make_unique<maliput::api::rules::TrafficSign>(
-      maliput::api::rules::TrafficSign::Id(signal_.id.string()), *sign_type_opt, pos, orientation_road_network,
-      signal_.text, std::move(related_lanes), bounding_box);
+  return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
+                                                            *sign_type_opt, pos, orientation_road_network, signal_.text,
+                                                            std::move(related_lanes), bounding_box);
 }
 
 }  // namespace builder

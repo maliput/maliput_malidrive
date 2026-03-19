@@ -597,8 +597,8 @@ std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
   auto related_lanes = ResolveLaneIds(road_id, s_coordinate, validities, road_geometry);
 
   for (const auto& ref_ctx : signal_references) {
-    auto ref_lanes = ResolveLaneIds(ref_ctx.road_id, ref_ctx.signal_reference.s,
-                                    ref_ctx.signal_reference.validities, road_geometry);
+    auto ref_lanes =
+        ResolveLaneIds(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities, road_geometry);
     related_lanes.insert(related_lanes.end(), std::make_move_iterator(ref_lanes.begin()),
                          std::make_move_iterator(ref_lanes.end()));
   }
