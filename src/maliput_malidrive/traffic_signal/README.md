@@ -1,16 +1,17 @@
 # Traffic Signal Database Parser
 
-This directory contains a C++ parser and supporting utilities that read and validate YAML-based traffic signal type definitions to create maliput traffic signal objects such as `TrafficLight`s and `DiscreteValueRule`s.
+This directory contains a C++ parser and supporting utilities that read and validate YAML-based traffic signal type definitions to create maliput traffic signal objects such as `TrafficLight`s and `TrafficSign`s.
 
 ## Overview
 
 A traffic signal type definition describes the physical structure and control logic of a traffic signal. Each definition specifies:
 
+- **Signal kind**: Whether it is a dynamic traffic light or a static traffic sign
 - **Bulb structure**: Colors, types (round/arrow), states, dimensions, and positions
 - **Bulbs**: A list of bulbs with specified orientation
 - **Rule logic**: Mapping from bulb state combinations to Right-Of-Way Rule values
 
-The parser in this directory reads YAML files containing these traffic signal type definitions, validates them, and creates the corresponding maliput `TrafficLight` and `DiscreteValueRule` objects.
+The parser in this directory reads YAML files containing these traffic signal type definitions, validates them, and creates the corresponding maliput `TrafficLight` and `TrafficSign` objects.
 
 ## How It Works
 
@@ -39,7 +40,12 @@ Each YAML file in this directory should define a list of signal types under the 
   country: "OpenDRIVE"          # Optional: country code or standard
   country_revision: null        # Optional: country standard revision
   description: "..."            # Human-readable description
+  sign_type: "stop"             # Optional: signal type identifier. Defaults to "traffic_light" if omitted.
 ```
+
+#### `sign_type`
+
+String field that identifies the signal variant. Defaults to `"traffic_light"` when not present in the YAML file. Use a different value (e.g., `"stop"`, `"yield"`, `"speed_limit"`) to identify static traffic signs.
 
 ### Bulbs
 
