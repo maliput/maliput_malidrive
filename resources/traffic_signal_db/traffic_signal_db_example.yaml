@@ -66,7 +66,7 @@ traffic_signal_types:
         orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
         # Bulb color: must be one of {Red, Yellow, Green}.
         color: "Red"
-        # Bulb type: must be one of {Round, Arrow}.
+        # Bulb type: must be one of {Round, Arrow, ArrowLeft, ArrowRight, ArrowUp, ArrowUpperLeft, ArrowUpperRight, UTurnLeft, UTurnRight, Walk, DontWalk}.
         type: "Round"
         # Possible states this bulb can be in: subset of {Off, On, Blinking}.
         states: ["Off", "On", "Blinking"]
