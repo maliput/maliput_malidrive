@@ -254,7 +254,6 @@ traffic_signal_types:
         value: "ProceedWithCaution"
 
   # Stop sign (static traffic sign, not a traffic light).
-  # sign_type presence indicates this is a sign, not a traffic light.
   - type: "206"
     subtype: "-1"
     country: "OpenDRIVE"

@@ -125,9 +125,9 @@ struct TrafficSignalDefinition {
   TrafficSignalFingerprint fingerprint;
   /// Human-readable description of this signal definition.
   std::string description;
-  /// Type of traffic sign. Only present when this signal is not a traffic light.
-  /// When absent, the signal is treated as a traffic light.
-  std::optional<std::string> sign_type;
+  /// Type of traffic signal. Defaults to "traffic_light" when not specified in the YAML database.
+  /// Use a different value (e.g. "stop", "yield") to identify static traffic signs.
+  std::string sign_type;
   /// Bulbs in this traffic signal.
   std::vector<BulbDefinition> bulbs;
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
