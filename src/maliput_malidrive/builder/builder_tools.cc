@@ -538,5 +538,57 @@ std::optional<double> FindLocalMinFromCubicPol(double a, double b, double c, dou
   return p_local_min;
 }
 
+std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
+                                                 const std::vector<xodr::Validity>& validities,
+                                                 const maliput::api::RoadGeometry* road_geometry) {
+  const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry);
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, std::runtime_error, "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+
+  const auto& road_headers = mali_rg->get_manager()->GetRoadHeaders();
+  const auto it = road_headers.find(road_id);
+  MALIDRIVE_VALIDATE(it != road_headers.end(), std::runtime_error,
+                     "Road header not found for road_id: " + road_id.string());
+
+  const auto& road_header = it->second;
+  const int xodr_track_id = std::stoi(road_id.string());
+  const int lane_section_index = road_header.GetLaneSectionIndex(s_coordinate);
+  const auto& lane_section = road_header.lanes.lanes_section.at(lane_section_index);
+
+  // Collect XODR lane IDs to resolve.
+  std::vector<int> xodr_lane_ids;
+
+  if (validities.empty()) {
+    // No validity → all lanes in the section (excluding lane 0).
+    for (const auto& lane : lane_section.left_lanes) {
+      xodr_lane_ids.push_back(std::stoi(lane.id.string()));
+    }
+    for (const auto& lane : lane_section.right_lanes) {
+      xodr_lane_ids.push_back(std::stoi(lane.id.string()));
+    }
+  } else {
+    // Enumerate lane IDs from each validity range.
+    for (const auto& validity : validities) {
+      const int from = std::stoi(validity.from_lane.string());
+      const int to = std::stoi(validity.to_lane.string());
+      for (int lane_id = from; lane_id <= to; ++lane_id) {
+        if (lane_id != 0) {
+          xodr_lane_ids.push_back(lane_id);
+        }
+      }
+    }
+  }
+
+  // Convert to maliput LaneIds, filtering out lanes not built in the RoadGeometry.
+  std::vector<maliput::api::LaneId> result;
+  for (int xodr_lane_id : xodr_lane_ids) {
+    const auto lane_id = GetLaneId(xodr_track_id, lane_section_index, xodr_lane_id);
+    if (road_geometry->ById().GetLane(lane_id) != nullptr) {
+      result.push_back(lane_id);
+    }
+  }
+
+  return result;
+}
+
 }  // namespace builder
 }  // namespace malidrive

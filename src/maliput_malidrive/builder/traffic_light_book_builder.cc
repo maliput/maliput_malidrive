@@ -28,6 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/traffic_light_book_builder.h"
 
+#include <string>
+#include <vector>
+
 #include <maliput/api/rules/traffic_light_book.h>
 #include <maliput/base/traffic_light_book.h>
 #include <maliput/base/traffic_light_book_loader.h>
@@ -66,13 +69,21 @@ std::unique_ptr<maliput::api::rules::TrafficLightBook> TrafficLightBookBuilder::
 
   const traffic_signal::TrafficSignalDatabaseLoader loader(traffic_signal_db_path_);
 
+  const auto signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();
+
   maliput::log()->trace("Building TrafficLights from XODR signals and YAML database...");
   for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
     if (!road_header.signals.has_value()) {
       continue;
     }
     for (const auto& signal : road_header.signals->signals) {
-      auto tl = builder::TrafficLightBuilder(signal, road_id, loader, road_geometry_)();
+      // Look up any signal references that point to this signal.
+      std::vector<xodr::DBManager::SignalReferenceOnRoad> refs;
+      const auto refs_it = signal_refs_by_id.find(signal.id.string());
+      if (refs_it != signal_refs_by_id.end()) {
+        refs = refs_it->second;
+      }
+      auto tl = builder::TrafficLightBuilder(signal, road_id, loader, road_geometry_, std::move(refs))();
       if (tl) {
         auto* tlb = dynamic_cast<maliput::TrafficLightBook*>(traffic_light_book.get());
         tlb->AddTrafficLight(std::move(tl));

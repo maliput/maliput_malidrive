@@ -29,13 +29,20 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/builder_tools.h"
 
+#include <algorithm>
 #include <memory>
+#include <string>
 #include <vector>
 
 #include <gtest/gtest.h>
+#include <maliput/api/lane_data.h>
 #include <maliput/common/error.h>
 #include <maliput/test_utilities/mock.h>
 
+#include "maliput_malidrive/base/road_geometry.h"
+#include "maliput_malidrive/builder/params.h"
+#include "maliput_malidrive/builder/road_network_builder.h"
+#include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/road_curve/cubic_polynomial.h"
 #include "maliput_malidrive/road_curve/function.h"
@@ -784,6 +791,129 @@ TEST_F(AreOnlyNonDrivableLanesTest, BothDrivableAndNonDrivableLanes) {
   xodr::RoadHeader road_header;
   road_header.lanes.lanes_section.push_back(lane_section);
   EXPECT_FALSE(AreOnlyNonDrivableLanes(road_header));
+}
+
+// Test fixture for ResolveLaneIds.
+// Uses LineMultipleSections.xodr which has road ID "1" with 3 lane sections.
+// Each lane section has left lanes (1 driving, 2 shoulder, 3 sidewalk, 4 sidewalk)
+// and right lanes (-1 driving, -2 shoulder, -3 sidewalk, -4 sidewalk).
+class ResolveLaneIdsTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("LineMultipleSections.xodr", kMalidriveResourceFolder);
+    // Build with omit_nondrivable_lanes=false to get all lanes.
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = road_network_->road_geometry();
+    ASSERT_NE(road_geometry_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::RoadGeometry* road_geometry_{};
+};
+
+// When validities is empty, all lanes in the section (excluding center lane 0) are returned.
+TEST_F(ResolveLaneIdsTest, EmptyValiditiesReturnsAllLanes) {
+  const std::vector<xodr::Validity> empty_validities{};
+  // Road "1", section 0 at s=0.0.
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 0.0, empty_validities, road_geometry_);
+
+  // 4 left lanes (1,2,3,4) + 4 right lanes (-1,-2,-3,-4) = 8 lanes.
+  EXPECT_EQ(8u, result.size());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_1")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_2")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_3")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_4")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-1")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-2")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-3")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-4")), result.end());
+}
+
+// When validity is {0, 0}, no lanes are returned (center lane 0 is excluded).
+TEST_F(ResolveLaneIdsTest, ValidityZeroZeroReturnsEmpty) {
+  const std::vector<xodr::Validity> validities{{xodr::Validity::Id("0"), xodr::Validity::Id("0")}};
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 0.0, validities, road_geometry_);
+  EXPECT_TRUE(result.empty());
+}
+
+// Explicit validity range resolves only the specified lanes.
+TEST_F(ResolveLaneIdsTest, ExplicitValidityRange) {
+  // from=-2, to=-1 → lanes -2 and -1.
+  const std::vector<xodr::Validity> validities{{xodr::Validity::Id("-2"), xodr::Validity::Id("-1")}};
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 0.0, validities, road_geometry_);
+
+  EXPECT_EQ(2u, result.size());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-2")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-1")), result.end());
+}
+
+// Validity range spanning from negative to positive lanes (crossing center).
+TEST_F(ResolveLaneIdsTest, ValidityRangeCrossingCenter) {
+  // from=-1, to=1 → lanes -1 and 1 (lane 0 is excluded).
+  const std::vector<xodr::Validity> validities{{xodr::Validity::Id("-1"), xodr::Validity::Id("1")}};
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 0.0, validities, road_geometry_);
+
+  EXPECT_EQ(2u, result.size());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-1")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_1")), result.end());
+}
+
+// s-coordinate selects a different lane section.
+TEST_F(ResolveLaneIdsTest, DifferentLaneSection) {
+  const std::vector<xodr::Validity> validities{{xodr::Validity::Id("1"), xodr::Validity::Id("1")}};
+  // s=40.0 falls in lane section 1 (which starts at s=33.3).
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 40.0, validities, road_geometry_);
+
+  EXPECT_EQ(1u, result.size());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_1_1")), result.end());
+}
+
+// When omit_nondrivable_lanes is active, non-drivable lanes are silently filtered.
+class ResolveLaneIdsOmitNonDrivableTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("LineMultipleSections.xodr", kMalidriveResourceFolder);
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kOmitNonDrivableLanes, "true"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = road_network_->road_geometry();
+    ASSERT_NE(road_geometry_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::RoadGeometry* road_geometry_{};
+};
+
+// Empty validities with omit_nondrivable_lanes=true: only drivable lanes are returned.
+TEST_F(ResolveLaneIdsOmitNonDrivableTest, EmptyValiditiesReturnsDrivableLanesOnly) {
+  const std::vector<xodr::Validity> empty_validities{};
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 0.0, empty_validities, road_geometry_);
+
+  // All 8 lanes in the section are enumerated, but only the 2 drivable ones
+  // (lane 1 and -1) exist in the RoadGeometry.
+  EXPECT_EQ(2u, result.size());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_1")), result.end());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-1")), result.end());
+}
+
+// Explicit validity including non-drivable lanes: only built lanes survive.
+TEST_F(ResolveLaneIdsOmitNonDrivableTest, ExplicitValidityFilteredByBuiltLanes) {
+  // from=-4 to -1 → lanes -4,-3,-2,-1 but only -1 is drivable.
+  const std::vector<xodr::Validity> validities{{xodr::Validity::Id("-4"), xodr::Validity::Id("-1")}};
+  const auto result = ResolveLaneIds(xodr::RoadHeader::Id("1"), 0.0, validities, road_geometry_);
+
+  EXPECT_EQ(1u, result.size());
+  EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-1")), result.end());
 }
 
 }  // namespace
