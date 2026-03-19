@@ -165,6 +165,18 @@ TEST_F(TrafficLightBuilderFigure8Test, BuildTrafficLightNoMatchingDefinition) {
   EXPECT_EQ(traffic_light, nullptr);
 }
 
+// Verifies that the builder returns nullptr when the matching definition in the
+// YAML database has a sign_type other than "traffic_light" (e.g. "stop").
+TEST_F(TrafficLightBuilderFigure8Test, BuildTrafficLightNonTrafficLightSignType) {
+  // Type "206" exists in the YAML database with sign_type: "stop".
+  xodr::signal::Signal stop_signal = signal_;
+  stop_signal.type = "206";
+
+  TrafficLightBuilder builder(stop_signal, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
+  auto traffic_light = builder();
+  EXPECT_EQ(traffic_light, nullptr);
+}
+
 // Verifies the position of the traffic light.
 TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
   TrafficLightBuilder builder(signal_, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
