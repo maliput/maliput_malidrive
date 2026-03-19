@@ -132,6 +132,8 @@ class DBManager::Impl {
     AnalyzeGeometriesLength();
     MALIDRIVE_TRACE("Analyzing lanes-sections' length.");
     AnalyzeLaneSectionsLength();
+    MALIDRIVE_TRACE("Collecting signal references by signal ID.");
+    CollectSignalReferences();
   }
 
   // @returns A constant reference to xodr header.
@@ -142,6 +144,12 @@ class DBManager::Impl {
 
   // @returns A constant reference to junction map.
   const std::map<Junction::Id, Junction>& get_junctions() const { return junctions_; }
+
+  // @returns A constant reference to the signal references grouped by signal ID.
+  const std::unordered_map<std::string, std::vector<DBManager::SignalReferenceOnRoad>>&
+  get_signal_references_by_signal_id() const {
+    return signal_refs_by_id_;
+  }
 
   // @returns Data from the shortest Geometry in the entire XODR description.
   const XodrGeometryLengthData& get_shortest_geometry() const { return shortest_geometry_; }
@@ -866,6 +874,18 @@ class DBManager::Impl {
     largest_superelevation_gap_ = std::move(largest_superelevation_gap);
   }
 
+  // Collects all signal references across all roads, grouped by the referenced signal ID.
+  void CollectSignalReferences() {
+    for (const auto& [road_id, road_header] : road_headers_) {
+      if (!road_header.signals.has_value()) {
+        continue;
+      }
+      for (const auto& ref : road_header.signals->signal_references) {
+        signal_refs_by_id_[ref.signal_id.string()].push_back(DBManager::SignalReferenceOnRoad{road_id, ref});
+      }
+    }
+  }
+
   // Optional tolerance.
   ParserConfiguration parser_configuration_{};
   // Header of the XODR map.
@@ -899,6 +919,9 @@ class DBManager::Impl {
   mutable std::optional<XodrGapBetweenFunctions> largest_superelevation_gap_{std::nullopt};
   mutable std::optional<XodrGapBetweenFunctions> shortest_superelevation_gap_{std::nullopt};
   // @}
+
+  // Holds signal references grouped by signal ID.
+  std::unordered_map<std::string, std::vector<DBManager::SignalReferenceOnRoad>> signal_refs_by_id_;
 };
 
 DBManager::~DBManager() = default;
@@ -914,6 +937,11 @@ const Header& DBManager::GetXodrHeader() const { return impl_->get_header(); }
 const std::map<RoadHeader::Id, RoadHeader>& DBManager::GetRoadHeaders() const { return impl_->get_road_headers(); };
 
 const std::map<Junction::Id, Junction>& DBManager::GetJunctions() const { return impl_->get_junctions(); };
+
+const std::unordered_map<std::string, std::vector<DBManager::SignalReferenceOnRoad>>&
+DBManager::GetSignalReferencesBySignalId() const {
+  return impl_->get_signal_references_by_signal_id();
+}
 
 const DBManager::XodrGeometryLengthData& DBManager::GetShortestGeometry() const {
   return impl_->get_shortest_geometry();

@@ -10,6 +10,7 @@ set(TEST_TYPE UNIT_XODR)
 ##############################################################################
 
 add_subdirectory(object)
+add_subdirectory(signal)
 
 set(UNIT_TEST_XODR_SOURCES
   connection_test.cc
@@ -34,11 +35,10 @@ set(UNIT_TEST_XODR_SOURCES
   road_link_test.cc
   road_mark_test.cc
   road_type_test.cc
-  signal_test.cc
-  signals_test.cc
   tools_test.cc
   unit_test.cc
   xodr_extract_test.cc
+  validity_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_TEST_XODR_SOURCES})

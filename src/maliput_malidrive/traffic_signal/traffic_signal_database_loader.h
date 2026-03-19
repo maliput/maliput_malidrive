@@ -1,0 +1,72 @@
+// BSD 3-Clause License
+//
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// * Redistributions of source code must retain the above copyright notice, this
+//   list of conditions and the following disclaimer.
+//
+// * Redistributions in binary form must reproduce the above copyright notice,
+//   this list of conditions and the following disclaimer in the documentation
+//   and/or other materials provided with the distribution.
+//
+// * Neither the name of the copyright holder nor the names of its
+//   contributors may be used to endorse or promote products derived from
+//   this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+// DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+// FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+// DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+// SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+// CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+// OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#pragma once
+
+#include <optional>
+#include <string>
+#include <unordered_map>
+
+#include "maliput_malidrive/traffic_signal/parser.h"
+
+namespace malidrive {
+namespace traffic_signal {
+
+/// Loads traffic signal definitions from a YAML database file and provides a
+/// lookup interface for querying definitions by @ref TrafficSignalFingerprint.
+///
+/// The loader is backed by the @ref TrafficSignalParser. When a file path is
+/// provided at construction time the file is parsed immediately; subsequent
+/// @ref Lookup calls are O(1) map lookups with no additional I/O.
+///
+/// If no file path is provided (std::nullopt) the loader starts empty and all
+/// @ref Lookup calls will return std::nullopt.
+class TrafficSignalDatabaseLoader {
+ public:
+  /// Constructs a TrafficSignalDatabaseLoader.
+  ///
+  /// @param file_path Optional path to the YAML traffic signal database file.
+  ///        When nullopt, the loader contains no definitions and all lookups
+  ///        return std::nullopt.
+  /// @throws maliput::common::road_network_description_parser_error if the file
+  ///         cannot be parsed or fails schema validation.
+  explicit TrafficSignalDatabaseLoader(const std::optional<std::string>& file_path);
+
+  /// Looks up a TrafficSignalDefinition by fingerprint.
+  ///
+  /// @param fingerprint The @ref TrafficSignalFingerprint to look up.
+  /// @returns An optional containing the matching @ref TrafficSignalDefinition
+  ///          if found, std::nullopt otherwise.
+  std::optional<TrafficSignalDefinition> Lookup(const TrafficSignalFingerprint& fingerprint) const;
+
+ private:
+  std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> definitions_;
+};
+
+}  // namespace traffic_signal
+}  // namespace malidrive

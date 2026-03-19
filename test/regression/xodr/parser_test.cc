@@ -53,6 +53,8 @@
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/road_link.h"
 #include "maliput_malidrive/xodr/road_type.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
+#include "maliput_malidrive/xodr/signal/signal_reference.h"
 #include "utility/resources.h"
 
 namespace malidrive {
@@ -1705,6 +1707,7 @@ std::string GetSignals() {
               roll="0.2"
               text="Sample Text">
           </signal>
+          <signalReference id="54321" s="10.e+1" t="1.5" orientation="-"/>
       </signals>
   )R";
   ss << "</root>";
@@ -1712,36 +1715,24 @@ std::string GetSignals() {
 }
 
 TEST_F(ParsingTests, NodeParserSignals) {
-  const Signal kExpectedSignal{
-      100.10 /* s */,
-      -1.5 /* t */,
-      "12345" /* id */,
-      "Test Signal" /* name */,
-      false /* dynamic */,
-      "+" /* orientation */,
-      2.22 /* z_offset */,
-      "DE" /* country */,
-      "2017" /* country_revision */,
-      "274" /* type */,
-      "100" /* subtype */,
-      Signal::Value{100, "km/h"} /* value */,
-      0.5 /* height */,
-      1.0 /* width */,
-      0.5 /* h_offset */,
-      1.5 /* length */,
-      0.1 /* pitch */,
-      0.2 /* roll */,
-      "Sample Text" /* text */
-  };
+  const signal::Signals kExpectedSignals{
+      {signal::Signal{
+          100.10 /* s */, -1.5 /* t */, signal::Signal::Id("12345") /* id */, "Test Signal" /* name */,
+          false /* dynamic */, signal::Orientation::kWithS /* orientation */, 2.22 /* z_offset */, "DE" /* country */,
+          "2017" /* country_revision */, "274" /* type */, "100" /* subtype */,
+          signal::Signal::Value{100, "km/h"} /* value */, 0.5 /* height */, 1.0 /* width */, 0.5 /* h_offset */,
+          1.5 /* length */, 0.1 /* pitch */, 0.2 /* roll */, "Sample Text" /* text */
+      }},
+      {signal::SignalReference{signal::SignalReference::SignalId("54321") /* id */,
+                               signal::Orientation::kAgainstS /* orientation */, 100 /* s */, 1.5 /* t */}}};
 
   const std::string xml_description = GetSignals();
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Signals::kSignalsTag),
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Signals::kSignalsTag),
                        {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(Signals::kSignalsTag, dut.GetName());
-  const Signals signals = dut.As<Signals>();
-  ASSERT_EQ(1u, signals.signals.size());
-  EXPECT_EQ(kExpectedSignal, signals.signals[0]);
+  EXPECT_EQ(signal::Signals::kSignalsTag, dut.GetName());
+  const signal::Signals signals = dut.As<signal::Signals>();
+  EXPECT_EQ(kExpectedSignals, signals);
 }
 
 // Get a XML description that contains a XODR Signal with a Value but without a Unit.
@@ -1778,26 +1769,26 @@ std::string GetSignalMissingUnit() {
 TEST_F(ParsingTests, NodeParserSignalMissingUnitThrows) {
   const std::string xml_description = GetSignalMissingUnit();
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Signal::kSignalTag),
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Signal::kSignalTag),
                        {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(Signal::kSignalTag, dut.GetName());
-  EXPECT_ANY_THROW(dut.As<Signal>());
+  EXPECT_EQ(signal::Signal::kSignalTag, dut.GetName());
+  EXPECT_ANY_THROW(dut.As<signal::Signal>());
 }
 
 TEST_F(ParsingTests, NodeParserSignalMissingUnitAllowingSchemaError) {
-  const Signal kExpectedSignal{
+  const signal::Signal kExpectedSignal{
       100.10 /* s */,
       -1.5 /* t */,
-      "12345" /* id */,
+      signal::Signal::Id("12345") /* id */,
       "Test Signal" /* name */,
       false /* dynamic */,
-      "+" /* orientation */,
+      signal::Orientation::kWithS /* orientation */,
       2.22 /* z_offset */,
       "DE" /* country */,
       "2017" /* country_revision */,
       "274" /* type */,
       "100" /* subtype */,
-      Signal::Value{100, {}} /* value */,
+      signal::Signal::Value{100, {}} /* value */,
       0.5 /* height */,
       1.0 /* width */,
       0.5 /* h_offset */,
@@ -1809,10 +1800,10 @@ TEST_F(ParsingTests, NodeParserSignalMissingUnitAllowingSchemaError) {
 
   const std::string xml_description = GetSignalMissingUnit();
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Signal::kSignalTag),
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, signal::Signal::kSignalTag),
                        {kStrictParserSTolerance, kAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(Signal::kSignalTag, dut.GetName());
-  const Signal signal = dut.As<Signal>();
+  EXPECT_EQ(signal::Signal::kSignalTag, dut.GetName());
+  const signal::Signal signal = dut.As<signal::Signal>();
   std::cout << "signal unit:" << signal.value.value().unit << std::endl;
   EXPECT_EQ(kExpectedSignal, signal);
 }

@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ BSD 3-Clause License
+
+ Copyright (c) 2026, Woven by Toyota. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ * Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+ Minimal two-road XODR with traffic light signals and cross-references.
+
+ Road layout (viewed from above):
+
+     Road 1 (100m, hdg=0)          Road 2 (80m, hdg=0)
+   ========================      ========================
+        lane 1                        lane 1
+   ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─    ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
+   (0,0) ──────── (100,0)       (110,0) ──────── (190,0)
+   ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─    ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─ ─
+        lane -1                       lane -1
+   ========================      ========================
+        S1 at s=50                    S2 at s=40
+
+ Signal S1 (on road 1):
+   - type="1000001", subtype="-1", orientation="+", s=50, t=2
+   - validity: fromLane=-1 toLane=-1  (only lane -1 of road 1)
+ Road 1 has signalReference to S2
+
+ Signal S2 (on road 2):
+   - type="1000001", subtype="-1", orientation="-", s=40, t=-2
+   - validity: empty (all lanes of section at s=40 on road 2)
+ Road 2  has signalReference to S1
+
+ Expected maliput lane IDs (road_section_lane):
+   Road 1: "1_0_1" (left), "1_0_-1" (right)
+   Road 2: "2_0_1" (left), "2_0_-1" (right)
+-->
+<OpenDRIVE>
+    <header revMajor="1" revMinor="4" name="TwoRoadsWithTrafficLights"/>
+    <road name="Road 1" length="1.0000000000000000e+2" id="1" junction="-1">
+        <planView>
+            <geometry s="0.0000000000000000e+0" x="0.0000000000000000e+0" y="0.0000000000000000e+0" hdg="0.0000000000000000e+0" length="1.0000000000000000e+2">
+                <line/>
+            </geometry>
+        </planView>
+        <lanes>
+            <laneSection s="0.0000000000000000e+0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0000000000000000e+0" a="3.5000000000000000e+0" b="0.0000000000000000e+0" c="0.0000000000000000e+0" d="0.0000000000000000e+0"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0000000000000000e+0" a="3.5000000000000000e+0" b="0.0000000000000000e+0" c="0.0000000000000000e+0" d="0.0000000000000000e+0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+        <signals>
+            <signal id="S1" name="TrafficLight_S1" s="5.0000000000000000e+1" t="2.0000000000000000e+0"
+                    zOffset="6.0000000000000000e+0" hOffset="0.0000000000000000e+0"
+                    roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
+                    orientation="+" dynamic="yes" country="OpenDRIVE"
+                    type="1000001" subtype="-1" value="-1" text=""
+                    height="1.0000000000000000e+0" width="5.0000000000000000e-1">
+                <validity fromLane="-1" toLane="-1"/>
+            </signal>
+            <signalReference id="S2" s="5.0000000000000000e+1" t="0.0000000000000000e+0" orientation="+"/>
+        </signals>
+    </road>
+    <road name="Road 2" length="8.0000000000000000e+1" id="2" junction="-1">
+        <planView>
+            <geometry s="0.0000000000000000e+0" x="1.1000000000000000e+2" y="0.0000000000000000e+0" hdg="0.0000000000000000e+0" length="8.0000000000000000e+1">
+                <line/>
+            </geometry>
+        </planView>
+        <lanes>
+            <laneSection s="0.0000000000000000e+0">
+                <left>
+                    <lane id="1" type="driving" level="false">
+                        <width sOffset="0.0000000000000000e+0" a="3.5000000000000000e+0" b="0.0000000000000000e+0" c="0.0000000000000000e+0" d="0.0000000000000000e+0"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="none" level="false"/>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="false">
+                        <width sOffset="0.0000000000000000e+0" a="3.5000000000000000e+0" b="0.0000000000000000e+0" c="0.0000000000000000e+0" d="0.0000000000000000e+0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+        <signals>
+            <signal id="S2" name="TrafficLight_S2" s="4.0000000000000000e+1" t="-2.0000000000000000e+0"
+                    zOffset="6.0000000000000000e+0" hOffset="0.0000000000000000e+0"
+                    roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
+                    orientation="-" dynamic="yes" country="OpenDRIVE"
+                    type="1000001" subtype="-1" value="-1" text=""
+                    height="1.0000000000000000e+0" width="5.0000000000000000e-1">
+            </signal>
+            <signalReference id="S1" s="4.0000000000000000e+1" t="0.0000000000000000e+0" orientation="-"/>
+        </signals>
+    </road>
+</OpenDRIVE>

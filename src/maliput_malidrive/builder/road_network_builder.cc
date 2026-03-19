@@ -34,6 +34,7 @@
 #include <utility>
 #include <vector>
 
+#include <maliput/api/rules/traffic_sign_book.h>
 #include <maliput/base/intersection_book.h>
 #include <maliput/base/intersection_book_loader.h>
 #include <maliput/base/manual_discrete_value_rule_state_provider.h>
@@ -42,9 +43,9 @@
 #include <maliput/base/manual_rulebook.h>
 #include <maliput/base/phase_based_right_of_way_rule_state_provider.h>
 #include <maliput/base/phase_ring_book_loader.h>
+#include <maliput/base/road_object_book.h>
 #include <maliput/base/rule_registry.h>
 #include <maliput/base/traffic_light_book.h>
-#include <maliput/base/traffic_light_book_loader.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_unused.h>
 
@@ -59,6 +60,7 @@
 #include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 #include "maliput_malidrive/builder/speed_limit_builder.h"
+#include "maliput_malidrive/builder/traffic_light_book_builder.h"
 #include "maliput_malidrive/builder/xodr_parser_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/constants.h"
@@ -67,6 +69,29 @@
 
 namespace malidrive {
 namespace builder {
+namespace {
+
+// Minimal TrafficSignBook implementation that contains no signs.
+// This is a placeholder until the malidrive backend populates traffic signs.
+class EmptyTrafficSignBook final : public maliput::api::rules::TrafficSignBook {
+ public:
+  EmptyTrafficSignBook() = default;
+
+ private:
+  const maliput::api::rules::TrafficSign* DoGetTrafficSign(const maliput::api::rules::TrafficSign::Id&) const override {
+    return nullptr;
+  }
+  std::vector<const maliput::api::rules::TrafficSign*> DoTrafficSigns() const override { return {}; }
+  std::vector<const maliput::api::rules::TrafficSign*> DoFindByLane(const maliput::api::LaneId&) const override {
+    return {};
+  }
+  std::vector<const maliput::api::rules::TrafficSign*> DoFindByType(
+      const maliput::api::rules::TrafficSignType&) const override {
+    return {};
+  }
+};
+
+}  // namespace
 
 std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() const {
   const auto rn_config{RoadNetworkConfiguration::FromMap(road_network_configuration_)};
@@ -86,9 +111,8 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   maliput::common::unused(speed_limits);
 
   maliput::log()->trace("Building TrafficLightBook...");
-  auto traffic_light_book = !rn_config.traffic_light_book.has_value()
-                                ? std::make_unique<maliput::TrafficLightBook>()
-                                : maliput::LoadTrafficLightBookFromFile(rn_config.traffic_light_book.value());
+  auto traffic_light_book =
+      TrafficLightBookBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_signal_db)();
   maliput::log()->trace("Built TrafficLightBook.");
 
   maliput::log()->trace("Building RuleRegistry...");
@@ -148,7 +172,8 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   return std::make_unique<maliput::api::RoadNetwork>(
       std::move(rg), std::move(rule_book), std::move(traffic_light_book), std::move(intersection_book),
       std::move(phase_ring_book), std::move(state_provider), std::move(manual_phase_provider), std::move(rule_registry),
-      std::move(discrete_value_rule_state_provider), std::move(range_value_rule_state_provider));
+      std::move(discrete_value_rule_state_provider), std::move(range_value_rule_state_provider),
+      std::make_unique<maliput::RoadObjectBook>(), std::make_unique<EmptyTrafficSignBook>());
 }
 
 }  // namespace builder

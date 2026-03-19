@@ -374,7 +374,7 @@ RoadGeometry::OpenScenarioLanePosition RoadGeometry::MaliputRoadPositionToOpenSc
 }
 
 maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPosition(
-    const OpenScenarioRoadPosition& xodr_road_position) const {
+    const OpenScenarioRoadPosition& xodr_road_position, bool allow_off_road_coordinates) const {
   MALIDRIVE_THROW_UNLESS(xodr_road_position.road_id >= 0);
   MALIDRIVE_THROW_UNLESS(xodr_road_position.s >= 0.);
   const Segment* target_segment{this->FindSegmentByOpenScenarioRoadPosition(xodr_road_position)};
@@ -383,6 +383,8 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPo
   const Lane* target_lane{nullptr};
   double r{};
   double mali_lane_s{};
+  const double roll_at_p = target_segment->road_curve()->superelevation()->f(p);
+  const double xodr_t_projected_on_r = xodr_road_position.t / std::cos(roll_at_p);
   for (int i = 0; i < target_segment->num_lanes(); ++i) {
     const Lane* mali_lane = dynamic_cast<const Lane*>(target_segment->lane(i));
     // Obtains the r-coordinate in road curve's frame.
@@ -391,8 +393,6 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPo
     const double r_road_curve_min = r_road_curve - width / 2.;
     const double r_road_curve_max = r_road_curve + width / 2.;
     // r-coordinates are located in RoadCurve FRAME while t-coordinate are respect to Road Reference Line in the ground.
-    const double roll_at_p = target_segment->road_curve()->superelevation()->f(p);
-    const double xodr_t_projected_on_r = xodr_road_position.t / std::cos(roll_at_p);
     if (is_greater_than_or_close(xodr_t_projected_on_r, r_road_curve_min) &&
         is_less_than_or_close(xodr_t_projected_on_r, r_road_curve_max)) {
       // If the lane r value lies the limit of lanes then the right lane is the target lane as lanes are iterated from
@@ -404,11 +404,28 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRoadPositionToMaliputRoadPo
     }
   }
   if (target_lane == nullptr) {
-    MALIDRIVE_THROW_MESSAGE(
-        "A maliput lane can't be found for the given OpenSCENARIO road position: "
-        "RoadID: " +
-        std::to_string(xodr_road_position.road_id) + ", s: " + std::to_string(xodr_road_position.s) +
-        ", t: " + std::to_string(xodr_road_position.t));
+    if (!allow_off_road_coordinates) {
+      MALIDRIVE_THROW_MESSAGE(
+          "A maliput lane can't be found for the given OpenSCENARIO road position: "
+          "RoadID: " +
+          std::to_string(xodr_road_position.road_id) + ", s: " + std::to_string(xodr_road_position.s) +
+          ", t: " + std::to_string(xodr_road_position.t));
+    }
+    if (target_segment->num_lanes() == 0) {
+      MALIDRIVE_THROW_MESSAGE(
+          "Couldn't find a lane for the given OpenSCENARIO road position because the segment has no lanes. RoadID: " +
+          std::to_string(xodr_road_position.road_id) + ", s: " + std::to_string(xodr_road_position.s) +
+          ", t: " + std::to_string(xodr_road_position.t));
+    }
+    const Lane* rightmost_lane = static_cast<const Lane*>(target_segment->lane(0));
+    const Lane* leftmost_lane = static_cast<const Lane*>(target_segment->lane(target_segment->num_lanes() - 1));
+    const double r_center_rightmost = rightmost_lane->to_reference_r(p, 0.);
+    const double r_center_leftmost = leftmost_lane->to_reference_r(p, 0.);
+    const double dist_to_right = std::abs(xodr_t_projected_on_r - r_center_rightmost);
+    const double dist_to_left = std::abs(xodr_t_projected_on_r - r_center_leftmost);
+    target_lane = dist_to_right <= dist_to_left ? rightmost_lane : leftmost_lane;
+    r = target_lane->to_lane_r(p, xodr_t_projected_on_r);
+    mali_lane_s = target_lane->LaneSFromTrackS(xodr_road_position.s);
   }
   return maliput::api::RoadPosition{target_lane, maliput::api::LanePosition{mali_lane_s, r, 0.}};
 }

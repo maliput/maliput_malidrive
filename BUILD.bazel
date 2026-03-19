@@ -28,6 +28,7 @@ cc_library(
         ":common",
         ":loader",
         ":road_curve",
+        ":traffic_signal",
         ":test_utilities",
     ],
 )
@@ -81,6 +82,7 @@ cc_library(
         ":base",
         ":common",
         ":road_curve",
+        ":traffic_signal",
         ":xodr",
         "@maliput//:api",
         "@maliput//:base",
@@ -138,14 +140,32 @@ cc_library(
 )
 
 cc_library(
+    name = "traffic_signal",
+    srcs = glob(["src/maliput_malidrive/traffic_signal/*.cc"]),
+    hdrs = glob(["src/maliput_malidrive/traffic_signal/*.h"]),
+    copts = COPTS,
+    strip_include_prefix = "src",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":common",
+        "@maliput//:api",
+        "@maliput//:common",
+        "@maliput//:math",
+        "@yaml-cpp",
+    ],
+)
+
+cc_library(
     name = "xodr",
     srcs = glob([
         "src/maliput_malidrive/xodr/*.cc",
         "src/maliput_malidrive/xodr/object/*.cc",
+        "src/maliput_malidrive/xodr/signal/*.cc",
     ]),
     hdrs = glob([
         "src/maliput_malidrive/xodr/*.h",
         "src/maliput_malidrive/xodr/object/*.h",
+        "src/maliput_malidrive/xodr/signal/*.h",
     ]),
     strip_include_prefix = "src",
     copts = COPTS,

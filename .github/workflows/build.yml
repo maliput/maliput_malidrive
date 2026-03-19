@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main
+      - dev
   workflow_dispatch:
 
 env:
@@ -35,6 +37,11 @@ jobs:
       shell: bash
       working-directory: ${{ env.BAZEL_WS }}
       run: vcs import . < ${{ env.PACKAGE_NAME }}/.github/dependencies.repos
+    - name: Checkout dev branch in dependencies if target is dev
+      if: ${{ github.base_ref == 'dev' || github.ref == 'refs/heads/dev' }}
+      shell: bash
+      working-directory: ${{ env.BAZEL_WS }}
+      run: ./${PACKAGE_NAME}/.github/try_vcs_checkout dev
     - name: Check if dependencies have a matching branch
       shell: bash
       working-directory: ${{ env.BAZEL_WS }}

@@ -37,7 +37,7 @@
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/object/common.h"
-#include "maliput_malidrive/xodr/object/validity.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace xodr {
@@ -71,7 +71,7 @@ struct ObjectReference {
   std::optional<double> z_offset{std::nullopt};
 
   /// Lane validities restrict signals and objects to specific lanes.
-  std::vector<Validity> validities{};
+  std::vector<malidrive::xodr::Validity> validities{};
 
   bool operator==(const ObjectReference& other) const;
   bool operator!=(const ObjectReference& other) const;

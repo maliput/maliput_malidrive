@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,37 +26,41 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#pragma once
+#include "maliput_malidrive/xodr/signal/reference.h"
 
-#include <maliput/api/type_specific_identifier.h>
+#include <optional>
+
+#include <gtest/gtest.h>
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
+namespace test {
+namespace {
 
-/// Holds the values of a XODR Object validity element.
-struct Validity {
-  /// Id alias.
-  using Id = maliput::api::TypeSpecificIdentifier<struct Validity>;
+GTEST_TEST(Reference, EqualityOperator) {
+  const Reference kReference{
+      "element_id" /* element_id */, Reference::ElementType::kObject /* element_type */,
+      std::make_optional("reference_type") /* type */
+  };
 
-  /// Convenient constants that hold the tag names in the XODR object validity description.
-  static constexpr const char* kValidityTag = "validity";
-  static constexpr const char* kFromLane = "fromLane";
-  static constexpr const char* kToLane = "toLane";
+  Reference reference = kReference;
+  EXPECT_EQ(kReference, reference);
 
-  /// Minimum ID of the lanes for which the object is valid. The value of the @fromLane attribute shall be lower than or
-  /// equal to the value of the @toLane attribute.
-  Id from_lane{"none"};
-  /// Maximum ID of the lanes for which the object is valid.
-  Id to_lane{"none"};
+  reference.element_id = "new_element_id";
+  EXPECT_NE(kReference, reference);
+  reference = kReference;
 
-  /// Equality operator.
-  bool operator==(const Validity& other) const;
+  reference.element_type = Reference::ElementType::kSignal;
+  EXPECT_NE(kReference, reference);
+  reference = kReference;
 
-  /// Inequality operator.
-  bool operator!=(const Validity& other) const;
-};
+  reference.type = std::make_optional("new_type");
+  EXPECT_NE(kReference, reference);
+}
 
-}  // namespace object
+}  // namespace
+}  // namespace test
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

@@ -181,6 +181,7 @@ install (FILES resources/ArcLane.xodr
                resources/Town07.xodr
                resources/TShapeRoad.xodr
                resources/TShapeRoad.yaml
+               resources/TwoRoadsWithTrafficLights.xodr
                resources/TwoWayRoadWithDoubleYellowCurve.xodr
          DESTINATION ${OPENDRIVE_SAMPLES_PATH})
 
@@ -205,6 +206,9 @@ install (FILES resources/figure8_trafficlights/figure8_trafficlights.xodr
                resources/figure8_trafficlights/lane-s-route_west-right-turn.yaml
                resources/figure8_trafficlights/lane-s-route_west-straight.yaml
          DESTINATION ${OPENDRIVE_SAMPLES_PATH}/figure8_trafficlights)
+
+install (FILES resources/traffic_signal_db/traffic_signal_db_example.yaml
+         DESTINATION ${MALIPUT_MALIDRIVE_RESOURCES_PATH}/traffic_signal_db)
 
 # Unsets the cache, expecting a fresh configuration after each cmake run.
 unset(MALIPUT_MALIDRIVE_INTEGRATION_TESTS CACHE)

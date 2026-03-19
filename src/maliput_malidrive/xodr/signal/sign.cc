@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2026, Woven Planet. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -26,19 +26,19 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/signal.h"
+
+#include "maliput_malidrive/xodr/signal/sign.h"
 
 namespace malidrive {
 namespace xodr {
+namespace signal {
 
-bool Signal::operator==(const Signal& other) const {
-  return s == other.s && t == other.t && id == other.id && name == other.name && dynamic == other.dynamic &&
-         orientation == other.orientation && z_offset == other.z_offset && country == other.country &&
-         country_revision == other.country_revision && type == other.type && subtype == other.subtype &&
-         value == other.value && height == other.height && width == other.width && h_offset == other.h_offset &&
-         length == other.length && pitch == other.pitch && roll == other.roll && text == other.text;
-}
+Sign::Sign(const Signal& base_signal, double v_init, double z_init) : Signal(base_signal), v(v_init), z(z_init) {}
 
-bool Signal::operator!=(const Signal& other) const { return !(*this == other); }
+bool Sign::operator==(const Sign& other) const { return Signal::operator==(other) && v == other.v && z == other.z; }
+
+bool Sign::operator!=(const Sign& other) const { return !(*this == other); }
+
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

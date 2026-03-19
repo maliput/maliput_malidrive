@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -27,32 +26,35 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/xodr/object/validity.h"
+#include "maliput_malidrive/xodr/signal/dependency.h"
+
+#include <optional>
 
 #include <gtest/gtest.h>
-#include <maliput/common/error.h>
 
 namespace malidrive {
 namespace xodr {
-namespace object {
+namespace signal {
 namespace test {
 namespace {
 
-GTEST_TEST(Validity, EqualityOperator) {
-  const Validity kValidity{object::Validity::Id("test"), object::Validity::Id("test2")};
-  Validity validity = kValidity;
+GTEST_TEST(Dependency, EqualityOperator) {
+  const Dependency kDependency{Dependency::SignalId("signal_id") /* signal_id */,
+                               std::make_optional("dependency_type") /* type */};
 
-  EXPECT_EQ(kValidity, validity);
-  // Test inequality
-  validity.from_lane = object::Validity::Id("test2");
-  EXPECT_NE(kValidity, validity);
-  validity.from_lane = object::Validity::Id("test");
-  validity.to_lane = object::Validity::Id("test3");
-  EXPECT_NE(kValidity, validity);
+  Dependency dependency = kDependency;
+  EXPECT_EQ(kDependency, dependency);
+
+  dependency.signal_id = Dependency::SignalId("new_signal_id");
+  EXPECT_NE(kDependency, dependency);
+  dependency = kDependency;
+
+  dependency.type = std::make_optional("new_type");
+  EXPECT_NE(kDependency, dependency);
 }
 
 }  // namespace
 }  // namespace test
-}  // namespace object
+}  // namespace signal
 }  // namespace xodr
 }  // namespace malidrive

@@ -304,33 +304,33 @@ std::string GetComplexObject() {
 // Tests `object::Object` parsing with nested elements.
 TEST_F(ObjectParsingTests, NodeParserComplexObject) {
   const object::Object kExpectedObject{
-      std::nullopt,                                              // dynamic
-      70.,                                                       // hdg
-      60.,                                                       // height
-      object::Object::Id("10"),                                  // id
-      40.,                                                       // length
-      "complex_house",                                           // name
-      object::Orientation::kNone,                                // orientation
-      std::nullopt,                                              // perp_to_road
-      80.,                                                       // pitch
-      std::nullopt,                                              // radius
-      90.,                                                       // roll
-      10.,                                                       // s
-      "building",                                                // subtype
-      20.,                                                       // t
-      object::Object::ObjectType::kBuilding,                     // type
-      std::nullopt,                                              // valid_length
-      50.,                                                       // width
-      30.,                                                       // z_offset
-      {},                                                        // repeats
-      std::nullopt,                                              // outlines
-      std::nullopt,                                              // skeleton
-      {{0.8, Color::kWhite, 0.02, "asphalt"}},                   // materials
-      {{object::Validity::Id("1"), object::Validity::Id("3")}},  // validities
-      std::nullopt,                                              // parking_space
-      std::nullopt,                                              // markings
-      std::nullopt,                                              // borders
-      {},                                                        // object_references
+      std::nullopt,                              // dynamic
+      70.,                                       // hdg
+      60.,                                       // height
+      object::Object::Id("10"),                  // id
+      40.,                                       // length
+      "complex_house",                           // name
+      object::Orientation::kNone,                // orientation
+      std::nullopt,                              // perp_to_road
+      80.,                                       // pitch
+      std::nullopt,                              // radius
+      90.,                                       // roll
+      10.,                                       // s
+      "building",                                // subtype
+      20.,                                       // t
+      object::Object::ObjectType::kBuilding,     // type
+      std::nullopt,                              // valid_length
+      50.,                                       // width
+      30.,                                       // z_offset
+      {},                                        // repeats
+      std::nullopt,                              // outlines
+      std::nullopt,                              // skeleton
+      {{0.8, Color::kWhite, 0.02, "asphalt"}},   // materials
+      {{Validity::Id("1"), Validity::Id("3")}},  // validities
+      std::nullopt,                              // parking_space
+      std::nullopt,                              // markings
+      std::nullopt,                              // borders
+      {},                                        // object_references
       {{0.5,
         object::Tunnel::Id("1"),
         100.,
@@ -338,7 +338,7 @@ TEST_F(ObjectParsingTests, NodeParserComplexObject) {
         "MyTunnel",
         10.,
         object::Tunnel::Type::kStandard,
-        {{object::Validity::Id("-1"), object::Validity::Id("1")}}}},  // tunnels
+        {{Validity::Id("-1"), Validity::Id("1")}}}},  // tunnels
   };
 
   const std::string xml_description = GetComplexObject();
@@ -412,13 +412,13 @@ TEST_F(ObjectParsingTests, NodeParserObjectWithRepeatBridgesAndSurface) {
         "MyBridge",
         200.,
         object::Bridge::Type::kConcrete,
-        {{object::Validity::Id("-1"), object::Validity::Id("1")}}},
+        {{Validity::Id("-1"), Validity::Id("1")}}},
        {object::Bridge::Id("2"),
         75.,
         "AnotherBridge",
         300.,
         object::Bridge::Type::kSteel,
-        {{object::Validity::Id("-2"), object::Validity::Id("2")}}}},  // bridges
+        {{Validity::Id("-2"), Validity::Id("2")}}}},  // bridges
       {{{{
           "my_crg_file.crg",
           false,
@@ -513,16 +513,16 @@ TEST_F(ObjectParsingTests, NodeParserMaterial) {
   EXPECT_EQ(kExpectedMaterial, material);
 }
 
-// Tests `object::Validity` parsing.
+// Tests `Validity` parsing.
 TEST_F(ObjectParsingTests, NodeParserValidity) {
-  const object::Validity kExpectedValidity{object::Validity::Id("1"), object::Validity::Id("3")};
+  const Validity kExpectedValidity{Validity::Id("1"), Validity::Id("3")};
 
   const std::string xml_description = GetValidity();
 
-  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, object::Validity::kValidityTag),
+  const NodeParser dut(LoadXMLAndGetNodeByName(xml_description, Validity::kValidityTag),
                        {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
-  EXPECT_EQ(object::Validity::kValidityTag, dut.GetName());
-  const object::Validity validity = dut.As<object::Validity>();
+  EXPECT_EQ(Validity::kValidityTag, dut.GetName());
+  const Validity validity = dut.As<Validity>();
   EXPECT_EQ(kExpectedValidity, validity);
 }
 
@@ -580,13 +580,9 @@ TEST_F(ObjectParsingTests, NodeParserBorders) {
 
 // Tests `object::ObjectReference` parsing.
 TEST_F(ObjectParsingTests, NodeParserObjectReference) {
-  const object::ObjectReference kExpectedObjectReference{object::ObjectReference::Id("1"),
-                                                         object::Orientation::kPositive,
-                                                         10.,
-                                                         2.,
-                                                         5.,
-                                                         0.1,
-                                                         {{object::Validity::Id("1"), object::Validity::Id("1")}}};
+  const object::ObjectReference kExpectedObjectReference{
+      object::ObjectReference::Id("1"),        object::Orientation::kPositive, 10., 2., 5., 0.1,
+      {{Validity::Id("1"), Validity::Id("1")}}};
 
   const std::string xml_description = GetObjectReference();
 
@@ -606,7 +602,7 @@ TEST_F(ObjectParsingTests, NodeParserTunnel) {
                                        "MyTunnel",
                                        10.,
                                        object::Tunnel::Type::kStandard,
-                                       {{object::Validity::Id("-1"), object::Validity::Id("1")}}};
+                                       {{Validity::Id("-1"), Validity::Id("1")}}};
 
   const std::string xml_description = GetTunnel();
 
@@ -624,7 +620,7 @@ TEST_F(ObjectParsingTests, NodeParserBridge) {
                                        "MyBridge",
                                        200.,
                                        object::Bridge::Type::kConcrete,
-                                       {{object::Validity::Id("-1"), object::Validity::Id("1")}}};
+                                       {{Validity::Id("-1"), Validity::Id("1")}}};
 
   const std::string xml_description = GetBridge();
 

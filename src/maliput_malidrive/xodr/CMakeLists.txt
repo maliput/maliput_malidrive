@@ -31,16 +31,23 @@ add_library(xodr
   object/skeleton.cc
   object/surface.cc
   object/tunnel.cc
-  object/validity.cc
   offset.cc
   parser.cc
   road_header.cc
   road_link.cc
   road_type.cc
-  signal.cc
-  signals.cc
+  signal/board.cc
+  signal/controller.cc
+  signal/dependency.cc
+  signal/reference.cc
+  signal/semantics.cc
+  signal/sign.cc
+  signal/signal_parser.cc
+  signal/signal_reference.cc
+  signal/signal.cc
   tools.cc
   unit.cc
+  validity.cc
 )
 add_library(maliput_malidrive::xodr ALIAS xodr)
 set_target_properties(xodr

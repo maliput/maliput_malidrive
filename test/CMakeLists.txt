@@ -88,6 +88,7 @@ macro(maliput_malidrive_build_tests)
         maliput_malidrive::common
         maliput_malidrive::road_curve
         maliput_malidrive::test_utilities
+        maliput_malidrive::traffic_signal
         maliput_malidrive::xodr
         maliput_malidrive::xodr_extract
         pthread
