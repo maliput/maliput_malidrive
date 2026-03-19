@@ -252,3 +252,18 @@ traffic_signal_types:
           - bulb: "WalkBulb"
             state: "Blinking"
         value: "ProceedWithCaution"
+
+  # Stop sign (static traffic sign, not a traffic light).
+  - type: "206"
+    subtype: "-1"
+    country: "OpenDRIVE"
+    country_revision: null
+    description: "Stop sign. Requires a complete stop before entering the intersection."
+    sign_type: "stop"
+
+    # Stop signs have no bulbs.
+    bulbs: []
+
+    rule_states:
+      - condition: []
+        value: "StopThenGo"

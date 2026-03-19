@@ -224,6 +224,10 @@ TrafficSignalDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
     signal_definition.fingerprint.country_revision = revision;
   }
 
+  // Parse sign type (optional). Defaults to "traffic_light" when not present.
+  const auto sign_type_opt = GetOptionalStringField(signal_node, TrafficSignalConstants::kSignType);
+  signal_definition.sign_type = sign_type_opt.has_value() ? sign_type_opt.value() : "traffic_light";
+
   // Parse bulbs.
   ValidateSequenceSize(signal_node[TrafficSignalConstants::kBulbs], TrafficSignalConstants::kBulbs);
   for (const auto& bulb_node : signal_node[TrafficSignalConstants::kBulbs]) {
