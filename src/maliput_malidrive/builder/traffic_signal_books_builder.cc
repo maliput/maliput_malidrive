@@ -51,8 +51,7 @@ TrafficSignalBooksBuilder::TrafficSignalBooksBuilder(const maliput::api::RoadGeo
     : road_geometry_(road_geometry),
       traffic_light_book_path_(std::move(traffic_light_book_path)),
       traffic_signal_db_path_(std::move(traffic_signal_db_path)) {
-  MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument,
-                     "road_geometry must not be nullptr.");
+  MALIDRIVE_VALIDATE(road_geometry_ != nullptr, maliput::common::assertion_error, "road_geometry must not be nullptr.");
 }
 
 TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
@@ -70,8 +69,7 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
 
   // Obtain the DBManager via the concrete malidrive::RoadGeometry.
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
-  MALIDRIVE_VALIDATE(mali_rg != nullptr, std::runtime_error,
-                     "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error, "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
 
   // Pre-build the signal-reference index once.
   const auto signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();
@@ -97,9 +95,8 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
 
       const auto definition_opt = loader.Lookup(fingerprint);
       if (!definition_opt.has_value()) {
-        maliput::log()->debug("TrafficSignalBooksBuilder: no definition found for signal id='",
-                              signal.id.string(), "' type='", signal.type, "' subtype='", signal.subtype,
-                              "'. Skipping.");
+        maliput::log()->debug("TrafficSignalBooksBuilder: no definition found for signal id='", signal.id.string(),
+                              "' type='", signal.type, "' subtype='", signal.subtype, "'. Skipping.");
         continue;
       }
 
