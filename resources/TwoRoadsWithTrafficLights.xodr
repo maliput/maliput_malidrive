@@ -47,12 +47,12 @@
  Signal S1 (on road 1):
    - type="1000001", subtype="-1", orientation="+", s=50, t=2
    - validity: fromLane=-1 toLane=-1  (only lane -1 of road 1)
-   - Also has signalReference to S2
+ Road 1 has signalReference to S2
 
  Signal S2 (on road 2):
    - type="1000001", subtype="-1", orientation="-", s=40, t=-2
    - validity: empty (all lanes of section at s=40 on road 2)
-   - Also has signalReference to S1
+ Road 2  has signalReference to S1
 
  Expected maliput lane IDs (road_section_lane):
    Road 1: "1_0_1" (left), "1_0_-1" (right)

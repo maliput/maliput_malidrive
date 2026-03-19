@@ -399,15 +399,23 @@ std::optional<double> FindLocalMinFromCubicPol(double a, double b, double c, dou
 
 /// Resolves maliput LaneIds for a given road/s-coordinate/validity combination.
 ///
-/// When @p validities is empty, all lanes in the lane section at @p s_coordinate
-/// are included (excluding center lane 0). When @p validities is non-empty, only
-/// lanes within the specified ranges are included (also excluding lane 0).
-/// Lanes that were not built into the RoadGeometry (e.g., non-drivable lanes
-/// when `omit_nondrivable_lanes` is active) are silently filtered out.
+/// The @p s_coordinate is used to determine which lane section of the XODR road
+/// to inspect (via `RoadHeader::GetLaneSectionIndex`). The resolved lane section
+/// is then used to enumerate lane IDs.
+///
+/// - When @p validities is empty, **all** lanes in that lane section are included
+///   (left and right lanes, excluding center lane 0).
+/// - When @p validities is non-empty, only lanes whose IDs fall within the
+///   specified `[fromLane, toLane]` ranges are included. Center lane 0 is always
+///   excluded, so a validity of `{0, 0}` yields an empty result.
+///
+/// Finally, any lane ID that was not actually built into the RoadGeometry
+/// (e.g., non-drivable lanes when `omit_nondrivable_lanes` is active) is
+/// silently filtered out.
 ///
 /// @param road_id The XODR road ID whose lane section should be inspected.
-/// @param s_coordinate The s-coordinate used to identify the lane section.
-/// @param validities The validity ranges. Empty means all lanes in the section.
+/// @param s_coordinate The s-coordinate along the road, used to identify the target lane section.
+/// @param validities The XODR validity ranges. Empty means all lanes in the section.
 /// @param road_geometry Pointer to the built road geometry (must be castable to malidrive::RoadGeometry).
 /// @returns A vector of maliput LaneIds that are valid and present in the RoadGeometry.
 std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
