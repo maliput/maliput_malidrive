@@ -56,7 +56,7 @@ maliput::api::rules::BulbColor StringToBulbColor(const std::string& color_str) {
 }
 
 // Helper function to convert a type string to BulbType enum.
-// @param type_str The type string (e.g., "Round", "Arrow").
+// @param type_str The type string (e.g., "Round", "Arrow", "ArrowLeft").
 // @return The corresponding BulbType enum value.
 // @throws std::runtime_error if the type string is invalid.
 maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
