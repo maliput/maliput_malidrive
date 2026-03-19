@@ -59,6 +59,9 @@ namespace builder {
 ///       z_offset) road-frame coordinates is left for a future step.
 class TrafficLightBuilder {
  public:
+  /// The sign_type value that identifies a traffic light in the YAML database.
+  static constexpr const char* kTrafficLightSignType = "traffic_light";
+
   /// Constructs a TrafficLightBuilder.
   ///
   /// @param signal The XODR signal to build a @ref maliput::api::rules::TrafficLight from.
@@ -78,7 +81,8 @@ class TrafficLightBuilder {
   /// Builds and returns the @ref maliput::api::rules::TrafficLight.
   ///
   /// @returns A unique_ptr to the constructed TrafficLight, or nullptr if no
-  ///          matching definition was found in the YAML database for the signal.
+  ///          matching definition was found in the YAML database for the signal
+  ///          or the definition's sign_type is not "traffic_light".
   std::unique_ptr<const maliput::api::rules::TrafficLight> operator()() const;
 
  private:

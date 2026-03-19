@@ -91,6 +91,14 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
   }
   const auto& definition = definition_opt.value();
 
+  // Only build TrafficLight objects for signals whose database sign_type is "traffic_light".
+  if (definition.sign_type != kTrafficLightSignType) {
+    maliput::log()->debug("TrafficLightBuilder: signal id='", signal_.id.string(), "' has sign_type='",
+                          definition.sign_type, "', expected '", kTrafficLightSignType,
+                          "'. Skipping TrafficLight creation.");
+    return nullptr;
+  }
+
   // Build Bulbs from the definition's bulb list.
   // Bulb positions and orientations are expressed relative to the traffic light
   // frame. Because we create a single BulbGroup at the traffic light origin, the
