@@ -29,8 +29,11 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/db_manager.h"
 
+#include <algorithm>
 #include <array>
 #include <sstream>
+#include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <maliput/common/error.h>
@@ -2355,6 +2358,222 @@ TEST_F(DBManagerNoReciprocalRoadLinkage, AllowingSemanticErrors) {
       LoadDataBaseFromStr(kNoReciprocalLinkage, {kLoaderNoToleranceCheck, allow_schema_errors, allow_semantic_errors}),
       maliput::common::assertion_error);
 }
+// @}
+
+// @{ GetSignalReferencesBySignalId tests.
+
+// XODR description with three roads:
+//  - Road "10": defines signal 100, references signal 200.
+//  - Road "20": defines signal 200, references signal 100.
+//  - Road "30": has no signals section.
+//
+// Expected signal reference map:
+//   "200" -> [{road "10", ref to 200}]
+//   "100" -> [{road "20", ref to 100}]
+constexpr const char* kXodrWithSignalReferences = R"R(
+<?xml version='1.0' standalone='yes'?>
+<OpenDRIVE>
+  <header revMajor='1' revMinor='4' name='SignalRefTest'/>
+  <road name='Road10' length='100.0' id='10' junction='-1'>
+    <planView>
+      <geometry s='0.0' x='0.0' y='0.0' hdg='0.0' length='100.0'>
+        <line/>
+      </geometry>
+    </planView>
+    <lanes>
+      <laneSection s='0.0'>
+        <center>
+          <lane id='0' type='none' level='false'/>
+        </center>
+        <right>
+          <lane id='-1' type='driving' level='false'>
+            <width sOffset='0.0' a='3.5' b='0.0' c='0.0' d='0.0'/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+    <signals>
+      <signal id='100' name='Signal100' s='10.0' t='2.0' zOffset='5.0'
+              hOffset='0.0' roll='0.0' pitch='0.0'
+              orientation='+' dynamic='yes' country='OpenDRIVE'
+              type='1000001' subtype='-1' value='-1' text=''
+              height='1.0' width='0.5'>
+        <validity fromLane='0' toLane='0'/>
+      </signal>
+      <signalReference id='200' s='50.0' t='0.0' orientation='+'/>
+    </signals>
+  </road>
+  <road name='Road20' length='80.0' id='20' junction='-1'>
+    <planView>
+      <geometry s='0.0' x='110.0' y='0.0' hdg='0.0' length='80.0'>
+        <line/>
+      </geometry>
+    </planView>
+    <lanes>
+      <laneSection s='0.0'>
+        <center>
+          <lane id='0' type='none' level='false'/>
+        </center>
+        <right>
+          <lane id='-1' type='driving' level='false'>
+            <width sOffset='0.0' a='3.5' b='0.0' c='0.0' d='0.0'/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+    <signals>
+      <signal id='200' name='Signal200' s='5.0' t='-2.0' zOffset='5.0'
+              hOffset='0.0' roll='0.0' pitch='0.0'
+              orientation='-' dynamic='yes' country='OpenDRIVE'
+              type='1000001' subtype='-1' value='-1' text=''
+              height='1.0' width='0.5'>
+        <validity fromLane='-1' toLane='-1'/>
+      </signal>
+      <signalReference id='100' s='40.0' t='0.0' orientation='-'/>
+    </signals>
+  </road>
+  <road name='Road30' length='60.0' id='30' junction='-1'>
+    <planView>
+      <geometry s='0.0' x='200.0' y='0.0' hdg='0.0' length='60.0'>
+        <line/>
+      </geometry>
+    </planView>
+    <lanes>
+      <laneSection s='0.0'>
+        <center>
+          <lane id='0' type='none' level='false'/>
+        </center>
+        <right>
+          <lane id='-1' type='driving' level='false'>
+            <width sOffset='0.0' a='3.5' b='0.0' c='0.0' d='0.0'/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+  </road>
+</OpenDRIVE>
+)R";
+
+// Tests GetSignalReferencesBySignalId with roads that contain signal references.
+GTEST_TEST(DBManagerTest, GetSignalReferencesBySignalId) {
+  const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
+      kXodrWithSignalReferences, {std::nullopt /* tolerance */, true /* allow_schema_errors */,
+                                  true /* allow_semantic_errors */, false /* user_data_traffic_direction */});
+
+  const auto& result = dut->GetSignalReferencesBySignalId();
+
+  // Two signal IDs should be referenced: "200" (from road 10) and "100" (from road 20).
+  ASSERT_EQ(2u, result.size());
+
+  // Signal "200" is referenced by road "10".
+  {
+    const auto it = result.find("200");
+    ASSERT_NE(result.end(), it);
+    ASSERT_EQ(1u, it->second.size());
+    EXPECT_EQ(RoadHeader::Id("10"), it->second[0].road_id);
+    EXPECT_EQ(signal::SignalReference::SignalId("200"), it->second[0].signal_reference.signal_id);
+  }
+
+  // Signal "100" is referenced by road "20".
+  {
+    const auto it = result.find("100");
+    ASSERT_NE(result.end(), it);
+    ASSERT_EQ(1u, it->second.size());
+    EXPECT_EQ(RoadHeader::Id("20"), it->second[0].road_id);
+    EXPECT_EQ(signal::SignalReference::SignalId("100"), it->second[0].signal_reference.signal_id);
+  }
+}
+
+// Tests that GetSignalReferencesBySignalId returns an empty map when no roads have signals.
+GTEST_TEST(DBManagerTest, GetSignalReferencesBySignalIdEmpty) {
+  // The simple header XODR has one road with no signals section.
+  const std::string xodr_description = GetXodrHeader(1. /* revMajor */, 1. /* revMinor */, "NoSignals" /* name */,
+                                                     1.0 /* version */, "2026-01-01" /* date */, 0. /* north */,
+                                                     0. /* south */, 0. /* east */, 0. /* west */, "Test" /* vendor */);
+  const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
+      xodr_description, {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+
+  const auto& result = dut->GetSignalReferencesBySignalId();
+  EXPECT_TRUE(result.empty());
+}
+
+// XODR with two roads that both reference the same signal ID "300".
+constexpr const char* kXodrMultipleRefsToSameSignal = R"R(
+<?xml version='1.0' standalone='yes'?>
+<OpenDRIVE>
+  <header revMajor='1' revMinor='4' name='MultiRefTest'/>
+  <road name='Road10' length='100.0' id='10' junction='-1'>
+    <planView>
+      <geometry s='0.0' x='0.0' y='0.0' hdg='0.0' length='100.0'>
+        <line/>
+      </geometry>
+    </planView>
+    <lanes>
+      <laneSection s='0.0'>
+        <center>
+          <lane id='0' type='none' level='false'/>
+        </center>
+        <right>
+          <lane id='-1' type='driving' level='false'>
+            <width sOffset='0.0' a='3.5' b='0.0' c='0.0' d='0.0'/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+    <signals>
+      <signalReference id='300' s='10.0' t='0.0' orientation='+'/>
+    </signals>
+  </road>
+  <road name='Road20' length='80.0' id='20' junction='-1'>
+    <planView>
+      <geometry s='0.0' x='110.0' y='0.0' hdg='0.0' length='80.0'>
+        <line/>
+      </geometry>
+    </planView>
+    <lanes>
+      <laneSection s='0.0'>
+        <center>
+          <lane id='0' type='none' level='false'/>
+        </center>
+        <right>
+          <lane id='-1' type='driving' level='false'>
+            <width sOffset='0.0' a='3.5' b='0.0' c='0.0' d='0.0'/>
+          </lane>
+        </right>
+      </laneSection>
+    </lanes>
+    <signals>
+      <signalReference id='300' s='5.0' t='0.0' orientation='-'/>
+    </signals>
+  </road>
+</OpenDRIVE>
+)R";
+
+// Tests that multiple roads referencing the same signal are grouped together.
+GTEST_TEST(DBManagerTest, GetSignalReferencesBySignalIdMultipleRefs) {
+  const std::unique_ptr<DBManager> dut = LoadDataBaseFromStr(
+      kXodrMultipleRefsToSameSignal, {std::nullopt /* tolerance */, true /* allow_schema_errors */,
+                                      true /* allow_semantic_errors */, false /* user_data_traffic_direction */});
+
+  const auto& result = dut->GetSignalReferencesBySignalId();
+
+  // Only one signal ID ("300") is referenced.
+  ASSERT_EQ(1u, result.size());
+
+  const auto it = result.find("300");
+  ASSERT_NE(result.end(), it);
+  ASSERT_EQ(2u, it->second.size());
+
+  // Both roads "10" and "20" reference signal "300".
+  std::vector<std::string> road_ids;
+  for (const auto& ref : it->second) {
+    road_ids.push_back(ref.road_id.string());
+  }
+  std::sort(road_ids.begin(), road_ids.end());
+  EXPECT_EQ("10", road_ids[0]);
+  EXPECT_EQ("20", road_ids[1]);
+}
+
 // @}
 
 }  // namespace

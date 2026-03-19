@@ -31,6 +31,7 @@
 
 #include <optional>
 #include <string>
+#include <vector>
 
 #include <maliput/api/lane_data.h>
 #include <maliput/api/road_geometry.h>
@@ -41,6 +42,7 @@
 #include "maliput_malidrive/xodr/junction.h"
 #include "maliput_malidrive/xodr/lane.h"
 #include "maliput_malidrive/xodr/road_header.h"
+#include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
 namespace builder {
@@ -394,6 +396,31 @@ std::pair<std::string, std::optional<std::string>> VehicleUsageAndExclusiveRuleS
 /// @param d Constant coefficient.
 /// @returns The p value that matches a local min in the cubic, if exists.
 std::optional<double> FindLocalMinFromCubicPol(double a, double b, double c, double d);
+
+/// Resolves maliput LaneIds for a given road/s-coordinate/validity combination.
+///
+/// The @p s_coordinate is used to determine which lane section of the XODR road
+/// to inspect (via `RoadHeader::GetLaneSectionIndex`). The resolved lane section
+/// is then used to enumerate lane IDs.
+///
+/// - When @p validities is empty, **all** lanes in that lane section are included
+///   (left and right lanes, excluding center lane 0).
+/// - When @p validities is non-empty, only lanes whose IDs fall within the
+///   specified `[fromLane, toLane]` ranges are included. Center lane 0 is always
+///   excluded, so a validity of `{0, 0}` yields an empty result.
+///
+/// Finally, any lane ID that was not actually built into the RoadGeometry
+/// (e.g., non-drivable lanes when `omit_nondrivable_lanes` is active) is
+/// silently filtered out.
+///
+/// @param road_id The XODR road ID whose lane section should be inspected.
+/// @param s_coordinate The s-coordinate along the road, used to identify the target lane section.
+/// @param validities The XODR validity ranges. Empty means all lanes in the section.
+/// @param road_geometry Pointer to the built road geometry (must be castable to malidrive::RoadGeometry).
+/// @returns A vector of maliput LaneIds that are valid and present in the RoadGeometry.
+std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
+                                                 const std::vector<xodr::Validity>& validities,
+                                                 const maliput::api::RoadGeometry* road_geometry);
 
 }  // namespace builder
 }  // namespace malidrive
