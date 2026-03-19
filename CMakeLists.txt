@@ -181,6 +181,7 @@ install (FILES resources/ArcLane.xodr
                resources/Town07.xodr
                resources/TShapeRoad.xodr
                resources/TShapeRoad.yaml
+               resources/TwoRoadsWithTrafficLights.xodr
                resources/TwoWayRoadWithDoubleYellowCurve.xodr
          DESTINATION ${OPENDRIVE_SAMPLES_PATH})
 

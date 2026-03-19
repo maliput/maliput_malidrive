@@ -31,7 +31,10 @@
 
 #include <map>
 #include <memory>
+#include <string>
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <tinyxml2.h>
 
@@ -40,6 +43,7 @@
 #include "maliput_malidrive/xodr/junction.h"
 #include "maliput_malidrive/xodr/parser_configuration.h"
 #include "maliput_malidrive/xodr/road_header.h"
+#include "maliput_malidrive/xodr/signal/signal_reference.h"
 
 namespace malidrive {
 namespace xodr {
@@ -58,6 +62,14 @@ namespace xodr {
 class DBManager {
  public:
   MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(DBManager);
+
+  /// Pairs an @ref signal::SignalReference with the ID of the road on which
+  /// the reference appears. This allows consumers to resolve lanes from
+  /// multiple roads that reference the same physical signal or sign.
+  struct SignalReferenceOnRoad {
+    RoadHeader::Id road_id;
+    signal::SignalReference signal_reference;
+  };
 
   /// Holds Geometry related information:
   struct XodrGeometryLengthData {
@@ -144,6 +156,15 @@ class DBManager {
 
   /// @returns A xodr::Junction map which contains all the junction information about the XODR description.
   const std::map<Junction::Id, Junction>& GetJunctions() const;
+
+  /// Collects all signal references from every road, grouped by the referenced signal ID.
+  ///
+  /// The returned map keys are signal ID strings; the values are vectors of
+  /// @ref SignalReferenceOnRoad entries that reference that signal.
+  ///
+  /// @returns A map from signal-ID string to all @ref SignalReferenceOnRoad
+  ///          entries referencing it.
+  const std::unordered_map<std::string, std::vector<SignalReferenceOnRoad>>& GetSignalReferencesBySignalId() const;
 
   /// @{ Xodr geometry introspection queries.
 
