@@ -113,7 +113,7 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
         refs = refs_it->second;
       }
 
-      if (definition.sign_type == traffic_signal::kTrafficLightSignType) {
+      if (definition.sign_type == TrafficLightBuilder::kTrafficLightSignType) {
         auto tl = TrafficLightBuilder(signal, road_id, loader, road_geometry_, refs)();
         if (tl) {
           auto* tlb_impl = dynamic_cast<maliput::TrafficLightBook*>(tlb.get());
