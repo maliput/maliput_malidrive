@@ -69,7 +69,8 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
 
   // Obtain the DBManager via the concrete malidrive::RoadGeometry.
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
-  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error, "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error,
+                     "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
 
   // Pre-build the signal-reference index once.
   const auto signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();

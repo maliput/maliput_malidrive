@@ -1446,10 +1446,10 @@ class TrafficSignalBooksCreationTest : public ::testing::Test {};
 // maps to sign_type="traffic_light") and the TrafficSignBook is empty because
 // there are no static traffic sign signals in that map.
 TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) {
-  const std::string xodr_file_path = utility::FindResourceInPath(
-      "figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
-  const std::string traffic_signal_db_path = utility::FindResourceInPath(
-      "traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+  const std::string xodr_file_path =
+      utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
+  const std::string traffic_signal_db_path =
+      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
 
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path},
@@ -1478,8 +1478,8 @@ TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) 
 TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
   const std::string xodr_file_path =
       utility::FindResourceInPath("TwoRoadsWithTrafficSigns.xodr", kMalidriveResourceFolder);
-  const std::string traffic_signal_db_path = utility::FindResourceInPath(
-      "traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+  const std::string traffic_signal_db_path =
+      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
 
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path},

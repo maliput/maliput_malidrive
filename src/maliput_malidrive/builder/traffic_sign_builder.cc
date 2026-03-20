@@ -154,14 +154,13 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
       ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);
 
   // Build a bounding box from the signal's physical dimensions when available.
+  // The bounding box position and orientation are expressed in the sign's local frame.
   const double depth = signal_.length.value_or(0.);
   const double width = signal_.width.value_or(0.);
   const double height = signal_.height.value_or(0.);
-  const maliput::math::BoundingBox bounding_box{
-      maliput::math::Vector3(pos.x(), pos.y(), pos.z()), maliput::math::Vector3(depth, width, height),
-      maliput::math::RollPitchYaw(orientation_road_network.roll(), orientation_road_network.pitch(),
-                                  orientation_road_network.yaw()),
-      1e-3};
+  const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., 0.),
+                                                maliput::math::Vector3(depth, width, height),
+                                                maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' sign_type='", definition.sign_type,
