@@ -1,0 +1,6 @@
+maliput_viz:
+  maliput_backend: maliput_malidrive
+  parameters:
+    opendrive_file: src/maliput_malidrive/resources/TwoRoadsWithTrafficSigns.xodr
+    traffic_signal_db: src/maliput_malidrive/resources/traffic_signal_db/traffic_signal_db_example.yaml
+    omit_nondrivable_lanes: false
