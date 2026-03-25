@@ -2,6 +2,21 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.20.0 (2026-03-25)
+-------------------
+* Check sign_type at traffic light builder. (`#419 <https://github.com/maliput/maliput_malidrive/issues/419>`_)
+* Update docs based on bulb types. (`#418 <https://github.com/maliput/maliput_malidrive/issues/418>`_)
+* Support non traffic light signals in the DB. (`#416 <https://github.com/maliput/maliput_malidrive/issues/416>`_)
+* Populate TrafficLights related lanes correctly. (`#417 <https://github.com/maliput/maliput_malidrive/issues/417>`_)
+* Pairs with new book API. (`#415 <https://github.com/maliput/maliput_malidrive/issues/415>`_)
+* Create TrafficLights based on XODR signals (`#409 <https://github.com/maliput/maliput_malidrive/issues/409>`_)
+* Add signalReference as part of Signals. (`#410 <https://github.com/maliput/maliput_malidrive/issues/410>`_)
+* XODR signal boards. (`#403 <https://github.com/maliput/maliput_malidrive/issues/403>`_)
+* XODR Signal Semantics (`#405 <https://github.com/maliput/maliput_malidrive/issues/405>`_)
+* XODR Signal elements (`#404 <https://github.com/maliput/maliput_malidrive/issues/404>`_)
+* Traffic signal supplementary map parsing. (`#400 <https://github.com/maliput/maliput_malidrive/issues/400>`_)
+* Contributors: Franco Cipollone, Santiago Lopez
+
 0.19.0 (2026-03-06)
 -------------------
 * Implements FindSurfaceRoadPositionsAtXY for RoadGeometry. (`#407 <https://github.com/maliput/maliput_malidrive/issues/407>`_)
