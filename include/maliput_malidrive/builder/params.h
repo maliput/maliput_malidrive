@@ -175,7 +175,7 @@ static constexpr char const* kSimplificationPolicy{"simplification_policy"};
 ///      xodr lane offsets definitions are discontinuous, and yet the final road surface is continuous: This is not
 ///      forbidden by the OpenDRIVE specification. It is up to the user to ensure that the connecting
 ///      roads form a contiguous surface. See `maliput::API::RoadGeometry::CheckInvariants` method.
-///      - 6. Ignores road elements that start after the road's length when parsing.
+///      - 6. Ignores XODR elevation elements that start after the road's length when parsing.
 ///    - 4. @e "permissive": Allow all previous violations.
 ///   - Default: @e "permissive"
 static constexpr char const* kStandardStrictnessPolicy{"standard_strictness_policy"};
