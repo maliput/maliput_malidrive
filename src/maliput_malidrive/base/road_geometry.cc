@@ -316,6 +316,7 @@ const Lane* RoadGeometry::GetMaliputLaneFromOpenScenarioLanePosition(
   MALIDRIVE_THROW_UNLESS(xodr_lane_position.road_id >= 0);
   MALIDRIVE_THROW_UNLESS(xodr_lane_position.s >= 0.);
   MALIDRIVE_THROW_UNLESS(xodr_lane_position.lane_id != 0);
+  VerifyValidXodrLanePosition(xodr_lane_position);
   const std::unordered_map<maliput::api::LaneId, const maliput::api::Lane*> all_lanes = this->ById().GetLanes();
   const Lane* target_lane{nullptr};
   for (const auto& lane : all_lanes) {
@@ -343,6 +344,45 @@ const Lane* RoadGeometry::GetMaliputLaneFromOpenScenarioLanePosition(
         std::to_string(xodr_lane_position.lane_id) + ", offset: " + std::to_string(xodr_lane_position.offset));
   }
   return target_lane;
+}
+
+void RoadGeometry::VerifyValidXodrLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const {
+  const xodr::RoadHeader::Id road_header_id(std::to_string(xodr_lane_position.road_id));
+  const auto& road_headers = manager_->GetRoadHeaders();
+  const auto it = road_headers.find(road_header_id);
+  MALIDRIVE_VALIDATE(it != road_headers.end(), maliput::common::assertion_error,
+                     std::string("Road ID ") + road_header_id.string() + " not found in the XODR map.");
+  const xodr::RoadHeader& road_header = it->second;
+  MALIDRIVE_VALIDATE(
+      xodr_lane_position.s >= road_header.s0() && xodr_lane_position.s <= road_header.s0() + road_header.length,
+      maliput::common::assertion_error,
+      std::string("s value ") + std::to_string(xodr_lane_position.s) + " is out of range for Road ID " +
+          road_header_id.string() + ". Valid range: [" + std::to_string(road_header.s0()) + ", " +
+          std::to_string(road_header.s0() + road_header.length) + "].");
+  // Clamp s to be strictly less than the road's end so that GetLaneSectionIndex (which uses strict < for the upper
+  // bound) can find the last lane section when s equals the road's length.
+  const double clamped_s = std::min(xodr_lane_position.s, road_header.s0() + road_header.length - kEpsilon);
+  const int lane_section_index = road_header.GetLaneSectionIndex(clamped_s);
+  const xodr::LaneSection& lane_section = road_header.lanes.lanes_section.at(lane_section_index);
+  bool lane_found = false;
+  for (const auto& lane : lane_section.left_lanes) {
+    if (std::stoi(lane.id.string()) == xodr_lane_position.lane_id) {
+      lane_found = true;
+      break;
+    }
+  }
+  if (!lane_found) {
+    for (const auto& lane : lane_section.right_lanes) {
+      if (std::stoi(lane.id.string()) == xodr_lane_position.lane_id) {
+        lane_found = true;
+        break;
+      }
+    }
+  }
+  MALIDRIVE_VALIDATE(lane_found, maliput::common::assertion_error,
+                     std::string("Lane ID ") + std::to_string(xodr_lane_position.lane_id) +
+                         " not found in lane section " + std::to_string(lane_section_index) + " of Road ID " +
+                         road_header_id.string() + ".");
 }
 
 maliput::api::RoadPosition RoadGeometry::OpenScenarioLanePositionToMaliputRoadPosition(
