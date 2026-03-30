@@ -325,6 +325,16 @@ class RoadGeometry final : public maliput::geometry_base::RoadGeometry {
   // @throws When the command is unknown or can't be executed.
   std::string DoBackendCustomCommand(const std::string& command) const override;
 
+  // Verifies that the given OpenScenarioLanePosition corresponds to a valid position in the XODR map.
+  // Checks that:
+  //  - The road_id exists in the parsed XODR road headers.
+  //  - The s value is within the road's length.
+  //  - The lane_id exists in the corresponding lane section.
+  //
+  // @param xodr_lane_position The OpenScenarioLanePosition to verify.
+  // @throws maliput::common::assertion_error When the position is invalid.
+  void VerifyValidXodrLanePosition(const OpenScenarioLanePosition& xodr_lane_position) const;
+
   // Finds the maliput segment that corresponds to the given OpenScenario RoadPosition.
   const Segment* FindSegmentByOpenScenarioRoadPosition(const OpenScenarioRoadPosition& xodr_road_position) const;
 
