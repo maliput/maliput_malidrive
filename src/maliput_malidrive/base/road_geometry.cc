@@ -47,7 +47,7 @@
 
 using maliput::api::LaneEnd;
 
-static constexpr double kEpsilon{1e-12};
+static constexpr double kEpsilon{1e-10};
 
 namespace {
 
