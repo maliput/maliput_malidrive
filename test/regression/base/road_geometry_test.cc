@@ -332,6 +332,46 @@ INSTANTIATE_TEST_CASE_P(RoadGeometryGetMaliputLaneFromOpenScenarioLanePositionTe
                             {"LineMultipleSections.xodr", {1, 100., -1, 0.}, maliput::api::LaneId{"1_2_-1"}},
                         }));
 
+// Tests that VerifyValidXodrLanePosition (called via GetMaliputLaneFromOpenScenarioLanePosition) throws for invalid
+// inputs.
+class RoadGeometryVerifyValidXodrLanePositionThrows : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("LineMultipleSections.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+    rg_ = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+  const RoadGeometry* rg_{nullptr};
+};
+
+TEST_F(RoadGeometryVerifyValidXodrLanePositionThrows, InvalidRoadId) {
+  // Road ID 999 does not exist in LineMultipleSections.xodr (only road 1 exists).
+  const RoadGeometry::OpenScenarioLanePosition xodr_lane_position{999, 50., -1, 0.};
+  EXPECT_THROW(rg_->GetMaliputLaneFromOpenScenarioLanePosition(xodr_lane_position), maliput::common::assertion_error);
+}
+
+TEST_F(RoadGeometryVerifyValidXodrLanePositionThrows, SValueBeyondRoadLength) {
+  // Road 1 has length 100.0. s = 150.0 is out of range.
+  const RoadGeometry::OpenScenarioLanePosition xodr_lane_position{1, 150., -1, 0.};
+  EXPECT_THROW(rg_->GetMaliputLaneFromOpenScenarioLanePosition(xodr_lane_position), maliput::common::assertion_error);
+}
+
+TEST_F(RoadGeometryVerifyValidXodrLanePositionThrows, NegativeSValue) {
+  // Negative s is invalid.
+  const RoadGeometry::OpenScenarioLanePosition xodr_lane_position{1, -10., -1, 0.};
+  EXPECT_THROW(rg_->GetMaliputLaneFromOpenScenarioLanePosition(xodr_lane_position), maliput::common::assertion_error);
+}
+
+TEST_F(RoadGeometryVerifyValidXodrLanePositionThrows, InvalidLaneId) {
+  // Lane ID 10 does not exist in any lane section of road 1 (valid IDs are -4 to 4).
+  const RoadGeometry::OpenScenarioLanePosition xodr_lane_position{1, 50., 10, 0.};
+  EXPECT_THROW(rg_->GetMaliputLaneFromOpenScenarioLanePosition(xodr_lane_position), maliput::common::assertion_error);
+}
+
 class RoadGeometryOpenScenarioConversionsArcLane : public ::testing::Test {
  protected:
   void SetUp() override {
