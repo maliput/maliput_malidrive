@@ -70,6 +70,8 @@ class ParsingTests : public ::testing::Test {
   static constexpr bool kDontAllowSemanticErrors{false};
   // Flag to allow schema errors.
   static constexpr bool kAllowSchemaErrors{true};
+  // Flag to allow semantic errors.
+  static constexpr bool kAllowSemanticErrors{true};
   // Flag to support userData XODR parsing.
   static constexpr bool kUseUserDataTrafficDirection{true};
   // Flag to not support userData XODR parsing.
@@ -1677,6 +1679,63 @@ TEST_F(ParsingTests, NodeParserRoadHeader) {
                        {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
   EXPECT_EQ(RoadHeader::kRoadHeaderTag, dut.GetName());
   EXPECT_EQ(kExpectedRoadHeader, dut.As<RoadHeader>());
+}
+
+// Template of a XML description that contains a XODR RoadHeader with elevations
+// that exceed the road's length. The road length is 10.0 but contains elevations at s=0, 5, 15 (exceeds).
+constexpr const char* kRoadHeaderWithOutOfRangeElevations = R"R(
+<root>
+  <road name='TestRoad' length='10.0' id='1' junction='-1' rule='RHT'>
+    <planView>
+      <geometry s='0.' x='0.' y='0.' hdg='0.' length='10.'>
+          <line/>
+      </geometry>
+    </planView>
+    <elevationProfile>
+      <elevation s='0.' a='1.' b='0.' c='0.' d='0.'/>
+      <elevation s='5.' a='2.' b='0.' c='0.' d='0.'/>
+      <elevation s='15.' a='3.' b='0.' c='0.' d='0.'/>
+    </elevationProfile>
+    <lanes>
+      <laneSection s='0.'>
+          <center>
+              <lane id='0' type='driving' level='0'>
+              </lane>
+          </center>
+          <right>
+              <lane id='-1' type='driving' level='0'>
+                  <width sOffset='0.' a='1.' b='0.' c='0.' d='0.'/>
+              </lane>
+          </right>
+      </laneSection>
+    </lanes>
+  </road>
+</root>
+)R";
+
+// Tests that elevations with s_0 > road length are filtered out when allow_semantic_errors is true.
+TEST_F(ParsingTests, NodeParserRoadHeaderFiltersOutOfRangeElevationsWhenAllowSemanticErrors) {
+  const NodeParser dut(LoadXMLAndGetNodeByName(kRoadHeaderWithOutOfRangeElevations, RoadHeader::kRoadHeaderTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kAllowSemanticErrors});
+  const RoadHeader road_header = dut.As<RoadHeader>();
+
+  // Elevation at s=15 exceeds road length=10, so only elevations at s=0 and s=5 should remain.
+  ASSERT_EQ(2u, road_header.reference_geometry.elevation_profile.elevations.size());
+  EXPECT_DOUBLE_EQ(0., road_header.reference_geometry.elevation_profile.elevations[0].s_0);
+  EXPECT_DOUBLE_EQ(5., road_header.reference_geometry.elevation_profile.elevations[1].s_0);
+}
+
+// Tests that elevations with s_0 > road length are NOT filtered when allow_semantic_errors is false.
+TEST_F(ParsingTests, NodeParserRoadHeaderKeepsAllElevationsWhenNotAllowSemanticErrors) {
+  const NodeParser dut(LoadXMLAndGetNodeByName(kRoadHeaderWithOutOfRangeElevations, RoadHeader::kRoadHeaderTag),
+                       {kNullParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors});
+  const RoadHeader road_header = dut.As<RoadHeader>();
+
+  // All three elevations should be present (no filtering).
+  ASSERT_EQ(3u, road_header.reference_geometry.elevation_profile.elevations.size());
+  EXPECT_DOUBLE_EQ(0., road_header.reference_geometry.elevation_profile.elevations[0].s_0);
+  EXPECT_DOUBLE_EQ(5., road_header.reference_geometry.elevation_profile.elevations[1].s_0);
+  EXPECT_DOUBLE_EQ(15., road_header.reference_geometry.elevation_profile.elevations[2].s_0);
 }
 
 // Get a XML description that contains a XODR Signals.

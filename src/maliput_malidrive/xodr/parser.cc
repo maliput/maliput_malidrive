@@ -29,7 +29,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/xodr/parser.h"
 
+#include <algorithm>
 #include <map>
+#include <string>
 #include <vector>
 
 #include <maliput/common/logger.h>
@@ -1504,12 +1506,28 @@ RoadHeader NodeParser::As() const {
   tinyxml2::XMLElement* plan_view_element(element_->FirstChildElement(PlanView::kPlanViewTag));
   MALIDRIVE_THROW_UNLESS(plan_view_element != nullptr, maliput::common::road_network_description_parser_error);
   road_header.reference_geometry.plan_view = NodeParser(plan_view_element, parser_configuration_).As<PlanView>();
-  MALIDRIVE_TRACE("Parsing elevationProfile.");
   // Get ElevationProfile.
+  MALIDRIVE_TRACE("Parsing elevationProfile.");
   tinyxml2::XMLElement* elevation_profile_element(element_->FirstChildElement(ElevationProfile::kElevationProfileTag));
   if (elevation_profile_element) {
     road_header.reference_geometry.elevation_profile =
         NodeParser(elevation_profile_element, parser_configuration_).As<ElevationProfile>();
+  }
+  // When semantic errors are allowed, discard elevation entries whose s_0 exceeds the road's length.
+  if (parser_configuration_.allow_semantic_errors) {
+    auto& elevations = road_header.reference_geometry.elevation_profile.elevations;
+    elevations.erase(std::remove_if(elevations.begin(), elevations.end(),
+                                    [&road_header](const ElevationProfile::Elevation& e) {
+                                      if (e.s_0 > road_header.length) {
+                                        maliput::log()->warn(
+                                            "Road Id: ", road_header.id.string(),
+                                            " - Discarding elevation with s_0=", std::to_string(e.s_0),
+                                            " that exceeds road length=", std::to_string(road_header.length));
+                                        return true;
+                                      }
+                                      return false;
+                                    }),
+                     elevations.end());
   }
   // Get LateralProfile.
   MALIDRIVE_TRACE("Parsing lateralProfile.");
