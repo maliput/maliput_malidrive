@@ -2,6 +2,14 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.21.0 (2026-03-31)
+-------------------
+* Remove elevations that start after the road's length. (`#429 <https://github.com/maliput/maliput_malidrive/issues/429>`_)
+* Relaxing xodr<>malidrive coord comparison epsilon (`#428 <https://github.com/maliput/maliput_malidrive/issues/428>`_)
+* Verify valid position of XODR Lane Position. (`#426 <https://github.com/maliput/maliput_malidrive/issues/426>`_)
+* Add docs about road curve integrators. (`#425 <https://github.com/maliput/maliput_malidrive/issues/425>`_)
+* Contributors: Franco Cipollone, Juan Carosella, Santiago Lopez
+
 0.20.0 (2026-03-25)
 -------------------
 * Check sign_type at traffic light builder. (`#419 <https://github.com/maliput/maliput_malidrive/issues/419>`_)
