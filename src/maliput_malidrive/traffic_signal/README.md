@@ -47,6 +47,19 @@ Each YAML file in this directory should define a list of signal types under the 
 
 String field that identifies the signal variant. Defaults to `"traffic_light"` when not present in the YAML file. Use a different value (e.g., `"stop"`, `"yield"`, `"speed_limit"`) to identify static traffic signs.
 
+#### Signal Fingerprint Matching
+
+Each signal definition in the database is uniquely identified by a **fingerprint** composed of four fields:
+
+| Field              | Required | Description                                |
+| ------------------ | -------- | ------------------------------------------ |
+| `type`             | Yes      | Signal type identifier (e.g., `"1000001"`) |
+| `subtype`          | No       | Signal subtype for finer matching          |
+| `country`          | No       | Country code or standard                   |
+| `country_revision` | No       | Country standard revision                  |
+
+Only `type` is mandatory; `subtype`, `country`, and `country_revision` may be omitted (treated as null). When the parser looks up an XODR signal in the database, all four fields are compared — omitted fields match only when the corresponding database entry also leaves them unset. This means two entries that share the same `type` but differ in any optional field (present vs. absent, or different values) are considered distinct definitions.
+
 ### Bulbs
 
 Each signal type contains a list of `bulbs`:
