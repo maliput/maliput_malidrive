@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.21.1 (2026-03-31)
+-------------------
+* Improve traffic signal DB docs. (`#431 <https://github.com/maliput/maliput_malidrive/issues/431>`_)
+* Contributors: Santiago Lopez
+
 0.21.0 (2026-03-31)
 -------------------
 * Remove elevations that start after the road's length. (`#429 <https://github.com/maliput/maliput_malidrive/issues/429>`_)
