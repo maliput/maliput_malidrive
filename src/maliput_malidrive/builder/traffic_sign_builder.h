@@ -29,10 +29,9 @@
 #pragma once
 
 #include <memory>
-#include <vector>
 
 #include <maliput/api/road_geometry.h>
-#include <maliput/api/rules/traffic_lights.h>
+#include <maliput/api/rules/traffic_sign.h>
 
 #include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
 #include "maliput_malidrive/xodr/db_manager.h"
@@ -42,7 +41,7 @@
 namespace malidrive {
 namespace builder {
 
-/// Builds a single @ref maliput::api::rules::TrafficLight from a XODR
+/// Builds a single @ref maliput::api::rules::TrafficSign from a XODR
 /// @ref xodr::signal::Signal and its matching definition in the traffic
 /// signal YAML database.
 ///
@@ -50,17 +49,14 @@ namespace builder {
 /// inputs and call @ref operator()() to produce the result.
 ///
 /// When no matching @ref traffic_signal::TrafficSignalDefinition is found in
-/// the loader for the given signal's type/subtype/country fingerprint, the
-/// builder returns nullptr. Callers are responsible for checking the return
-/// value.
-class TrafficLightBuilder {
+/// the loader for the given signal's type/subtype/country fingerprint, or when
+/// the definition's sign_type cannot be mapped to a known
+/// @ref maliput::api::rules::TrafficSignType, the builder returns nullptr.
+class TrafficSignBuilder {
  public:
-  /// The sign_type value that identifies a traffic light in the YAML database.
-  static constexpr const char* kTrafficLightSignType = "traffic_light";
-
-  /// Constructs a TrafficLightBuilder.
+  /// Constructs a TrafficSignBuilder.
   ///
-  /// @param signal The XODR signal to build a @ref maliput::api::rules::TrafficLight from.
+  /// @param signal The XODR signal to build a @ref maliput::api::rules::TrafficSign from.
   /// @param road_id The XODR road's ID the @p signal belongs to.
   /// @param loader The @ref traffic_signal::TrafficSignalDatabaseLoader providing access
   ///        to the traffic signal YAML database.
@@ -69,24 +65,22 @@ class TrafficLightBuilder {
   ///        Each entry carries the referencing road's ID and the reference itself, whose
   ///        validity/s-coordinate is used to resolve related lanes on the referencing road.
   /// @throws std::invalid_argument if @p road_geometry is nullptr.
-  TrafficLightBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
-                      const traffic_signal::TrafficSignalDatabaseLoader& loader,
-                      const maliput::api::RoadGeometry* road_geometry,
-                      std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {});
+  TrafficSignBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
+                     const traffic_signal::TrafficSignalDatabaseLoader& loader,
+                     const maliput::api::RoadGeometry* road_geometry,
+                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {});
 
-  /// Builds and returns the @ref maliput::api::rules::TrafficLight.
+  /// Builds and returns the @ref maliput::api::rules::TrafficSign.
   ///
-  /// @returns A unique_ptr to the constructed TrafficLight, or nullptr if no
-  ///          matching definition was found in the YAML database for the signal
-  ///          or the definition's sign_type is not "traffic_light".
-  std::unique_ptr<const maliput::api::rules::TrafficLight> operator()() const;
+  /// @returns A unique_ptr to the constructed TrafficSign.
+  std::unique_ptr<const maliput::api::rules::TrafficSign> operator()() const;
 
  private:
   const xodr::signal::Signal& signal_;
   const xodr::RoadHeader::Id& road_id_;
   const traffic_signal::TrafficSignalDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
-  std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references_;
+  const std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references_;
 };
 
 }  // namespace builder

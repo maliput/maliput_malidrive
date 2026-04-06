@@ -1435,6 +1435,71 @@ TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
   EXPECT_DOUBLE_EQ(45, phase_provider_result->next->duration_until.value());
 }
 
+// Tests that both TrafficLightBook and TrafficSignBook are created and
+// populated correctly by the RoadNetworkBuilder when a traffic_signal_db YAML
+// path is provided.
+class TrafficSignalBooksCreationTest : public ::testing::Test {};
+
+// Verifies that when figure8_trafficlights.xodr is loaded together with the
+// traffic_signal_db_example.yaml database, the TrafficLightBook is populated
+// with 4 traffic lights (all signals in that XODR have type "1000001" which
+// maps to sign_type="traffic_light") and the TrafficSignBook is empty because
+// there are no static traffic sign signals in that map.
+TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) {
+  const std::string xodr_file_path =
+      utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
+  const std::string traffic_signal_db_path =
+      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+
+  const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path},
+      {params::kTrafficSignalDb, traffic_signal_db_path},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+
+  std::unique_ptr<maliput::api::RoadNetwork> dut;
+  ASSERT_NO_THROW(dut = builder::RoadNetworkBuilder(rn_config.ToStringMap())());
+
+  ASSERT_NE(nullptr, dut->traffic_light_book());
+  ASSERT_NE(nullptr, dut->traffic_sign_book());
+
+  // figure8_trafficlights.xodr defines 4 signals of type "1000001" which the
+  // example database maps to traffic lights.
+  EXPECT_EQ(4, static_cast<int>(dut->traffic_light_book()->TrafficLights().size()));
+  // No static sign signals (type "206" etc.) are present in this XODR.
+  EXPECT_TRUE(dut->traffic_sign_book()->TrafficSigns().empty());
+}
+
+// Verifies that when TwoRoadsWithTrafficSigns.xodr is loaded together with the
+// traffic_signal_db_example.yaml database, the TrafficSignBook is populated
+// with 2 stop signs (signals of type "206" which map to sign_type="stop") and
+// the TrafficLightBook is empty because there are no traffic light signals in
+// that map.
+TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
+  const std::string xodr_file_path =
+      utility::FindResourceInPath("TwoRoadsWithTrafficSigns.xodr", kMalidriveResourceFolder);
+  const std::string traffic_signal_db_path =
+      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+
+  const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path},
+      {params::kTrafficSignalDb, traffic_signal_db_path},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+
+  std::unique_ptr<maliput::api::RoadNetwork> dut;
+  ASSERT_NO_THROW(dut = builder::RoadNetworkBuilder(rn_config.ToStringMap())());
+
+  ASSERT_NE(nullptr, dut->traffic_light_book());
+  ASSERT_NE(nullptr, dut->traffic_sign_book());
+
+  // TwoRoadsWithTrafficSigns.xodr has no traffic lights.
+  EXPECT_TRUE(dut->traffic_light_book()->TrafficLights().empty());
+  // TwoRoadsWithTrafficSigns.xodr defines 2 stop sign signals (type "206")
+  // which the example database maps to sign_type="stop".
+  EXPECT_EQ(2, static_cast<int>(dut->traffic_sign_book()->TrafficSigns().size()));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder

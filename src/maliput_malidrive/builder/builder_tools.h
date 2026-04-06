@@ -39,6 +39,7 @@
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/junction.h"
 #include "maliput_malidrive/xodr/lane.h"
 #include "maliput_malidrive/xodr/road_header.h"
@@ -421,6 +422,26 @@ std::optional<double> FindLocalMinFromCubicPol(double a, double b, double c, dou
 std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
                                                  const std::vector<xodr::Validity>& validities,
                                                  const maliput::api::RoadGeometry* road_geometry);
+
+/// Resolves the related lane IDs for a signal from its own road and from any
+/// signal references on other roads, then deduplicates the result.
+///
+/// This combines @ref ResolveLaneIds calls for the primary road and every
+/// @p signal_references entry, appending all results before performing a
+/// sort-then-unique deduplication. Duplicates are unlikely with well-formed
+/// XODR files but could occur when a road references its own signal via a
+/// `<signalReference>` element.
+///
+/// @param road_id The XODR road ID of the signal's own road.
+/// @param s_coordinate The s-coordinate of the signal on its own road.
+/// @param validities The XODR validity ranges for the signal's own road.
+/// @param signal_references Additional roads that reference the same signal.
+/// @param road_geometry Pointer to the built road geometry.
+/// @returns A sorted, deduplicated vector of maliput LaneIds.
+std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
+    const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
+    const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
+    const maliput::api::RoadGeometry* road_geometry);
 
 }  // namespace builder
 }  // namespace malidrive

@@ -20,8 +20,9 @@ add_library(builder
   rule_tools.cc
   simplify_geometries.cc
   speed_limit_builder.cc
-  traffic_light_book_builder.cc
   traffic_light_builder.cc
+  traffic_sign_builder.cc
+  traffic_signal_books_builder.cc
   xodr_parser_configuration.cc
 )
 add_library(maliput_malidrive::builder ALIAS builder)

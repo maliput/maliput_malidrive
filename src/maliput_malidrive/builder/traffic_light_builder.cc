@@ -28,7 +28,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/traffic_light_builder.h"
 
-#include <algorithm>
 #include <cmath>
 #include <string>
 #include <utility>
@@ -139,25 +138,8 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
   maliput::api::Rotation orientation_road_network = maliput::api::Rotation::FromRpy(
       0., 0., orientation + (signal_.orientation == xodr::signal::Orientation::kAgainstS ? M_PI : 0.));
 
-  // Resolve related lanes from the signal's own road validity.
-  auto related_lanes = ResolveLaneIds(road_id_, signal_.s, signal_.validities, road_geometry_);
-
-  // Resolve related lanes from signal references on other roads.
-  for (const auto& ref_ctx : signal_references_) {
-    auto ref_lanes = ResolveLaneIds(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities,
-                                    road_geometry_);
-    related_lanes.insert(related_lanes.end(), std::make_move_iterator(ref_lanes.begin()),
-                         std::make_move_iterator(ref_lanes.end()));
-  }
-
-  // Conservative deduplication: duplicates are unlikely with well-formed XODR
-  // files but could occur if a road references its own signal via a
-  // <signalReference> entry.
-  std::sort(related_lanes.begin(), related_lanes.end(),
-            [](const auto& a, const auto& b) { return a.string() < b.string(); });
-  related_lanes.erase(std::unique(related_lanes.begin(), related_lanes.end(),
-                                  [](const auto& a, const auto& b) { return a.string() == b.string(); }),
-                      related_lanes.end());
+  auto related_lanes =
+      ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);
 
   maliput::log()->debug("TrafficLightBuilder: creating TrafficLight for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "'. TrafficLight position: (x=", pos.x(),
