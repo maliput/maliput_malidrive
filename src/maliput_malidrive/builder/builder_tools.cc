@@ -590,5 +590,27 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
   return result;
 }
 
+std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
+    const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
+    const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
+    const maliput::api::RoadGeometry* road_geometry) {
+  auto related_lanes = ResolveLaneIds(road_id, s_coordinate, validities, road_geometry);
+
+  for (const auto& ref_ctx : signal_references) {
+    auto ref_lanes =
+        ResolveLaneIds(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities, road_geometry);
+    related_lanes.insert(related_lanes.end(), std::make_move_iterator(ref_lanes.begin()),
+                         std::make_move_iterator(ref_lanes.end()));
+  }
+
+  std::sort(related_lanes.begin(), related_lanes.end(),
+            [](const auto& a, const auto& b) { return a.string() < b.string(); });
+  related_lanes.erase(std::unique(related_lanes.begin(), related_lanes.end(),
+                                  [](const auto& a, const auto& b) { return a.string() == b.string(); }),
+                      related_lanes.end());
+
+  return related_lanes;
+}
+
 }  // namespace builder
 }  // namespace malidrive
