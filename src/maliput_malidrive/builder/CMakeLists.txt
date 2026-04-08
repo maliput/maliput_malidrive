@@ -14,6 +14,9 @@ add_library(builder
   road_geometry_configuration.cc
   road_network_builder.cc
   road_network_configuration.cc
+  road_object_book_builder.cc
+  road_object_builder.cc
+  road_object_type_mapper.cc
   rule_registry_builder.cc
   road_rulebook_builder.cc
   road_rulebook_builder_old_rules.cc
