@@ -59,19 +59,18 @@ class MalidriveRoadObject final : public maliput::api::objects::RoadObject {
   MalidriveRoadObject(const Id& id, maliput::api::objects::RoadObjectType type,
                       const maliput::api::objects::RoadObjectPosition& position,
                       const maliput::api::Rotation& orientation, const maliput::math::BoundingBox& bounding_box,
-                      bool is_dynamic, std::vector<maliput::api::LaneId> related_lanes,
-                      std::optional<std::string> name, std::optional<std::string> subtype,
+                      bool is_dynamic, std::vector<maliput::api::LaneId> related_lanes, std::optional<std::string> name,
+                      std::optional<std::string> subtype,
                       std::vector<std::unique_ptr<maliput::api::objects::Outline>> outlines,
                       std::unordered_map<std::string, std::string> properties)
-      : RoadObject(id, type, position, orientation, bounding_box, is_dynamic, std::move(related_lanes),
-                   std::move(name), std::move(subtype), std::move(outlines), std::move(properties)) {}
+      : RoadObject(id, type, position, orientation, bounding_box, is_dynamic, std::move(related_lanes), std::move(name),
+                   std::move(subtype), std::move(outlines), std::move(properties)) {}
 };
 
 /// Converts XODR outline corners to maliput OutlineCorners and Outlines.
 std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
-    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
-    const malidrive::RoadGeometry* mali_rg, const maliput::api::InertialPosition& object_inertial_pos,
-    const maliput::api::Rotation& object_orientation) {
+    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id, const malidrive::RoadGeometry* mali_rg,
+    const maliput::api::InertialPosition& object_inertial_pos, const maliput::api::Rotation& object_orientation) {
   std::vector<std::unique_ptr<maliput::api::objects::Outline>> result;
   if (!object.outlines.has_value()) {
     return result;
@@ -84,8 +83,7 @@ std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
     if (!xodr_outline.corner_road.empty()) {
       for (const auto& cr : xodr_outline.corner_road) {
         const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_pos{std::stoi(road_id.string()), cr.s, cr.t};
-        const maliput::api::RoadPosition rp =
-            mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_pos, true);
+        const maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_pos, true);
         maliput::api::InertialPosition ip = rp.ToInertialPosition();
         ip.set_z(ip.z() + cr.dz);
         corners.emplace_back(maliput::math::Vector3(ip.x(), ip.y(), ip.z()), cr.height);
@@ -103,9 +101,9 @@ std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
     }
 
     if (corners.size() >= 3u) {
-      const std::string outline_id_str =
-          xodr_outline.id.has_value() ? xodr_outline.id->string()
-                                      : (object.id.string() + "_outline_" + std::to_string(outline_index));
+      const std::string outline_id_str = xodr_outline.id.has_value()
+                                             ? xodr_outline.id->string()
+                                             : (object.id.string() + "_outline_" + std::to_string(outline_index));
       const bool closed = xodr_outline.closed.value_or(true);
       result.push_back(std::make_unique<maliput::api::objects::Outline>(
           maliput::api::objects::Outline::Id(outline_id_str), std::move(corners), closed));
@@ -131,8 +129,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
   // --- Position ---
   const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_.s,
                                                                             object_.t};
-  const maliput::api::RoadPosition rp =
-      mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+  const maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
   maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
   inertial_pos.set_z(object_.z_offset);
 
@@ -149,8 +146,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       (object_.orientation.has_value() && object_.orientation.value() == xodr::object::Orientation::kNegative) ? M_PI
                                                                                                                : 0.;
   const maliput::api::Rotation orientation =
-      maliput::api::Rotation::FromRpy(road_orientation.roll_angle() + roll,
-                                      road_orientation.pitch_angle() + pitch,
+      maliput::api::Rotation::FromRpy(road_orientation.roll_angle() + roll, road_orientation.pitch_angle() + pitch,
                                       road_orientation.yaw_angle() + hdg + orientation_offset);
 
   // --- Bounding box ---
