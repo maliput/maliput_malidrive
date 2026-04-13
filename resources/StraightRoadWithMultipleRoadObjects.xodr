@@ -31,10 +31,11 @@
 
  Test XODR file for RoadObjectBuilder tests.
  Road 1: 100 m straight road at x=[0,100], y=0, hdg=0.
- Contains three objects:
+ Contains four objects:
    - obj_barrier:    barrier at s=20, t=3 (right shoulder), with validity toLane=-1
    - obj_building:   building at s=50, t=-5, with radius instead of length/width
    - obj_crosswalk:  crosswalk at s=80, t=0, spanning both lanes, with outline (cornerRoad)
+   - obj_vegetation: vegetation at s=10, t=4, hdg=pi/3, with star-shaped outline (cornerLocal)
 -->
 <OpenDRIVE>
     <header revMajor="1" revMinor="1" name="RoadObjectsTest" version="1.00" date="Tue Apr 08 12:00:00 2026" north="0.0" south="0.0" east="0.0" west="0.0" maxRoad="1" maxJunc="0" maxPrg="0">
@@ -104,6 +105,23 @@
                         <cornerRoad s="78.0" t="3.5" dz="0.0" height="0.05"/>
                         <cornerRoad s="82.0" t="3.5" dz="0.0" height="0.05"/>
                         <cornerRoad s="82.0" t="-3.5" dz="0.0" height="0.05"/>
+                    </outline>
+                </outlines>
+            </object>
+
+            <!-- Object 4: Vegetation with star-shaped outline using cornerLocal, hdg=pi/3. -->
+            <object id="obj_vegetation" name="StarBush" type="vegetation"
+                    s="10.0" t="4.0" zOffset="0.0"
+                    length="6.0" width="6.0" height="2.0"
+                    hdg="1.0471975511965976" orientation="+" dynamic="no">
+                <outlines>
+                    <outline id="vegetation_star_outline" closed="true">
+                        <cornerLocal u="3.0" v="0.0" z="0.0" height="2.0"/>
+                        <cornerLocal u="0.5" v="0.866" z="0.0" height="2.0"/>
+                        <cornerLocal u="-1.5" v="2.598" z="0.0" height="2.0"/>
+                        <cornerLocal u="-1.0" v="0.0" z="0.0" height="2.0"/>
+                        <cornerLocal u="-1.5" v="-2.598" z="0.0" height="2.0"/>
+                        <cornerLocal u="0.5" v="-0.866" z="0.0" height="2.0"/>
                     </outline>
                 </outlines>
             </object>

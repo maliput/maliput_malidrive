@@ -109,7 +109,8 @@ TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
 class RoadObjectBuilderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    const std::string xodr_file_path = utility::FindResourceInPath("StraightRoadWithMultipleRoadObjects.xodr", kMalidriveResourceFolder);
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("StraightRoadWithMultipleRoadObjects.xodr", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file_path},
@@ -125,7 +126,7 @@ class RoadObjectBuilderTest : public ::testing::Test {
     ASSERT_NE(it, road_headers.end());
     ASSERT_TRUE(it->second.objects.has_value());
     objects_ = &it->second.objects->objects;
-    ASSERT_EQ(3u, objects_->size());
+    ASSERT_EQ(4u, objects_->size());
   }
 
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
@@ -218,6 +219,53 @@ TEST_F(RoadObjectBuilderTest, CrosswalkObjectWithOutline) {
 
   // Validity spans both lanes.
   EXPECT_GE(road_object->related_lanes().size(), 2u);
+}
+
+TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
+  // obj_vegetation: vegetation at s=10, t=4, hdg=pi/3, star-shaped cornerLocal outline.
+  RoadObjectBuilder builder(objects_->at(3), road_id_, road_geometry_);
+  auto road_object = builder();
+  ASSERT_NE(road_object, nullptr);
+
+  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_vegetation"));
+  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kVegetation);
+  EXPECT_EQ(road_object->name(), "StarBush");
+  EXPECT_FALSE(road_object->is_dynamic());
+
+  // The vegetation has one outline with 6 corners (star shape).
+  ASSERT_EQ(1, road_object->num_outlines());
+  const auto* outline = road_object->outline(0);
+  ASSERT_NE(outline, nullptr);
+  EXPECT_EQ(6, outline->num_corners());
+  EXPECT_TRUE(outline->is_closed());
+
+  // Verify outline corner positions in the s-t frame (on this straight road
+  // at hdg=0, inertial x≈s and y≈t).
+  // cornerLocal (u, v) → s-t via object pose (s=10, t=4, hdg=π/3):
+  //   x = 10 + u·cos(π/3) - v·sin(π/3)
+  //   y =  4 + u·sin(π/3) + v·cos(π/3)
+  // This case is trivial because of the geometry of the road. S and T match to the X and Y inertial coordinates
+  // respectively.
+  const auto& corners = outline->corners();
+  constexpr double tolerance = 1e-3;
+  // Corner 0: (u=3.0,   v= 0.0  ) → (11.5,   6.598)
+  EXPECT_NEAR(corners[0].position().x(), 11.5, tolerance);
+  EXPECT_NEAR(corners[0].position().y(), 6.598, tolerance);
+  // Corner 1: (u=0.5,   v= 0.866) → ( 9.5,   4.866)
+  EXPECT_NEAR(corners[1].position().x(), 9.5, tolerance);
+  EXPECT_NEAR(corners[1].position().y(), 4.866, tolerance);
+  // Corner 2: (u=-1.5,  v= 2.598) → ( 7.0,   4.0)
+  EXPECT_NEAR(corners[2].position().x(), 7.0, tolerance);
+  EXPECT_NEAR(corners[2].position().y(), 4.0, tolerance);
+  // Corner 3: (u=-1.0,  v= 0.0  ) → ( 9.5,   3.134)
+  EXPECT_NEAR(corners[3].position().x(), 9.5, tolerance);
+  EXPECT_NEAR(corners[3].position().y(), 3.134, tolerance);
+  // Corner 4: (u=-1.5,  v=-2.598) → (11.5,   1.402)
+  EXPECT_NEAR(corners[4].position().x(), 11.5, tolerance);
+  EXPECT_NEAR(corners[4].position().y(), 1.402, tolerance);
+  // Corner 5: (u=0.5,   v=-0.866) → (11.0,   4.0)
+  EXPECT_NEAR(corners[5].position().x(), 11.0, tolerance);
+  EXPECT_NEAR(corners[5].position().y(), 4.0, tolerance);
 }
 
 }  // namespace

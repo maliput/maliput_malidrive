@@ -1508,7 +1508,8 @@ TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
 class RoadObjectBookCreationTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    const std::string xodr_file_path = utility::FindResourceInPath("StraightRoadWithMultipleRoadObjects.xodr", kMalidriveResourceFolder);
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("StraightRoadWithMultipleRoadObjects.xodr", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file_path},
@@ -1526,7 +1527,7 @@ class RoadObjectBookCreationTest : public ::testing::Test {
 
 TEST_F(RoadObjectBookCreationTest, BookIsPopulated) {
   const auto objects = rob_->RoadObjects();
-  EXPECT_EQ(3u, objects.size());
+  EXPECT_EQ(4u, objects.size());
 }
 
 TEST_F(RoadObjectBookCreationTest, GetRoadObjectById) {
@@ -1534,6 +1535,7 @@ TEST_F(RoadObjectBookCreationTest, GetRoadObjectById) {
   EXPECT_NE(rob_->GetRoadObject(Id("obj_barrier")), nullptr);
   EXPECT_NE(rob_->GetRoadObject(Id("obj_building")), nullptr);
   EXPECT_NE(rob_->GetRoadObject(Id("obj_crosswalk")), nullptr);
+  EXPECT_NE(rob_->GetRoadObject(Id("obj_vegetation")), nullptr);
   EXPECT_EQ(rob_->GetRoadObject(Id("nonexistent")), nullptr);
 }
 
@@ -1547,6 +1549,9 @@ TEST_F(RoadObjectBookCreationTest, FindByType) {
 
   const auto crosswalks = rob_->FindByType(RoadObjectType::kCrosswalk);
   EXPECT_EQ(1u, crosswalks.size());
+
+  const auto vegetation = rob_->FindByType(RoadObjectType::kVegetation);
+  EXPECT_EQ(1u, vegetation.size());
 
   const auto unknown = rob_->FindByType(RoadObjectType::kUnknown);
   EXPECT_TRUE(unknown.empty());
