@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.21.2 (2026-04-14)
+-------------------
+* Discarding superelevations outside road length (`#436 <https://github.com/maliput/maliput_malidrive/issues/436>`)
+* Contributors: Juan Carosella
+
 0.21.1 (2026-03-31)
 -------------------
 * Improve traffic signal DB docs. (`#431 <https://github.com/maliput/maliput_malidrive/issues/431>`_)
