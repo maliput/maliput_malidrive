@@ -1536,6 +1536,22 @@ RoadHeader NodeParser::As() const {
     road_header.reference_geometry.lateral_profile =
         NodeParser(lateral_profile_element, parser_configuration_).As<LateralProfile>();
   }
+  // When semantic errors are allowed, discard superelevation entries whose s_0 exceeds the road's length.
+  if (parser_configuration_.allow_semantic_errors) {
+    auto& superelevations = road_header.reference_geometry.lateral_profile.superelevations;
+    superelevations.erase(std::remove_if(superelevations.begin(), superelevations.end(),
+                                         [&road_header](const LateralProfile::Superelevation& e) {
+                                           if (e.s_0 > road_header.length) {
+                                             maliput::log()->warn(
+                                                 "Road Id: ", road_header.id.string(),
+                                                 " - Discarding superelevation with s_0=", std::to_string(e.s_0),
+                                                 " that exceeds road length=", std::to_string(road_header.length));
+                                             return true;
+                                           }
+                                           return false;
+                                         }),
+                          superelevations.end());
+  }
   // @}
 
   // Get Lanes.
