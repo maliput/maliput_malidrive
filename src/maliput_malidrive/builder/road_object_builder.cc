@@ -48,16 +48,13 @@
 #include "maliput_malidrive/builder/road_object_type_mapper.h"
 #include "maliput_malidrive/common/macros.h"
 
-
 static constexpr double kEpsilon{1e-10};
 
 namespace {
 
-bool is_almost_equal(double a, double b) {
-  return std::abs(a - b) < kEpsilon;
-}
+bool is_almost_equal(double a, double b) { return std::abs(a - b) < kEpsilon; }
 
-}
+}  // namespace
 namespace malidrive {
 namespace builder {
 
@@ -144,9 +141,9 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
     std::ostringstream s_str, adjusted_s_str;
     s_str << std::fixed << std::setprecision(10) << object_.s;
     adjusted_s_str << std::fixed << std::setprecision(10) << (object_.s - kEpsilon);
-    maliput::log()->warn(
-        "RoadObjectBuilder: Object ", object_.id.string(), " has s coordinate ", s_str.str(), " equal to the road length. Adjusting s to ",
-        adjusted_s_str.str(), " to avoid potential issues with lane association and orientation.");
+    maliput::log()->warn("RoadObjectBuilder: Object ", object_.id.string(), " has s coordinate ", s_str.str(),
+                         " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
+                         " to avoid potential issues with lane association and orientation.");
     object_s -= kEpsilon;
   }
   const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_s,

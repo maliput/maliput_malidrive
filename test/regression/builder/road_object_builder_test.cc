@@ -113,12 +113,13 @@ class RoadObjectBuilderTest : public ::testing::Test {
     const std::string xodr_file_path =
         utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
 
-    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                             {params::kOpendriveFile, xodr_file_path},
-                                                                             {params::kOmitNonDrivableLanes, "false"},
-                                                                             {params::kLinearTolerance, std::to_string(kLinearTolerance)},
-                                                                         })
-                                           .ToStringMap())();
+    road_network_ = RoadNetworkBuilder(
+        RoadNetworkConfiguration::FromMap({
+                                              {params::kOpendriveFile, xodr_file_path},
+                                              {params::kOmitNonDrivableLanes, "false"},
+                                              {params::kLinearTolerance, std::to_string(kLinearTolerance)},
+                                          })
+            .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     road_object_book_ = road_network_->road_object_book();
     ASSERT_NE(road_object_book_, nullptr);
@@ -140,8 +141,7 @@ TEST_F(RoadObjectBuilderTest, GetRoadObjectByIdReturnsNullForUnknownId) {
 
 TEST_F(RoadObjectBuilderTest, BarrierObject) {
   // obj_barrier: barrier at s=20, t=3
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_barrier"));
@@ -180,8 +180,7 @@ TEST_F(RoadObjectBuilderTest, FindByTypeBarrier) {
 
 TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {
   // obj_building: building at s=50, t=-5, radius=4
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_building"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_building"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_building"));
@@ -200,8 +199,7 @@ TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {
 
 TEST_F(RoadObjectBuilderTest, CrosswalkObjectWithOutline) {
   // obj_crosswalk: crosswalk at s=100, t=0, with outlines.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_crosswalk"));
@@ -232,8 +230,7 @@ TEST_F(RoadObjectBuilderTest, CrosswalkObjectWithOutline) {
 
 TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
   // obj_vegetation: vegetation at s=0, t=4, hdg=pi/3, star-shaped cornerLocal outline.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_vegetation"));
@@ -289,7 +286,7 @@ TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
   EXPECT_NEAR(corners[2].position().x(), -2.99993, kLinearTolerance);
   EXPECT_NEAR(corners[2].position().y(), 3.99996, kLinearTolerance);
   // Corner 3: (u=-1.0,  v= 0.0  ) → (-0.50000,   3.13397)
-   EXPECT_NEAR(corners[3].position().x(), -0.50000, kLinearTolerance);
+  EXPECT_NEAR(corners[3].position().x(), -0.50000, kLinearTolerance);
   EXPECT_NEAR(corners[3].position().y(), 3.13397, kLinearTolerance);
   // Corner 4: (u=-1.5,  v=-2.598) → (1.49993,   1.40196)
   EXPECT_NEAR(corners[4].position().x(), 1.49993, kLinearTolerance);
@@ -305,8 +302,7 @@ TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
 
 TEST_F(RoadObjectBuilderTest, BarrierOrientation) {
   // obj_barrier: hdg=0 on a straight road at hdg=0 → yaw ≈ 0.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
   ASSERT_NE(road_object, nullptr);
 
   const auto& orientation = road_object->orientation();
@@ -317,8 +313,7 @@ TEST_F(RoadObjectBuilderTest, BarrierOrientation) {
 
 TEST_F(RoadObjectBuilderTest, VegetationOrientation) {
   // obj_vegetation: hdg=pi/3 on a straight road at hdg=0 → yaw ≈ pi/3.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
   ASSERT_NE(road_object, nullptr);
 
   const auto& orientation = road_object->orientation();
@@ -327,23 +322,20 @@ TEST_F(RoadObjectBuilderTest, VegetationOrientation) {
 
 TEST_F(RoadObjectBuilderTest, OutlinesVectorAccessor) {
   // obj_crosswalk has 1 outline; obj_building has 0.
-  const auto* crosswalk =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+  const auto* crosswalk = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
   ASSERT_NE(crosswalk, nullptr);
   const auto& crosswalk_outlines = crosswalk->outlines();
   ASSERT_EQ(1u, crosswalk_outlines.size());
   EXPECT_NE(crosswalk_outlines[0], nullptr);
 
-  const auto* building =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_building"));
+  const auto* building = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_building"));
   ASSERT_NE(building, nullptr);
   EXPECT_TRUE(building->outlines().empty());
 }
 
 TEST_F(RoadObjectBuilderTest, RoadObjectPositionHasLanePosition) {
   // The builder always constructs RoadObjectPosition with lane-relative info.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
   ASSERT_NE(road_object, nullptr);
 
   const auto& pos = road_object->position();
@@ -358,8 +350,7 @@ TEST_F(RoadObjectBuilderTest, RoadObjectPositionHasLanePosition) {
 
 TEST_F(RoadObjectBuilderTest, OutlineCornerHeight) {
   // obj_crosswalk outline corners have height = 0.05.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
   ASSERT_NE(road_object, nullptr);
   ASSERT_EQ(1, road_object->num_outlines());
 
@@ -373,8 +364,7 @@ TEST_F(RoadObjectBuilderTest, OutlineCornerHeight) {
 
 TEST_F(RoadObjectBuilderTest, VegetationOutlineCornerHeight) {
   // obj_vegetation outline corners have height = 2.0.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
   ASSERT_NE(road_object, nullptr);
   ASSERT_EQ(1, road_object->num_outlines());
 
@@ -388,8 +378,7 @@ TEST_F(RoadObjectBuilderTest, VegetationOutlineCornerHeight) {
 
 TEST_F(RoadObjectBuilderTest, OutlineId) {
   // obj_crosswalk outline has id "crosswalk_outline" from the XODR.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
   ASSERT_NE(road_object, nullptr);
   ASSERT_EQ(1, road_object->num_outlines());
 
@@ -400,8 +389,7 @@ TEST_F(RoadObjectBuilderTest, OutlineId) {
 
 TEST_F(RoadObjectBuilderTest, VegetationOutlineId) {
   // obj_vegetation outline has id "vegetation_star_outline" from the XODR.
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
   ASSERT_NE(road_object, nullptr);
   ASSERT_EQ(1, road_object->num_outlines());
 
@@ -412,8 +400,7 @@ TEST_F(RoadObjectBuilderTest, VegetationOutlineId) {
 
 TEST_F(RoadObjectBuilderTest, FindByLane) {
   // obj_barrier has validity on lane -1 only → related to lane "1_0_-1".
-  const auto objects_lane_minus1 =
-      road_object_book_->FindByLane(maliput::api::LaneId("1_0_-1"));
+  const auto objects_lane_minus1 = road_object_book_->FindByLane(maliput::api::LaneId("1_0_-1"));
   // At least the barrier should be found.
   bool found_barrier = false;
   for (const auto* obj : objects_lane_minus1) {
@@ -424,8 +411,7 @@ TEST_F(RoadObjectBuilderTest, FindByLane) {
   EXPECT_TRUE(found_barrier);
 
   // obj_crosswalk spans both lanes (fromLane=-1 toLane=1).
-  const auto objects_lane_1 =
-      road_object_book_->FindByLane(maliput::api::LaneId("1_0_1"));
+  const auto objects_lane_1 = road_object_book_->FindByLane(maliput::api::LaneId("1_0_1"));
   bool found_crosswalk = false;
   for (const auto* obj : objects_lane_1) {
     if (obj->id() == maliput::api::objects::RoadObject::Id("obj_crosswalk")) {
@@ -435,16 +421,14 @@ TEST_F(RoadObjectBuilderTest, FindByLane) {
   EXPECT_TRUE(found_crosswalk);
 
   // No objects on road 2's lanes.
-  const auto objects_road2 =
-      road_object_book_->FindByLane(maliput::api::LaneId("2_0_1"));
+  const auto objects_road2 = road_object_book_->FindByLane(maliput::api::LaneId("2_0_1"));
   EXPECT_TRUE(objects_road2.empty());
 }
 
 TEST_F(RoadObjectBuilderTest, FindInRadius) {
   // obj_barrier is at approximately (20, 3, 0.5).
   // Search near it with a small radius.
-  const auto nearby = road_object_book_->FindInRadius(
-      maliput::api::InertialPosition(20.0, 3.0, 0.0), 2.0);
+  const auto nearby = road_object_book_->FindInRadius(maliput::api::InertialPosition(20.0, 3.0, 0.0), 2.0);
   bool found_barrier = false;
   for (const auto* obj : nearby) {
     if (obj->id() == maliput::api::objects::RoadObject::Id("obj_barrier")) {
@@ -454,8 +438,7 @@ TEST_F(RoadObjectBuilderTest, FindInRadius) {
   EXPECT_TRUE(found_barrier);
 
   // Search far from any object should return empty.
-  const auto far_away = road_object_book_->FindInRadius(
-      maliput::api::InertialPosition(500.0, 500.0, 0.0), 1.0);
+  const auto far_away = road_object_book_->FindInRadius(maliput::api::InertialPosition(500.0, 500.0, 0.0), 1.0);
   EXPECT_TRUE(far_away.empty());
 }
 
