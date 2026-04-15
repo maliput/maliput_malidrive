@@ -1503,13 +1503,13 @@ TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
   EXPECT_EQ(2, static_cast<int>(dut->traffic_sign_book()->TrafficSigns().size()));
 }
 
-// Tests that the RoadObjectBook is created and populated correctly by the
+// Tests that the RoadObjectBook is built and populated correctly by the
 // RoadNetworkBuilder from XODR <objects> elements.
-class RoadObjectBookCreationTest : public ::testing::Test {
+class RoadObjectBookBuilderTest : public ::testing::Test {
  protected:
   void SetUp() override {
     const std::string xodr_file_path =
-        utility::FindResourceInPath("StraightRoadWithMultipleRoadObjects.xodr", kMalidriveResourceFolder);
+        utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file_path},
@@ -1525,12 +1525,12 @@ class RoadObjectBookCreationTest : public ::testing::Test {
   const maliput::api::objects::RoadObjectBook* rob_{};
 };
 
-TEST_F(RoadObjectBookCreationTest, BookIsPopulated) {
+TEST_F(RoadObjectBookBuilderTest, BookIsPopulated) {
   const auto objects = rob_->RoadObjects();
   EXPECT_EQ(4u, objects.size());
 }
 
-TEST_F(RoadObjectBookCreationTest, GetRoadObjectById) {
+TEST_F(RoadObjectBookBuilderTest, GetRoadObjectById) {
   using Id = maliput::api::objects::RoadObject::Id;
   EXPECT_NE(rob_->GetRoadObject(Id("obj_barrier")), nullptr);
   EXPECT_NE(rob_->GetRoadObject(Id("obj_building")), nullptr);
@@ -1539,7 +1539,7 @@ TEST_F(RoadObjectBookCreationTest, GetRoadObjectById) {
   EXPECT_EQ(rob_->GetRoadObject(Id("nonexistent")), nullptr);
 }
 
-TEST_F(RoadObjectBookCreationTest, FindByType) {
+TEST_F(RoadObjectBookBuilderTest, FindByType) {
   using RoadObjectType = maliput::api::objects::RoadObjectType;
   const auto barriers = rob_->FindByType(RoadObjectType::kBarrier);
   EXPECT_EQ(1u, barriers.size());
@@ -1557,13 +1557,13 @@ TEST_F(RoadObjectBookCreationTest, FindByType) {
   EXPECT_TRUE(unknown.empty());
 }
 
-TEST_F(RoadObjectBookCreationTest, ConstructorThrowsOnNullptrRoadGeometry) {
+TEST_F(RoadObjectBookBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
   EXPECT_THROW(RoadObjectBookBuilder(nullptr), maliput::common::assertion_error);
 }
 
 // Verifies that a RoadNetwork built from an XODR without objects results in
 // an empty RoadObjectBook.
-TEST_F(RoadObjectBookCreationTest, EmptyBookForXodrWithoutObjects) {
+TEST_F(RoadObjectBookBuilderTest, EmptyBookForXodrWithoutObjects) {
   // SingleLane.xodr has an empty <objects/> element.
   const std::string xodr_file_path = utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder);
 

@@ -29,6 +29,8 @@
 #include "maliput_malidrive/builder/road_object_builder.h"
 
 #include <cmath>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -46,6 +48,16 @@
 #include "maliput_malidrive/builder/road_object_type_mapper.h"
 #include "maliput_malidrive/common/macros.h"
 
+
+static constexpr double kEpsilon{1e-10};
+
+namespace {
+
+bool is_almost_equal(double a, double b) {
+  return std::abs(a - b) < kEpsilon;
+}
+
+}
 namespace malidrive {
 namespace builder {
 
@@ -127,7 +139,17 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
                      "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
 
   // --- Position ---
-  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_.s,
+  double object_s = object_.s;
+  if (is_almost_equal(object_.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
+    std::ostringstream s_str, adjusted_s_str;
+    s_str << std::fixed << std::setprecision(10) << object_.s;
+    adjusted_s_str << std::fixed << std::setprecision(10) << (object_.s - kEpsilon);
+    maliput::log()->warn(
+        "RoadObjectBuilder: Object ", object_.id.string(), " has s coordinate ", s_str.str(), " equal to the road length. Adjusting s to ",
+        adjusted_s_str.str(), " to avoid potential issues with lane association and orientation.");
+    object_s -= kEpsilon;
+  }
+  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_s,
                                                                             object_.t};
   const maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
   maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
@@ -165,7 +187,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
   const maliput::api::objects::RoadObjectType type = MapXodrObjectType(object_.type);
 
   // --- Related lanes ---
-  auto related_lanes = ResolveLaneIds(road_id_, object_.s, object_.validities, road_geometry_);
+  auto related_lanes = ResolveLaneIds(road_id_, object_s, object_.validities, road_geometry_);
 
   // --- Outlines ---
   auto outlines = BuildOutlines(object_, road_id_, mali_rg, inertial_pos, orientation);

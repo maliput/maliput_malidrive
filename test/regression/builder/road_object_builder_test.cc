@@ -35,6 +35,7 @@
 #include <gtest/gtest.h>
 #include <maliput/api/lane_data.h>
 #include <maliput/api/objects/road_object.h>
+#include <maliput/api/objects/road_object_book.h>
 #include <maliput/api/road_network.h>
 
 #include "maliput_malidrive/base/road_geometry.h"
@@ -103,46 +104,44 @@ TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
 
 // ---------------------------------------------------------------------------
 // RoadObjectBuilder tests.
-// Uses the StraightRoadWithMultipleRoadObjects.xodr resource.
+// Uses the TwoRoadsWithRoadObjects.xodr resource.
 // ---------------------------------------------------------------------------
 
 class RoadObjectBuilderTest : public ::testing::Test {
  protected:
   void SetUp() override {
     const std::string xodr_file_path =
-        utility::FindResourceInPath("StraightRoadWithMultipleRoadObjects.xodr", kMalidriveResourceFolder);
+        utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file_path},
                                                                              {params::kOmitNonDrivableLanes, "false"},
+                                                                             {params::kLinearTolerance, std::to_string(kLinearTolerance)},
                                                                          })
                                            .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
-    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
-    ASSERT_NE(road_geometry_, nullptr);
-
-    const auto& road_headers = road_geometry_->get_manager()->GetRoadHeaders();
-    const auto it = road_headers.find(xodr::RoadHeader::Id("1"));
-    ASSERT_NE(it, road_headers.end());
-    ASSERT_TRUE(it->second.objects.has_value());
-    objects_ = &it->second.objects->objects;
-    ASSERT_EQ(4u, objects_->size());
+    road_object_book_ = road_network_->road_object_book();
+    ASSERT_NE(road_object_book_, nullptr);
   }
 
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
-  const malidrive::RoadGeometry* road_geometry_{};
-  const std::vector<xodr::object::Object>* objects_{};
-  const xodr::RoadHeader::Id road_id_{"1"};
+  const maliput::api::objects::RoadObjectBook* road_object_book_{};
+  constexpr static double kLinearTolerance = 1e-5;
 };
 
-TEST_F(RoadObjectBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(RoadObjectBuilder(objects_->at(0), road_id_, nullptr), std::invalid_argument);
+TEST_F(RoadObjectBuilderTest, RoadObjectBookIsPopulated) {
+  const auto all_objects = road_object_book_->RoadObjects();
+  EXPECT_EQ(4u, all_objects.size());
+}
+
+TEST_F(RoadObjectBuilderTest, GetRoadObjectByIdReturnsNullForUnknownId) {
+  EXPECT_EQ(nullptr, road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("nonexistent")));
 }
 
 TEST_F(RoadObjectBuilderTest, BarrierObject) {
   // obj_barrier: barrier at s=20, t=3
-  RoadObjectBuilder builder(objects_->at(0), road_id_, road_geometry_);
-  auto road_object = builder();
+  const auto* road_object =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_barrier"));
@@ -173,10 +172,16 @@ TEST_F(RoadObjectBuilderTest, BarrierObject) {
   EXPECT_EQ(it->second, "metal");
 }
 
+TEST_F(RoadObjectBuilderTest, FindByTypeBarrier) {
+  const auto barriers = road_object_book_->FindByType(maliput::api::objects::RoadObjectType::kBarrier);
+  ASSERT_EQ(1u, barriers.size());
+  EXPECT_EQ(barriers[0]->id(), maliput::api::objects::RoadObject::Id("obj_barrier"));
+}
+
 TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {
   // obj_building: building at s=50, t=-5, radius=4
-  RoadObjectBuilder builder(objects_->at(1), road_id_, road_geometry_);
-  auto road_object = builder();
+  const auto* road_object =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_building"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_building"));
@@ -194,9 +199,9 @@ TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {
 }
 
 TEST_F(RoadObjectBuilderTest, CrosswalkObjectWithOutline) {
-  // obj_crosswalk: crosswalk at s=80, t=0, with outlines.
-  RoadObjectBuilder builder(objects_->at(2), road_id_, road_geometry_);
-  auto road_object = builder();
+  // obj_crosswalk: crosswalk at s=100, t=0, with outlines.
+  const auto* road_object =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_crosswalk"));
@@ -212,19 +217,23 @@ TEST_F(RoadObjectBuilderTest, CrosswalkObjectWithOutline) {
   // Verify outline corner positions are approximately correct.
   // On a straight road at hdg=0: s maps to x and t maps to y.
   const auto& corners = outline->corners();
-  EXPECT_NEAR(corners[0].position().x(), 78.0, 0.5);
-  EXPECT_NEAR(corners[0].position().y(), -3.5, 0.5);
-  EXPECT_NEAR(corners[1].position().x(), 78.0, 0.5);
-  EXPECT_NEAR(corners[1].position().y(), 3.5, 0.5);
+  EXPECT_NEAR(corners[0].position().x(), 96.0, kLinearTolerance);
+  EXPECT_NEAR(corners[0].position().y(), -3.5, kLinearTolerance);
+  EXPECT_NEAR(corners[1].position().x(), 96.0, kLinearTolerance);
+  EXPECT_NEAR(corners[1].position().y(), 3.5, kLinearTolerance);
+  EXPECT_NEAR(corners[2].position().x(), 100.0, kLinearTolerance);
+  EXPECT_NEAR(corners[2].position().y(), 3.5, kLinearTolerance);
+  EXPECT_NEAR(corners[3].position().x(), 100.0, kLinearTolerance);
+  EXPECT_NEAR(corners[3].position().y(), -3.5, kLinearTolerance);
 
   // Validity spans both lanes.
   EXPECT_GE(road_object->related_lanes().size(), 2u);
 }
 
 TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
-  // obj_vegetation: vegetation at s=10, t=4, hdg=pi/3, star-shaped cornerLocal outline.
-  RoadObjectBuilder builder(objects_->at(3), road_id_, road_geometry_);
-  auto road_object = builder();
+  // obj_vegetation: vegetation at s=0, t=4, hdg=pi/3, star-shaped cornerLocal outline.
+  const auto* road_object =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_vegetation"));
@@ -239,33 +248,55 @@ TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
   EXPECT_EQ(6, outline->num_corners());
   EXPECT_TRUE(outline->is_closed());
 
-  // Verify outline corner positions in the s-t frame (on this straight road
-  // at hdg=0, inertial x≈s and y≈t).
-  // cornerLocal (u, v) → s-t via object pose (s=10, t=4, hdg=π/3):
-  //   x = 10 + u·cos(π/3) - v·sin(π/3)
-  //   y =  4 + u·sin(π/3) + v·cos(π/3)
-  // This case is trivial because of the geometry of the road. S and T match to the X and Y inertial coordinates
-  // respectively.
+  // Verify outline corner positions in the inertial frame.
+  // On this straight road at hdg=0, inertial x = s and y = t.
+  //
+  // cornerLocal (u, v) → inertial (x, y) via object pose (s=0, t=4, hdg=π/3):
+  //   x = s + u·cos(hdg) - v·sin(hdg)
+  //   y = t + u·sin(hdg) + v·cos(hdg)
+  //
+  // Expected values were computed with the following Python script:
+  //
+  //   from math import pi, cos, sin
+  //   def uv2xy(x0, y0, u, v, hdg):
+  //       x = x0 + cos(hdg) * u - sin(hdg) * v
+  //       y = y0 + sin(hdg) * u + cos(hdg) * v
+  //       return x, y
+  //
+  //   v_coords = [0, 0.866, 2.598, 0, -2.598, -0.866]
+  //   u_coords = [3, 0.5, -1.5, -1, -1.5, 0.5]
+  //   hdg = pi / 3
+  //   x0 = 0
+  //   y0 = 4.0
+  //   for i in range(len(u_coords)):
+  //       print(uv2xy(x0, y0, u_coords[i], v_coords[i], hdg))
+  //
+  // Output:
+  //   (1.5000000000000004,  6.598076211353316)
+  //   (-0.49997799967732376, 4.8660127018922195)
+  //   (-2.9999339990319713,  3.9999618943233424)
+  //   (-0.5000000000000001,  3.1339745962155616)
+  //   (1.499933999031971,    1.4019618943233418)
+  //   (0.9999779996773239,   4.00001270189222)
   const auto& corners = outline->corners();
-  constexpr double tolerance = 1e-3;
-  // Corner 0: (u=3.0,   v= 0.0  ) → (11.5,   6.598)
-  EXPECT_NEAR(corners[0].position().x(), 11.5, tolerance);
-  EXPECT_NEAR(corners[0].position().y(), 6.598, tolerance);
-  // Corner 1: (u=0.5,   v= 0.866) → ( 9.5,   4.866)
-  EXPECT_NEAR(corners[1].position().x(), 9.5, tolerance);
-  EXPECT_NEAR(corners[1].position().y(), 4.866, tolerance);
-  // Corner 2: (u=-1.5,  v= 2.598) → ( 7.0,   4.0)
-  EXPECT_NEAR(corners[2].position().x(), 7.0, tolerance);
-  EXPECT_NEAR(corners[2].position().y(), 4.0, tolerance);
-  // Corner 3: (u=-1.0,  v= 0.0  ) → ( 9.5,   3.134)
-  EXPECT_NEAR(corners[3].position().x(), 9.5, tolerance);
-  EXPECT_NEAR(corners[3].position().y(), 3.134, tolerance);
-  // Corner 4: (u=-1.5,  v=-2.598) → (11.5,   1.402)
-  EXPECT_NEAR(corners[4].position().x(), 11.5, tolerance);
-  EXPECT_NEAR(corners[4].position().y(), 1.402, tolerance);
-  // Corner 5: (u=0.5,   v=-0.866) → (11.0,   4.0)
-  EXPECT_NEAR(corners[5].position().x(), 11.0, tolerance);
-  EXPECT_NEAR(corners[5].position().y(), 4.0, tolerance);
+  // Corner 0: (u=3.0,   v= 0.0  ) → (1.50000,   6.59807)
+  EXPECT_NEAR(corners[0].position().x(), 1.50000, kLinearTolerance);
+  EXPECT_NEAR(corners[0].position().y(), 6.59807, kLinearTolerance);
+  // Corner 1: (u=0.5,   v= 0.866) → (-0.49997,   4.866)
+  EXPECT_NEAR(corners[1].position().x(), -0.49997, kLinearTolerance);
+  EXPECT_NEAR(corners[1].position().y(), 4.86601, kLinearTolerance);
+  // Corner 2: (u=-1.5,  v= 2.598) → (-2.99993,   3.99996)
+  EXPECT_NEAR(corners[2].position().x(), -2.99993, kLinearTolerance);
+  EXPECT_NEAR(corners[2].position().y(), 3.99996, kLinearTolerance);
+  // Corner 3: (u=-1.0,  v= 0.0  ) → (-0.50000,   3.13397)
+   EXPECT_NEAR(corners[3].position().x(), -0.50000, kLinearTolerance);
+  EXPECT_NEAR(corners[3].position().y(), 3.13397, kLinearTolerance);
+  // Corner 4: (u=-1.5,  v=-2.598) → (1.49993,   1.40196)
+  EXPECT_NEAR(corners[4].position().x(), 1.49993, kLinearTolerance);
+  EXPECT_NEAR(corners[4].position().y(), 1.40196, kLinearTolerance);
+  // Corner 5: (u=0.5,   v=-0.866) → (0.99997,   4.00001)
+  EXPECT_NEAR(corners[5].position().x(), 0.99997, kLinearTolerance);
+  EXPECT_NEAR(corners[5].position().y(), 4.00001, kLinearTolerance);
 }
 
 }  // namespace
