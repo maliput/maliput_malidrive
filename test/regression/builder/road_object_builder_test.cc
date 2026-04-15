@@ -345,7 +345,7 @@ TEST_F(RoadObjectBuilderTest, RoadObjectPositionHasLanePosition) {
 
   // obj_barrier at s=20, t=3 is closest to lane 1_0_1 (the left lane, width 3.5).
   // The lane_position s should be approximately 20.
-  EXPECT_NEAR(pos.lane_position()->s(), 20.0, 0.5);
+  EXPECT_NEAR(pos.lane_position()->s(), 20.0, kLinearTolerance);
 }
 
 TEST_F(RoadObjectBuilderTest, OutlineCornerHeight) {
@@ -358,7 +358,7 @@ TEST_F(RoadObjectBuilderTest, OutlineCornerHeight) {
   ASSERT_NE(outline, nullptr);
   for (const auto& corner : outline->corners()) {
     ASSERT_TRUE(corner.height().has_value());
-    EXPECT_NEAR(corner.height().value(), 0.05, 1e-6);
+    EXPECT_NEAR(corner.height().value(), 0.05, kLinearTolerance);
   }
 }
 
@@ -372,7 +372,7 @@ TEST_F(RoadObjectBuilderTest, VegetationOutlineCornerHeight) {
   ASSERT_NE(outline, nullptr);
   for (const auto& corner : outline->corners()) {
     ASSERT_TRUE(corner.height().has_value());
-    EXPECT_NEAR(corner.height().value(), 2.0, 1e-6);
+    EXPECT_NEAR(corner.height().value(), 2.0, kLinearTolerance);
   }
 }
 
