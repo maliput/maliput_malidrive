@@ -21,11 +21,12 @@ set(UNIT_BUILDER_TEST_SOURCES
   rule_registry_builder_test.cc
   rule_tools_test.cc
   road_geometry_configuration_test.cc
+  road_network_builder_traffic_lights_test.cc
   road_network_configuration_test.cc
+  road_object_builder_test.cc
   simplify_geometries_test.cc
   traffic_light_builder_test.cc
   traffic_sign_builder_test.cc
-  road_network_builder_traffic_lights_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_BUILDER_TEST_SOURCES})
