@@ -47,6 +47,27 @@ Each YAML file in this directory should define a list of signal types under the 
 
 String field that identifies the signal variant. Defaults to `"traffic_light"` when not present in the YAML file. Use a different value (e.g., `"stop"`, `"yield"`, `"speed_limit"`) to identify static traffic signs.
 
+The supported `sign_type` values and their mapping to `maliput::api::rules::TrafficSignType` are:
+
+| `sign_type` value        | `TrafficSignType` enum      |
+|--------------------------|-----------------------------|
+| `"traffic_light"`        | *(handled as TrafficLight, not a TrafficSign)* |
+| `"stop"`                 | `kStop`                     |
+| `"yield"`                | `kYield`                    |
+| `"speed_limit"`          | `kSpeedLimit`               |
+| `"no_entry"`             | `kNoEntry`                  |
+| `"one_way"`              | `kOneWay`                   |
+| `"pedestrian_crossing"`  | `kPedestrianCrossing`       |
+| `"no_left_turn"`         | `kNoLeftTurn`               |
+| `"no_right_turn"`        | `kNoRightTurn`              |
+| `"no_u_turn"`            | `kNoUTurn`                  |
+| `"school_zone"`          | `kSchoolZone`               |
+| `"construction"`         | `kConstruction`             |
+| `"railroad_crossing"`    | `kRailroadCrossing`         |
+| *(any other value)*      | `kUnknown`                  |
+
+If `sign_type` is set to a value not listed above (and is not `"traffic_light"`), the builder will still create a `TrafficSign` with `TrafficSignType::kUnknown`. This allows the database to contain signal definitions for region-specific or non-standard sign types without requiring code changes.
+
 ### Bulbs
 
 Each signal type contains a list of `bulbs`:
