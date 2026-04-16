@@ -34,6 +34,8 @@
 
 #include <gtest/gtest.h>
 #include <maliput/api/lane.h>
+#include <maliput/api/objects/road_object.h>
+#include <maliput/api/objects/road_object_book.h>
 #include <maliput/api/regions.h>
 #include <maliput/api/road_network_validator.h>
 #include <maliput/api/rules/direction_usage_rule.h>
@@ -56,6 +58,7 @@
 #include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
+#include "maliput_malidrive/builder/road_object_book_builder.h"
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
@@ -1498,6 +1501,81 @@ TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
   // TwoRoadsWithTrafficSigns.xodr defines 2 stop sign signals (type "206")
   // which the example database maps to sign_type="stop".
   EXPECT_EQ(2, static_cast<int>(dut->traffic_sign_book()->TrafficSigns().size()));
+}
+
+// Tests that the RoadObjectBook is built and populated correctly by the
+// RoadNetworkBuilder from XODR <objects> elements.
+class RoadObjectBookBuilderTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file_path},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    rob_ = road_network_->road_object_book();
+    ASSERT_NE(rob_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::objects::RoadObjectBook* rob_{};
+};
+
+TEST_F(RoadObjectBookBuilderTest, BookIsPopulated) {
+  const auto objects = rob_->RoadObjects();
+  EXPECT_EQ(4u, objects.size());
+}
+
+TEST_F(RoadObjectBookBuilderTest, GetRoadObjectById) {
+  using Id = maliput::api::objects::RoadObject::Id;
+  EXPECT_NE(rob_->GetRoadObject(Id("obj_barrier")), nullptr);
+  EXPECT_NE(rob_->GetRoadObject(Id("obj_building")), nullptr);
+  EXPECT_NE(rob_->GetRoadObject(Id("obj_crosswalk")), nullptr);
+  EXPECT_NE(rob_->GetRoadObject(Id("obj_vegetation")), nullptr);
+  EXPECT_EQ(rob_->GetRoadObject(Id("nonexistent")), nullptr);
+}
+
+TEST_F(RoadObjectBookBuilderTest, FindByType) {
+  using RoadObjectType = maliput::api::objects::RoadObjectType;
+  const auto barriers = rob_->FindByType(RoadObjectType::kBarrier);
+  EXPECT_EQ(1u, barriers.size());
+
+  const auto buildings = rob_->FindByType(RoadObjectType::kBuilding);
+  EXPECT_EQ(1u, buildings.size());
+
+  const auto crosswalks = rob_->FindByType(RoadObjectType::kCrosswalk);
+  EXPECT_EQ(1u, crosswalks.size());
+
+  const auto vegetation = rob_->FindByType(RoadObjectType::kVegetation);
+  EXPECT_EQ(1u, vegetation.size());
+
+  const auto unknown = rob_->FindByType(RoadObjectType::kUnknown);
+  EXPECT_TRUE(unknown.empty());
+}
+
+TEST_F(RoadObjectBookBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
+  EXPECT_THROW(RoadObjectBookBuilder(nullptr), maliput::common::assertion_error);
+}
+
+// Verifies that a RoadNetwork built from an XODR without objects results in
+// an empty RoadObjectBook.
+TEST_F(RoadObjectBookBuilderTest, EmptyBookForXodrWithoutObjects) {
+  // SingleLane.xodr has an empty <objects/> element.
+  const std::string xodr_file_path = utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder);
+
+  auto rn = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                     {params::kOpendriveFile, xodr_file_path},
+                                                                     {params::kOmitNonDrivableLanes, "false"},
+                                                                 })
+                                   .ToStringMap())();
+  ASSERT_NE(rn, nullptr);
+  const auto* book = rn->road_object_book();
+  ASSERT_NE(book, nullptr);
+  EXPECT_TRUE(book->RoadObjects().empty());
 }
 
 }  // namespace

@@ -55,6 +55,7 @@
 #include "maliput_malidrive/builder/range_value_rule_state_provider_builder.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
+#include "maliput_malidrive/builder/road_object_book_builder.h"
 #include "maliput_malidrive/builder/road_rulebook_builder.h"
 #include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
@@ -144,11 +145,15 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
 #pragma GCC diagnostic pop
   maliput::log()->trace("Built RuleStateProvider.");
 
+  maliput::log()->trace("Building RoadObjectBook...");
+  auto road_object_book = RoadObjectBookBuilder(rg.get())();
+  maliput::log()->trace("Built RoadObjectBook.");
+
   return std::make_unique<maliput::api::RoadNetwork>(
       std::move(rg), std::move(rule_book), std::move(traffic_light_book), std::move(intersection_book),
       std::move(phase_ring_book), std::move(state_provider), std::move(manual_phase_provider), std::move(rule_registry),
       std::move(discrete_value_rule_state_provider), std::move(range_value_rule_state_provider),
-      std::make_unique<maliput::RoadObjectBook>(), std::move(traffic_sign_book));
+      std::move(road_object_book), std::move(traffic_sign_book));
 }
 
 }  // namespace builder
