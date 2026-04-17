@@ -130,10 +130,10 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   const auto& definition = definition_opt.value();
 
   const auto sign_type_opt = SignTypeStringToEnum(definition.sign_type);
+  const auto sign_type = sign_type_opt.value_or(maliput::api::rules::TrafficSignType::kUnknown);
   if (!sign_type_opt.has_value()) {
-    maliput::log()->warn("TrafficSignBuilder: unrecognized sign_type='", definition.sign_type, "' for signal id='",
-                         signal_.id.string(), "'. Skipping TrafficSign creation.");
-    return nullptr;
+    maliput::log()->debug("TrafficSignBuilder: unrecognized sign_type='", definition.sign_type, "' for signal id='",
+                          signal_.id.string(), "'. Defaulting to TrafficSignType::kUnknown.");
   }
 
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
@@ -169,7 +169,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                         "), related_lanes=", related_lanes.size(), ".");
 
   return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
-                                                            *sign_type_opt, pos, orientation_road_network, signal_.text,
+                                                            sign_type, pos, orientation_road_network, signal_.text,
                                                             std::move(related_lanes), bounding_box);
 }
 
