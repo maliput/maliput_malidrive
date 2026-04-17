@@ -110,16 +110,16 @@ TEST_F(TrafficSignBuilderFigure8Test, ConstructorThrows) {
   EXPECT_THROW(TrafficSignBuilder(signal_, xodr::RoadHeader::Id("44"), *loader_, nullptr), std::invalid_argument);
 }
 
-// Verifies that the builder returns nullptr when the signal's type maps to
-// sign_type "traffic_light" in the YAML database, since the TrafficSignBuilder
-// only handles static signs (non-"traffic_light" sign_type values).
-TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignReturnsNullForTrafficLightType) {
+// Verifies that the builder creates a TrafficSign with TrafficSignType::kUnknown
+// when the signal's type maps to an unrecognized sign_type in the YAML database.
+TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignReturnsUnknownForUnrecognizedSignType) {
   // The figure8 signal has type "1000001" which resolves to sign_type "traffic_light".
-  // SignTypeStringToEnum does not map "traffic_light" to any TrafficSignType,
-  // so the builder must return nullptr.
+  // "traffic_light" is not mapped to any TrafficSignType enum, so the builder
+  // should create a TrafficSign with TrafficSignType::kUnknown.
   TrafficSignBuilder builder(signal_, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
   auto traffic_sign = builder();
-  EXPECT_EQ(traffic_sign, nullptr);
+  ASSERT_NE(traffic_sign, nullptr);
+  EXPECT_EQ(maliput::api::rules::TrafficSignType::kUnknown, traffic_sign->type());
 }
 
 // Verifies that a TrafficSign is successfully created from a XODR signal whose
