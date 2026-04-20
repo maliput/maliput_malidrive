@@ -495,7 +495,8 @@ TEST_F(StopLineBuilderTest, RoadObjectBookIsPopulated) {
 }
 
 TEST_F(StopLineBuilderTest, StopLineObjectFromName) {
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
+  const auto* road_object =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
@@ -519,7 +520,8 @@ TEST_F(StopLineBuilderTest, StopLineObjectFromName) {
 }
 
 TEST_F(StopLineBuilderTest, StopLineObjectFromSubtype) {
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
+  const auto* road_object =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
