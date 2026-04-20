@@ -27,6 +27,7 @@ set(UNIT_BUILDER_TEST_SOURCES
   simplify_geometries_test.cc
   traffic_light_builder_test.cc
   traffic_sign_builder_test.cc
+  traffic_sign_type_mapper_test.cc
 )
 
 maliput_malidrive_build_tests(${UNIT_BUILDER_TEST_SOURCES})
