@@ -76,8 +76,16 @@
         </lanes>
         <objects>
             <!-- Stop line: roadMark with name "stopLine" → should become kStopLine. -->
-            <object id="obj_stop_line" name="stopLine" type="roadMark"
+            <object id="obj_stop_line_name" name="stopLine" type="roadMark"
                     s="50.0" t="0.0" zOffset="0.0"
+                    length="7.0" width="0.3" height="0.01"
+                    hdg="0.0" orientation="+" dynamic="no">
+                <validity fromLane="-1" toLane="1"/>
+            </object>
+
+            <!-- Stop line: roadMark with subtype "stopLine" → should become kStopLine. -->
+            <object id="obj_stop_line_subtype" subtype="stopLine" type="roadMark"
+                    s="80.0" t="0.0" zOffset="0.0"
                     length="7.0" width="0.3" height="0.01"
                     hdg="0.0" orientation="+" dynamic="no">
                 <validity fromLane="-1" toLane="1"/>

@@ -28,6 +28,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/road_object_builder.h"
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <string>
@@ -490,14 +491,14 @@ class StopLineBuilderTest : public ::testing::Test {
 
 TEST_F(StopLineBuilderTest, RoadObjectBookIsPopulated) {
   const auto all_objects = road_object_book_->RoadObjects();
-  EXPECT_EQ(2u, all_objects.size());
+  EXPECT_EQ(3u, all_objects.size());
 }
 
-TEST_F(StopLineBuilderTest, StopLineObject) {
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line"));
+TEST_F(StopLineBuilderTest, StopLineObjectFromName) {
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
   ASSERT_NE(road_object, nullptr);
 
-  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line"));
+  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
   EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kStopLine);
   EXPECT_EQ(road_object->name(), "stopLine");
   EXPECT_FALSE(road_object->is_dynamic());
@@ -505,6 +506,30 @@ TEST_F(StopLineBuilderTest, StopLineObject) {
   // Position: straight road at hdg=0, s=50, t=0 → inertial x≈50, y≈0.
   const auto& pos = road_object->position().inertial_position();
   EXPECT_NEAR(pos.x(), 50.0, 0.5);
+  EXPECT_NEAR(pos.y(), 0.0, 0.5);
+
+  // Bounding box: length=7, width=0.3, height=0.01.
+  const auto& bb = road_object->bounding_box();
+  EXPECT_NEAR(bb.box_size().x(), 7.0, 1e-3);
+  EXPECT_NEAR(bb.box_size().y(), 0.3, 1e-3);
+  EXPECT_NEAR(bb.box_size().z(), 0.01, 1e-3);
+
+  // Related lanes: spans both lanes via validity.
+  EXPECT_GE(road_object->related_lanes().size(), 2u);
+}
+
+TEST_F(StopLineBuilderTest, StopLineObjectFromSubtype) {
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
+  ASSERT_NE(road_object, nullptr);
+
+  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
+  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kStopLine);
+  EXPECT_EQ(road_object->subtype(), "stopLine");
+  EXPECT_FALSE(road_object->is_dynamic());
+
+  // Position: straight road at hdg=0, s=80, t=0 → inertial x≈80, y≈0.
+  const auto& pos = road_object->position().inertial_position();
+  EXPECT_NEAR(pos.x(), 80.0, 0.5);
   EXPECT_NEAR(pos.y(), 0.0, 0.5);
 
   // Bounding box: length=7, width=0.3, height=0.01.
@@ -528,8 +553,13 @@ TEST_F(StopLineBuilderTest, RegularRoadMarkObject) {
 
 TEST_F(StopLineBuilderTest, FindByTypeStopLine) {
   const auto stop_lines = road_object_book_->FindByType(maliput::api::objects::RoadObjectType::kStopLine);
-  ASSERT_EQ(1u, stop_lines.size());
-  EXPECT_EQ(stop_lines[0]->id(), maliput::api::objects::RoadObject::Id("obj_stop_line"));
+  ASSERT_EQ(2u, stop_lines.size());
+  const auto has_id = [&](const std::string& id) {
+    return std::any_of(stop_lines.begin(), stop_lines.end(),
+                       [&](const auto* obj) { return obj->id() == maliput::api::objects::RoadObject::Id(id); });
+  };
+  EXPECT_TRUE(has_id("obj_stop_line_name"));
+  EXPECT_TRUE(has_id("obj_stop_line_subtype"));
 }
 
 TEST_F(StopLineBuilderTest, FindByTypeRoadMark) {
