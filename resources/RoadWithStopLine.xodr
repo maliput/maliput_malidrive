@@ -31,8 +31,9 @@
 
  Test XODR file for stop-line RoadObject tests.
  Road 1: 100 m straight road at x=[0,100], y=0, hdg=0.
- Contains two objects:
-   - obj_stop_line:   roadMark with name "stopLine" → should map to kStopLine
+ Contains three objects:
+   - obj_stop_line_name:   roadMark with name "stopLine" → should map to kStopLine
+   - obj_stop_line_subtype:   roadMark with subtype "stopLine" → should map to kStopLine
    - obj_road_mark:   roadMark without stop-line indicators → should map to kRoadMark
 -->
 <OpenDRIVE>
