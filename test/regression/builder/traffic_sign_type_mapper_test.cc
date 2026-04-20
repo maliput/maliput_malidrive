@@ -55,37 +55,37 @@ TEST_P(MapSignTypeStringTest, MapsCorrectly) {
 }
 
 INSTANTIATE_TEST_CASE_P(AllKnownTypes, MapSignTypeStringTest,
-                         ::testing::Values(
-                             // Known mappings.
-                             MapSignTypeStringTestCase{"stop", TrafficSignType::kStop},
-                             MapSignTypeStringTestCase{"yield", TrafficSignType::kYield},
-                             MapSignTypeStringTestCase{"speed_limit", TrafficSignType::kSpeedLimit},
-                             MapSignTypeStringTestCase{"no_entry", TrafficSignType::kNoEntry},
-                             MapSignTypeStringTestCase{"one_way", TrafficSignType::kOneWay},
-                             MapSignTypeStringTestCase{"pedestrian_crossing", TrafficSignType::kPedestrianCrossing},
-                             MapSignTypeStringTestCase{"no_left_turn", TrafficSignType::kNoLeftTurn},
-                             MapSignTypeStringTestCase{"no_right_turn", TrafficSignType::kNoRightTurn},
-                             MapSignTypeStringTestCase{"no_u_turn", TrafficSignType::kNoUTurn},
-                             MapSignTypeStringTestCase{"school_zone", TrafficSignType::kSchoolZone},
-                             MapSignTypeStringTestCase{"construction", TrafficSignType::kConstruction},
-                             MapSignTypeStringTestCase{"railroad_crossing", TrafficSignType::kRailroadCrossing},
-                             MapSignTypeStringTestCase{"no_overtaking", TrafficSignType::kNoOvertaking}));
+                        ::testing::Values(
+                            // Known mappings.
+                            MapSignTypeStringTestCase{"stop", TrafficSignType::kStop},
+                            MapSignTypeStringTestCase{"yield", TrafficSignType::kYield},
+                            MapSignTypeStringTestCase{"speed_limit", TrafficSignType::kSpeedLimit},
+                            MapSignTypeStringTestCase{"no_entry", TrafficSignType::kNoEntry},
+                            MapSignTypeStringTestCase{"one_way", TrafficSignType::kOneWay},
+                            MapSignTypeStringTestCase{"pedestrian_crossing", TrafficSignType::kPedestrianCrossing},
+                            MapSignTypeStringTestCase{"no_left_turn", TrafficSignType::kNoLeftTurn},
+                            MapSignTypeStringTestCase{"no_right_turn", TrafficSignType::kNoRightTurn},
+                            MapSignTypeStringTestCase{"no_u_turn", TrafficSignType::kNoUTurn},
+                            MapSignTypeStringTestCase{"school_zone", TrafficSignType::kSchoolZone},
+                            MapSignTypeStringTestCase{"construction", TrafficSignType::kConstruction},
+                            MapSignTypeStringTestCase{"railroad_crossing", TrafficSignType::kRailroadCrossing},
+                            MapSignTypeStringTestCase{"no_overtaking", TrafficSignType::kNoOvertaking}));
 
 INSTANTIATE_TEST_CASE_P(UnknownTypes, MapSignTypeStringTest,
-                         ::testing::Values(
-                             // Unrecognized strings map to kUnknown.
-                             MapSignTypeStringTestCase{"traffic_light", TrafficSignType::kUnknown},
-                             MapSignTypeStringTestCase{"", TrafficSignType::kUnknown},
-                             MapSignTypeStringTestCase{"unknown_value", TrafficSignType::kUnknown}));
+                        ::testing::Values(
+                            // Unrecognized strings map to kUnknown.
+                            MapSignTypeStringTestCase{"traffic_light", TrafficSignType::kUnknown},
+                            MapSignTypeStringTestCase{"", TrafficSignType::kUnknown},
+                            MapSignTypeStringTestCase{"unknown_value", TrafficSignType::kUnknown}));
 
 INSTANTIATE_TEST_CASE_P(CaseInsensitive, MapSignTypeStringTest,
-                         ::testing::Values(
-                             // Case-insensitive matching.
-                             MapSignTypeStringTestCase{"Stop", TrafficSignType::kStop},
-                             MapSignTypeStringTestCase{"STOP", TrafficSignType::kStop},
-                             MapSignTypeStringTestCase{"Yield", TrafficSignType::kYield},
-                             MapSignTypeStringTestCase{"SPEED_LIMIT", TrafficSignType::kSpeedLimit},
-                             MapSignTypeStringTestCase{"No_Overtaking", TrafficSignType::kNoOvertaking}));
+                        ::testing::Values(
+                            // Case-insensitive matching.
+                            MapSignTypeStringTestCase{"Stop", TrafficSignType::kStop},
+                            MapSignTypeStringTestCase{"STOP", TrafficSignType::kStop},
+                            MapSignTypeStringTestCase{"Yield", TrafficSignType::kYield},
+                            MapSignTypeStringTestCase{"SPEED_LIMIT", TrafficSignType::kSpeedLimit},
+                            MapSignTypeStringTestCase{"No_Overtaking", TrafficSignType::kNoOvertaking}));
 
 }  // namespace
 }  // namespace test
