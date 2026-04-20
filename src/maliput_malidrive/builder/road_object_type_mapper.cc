@@ -32,7 +32,8 @@ namespace malidrive {
 namespace builder {
 
 maliput::api::objects::RoadObjectType MapXodrObjectType(
-    const std::optional<xodr::object::Object::ObjectType>& xodr_type) {
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type, const std::optional<std::string>& name,
+    const std::optional<std::string>& subtype) {
   using XodrType = xodr::object::Object::ObjectType;
   using MaliputType = maliput::api::objects::RoadObjectType;
 
@@ -60,6 +61,9 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     case XodrType::kStreetLamp:
       return MaliputType::kPole;
     case XodrType::kRoadMark:
+      if ((name.has_value() && name.value() == "stopLine") || (subtype.has_value() && subtype.value() == "stopLine")) {
+        return MaliputType::kStopLine;
+      }
       return MaliputType::kRoadMark;
     case XodrType::kRoadSurface:
     case XodrType::kPatch:
