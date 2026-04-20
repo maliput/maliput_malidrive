@@ -181,7 +181,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
                                                 maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
   // --- Type ---
-  const maliput::api::objects::RoadObjectType type = MapXodrObjectType(object_.type);
+  const maliput::api::objects::RoadObjectType type = MapXodrObjectType(object_.type, object_.name, object_.subtype);
 
   // --- Related lanes ---
   auto related_lanes = ResolveLaneIds(road_id_, object_s, object_.validities, road_geometry_);
