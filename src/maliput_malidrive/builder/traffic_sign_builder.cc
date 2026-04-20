@@ -29,23 +29,21 @@
 #include "maliput_malidrive/builder/traffic_sign_builder.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cmath>
 #include <string>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
 #include <maliput/api/lane_data.h>
 #include <maliput/api/rules/traffic_sign.h>
 #include <maliput/common/logger.h>
-#include <maliput/common/maliput_hash.h>
 #include <maliput/math/bounding_box.h>
 #include <maliput/math/roll_pitch_yaw.h>
 #include <maliput/math/vector.h>
 
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/builder/builder_tools.h"
+#include "maliput_malidrive/builder/traffic_sign_type_mapper.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/traffic_signal/parser.h"
 #include "maliput_malidrive/xodr/signal/orientation.h"
@@ -66,37 +64,6 @@ std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
     return std::nullopt;
   }
   return subtype;
-}
-
-std::unordered_map<std::string, maliput::api::rules::TrafficSignType, maliput::common::DefaultHash>
-YamlToTrafficSignTypeMapper() {
-  std::unordered_map<std::string, maliput::api::rules::TrafficSignType, maliput::common::DefaultHash> result;
-  result.emplace("stop", maliput::api::rules::TrafficSignType::kStop);
-  result.emplace("yield", maliput::api::rules::TrafficSignType::kYield);
-  result.emplace("speed_limit", maliput::api::rules::TrafficSignType::kSpeedLimit);
-  result.emplace("no_entry", maliput::api::rules::TrafficSignType::kNoEntry);
-  result.emplace("one_way", maliput::api::rules::TrafficSignType::kOneWay);
-  result.emplace("pedestrian_crossing", maliput::api::rules::TrafficSignType::kPedestrianCrossing);
-  result.emplace("no_left_turn", maliput::api::rules::TrafficSignType::kNoLeftTurn);
-  result.emplace("no_right_turn", maliput::api::rules::TrafficSignType::kNoRightTurn);
-  result.emplace("no_u_turn", maliput::api::rules::TrafficSignType::kNoUTurn);
-  result.emplace("school_zone", maliput::api::rules::TrafficSignType::kSchoolZone);
-  result.emplace("construction", maliput::api::rules::TrafficSignType::kConstruction);
-  result.emplace("railroad_crossing", maliput::api::rules::TrafficSignType::kRailroadCrossing);
-  return result;
-}
-
-/// Maps a sign_type string from the YAML database to a maliput TrafficSignType enum.
-///
-/// The lookup is built once from YamlToTrafficSignTypeMapper().
-/// Returns std::nullopt if @p sign_type_str does not match any known type.
-std::optional<maliput::api::rules::TrafficSignType> SignTypeStringToEnum(const std::string& sign_type_str) {
-  const auto mapper = YamlToTrafficSignTypeMapper();
-  const auto it = mapper.find(sign_type_str);
-  if (it == mapper.end()) {
-    return std::nullopt;
-  }
-  return it->second;
 }
 
 }  // namespace
@@ -129,9 +96,8 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   }
   const auto& definition = definition_opt.value();
 
-  const auto sign_type_opt = SignTypeStringToEnum(definition.sign_type);
-  const auto sign_type = sign_type_opt.value_or(maliput::api::rules::TrafficSignType::kUnknown);
-  if (!sign_type_opt.has_value()) {
+  const auto sign_type = MapSignTypeString(definition.sign_type);
+  if (sign_type == maliput::api::rules::TrafficSignType::kUnknown) {
     maliput::log()->debug("TrafficSignBuilder: unrecognized sign_type='", definition.sign_type, "' for signal id='",
                           signal_.id.string(), "'. Defaulting to TrafficSignType::kUnknown.");
   }

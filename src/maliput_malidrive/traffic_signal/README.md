@@ -64,9 +64,12 @@ The supported `sign_type` values and their mapping to `maliput::api::rules::Traf
 | `"school_zone"`          | `kSchoolZone`               |
 | `"construction"`         | `kConstruction`             |
 | `"railroad_crossing"`    | `kRailroadCrossing`         |
+| `"no_overtaking"`        | `kNoOvertaking`             |
 | *(any other value)*      | `kUnknown`                  |
 
 If `sign_type` is set to a value not listed above (and is not `"traffic_light"`), the builder will still create a `TrafficSign` with `TrafficSignType::kUnknown`. This allows the database to contain signal definitions for region-specific or non-standard sign types without requiring code changes.
+
+The `sign_type` matching is **case-insensitive**: `"No_Entry"`, `"NO_ENTRY"`, and `"no_entry"` are all equivalent.
 
 #### Signal Fingerprint Matching
 

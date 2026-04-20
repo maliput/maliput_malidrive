@@ -25,6 +25,7 @@ add_library(builder
   speed_limit_builder.cc
   traffic_light_builder.cc
   traffic_sign_builder.cc
+  traffic_sign_type_mapper.cc
   traffic_signal_books_builder.cc
   xodr_parser_configuration.cc
 )
