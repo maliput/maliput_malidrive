@@ -2,6 +2,15 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.22.0 (2026-04-21)
+-------------------
+* Refactor traffic sign mapper while adding new sign type no_overtaking. (`#441 <https://github.com/maliput/maliput_malidrive/issues/441>`_)
+* Treat XODR roadMark objects as stopLines if their name state so. (`#440 <https://github.com/maliput/maliput_malidrive/issues/440>`_)
+* Support unknown traffic signs in the database. (`#438 <https://github.com/maliput/maliput_malidrive/issues/438>`_)
+* Implement RoadObject API (`#434 <https://github.com/maliput/maliput_malidrive/issues/434>`_)
+* Build `TrafficSignBook` and fill it with `TrafficSign`s (`#421 <https://github.com/maliput/maliput_malidrive/issues/421>`_)
+* Contributors: Santiago Lopez
+
 0.21.2 (2026-04-14)
 -------------------
 * Discarding superelevations outside road length (`#436 <https://github.com/maliput/maliput_malidrive/issues/436>`_)
