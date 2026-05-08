@@ -29,14 +29,14 @@
 // ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 // POSSIBILITY OF SUCH DAMAGE.
 
-#include "maliput_malidrive/traffic_signal/yaml_helper.h"
+#include "maliput_malidrive/traffic_control_device/yaml_helper.h"
 
 #include <maliput/common/maliput_throw.h>
 
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
-namespace traffic_signal {
+namespace traffic_control_device {
 
 // ============================================================================
 // Utility Function Implementations
@@ -109,5 +109,5 @@ void ValidateSequenceSize(const YAML::Node& node, const std::string& field_name,
   }
 }
 
-}  // namespace traffic_signal
+}  // namespace traffic_control_device
 }  // namespace malidrive

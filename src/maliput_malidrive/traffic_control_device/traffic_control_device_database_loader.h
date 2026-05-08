@@ -32,41 +32,41 @@
 #include <string>
 #include <unordered_map>
 
-#include "maliput_malidrive/traffic_signal/parser.h"
+#include "maliput_malidrive/traffic_control_device/parser.h"
 
 namespace malidrive {
-namespace traffic_signal {
+namespace traffic_control_device {
 
-/// Loads traffic signal definitions from a YAML database file and provides a
-/// lookup interface for querying definitions by @ref TrafficSignalFingerprint.
+/// Loads traffic control device definitions from a YAML database file and provides a
+/// lookup interface for querying definitions by @ref TrafficControlDeviceFingerprint.
 ///
-/// The loader is backed by the @ref TrafficSignalParser. When a file path is
+/// The loader is backed by the @ref TrafficControlDeviceParser. When a file path is
 /// provided at construction time the file is parsed immediately; subsequent
 /// @ref Lookup calls are O(1) map lookups with no additional I/O.
 ///
 /// If no file path is provided (std::nullopt) the loader starts empty and all
 /// @ref Lookup calls will return std::nullopt.
-class TrafficSignalDatabaseLoader {
+class TrafficControlDeviceDatabaseLoader {
  public:
-  /// Constructs a TrafficSignalDatabaseLoader.
+  /// Constructs a TrafficControlDeviceDatabaseLoader.
   ///
-  /// @param file_path Optional path to the YAML traffic signal database file.
+  /// @param file_path Optional path to the YAML traffic control device database file.
   ///        When nullopt, the loader contains no definitions and all lookups
   ///        return std::nullopt.
   /// @throws maliput::common::road_network_description_parser_error if the file
   ///         cannot be parsed or fails schema validation.
-  explicit TrafficSignalDatabaseLoader(const std::optional<std::string>& file_path);
+  explicit TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& file_path);
 
-  /// Looks up a TrafficSignalDefinition by fingerprint.
+  /// Looks up a TrafficControlDeviceDefinition by fingerprint.
   ///
-  /// @param fingerprint The @ref TrafficSignalFingerprint to look up.
-  /// @returns An optional containing the matching @ref TrafficSignalDefinition
+  /// @param fingerprint The @ref TrafficControlDeviceFingerprint to look up.
+  /// @returns An optional containing the matching @ref TrafficControlDeviceDefinition
   ///          if found, std::nullopt otherwise.
-  std::optional<TrafficSignalDefinition> Lookup(const TrafficSignalFingerprint& fingerprint) const;
+  std::optional<TrafficControlDeviceDefinition> Lookup(const TrafficControlDeviceFingerprint& fingerprint) const;
 
  private:
-  std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> definitions_;
+  std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> definitions_;
 };
 
-}  // namespace traffic_signal
+}  // namespace traffic_control_device
 }  // namespace malidrive

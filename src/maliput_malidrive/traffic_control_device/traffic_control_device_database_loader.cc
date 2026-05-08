@@ -26,19 +26,19 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
+#include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 
 namespace malidrive {
-namespace traffic_signal {
+namespace traffic_control_device {
 
-TrafficSignalDatabaseLoader::TrafficSignalDatabaseLoader(const std::optional<std::string>& file_path) {
+TrafficControlDeviceDatabaseLoader::TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& file_path) {
   if (file_path.has_value()) {
-    definitions_ = TrafficSignalParser::LoadFromFile(file_path.value());
+    definitions_ = TrafficControlDeviceParser::LoadFromFile(file_path.value());
   }
 }
 
-std::optional<TrafficSignalDefinition> TrafficSignalDatabaseLoader::Lookup(
-    const TrafficSignalFingerprint& fingerprint) const {
+std::optional<TrafficControlDeviceDefinition> TrafficControlDeviceDatabaseLoader::Lookup(
+    const TrafficControlDeviceFingerprint& fingerprint) const {
   const auto it = definitions_.find(fingerprint);
   if (it == definitions_.end()) {
     return std::nullopt;
@@ -46,5 +46,5 @@ std::optional<TrafficSignalDefinition> TrafficSignalDatabaseLoader::Lookup(
   return it->second;
 }
 
-}  // namespace traffic_signal
+}  // namespace traffic_control_device
 }  // namespace malidrive

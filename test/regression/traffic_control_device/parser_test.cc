@@ -26,7 +26,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/traffic_signal/parser.h"
+#include "maliput_malidrive/traffic_control_device/parser.h"
 
 #include <fstream>
 #include <sstream>
@@ -36,7 +36,7 @@
 #include "utility/resources.h"
 
 namespace malidrive {
-namespace traffic_signal {
+namespace traffic_control_device {
 namespace test {
 namespace {
 
@@ -44,7 +44,7 @@ static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 
 constexpr double kTolerance = 1e-6;
 
-const char kTrafficSignalDb[] = R"(
+const char kTrafficControlDeviceDb[] = R"(
 traffic_signal_types:
   - type: "1000001"
     subtype: "-1"
@@ -132,7 +132,7 @@ traffic_signal_types:
         value: "Stop"
 )";
 
-const char kRepeatedTrafficSignalDb[] = R"(
+const char kRepeatedTrafficControlDeviceDb[] = R"(
 traffic_signal_types:
   - type: "1234567"
     subtype: "11"
@@ -184,24 +184,27 @@ traffic_signal_types:
         value: "Stop"
 )";
 
-class TrafficSignalParserTest : public ::testing::Test {
+class TrafficControlDeviceParserTest : public ::testing::Test {
  public:
-  static void SetUpTestCase() { signal_definitions_ = TrafficSignalParser::LoadFromString(kTrafficSignalDb); }
-  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> signal_definitions_;
+  static void SetUpTestCase() {
+    signal_definitions_ = TrafficControlDeviceParser::LoadFromString(kTrafficControlDeviceDb);
+  }
+  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> signal_definitions_;
 };
 
 // Needed to allocate memory for static member variable.
-std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> TrafficSignalParserTest::signal_definitions_;
+std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition>
+    TrafficControlDeviceParserTest::signal_definitions_;
 
-TEST_F(TrafficSignalParserTest, LoadFromString) {
+TEST_F(TrafficControlDeviceParserTest, LoadFromString) {
   EXPECT_EQ(signal_definitions_.size(), 4);
-  const auto& standard_fingerprint = TrafficSignalFingerprint{
+  const auto& standard_fingerprint = TrafficControlDeviceFingerprint{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const auto& arrow_fingerprint = TrafficSignalFingerprint{
+  const auto& arrow_fingerprint = TrafficControlDeviceFingerprint{
       .type = "1000011",
       .subtype = "10",
       .country = "OpenDRIVE",
@@ -211,8 +214,8 @@ TEST_F(TrafficSignalParserTest, LoadFromString) {
   EXPECT_TRUE(signal_definitions_.find(arrow_fingerprint) != signal_definitions_.end());
 }
 
-TEST_F(TrafficSignalParserTest, ValidateTrafficSign) {
-  const TrafficSignalFingerprint sign_fingerprint{
+TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
+  const TrafficControlDeviceFingerprint sign_fingerprint{
       .type = "206",
       .subtype = "30",
       .country = "OpenDRIVE",
@@ -232,8 +235,8 @@ TEST_F(TrafficSignalParserTest, ValidateTrafficSign) {
   EXPECT_EQ(dut.rule_states[0].bulb_conditions.size(), 0);
 }
 
-TEST_F(TrafficSignalParserTest, ValidateSignalType1000001) {
-  const TrafficSignalFingerprint fingerprint{
+TEST_F(TrafficControlDeviceParserTest, ValidateSignalType1000001) {
+  const TrafficControlDeviceFingerprint fingerprint{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
@@ -266,8 +269,8 @@ TEST_F(TrafficSignalParserTest, ValidateSignalType1000001) {
   EXPECT_EQ(dut.rule_states[1].bulb_conditions.size(), 3);
 }
 
-TEST_F(TrafficSignalParserTest, ValidateArrowSignal) {
-  const TrafficSignalFingerprint arrow_fingerprint{
+TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
+  const TrafficControlDeviceFingerprint arrow_fingerprint{
       .type = "1000011",
       .subtype = "10",
       .country = "OpenDRIVE",
@@ -288,8 +291,8 @@ TEST_F(TrafficSignalParserTest, ValidateArrowSignal) {
   EXPECT_NEAR(arrow_bulb.arrow_orientation_rad.value(), 1.570796, kTolerance);
 }
 
-TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
-  const TrafficSignalFingerprint default_fingerprint{
+TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
+  const TrafficControlDeviceFingerprint default_fingerprint{
       .type = "default_bulb_state",
       .subtype = std::nullopt,
       .country = std::nullopt,
@@ -322,10 +325,10 @@ TEST_F(TrafficSignalParserTest, DefaultBulbStatesAndBoundingBox) {
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.z(), 0.1778, kTolerance);
 }
 
-GTEST_TEST(RepeatedTrafficSignalParserTest, RepeatedFingerprintOverwrites) {
-  const auto signal_definitions = TrafficSignalParser::LoadFromString(kRepeatedTrafficSignalDb);
+GTEST_TEST(RepeatedTrafficControlDeviceParserTest, RepeatedFingerprintOverwrites) {
+  const auto signal_definitions = TrafficControlDeviceParser::LoadFromString(kRepeatedTrafficControlDeviceDb);
   EXPECT_EQ(signal_definitions.size(), 1);
-  const TrafficSignalFingerprint fingerprint{
+  const TrafficControlDeviceFingerprint fingerprint{
       .type = "1234567",
       .subtype = "11",
       .country = "OpenDRIVE",
@@ -339,9 +342,9 @@ GTEST_TEST(RepeatedTrafficSignalParserTest, RepeatedFingerprintOverwrites) {
   EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
 }
 
-GTEST_TEST(TrafficSignalYamlFileParserTest, LoadFromFile) {
-  const std::string yaml_file_path =
-      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+GTEST_TEST(TrafficControlDeviceYamlFileParserTest, LoadFromFile) {
+  const std::string yaml_file_path = utility::FindResourceInPath(
+      "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
   std::ifstream yaml_file(yaml_file_path);
   std::stringstream buffer;
@@ -350,10 +353,10 @@ GTEST_TEST(TrafficSignalYamlFileParserTest, LoadFromFile) {
   yaml_file.close();
 
   // Load from file and load from the file content string.
-  const auto signal_definitions_from_file = TrafficSignalParser::LoadFromFile(yaml_file_path);
-  const auto signal_definitions_from_string = TrafficSignalParser::LoadFromString(yaml_content);
+  const auto traffic_control_definitions_from_file = TrafficControlDeviceParser::LoadFromFile(yaml_file_path);
+  const auto traffic_control_definitions_from_string = TrafficControlDeviceParser::LoadFromString(yaml_content);
 
-  EXPECT_EQ(signal_definitions_from_file, signal_definitions_from_string);
+  EXPECT_EQ(traffic_control_definitions_from_file, traffic_control_definitions_from_string);
 }
 
 GTEST_TEST(BulbStateConditionEqualityOperatorTest, EqualConditions) {
@@ -579,14 +582,14 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
   EXPECT_TRUE(bulb1 != bulb2);
 }
 
-GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, EqualFingerprints) {
-  const TrafficSignalFingerprint fingerprint1{
+GTEST_TEST(TrafficControlDeviceFingerprintEqualityOperatorTest, EqualFingerprints) {
+  const TrafficControlDeviceFingerprint fingerprint1{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const TrafficSignalFingerprint fingerprint2{
+  const TrafficControlDeviceFingerprint fingerprint2{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
@@ -596,14 +599,14 @@ GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, EqualFingerprints) {
   EXPECT_TRUE(fingerprint1 == fingerprint2);
 }
 
-GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentType) {
-  const TrafficSignalFingerprint fingerprint1{
+GTEST_TEST(TrafficControlDeviceFingerprintEqualityOperatorTest, DifferentType) {
+  const TrafficControlDeviceFingerprint fingerprint1{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const TrafficSignalFingerprint fingerprint2{
+  const TrafficControlDeviceFingerprint fingerprint2{
       .type = "1000011",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
@@ -613,14 +616,14 @@ GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentType) {
   EXPECT_TRUE(fingerprint1 != fingerprint2);
 }
 
-GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentSubtype) {
-  const TrafficSignalFingerprint fingerprint1{
+GTEST_TEST(TrafficControlDeviceFingerprintEqualityOperatorTest, DifferentSubtype) {
+  const TrafficControlDeviceFingerprint fingerprint1{
       .type = "1000011",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const TrafficSignalFingerprint fingerprint2{
+  const TrafficControlDeviceFingerprint fingerprint2{
       .type = "1000011",
       .subtype = "10",
       .country = "OpenDRIVE",
@@ -630,14 +633,14 @@ GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentSubtype) {
   EXPECT_TRUE(fingerprint1 != fingerprint2);
 }
 
-GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentCountry) {
-  const TrafficSignalFingerprint fingerprint1{
+GTEST_TEST(TrafficControlDeviceFingerprintEqualityOperatorTest, DifferentCountry) {
+  const TrafficControlDeviceFingerprint fingerprint1{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const TrafficSignalFingerprint fingerprint2{
+  const TrafficControlDeviceFingerprint fingerprint2{
       .type = "1000001",
       .subtype = std::nullopt,
       .country = "ARG",
@@ -647,8 +650,8 @@ GTEST_TEST(TrafficSignalFingerprintEqualityOperatorTest, DifferentCountry) {
   EXPECT_TRUE(fingerprint1 != fingerprint2);
 }
 
-GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, EqualTrafficSignalDefinitions) {
-  const TrafficSignalDefinition definition1{
+GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, EqualTrafficControlDeviceDefinitions) {
+  const TrafficControlDeviceDefinition definition1{
       .fingerprint =
           {
               .type = "1000001",
@@ -688,7 +691,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, EqualTrafficSignalDefini
               },
           },
   };
-  const TrafficSignalDefinition definition2{
+  const TrafficControlDeviceDefinition definition2{
       .fingerprint =
           {
               .type = "1000001",
@@ -732,8 +735,8 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, EqualTrafficSignalDefini
   EXPECT_TRUE(definition1 == definition2);
 }
 
-GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentFingerprint) {
-  const TrafficSignalDefinition definition1{
+GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, DifferentFingerprint) {
+  const TrafficControlDeviceDefinition definition1{
       .fingerprint =
           {
               .type = "1000001",
@@ -745,7 +748,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentFingerprint) {
       .bulbs = {},
       .rule_states = {},
   };
-  const TrafficSignalDefinition definition2{
+  const TrafficControlDeviceDefinition definition2{
       .fingerprint =
           {
               .type = "1000011",
@@ -761,8 +764,8 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentFingerprint) {
   EXPECT_TRUE(definition1 != definition2);
 }
 
-GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentDescription) {
-  const TrafficSignalDefinition definition1{
+GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, DifferentDescription) {
+  const TrafficControlDeviceDefinition definition1{
       .fingerprint =
           {
               .type = "1000001",
@@ -774,7 +777,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentDescription) {
       .bulbs = {},
       .rule_states = {},
   };
-  const TrafficSignalDefinition definition2{
+  const TrafficControlDeviceDefinition definition2{
       .fingerprint =
           {
               .type = "1000001",
@@ -790,8 +793,8 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentDescription) {
   EXPECT_TRUE(definition1 != definition2);
 }
 
-GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentRuleStates) {
-  const TrafficSignalDefinition definition1{
+GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, DifferentRuleStates) {
+  const TrafficControlDeviceDefinition definition1{
       .fingerprint =
           {
               .type = "1000001",
@@ -815,7 +818,7 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentRuleStates) {
               },
           },
   };
-  const TrafficSignalDefinition definition2{
+  const TrafficControlDeviceDefinition definition2{
       .fingerprint =
           {
               .type = "1000001",
@@ -845,5 +848,5 @@ GTEST_TEST(TrafficSignalDefinitionEqualityOperatorTest, DifferentRuleStates) {
 
 }  // namespace
 }  // namespace test
-}  // namespace traffic_signal
+}  // namespace traffic_control_device
 }  // namespace malidrive

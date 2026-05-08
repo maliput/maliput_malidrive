@@ -36,10 +36,10 @@
 #include <yaml-cpp/yaml.h>
 
 namespace malidrive {
-namespace traffic_signal {
+namespace traffic_control_device {
 
 /// Constants for traffic signal description YAML fields.
-struct TrafficSignalConstants {
+struct TrafficControlDeviceConstants {
   static constexpr const char* kType = "type";
   static constexpr const char* kSubtype = "subtype";
   static constexpr const char* kCountry = "country";
@@ -151,5 +151,5 @@ maliput::math::Quaternion GetQuaternion(const YAML::Node& node, const std::strin
 ///         if expected_size > 0 and the actual size does not match.
 void ValidateSequenceSize(const YAML::Node& node, const std::string& field_name, size_t expected_size = 0);
 
-}  // namespace traffic_signal
+}  // namespace traffic_control_device
 }  // namespace malidrive

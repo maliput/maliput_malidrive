@@ -62,7 +62,7 @@ struct RoadNetworkConfiguration {
   /// Path to the configuration file to load an IntersectionBook.
   std::optional<std::string> intersection_book{std::nullopt};
   /// Path to the YAML database file that maps XODR Signal to traffic light data.
-  std::optional<std::string> traffic_signal_db{std::nullopt};
+  std::optional<std::string> traffic_control_device_db{std::nullopt};
 };
 
 }  // namespace builder

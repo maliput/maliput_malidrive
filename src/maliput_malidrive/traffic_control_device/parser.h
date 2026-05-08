@@ -40,7 +40,7 @@
 #include <maliput/math/vector.h>
 
 namespace malidrive {
-namespace traffic_signal {
+namespace traffic_control_device {
 
 /// Represents a bulb state condition in a rule definition.
 /// Specifies that a particular bulb must be in a particular state.
@@ -101,7 +101,7 @@ struct BulbDefinition {
 };
 
 /// Unique identifier for a traffic signal definition.
-struct TrafficSignalFingerprint {
+struct TrafficControlDeviceFingerprint {
   /// Signal type identifier. Matches XODR signal type attribute.
   std::string type;
   /// Optional signal subtype for finer matching.
@@ -111,18 +111,18 @@ struct TrafficSignalFingerprint {
   /// Optional country standard revision.
   std::optional<std::string> country_revision;
 
-  bool operator==(const TrafficSignalFingerprint& other) const {
+  bool operator==(const TrafficControlDeviceFingerprint& other) const {
     return type == other.type && subtype == other.subtype && country == other.country &&
            country_revision == other.country_revision;
   }
-  bool operator!=(const TrafficSignalFingerprint& other) const { return !(*this == other); }
+  bool operator!=(const TrafficControlDeviceFingerprint& other) const { return !(*this == other); }
 };
 
 /// Represents a traffic signal definition loaded from the database.
 /// Describes the complete structure and rule logic for a particular signal.
-struct TrafficSignalDefinition {
+struct TrafficControlDeviceDefinition {
   /// Unique identifier for this signal definition.
-  TrafficSignalFingerprint fingerprint;
+  TrafficControlDeviceFingerprint fingerprint;
   /// Human-readable description of this signal definition.
   std::string description;
   /// Type of traffic signal. Defaults to "traffic_light" when not specified in the YAML database.
@@ -133,11 +133,11 @@ struct TrafficSignalDefinition {
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
   std::vector<RuleState> rule_states;
 
-  bool operator==(const TrafficSignalDefinition& other) const {
+  bool operator==(const TrafficControlDeviceDefinition& other) const {
     return fingerprint == other.fingerprint && description == other.description && sign_type == other.sign_type &&
            bulbs == other.bulbs && rule_states == other.rule_states;
   }
-  bool operator!=(const TrafficSignalDefinition& other) const { return !(*this == other); }
+  bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };
 
 /// Traffic signal parser that loads traffic signal definitions from a YAML database. These are then
@@ -151,18 +151,18 @@ struct TrafficSignalDefinition {
 /// - They are synchronized externally: when rule states change, bulb states change.
 ///
 /// Workflow:
-/// 1. Load signal database: TrafficSignalParser::LoadFromFile().
+/// 1. Load signal database: TrafficControlDeviceParser::LoadFromFile().
 /// 2. For each signal in XODR, extract its type/subtype and look up signal definition.
-/// 3. Create traffic light: TrafficSignalParser::CreateTrafficLight().
-/// 4. Create rules (one per affected lane/road): TrafficSignalParser::CreateRules().
-class TrafficSignalParser {
+/// 3. Create traffic light: TrafficControlDeviceParser::CreateTrafficLight().
+/// 4. Create rules (one per affected lane/road): TrafficControlDeviceParser::CreateRules().
+class TrafficControlDeviceParser {
  public:
   /// Loads a traffic signal database from a YAML string.
   ///
   /// @param yaml_content The YAML content as a string.
   /// @return Map of signal identifiers to their definitions.
   /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails or schema validation fails.
-  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromString(
+  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromString(
       const std::string& yaml_content);
 
   /// Loads a traffic signal database from a YAML file.
@@ -170,20 +170,20 @@ class TrafficSignalParser {
   /// @param file_path Path to the YAML database file.
   /// @return Map of signal identifiers to their definitions.
   /// @throws maliput::common::road_network_description_parser_error YAML parsing or schema validation fails.
-  static std::unordered_map<TrafficSignalFingerprint, TrafficSignalDefinition> LoadFromFile(
+  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromFile(
       const std::string& yaml_file_path);
 };
 
-}  // namespace traffic_signal
+}  // namespace traffic_control_device
 }  // namespace malidrive
 
 namespace std {
 
-/// Hash function to use TrafficSignalFingerprint as a key in unordered containers. Combines the hash of each member
-/// variable.
+/// Hash function to use TrafficControlDeviceFingerprint as a key in unordered containers. Combines the hash of each
+/// member variable.
 template <>
-struct hash<malidrive::traffic_signal::TrafficSignalFingerprint> {
-  size_t operator()(const malidrive::traffic_signal::TrafficSignalFingerprint& f) const {
+struct hash<malidrive::traffic_control_device::TrafficControlDeviceFingerprint> {
+  size_t operator()(const malidrive::traffic_control_device::TrafficControlDeviceFingerprint& f) const {
     size_t seed = 0;
 
     // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine

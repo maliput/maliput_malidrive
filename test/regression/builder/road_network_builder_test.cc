@@ -1439,24 +1439,24 @@ TEST_F(RoadNetworkBuilderPopulationOldRuleTest, Builder) {
 }
 
 // Tests that both TrafficLightBook and TrafficSignBook are created and
-// populated correctly by the RoadNetworkBuilder when a traffic_signal_db YAML
+// populated correctly by the RoadNetworkBuilder when a traffic_control_device_db YAML
 // path is provided.
 class TrafficSignalBooksCreationTest : public ::testing::Test {};
 
 // Verifies that when figure8_trafficlights.xodr is loaded together with the
-// traffic_signal_db_example.yaml database, the TrafficLightBook is populated
+// traffic_control_device_db_example.yaml database, the TrafficLightBook is populated
 // with 4 traffic lights (all signals in that XODR have type "1000001" which
 // maps to sign_type="traffic_light") and the TrafficSignBook is empty because
 // there are no static traffic sign signals in that map.
 TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) {
   const std::string xodr_file_path =
       utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
-  const std::string traffic_signal_db_path =
-      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+  const std::string traffic_control_device_db_path = utility::FindResourceInPath(
+      "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path},
-      {params::kTrafficSignalDb, traffic_signal_db_path},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_path},
       {params::kOmitNonDrivableLanes, "false"},
   })};
 
@@ -1474,19 +1474,19 @@ TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) 
 }
 
 // Verifies that when TwoRoadsWithTrafficSigns.xodr is loaded together with the
-// traffic_signal_db_example.yaml database, the TrafficSignBook is populated
+// traffic_control_device_db_example.yaml database, the TrafficSignBook is populated
 // with 2 stop signs (signals of type "206" which map to sign_type="stop") and
 // the TrafficLightBook is empty because there are no traffic light signals in
 // that map.
 TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
   const std::string xodr_file_path =
       utility::FindResourceInPath("TwoRoadsWithTrafficSigns.xodr", kMalidriveResourceFolder);
-  const std::string traffic_signal_db_path =
-      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+  const std::string traffic_control_device_db_path = utility::FindResourceInPath(
+      "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path},
-      {params::kTrafficSignalDb, traffic_signal_db_path},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_path},
       {params::kOmitNonDrivableLanes, "false"},
   })};
 

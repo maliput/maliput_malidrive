@@ -39,18 +39,18 @@
 #include "maliput_malidrive/builder/traffic_light_builder.h"
 #include "maliput_malidrive/builder/traffic_sign_builder.h"
 #include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/traffic_signal/parser.h"
-#include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
+#include "maliput_malidrive/traffic_control_device/parser.h"
+#include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 
 namespace malidrive {
 namespace builder {
 
 TrafficSignalBooksBuilder::TrafficSignalBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
                                                      std::optional<std::string> traffic_light_book_path,
-                                                     std::optional<std::string> traffic_signal_db_path)
+                                                     std::optional<std::string> traffic_control_device_db_path)
     : road_geometry_(road_geometry),
       traffic_light_book_path_(std::move(traffic_light_book_path)),
-      traffic_signal_db_path_(std::move(traffic_signal_db_path)) {
+      traffic_control_device_db_path_(std::move(traffic_control_device_db_path)) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, maliput::common::assertion_error, "road_geometry must not be nullptr.");
 }
 
@@ -58,7 +58,7 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
   maliput::log()->trace("Building TrafficLights and TrafficSigns from XODR signals and YAML database...");
 
   // Parse the YAML database exactly once.
-  const traffic_signal::TrafficSignalDatabaseLoader loader(traffic_signal_db_path_);
+  const traffic_control_device::TrafficControlDeviceDatabaseLoader loader(traffic_control_device_db_path_);
 
   // Seed TrafficLightBook from file or start with an empty one.
   auto tlb = traffic_light_book_path_.has_value()
@@ -81,7 +81,7 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
       continue;
     }
     for (const auto& signal : road_header.signals->signals) {
-      const traffic_signal::TrafficSignalFingerprint fingerprint{
+      const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
           signal.type,
           // Normalize "-1" / "none" / "" → std::nullopt to match the DB key.
           [&]() -> std::optional<std::string> {
