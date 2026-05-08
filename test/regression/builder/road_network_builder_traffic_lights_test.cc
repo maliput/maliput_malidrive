@@ -51,20 +51,20 @@ class RoadNetworkBuilderTrafficLightsTest : public ::testing::Test {
  protected:
   const std::string xodr_file_path_{
       utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder)};
-  const std::string traffic_signal_db_path_{
-      utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder)};
+  const std::string traffic_control_device_db_path_{utility::FindResourceInPath(
+      "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder)};
   const std::string traffic_light_book_path_{
       utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.yaml", kMalidriveResourceFolder)};
 };
 
-// Builds a RoadNetwork with the traffic_signal_db parameter and verifies that
+// Builds a RoadNetwork with the traffic_control_device_db parameter and verifies that
 // traffic lights are created from XODR signals + YAML database.
 // The figure8_trafficlights XODR has 4 signals (ids: 109, 110, 111, 112),
 // all of type "1000001" which is defined in the YAML database.
 TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromYaml) {
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path_},
-      {params::kTrafficSignalDb, traffic_signal_db_path_},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
       {params::kOmitNonDrivableLanes, "false"},
   })};
   std::unique_ptr<maliput::api::RoadNetwork> dut;
@@ -94,7 +94,7 @@ TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromYaml) {
   }
 }
 
-// Builds a RoadNetwork without the traffic_signal_db parameter. The traffic
+// Builds a RoadNetwork without the traffic_control_device_db parameter. The traffic
 // light book should be empty because only the YAML database path is omitted.
 TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithoutTrafficLightsFromYaml) {
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
@@ -108,19 +108,19 @@ TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithoutTrafficLightsFromYaml) {
   const auto* traffic_light_book = dut->traffic_light_book();
   ASSERT_NE(traffic_light_book, nullptr);
 
-  // No traffic_light_book path and no traffic_signal_db → empty book.
+  // No traffic_light_book path and no traffic_control_device_db → empty book.
   const auto traffic_lights = traffic_light_book->TrafficLights();
   EXPECT_TRUE(traffic_lights.empty());
 }
 
 // Builds a RoadNetwork with BOTH the traffic_light_book file (maliput YAML
-// format) and the traffic_signal_db. Both sources should contribute traffic
+// format) and the traffic_control_device_db. Both sources should contribute traffic
 // lights to the book.
 TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromBookAndYaml) {
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path_},
       {params::kTrafficLightBook, traffic_light_book_path_},
-      {params::kTrafficSignalDb, traffic_signal_db_path_},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
       {params::kOmitNonDrivableLanes, "false"},
   })};
   std::unique_ptr<maliput::api::RoadNetwork> dut;
@@ -133,7 +133,7 @@ TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromBookAndYam
   const auto traffic_lights = traffic_light_book->TrafficLights();
   // The traffic_light_book file for figure8 defines 4 traffic lights
   // (EastFacing, NorthFacing, SouthFacing, WestFacing).
-  // The traffic_signal_db also creates 4 traffic lights from XODR signals
+  // The traffic_control_device_db also creates 4 traffic lights from XODR signals
   // (109, 110, 111, 112).
   // Total should be 8.
   EXPECT_EQ(8u, traffic_lights.size());
@@ -157,7 +157,7 @@ TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromBookAndYam
 TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithMultipleSignals) {
   const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
       {params::kOpendriveFile, xodr_file_path_},
-      {params::kTrafficSignalDb, traffic_signal_db_path_},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
       {params::kOmitNonDrivableLanes, "false"},
   })};
   std::unique_ptr<maliput::api::RoadNetwork> dut;

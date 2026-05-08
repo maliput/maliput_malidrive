@@ -62,7 +62,7 @@ static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 
 // Test fixture for TrafficSignBuilder.
 // Builds a RoadNetwork from the figure8_trafficlights XODR (which contains
-// signals of type "1000001") and prepares a TrafficSignalDatabaseLoader backed
+// signals of type "1000001") and prepares a TrafficControlDeviceDatabaseLoader backed
 // by the example YAML database. Individual tests that require a static traffic
 // sign create a copy of the signal and change its type to "206" (stop sign).
 class TrafficSignBuilderFigure8Test : public ::testing::Test {
@@ -70,12 +70,12 @@ class TrafficSignBuilderFigure8Test : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
-    traffic_signal_db_path_ =
-        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+    traffic_control_device_db_path_ = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
     const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
         {params::kOpendriveFile, xodr_file_path},
-        {params::kTrafficSignalDb, traffic_signal_db_path_},
+        {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
         {params::kOmitNonDrivableLanes, "false"},
     })};
     road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
@@ -92,14 +92,15 @@ class TrafficSignBuilderFigure8Test : public ::testing::Test {
     ASSERT_TRUE(road_header->second.signals.has_value());
     ASSERT_FALSE(road_header->second.signals->signals.empty());
     signal_ = road_header->second.signals->signals[0];
-    loader_ = std::make_unique<traffic_signal::TrafficSignalDatabaseLoader>(traffic_signal_db_path_);
+    loader_ =
+        std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(traffic_control_device_db_path_);
   }
 
-  std::string traffic_signal_db_path_;
+  std::string traffic_control_device_db_path_;
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
   const malidrive::RoadGeometry* road_geometry_{};
   xodr::signal::Signal signal_{0.0, 0.0, xodr::signal::Signal::Id("none")};
-  std::unique_ptr<traffic_signal::TrafficSignalDatabaseLoader> loader_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
 };
 
 TEST_F(TrafficSignBuilderFigure8Test, Constructor) {
@@ -166,7 +167,7 @@ TEST_F(TrafficSignBuilderFigure8Test, PositionOfTrafficSign) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests using TwoRoadsWithTrafficSigns.xodr / traffic_signal_db/traffic_signal_db_example.yaml.
+// Tests using TwoRoadsWithTrafficSigns.xodr / traffic_control_device_db/traffic_control_device_db_example.yaml.
 //
 // This lightweight map defines two straight roads (Road 1 and Road 2), each
 // with a single lane section (lanes {1, 0, -1}).
@@ -179,7 +180,7 @@ TEST_F(TrafficSignBuilderFigure8Test, PositionOfTrafficSign) {
 //     - Signal SS2: type="206", s=40, t=-2, orientation="-", zOffset=1.0,
 //       no explicit validity (all lanes), signalReference to SS1.
 //
-// The companion YAML database (traffic_signal_db_example.yaml) defines type
+// The companion YAML database (traffic_control_device_db_example.yaml) defines type
 // "206" as a static stop sign (sign_type: "stop").
 //
 // Expected maliput lane IDs:
@@ -192,12 +193,12 @@ class TrafficSignBuilderTwoRoadsTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file =
         utility::FindResourceInPath("TwoRoadsWithTrafficSigns.xodr", kMalidriveResourceFolder);
-    const std::string yaml_db =
-        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+    const std::string yaml_db = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file},
-                                                                             {params::kTrafficSignalDb, yaml_db},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
                                                                              {params::kOmitNonDrivableLanes, "false"},
                                                                          })
                                            .ToStringMap())();

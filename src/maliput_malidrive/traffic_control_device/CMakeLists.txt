@@ -1,26 +1,26 @@
 ##############################################################################
 # Malidrive traffic signal
 ##############################################################################
-add_library(traffic_signal
-  traffic_signal_database_loader.cc
+add_library(traffic_control_device
+  traffic_control_device_database_loader.cc
   yaml_helper.cc
   parser.cc
 )
-add_library(maliput_malidrive::traffic_signal ALIAS traffic_signal)
-set_target_properties(traffic_signal
+add_library(maliput_malidrive::traffic_control_device ALIAS traffic_control_device)
+set_target_properties(traffic_control_device
   PROPERTIES
-    OUTPUT_NAME maliput_malidrive_traffic_signal
+    OUTPUT_NAME maliput_malidrive_traffic_control_device
 )
 
 target_include_directories(
-  traffic_signal
+  traffic_control_device
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/src>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_link_libraries(
-  traffic_signal
+  traffic_control_device
       maliput::api
       maliput::common
       maliput::math
@@ -28,7 +28,7 @@ target_link_libraries(
       yaml-cpp
 )
 
-install(TARGETS traffic_signal
+install(TARGETS traffic_control_device
   EXPORT ${PROJECT_NAME}-targets
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib

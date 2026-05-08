@@ -88,7 +88,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
 
   maliput::log()->trace("Building TrafficLightBook and TrafficSignBook...");
   auto [traffic_light_book, traffic_sign_book] =
-      TrafficSignalBooksBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_signal_db)();
+      TrafficSignalBooksBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_control_device_db)();
   maliput::log()->trace("Built TrafficLightBook and TrafficSignBook.");
 
   maliput::log()->trace("Building RuleRegistry...");

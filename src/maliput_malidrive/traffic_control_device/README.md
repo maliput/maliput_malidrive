@@ -155,7 +155,7 @@ When bulb state conditions are met, the parser creates rules with one of these v
 
 ## Examples
 
-See `resources/traffic_signal_db/traffic_signal_db_example.yaml` for detailed examples including:
+See `resources/traffic_control_device_db/traffic_control_device_db_example.yaml` for detailed examples including:
 
 - Standard three-bulb vertical traffic light (type 1000001)
 - Arrow-based traffic light (type 1000011)

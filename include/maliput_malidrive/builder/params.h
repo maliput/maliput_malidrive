@@ -80,7 +80,7 @@ static constexpr char const* kIntersectionBook{"intersection_book"};
 /// Path to the YAML database file that maps XODR Signal IDs to bulb/group data
 /// for constructing maliput::api::rules::TrafficLight objects.
 ///   - Default: ""
-static constexpr char const* kTrafficSignalDb{"traffic_signal_db"};
+static constexpr char const* kTrafficControlDeviceDb{"traffic_control_device_db"};
 
 /// @}
 

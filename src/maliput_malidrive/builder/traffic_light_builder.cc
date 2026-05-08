@@ -39,7 +39,7 @@
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/traffic_signal/parser.h"
+#include "maliput_malidrive/traffic_control_device/parser.h"
 #include "maliput_malidrive/xodr/signal/orientation.h"
 
 namespace malidrive {
@@ -48,7 +48,7 @@ namespace builder {
 namespace {
 
 /// Normalizes a XODR signal subtype string to match the fingerprint convention
-/// used by @ref traffic_signal::TrafficSignalParser.
+/// used by @ref traffic_control_device::TrafficControlDeviceParser.
 ///
 /// The parser treats the YAML values "-1" and "none" as std::nullopt (no
 /// subtype constraint). We apply the same normalization here so that the
@@ -63,7 +63,7 @@ std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
 }  // namespace
 
 TrafficLightBuilder::TrafficLightBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
-                                         const traffic_signal::TrafficSignalDatabaseLoader& loader,
+                                         const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                          const maliput::api::RoadGeometry* road_geometry,
                                          std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
     : signal_(signal),
@@ -75,7 +75,7 @@ TrafficLightBuilder::TrafficLightBuilder(const xodr::signal::Signal& signal, con
 }
 
 std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::operator()() const {
-  const traffic_signal::TrafficSignalFingerprint fingerprint{
+  const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
       signal_.type,
       NormalizeSubtype(signal_.subtype),
       signal_.country,

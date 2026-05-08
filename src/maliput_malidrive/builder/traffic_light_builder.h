@@ -34,7 +34,7 @@
 #include <maliput/api/road_geometry.h>
 #include <maliput/api/rules/traffic_lights.h>
 
-#include "maliput_malidrive/traffic_signal/traffic_signal_database_loader.h"
+#include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
@@ -49,7 +49,7 @@ namespace builder {
 /// The builder follows the functor pattern: construct it with all required
 /// inputs and call @ref operator()() to produce the result.
 ///
-/// When no matching @ref traffic_signal::TrafficSignalDefinition is found in
+/// When no matching @ref traffic_control_device::TrafficControlDeviceDefinition is found in
 /// the loader for the given signal's type/subtype/country fingerprint, the
 /// builder returns nullptr. Callers are responsible for checking the return
 /// value.
@@ -62,7 +62,7 @@ class TrafficLightBuilder {
   ///
   /// @param signal The XODR signal to build a @ref maliput::api::rules::TrafficLight from.
   /// @param road_id The XODR road's ID the @p signal belongs to.
-  /// @param loader The @ref traffic_signal::TrafficSignalDatabaseLoader providing access
+  /// @param loader The @ref traffic_control_device::TrafficControlDeviceDatabaseLoader providing access
   ///        to the traffic signal YAML database.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
   /// @param signal_references Signal references from other roads that point to @p signal.
@@ -70,7 +70,7 @@ class TrafficLightBuilder {
   ///        validity/s-coordinate is used to resolve related lanes on the referencing road.
   /// @throws std::invalid_argument if @p road_geometry is nullptr.
   TrafficLightBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
-                      const traffic_signal::TrafficSignalDatabaseLoader& loader,
+                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                       const maliput::api::RoadGeometry* road_geometry,
                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {});
 
@@ -84,7 +84,7 @@ class TrafficLightBuilder {
  private:
   const xodr::signal::Signal& signal_;
   const xodr::RoadHeader::Id& road_id_;
-  const traffic_signal::TrafficSignalDatabaseLoader& loader_;
+  const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
   std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references_;
 };

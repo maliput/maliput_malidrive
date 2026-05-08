@@ -58,7 +58,7 @@ target_link_libraries(
       maliput::drake_systems_framework
       maliput_malidrive::base
       maliput_malidrive::road_curve
-      maliput_malidrive::traffic_signal
+      maliput_malidrive::traffic_control_device
       maliput_malidrive::xodr
 )
 

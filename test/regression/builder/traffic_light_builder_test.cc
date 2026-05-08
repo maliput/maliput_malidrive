@@ -61,19 +61,19 @@ static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 
 // Test fixture for TrafficLightBuilder.
 // Builds a RoadNetwork from the figure8_trafficlights XODR (which contains 4
-// signals, all of type "1000001") and prepares a TrafficSignalDatabaseLoader backed by
+// signals, all of type "1000001") and prepares a TrafficControlDeviceDatabaseLoader backed by
 // the example YAML database.
 class TrafficLightBuilderFigure8Test : public ::testing::Test {
  protected:
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
-    traffic_signal_db_path_ =
-        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+    traffic_control_device_db_path_ = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
     const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
         {params::kOpendriveFile, xodr_file_path},
-        {params::kTrafficSignalDb, traffic_signal_db_path_},
+        {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
         {params::kOmitNonDrivableLanes, "false"},
     })};
     road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
@@ -90,14 +90,15 @@ class TrafficLightBuilderFigure8Test : public ::testing::Test {
     ASSERT_TRUE(road_header->second.signals.has_value());
     ASSERT_FALSE(road_header->second.signals->signals.empty());
     signal_ = road_header->second.signals->signals[0];
-    loader_ = std::make_unique<traffic_signal::TrafficSignalDatabaseLoader>(traffic_signal_db_path_);
+    loader_ =
+        std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(traffic_control_device_db_path_);
   }
 
-  std::string traffic_signal_db_path_;
+  std::string traffic_control_device_db_path_;
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
   const malidrive::RoadGeometry* road_geometry_{};
   xodr::signal::Signal signal_{0.0, 0.0, xodr::signal::Signal::Id("none")};
-  std::unique_ptr<traffic_signal::TrafficSignalDatabaseLoader> loader_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
 };
 
 TEST_F(TrafficLightBuilderFigure8Test, Constructor) {
@@ -189,7 +190,7 @@ TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests using TwoRoadsWithTrafficLights.xodr / traffic_signal_db/traffic_signal_db_example.yaml.
+// Tests using TwoRoadsWithTrafficLights.xodr / traffic_control_device_db/traffic_control_device_db_example.yaml.
 //
 // This lightweight map defines two straight roads (Road 1 and Road 2), each
 // with a single lane section (lanes {1, 0, -1}).
@@ -202,7 +203,7 @@ TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
 //     - Signal S2: type="1000001", s=40, t=-2, orientation="-",
 //       no explicit validity (all lanes), signalReference to S1.
 //
-// The companion YAML database (traffic_signal_db_example.yaml) defines type
+// The companion YAML database (traffic_control_device_db_example.yaml) defines type
 // "1000001" as a three-bulb vertical traffic light (RedBulb, YellowBulb,
 // GreenBulb).
 //
@@ -216,12 +217,12 @@ class TrafficLightBuilderTwoRoadsTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file =
         utility::FindResourceInPath("TwoRoadsWithTrafficLights.xodr", kMalidriveResourceFolder);
-    const std::string yaml_db =
-        utility::FindResourceInPath("traffic_signal_db/traffic_signal_db_example.yaml", kMalidriveResourceFolder);
+    const std::string yaml_db = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file},
-                                                                             {params::kTrafficSignalDb, yaml_db},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
                                                                              {params::kOmitNonDrivableLanes, "false"},
                                                                          })
                                            .ToStringMap())();
@@ -267,7 +268,7 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS1Fields) {
   ASSERT_EQ(1u, bulb_groups.size());
   EXPECT_EQ(maliput::api::rules::BulbGroup::Id("TrafficLight_S1_Bulbs"), bulb_groups[0]->id());
 
-  // Bulbs: RedBulb, YellowBulb and GreenBulb (from traffic_signal_db_example.yaml, type "1000001").
+  // Bulbs: RedBulb, YellowBulb and GreenBulb (from traffic_control_device_db_example.yaml, type "1000001").
   const auto bulbs = bulb_groups[0]->bulbs();
   ASSERT_EQ(3u, bulbs.size());
 
@@ -348,7 +349,7 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS2Fields) {
   ASSERT_EQ(1u, bulb_groups.size());
   EXPECT_EQ(maliput::api::rules::BulbGroup::Id("TrafficLight_S2_Bulbs"), bulb_groups[0]->id());
 
-  // Bulbs: RedBulb, YellowBulb and GreenBulb (from traffic_signal_db_example.yaml, type "1000001").
+  // Bulbs: RedBulb, YellowBulb and GreenBulb (from traffic_control_device_db_example.yaml, type "1000001").
   const auto bulbs = bulb_groups[0]->bulbs();
   ASSERT_EQ(3u, bulbs.size());
   EXPECT_NE(bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("RedBulb")), nullptr);

@@ -1,5 +1,5 @@
 ##############################################################################
-# traffic_signal
+# traffic_control_device
 ##############################################################################
 
 # Test binary name prefix, used by maliput_malidrive_build_tests

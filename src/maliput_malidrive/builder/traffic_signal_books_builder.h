@@ -55,7 +55,7 @@ struct TrafficSignalBooks {
 /// `TrafficSignBookBuilder`), this builder:
 ///  - Parses the YAML database exactly once.
 ///  - Routes each XODR signal to the right book using the `sign_type` field of
-///    the matching @ref traffic_signal::TrafficSignalDefinition:
+///    the matching @ref traffic_control_device::TrafficControlDeviceDefinition:
 ///      - `"traffic_light"` → @ref maliput::api::rules::TrafficLight
 ///        added to the TrafficLightBook.
 ///      - any other value → @ref maliput::api::rules::TrafficSign added to the
@@ -72,14 +72,14 @@ class TrafficSignalBooksBuilder {
   /// @param traffic_light_book_path Optional path to a YAML file used to seed
   ///        the TrafficLightBook before processing XODR signals.
   ///        When `std::nullopt`, an empty book is used as the base.
-  /// @param traffic_signal_db_path Optional path to the YAML database that maps
+  /// @param traffic_control_device_db_path Optional path to the YAML database that maps
   ///        XODR signals to traffic signal definitions.
   ///        When `std::nullopt`, both books will be empty (or seeded only from
   ///        @p traffic_light_book_path for the TrafficLightBook).
   /// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
   TrafficSignalBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
                             std::optional<std::string> traffic_light_book_path,
-                            std::optional<std::string> traffic_signal_db_path);
+                            std::optional<std::string> traffic_control_device_db_path);
 
   TrafficSignalBooksBuilder() = delete;
 
@@ -92,7 +92,7 @@ class TrafficSignalBooksBuilder {
  private:
   const maliput::api::RoadGeometry* road_geometry_;
   const std::optional<std::string> traffic_light_book_path_;
-  const std::optional<std::string> traffic_signal_db_path_;
+  const std::optional<std::string> traffic_control_device_db_path_;
 };
 
 }  // namespace builder
