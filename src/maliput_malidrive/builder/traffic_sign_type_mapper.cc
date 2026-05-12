@@ -36,7 +36,7 @@
 namespace malidrive {
 namespace builder {
 
-maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& sign_type_str) {
+maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& device_semantics) {
   using T = maliput::api::rules::TrafficSignType;
   static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
       {"stop", T::kStop},
@@ -52,8 +52,11 @@ maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& sign_t
       {"construction", T::kConstruction},
       {"railroad_crossing", T::kRailroadCrossing},
       {"no_overtaking", T::kNoOvertaking},
+      {"give_way", T::kYield},
+      {"speed_limit_begin", T::kSpeedLimit},
+      {"crosswalk", T::kPedestrianCrossing},
   };
-  std::string lower = sign_type_str;
+  std::string lower = device_semantics;
   std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
   const auto it = kMapper.find(lower);
   return it != kMapper.end() ? it->second : T::kUnknown;

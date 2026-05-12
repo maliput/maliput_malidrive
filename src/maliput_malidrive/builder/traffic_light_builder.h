@@ -55,8 +55,8 @@ namespace builder {
 /// value.
 class TrafficLightBuilder {
  public:
-  /// The sign_type value that identifies a traffic light in the YAML database.
-  static constexpr const char* kTrafficLightSignType = "traffic_light";
+  /// The device_type value that identifies a traffic light in the YAML database.
+  static constexpr const char* kTrafficLightDeviceType = "traffic_light";
 
   /// Constructs a TrafficLightBuilder.
   ///
@@ -78,7 +78,7 @@ class TrafficLightBuilder {
   ///
   /// @returns A unique_ptr to the constructed TrafficLight, or nullptr if no
   ///          matching definition was found in the YAML database for the signal
-  ///          or the definition's sign_type is not "traffic_light".
+  ///          or the definition's device_type is not "traffic_light".
   std::unique_ptr<const maliput::api::rules::TrafficLight> operator()() const;
 
  private:

@@ -160,24 +160,24 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
 // @return A RuleState with the parsed values.
 RuleState ParseRuleState(const YAML::Node& rule_state_node) {
   MALIDRIVE_THROW_UNLESS(rule_state_node.IsMap(), maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kCondition].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kConditions].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  ValidateSequenceSize(rule_state_node[RuleStateConstants::kCondition], RuleStateConstants::kCondition);
+  ValidateSequenceSize(rule_state_node[RuleStateConstants::kConditions], RuleStateConstants::kConditions);
   MALIDRIVE_THROW_UNLESS(rule_state_node[RuleStateConstants::kValue].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
   RuleState rule_state;
 
   // Parse bulb conditions.
-  for (const auto& condition_node : rule_state_node[RuleStateConstants::kCondition]) {
+  for (const auto& condition_node : rule_state_node[RuleStateConstants::kConditions]) {
     MALIDRIVE_THROW_UNLESS(condition_node.IsMap(), maliput::common::road_network_description_parser_error);
-    MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kBulb].IsDefined(),
+    MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kBulbId].IsDefined(),
                            maliput::common::road_network_description_parser_error);
     MALIDRIVE_THROW_UNLESS(condition_node[BulbStateConditionConstants::kState].IsDefined(),
                            maliput::common::road_network_description_parser_error);
 
     BulbStateCondition condition;
-    condition.bulb_id = GetRequiredStringField(condition_node, BulbStateConditionConstants::kBulb);
+    condition.bulb_id = GetRequiredStringField(condition_node, BulbStateConditionConstants::kBulbId);
     condition.state = StringToBulbState(GetRequiredStringField(condition_node, BulbStateConditionConstants::kState));
 
     rule_state.bulb_conditions.push_back(condition);
@@ -190,55 +190,101 @@ RuleState ParseRuleState(const YAML::Node& rule_state_node) {
 }
 
 // Helper function to parse a TrafficControlDeviceDefinition from a YAML map.
-// @param signal_node The YAML node representing a traffic signal definition.
+// @param entry_node The YAML node representing one entry in odr_signal_types.
+//        Expected structure:
+//          odr_representation:
+//            type: ...
+//            subtype: ...
+//            country: ...
+//            country_revision: ...
+//          properties:
+//            device_type: ...
+//            device_semantics: ...
+//            is_position_dynamic: ...
+//            default_bounding_box: ...
+//            description: ...
+//            bulbs: ...
+//            rule_states: ...
 // @return A TrafficControlDeviceDefinition with the parsed values.
-TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& signal_node) {
-  MALIDRIVE_THROW_UNLESS(signal_node.IsMap(), maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficControlDeviceConstants::kType].IsDefined(),
+TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_node) {
+  MALIDRIVE_THROW_UNLESS(entry_node.IsMap(), maliput::common::road_network_description_parser_error);
+
+  // Validate and extract the odr_representation sub-node.
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kOdrRepresentation].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficControlDeviceConstants::kDescription].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kOdrRepresentation].IsMap(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(signal_node[TrafficControlDeviceConstants::kBulbs].IsDefined(),
+  const YAML::Node& repr_node = entry_node[TrafficControlDeviceConstants::kOdrRepresentation];
+
+  // Validate and extract the properties sub-node.
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kProperties].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kProperties].IsMap(),
+                         maliput::common::road_network_description_parser_error);
+  const YAML::Node& props_node = entry_node[TrafficControlDeviceConstants::kProperties];
+
+  // device_type is required.
+  MALIDRIVE_THROW_UNLESS(props_node[TrafficControlDeviceConstants::kDeviceType].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
   TrafficControlDeviceDefinition signal_definition;
 
-  // Parse required fields.
-  signal_definition.fingerprint.type = GetRequiredStringField(signal_node, TrafficControlDeviceConstants::kType);
-  signal_definition.description = GetRequiredStringField(signal_node, TrafficControlDeviceConstants::kDescription);
+  // --- Parse fingerprint from odr_representation ---
+  signal_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
 
-  // Parse optional fields.
-  if (const auto subtype = GetOptionalStringField(signal_node, TrafficControlDeviceConstants::kSubtype)) {
-    if (subtype.has_value() && (subtype.value() == "-1" || subtype.value() == "none")) {
+  if (const auto subtype = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kSubtype)) {
+    if (subtype.value() == "-1" || subtype.value() == "none") {
       signal_definition.fingerprint.subtype = std::nullopt;
     } else {
       signal_definition.fingerprint.subtype = subtype;
     }
   }
 
-  if (const auto country = GetOptionalStringField(signal_node, TrafficControlDeviceConstants::kCountry)) {
+  if (const auto country = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountry)) {
     signal_definition.fingerprint.country = country;
   }
 
-  if (const auto revision = GetOptionalStringField(signal_node, TrafficControlDeviceConstants::kCountryRevision)) {
+  if (const auto revision = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountryRevision)) {
     signal_definition.fingerprint.country_revision = revision;
   }
 
-  // Parse sign type (optional). Defaults to "traffic_light" when not present.
-  const auto sign_type_opt = GetOptionalStringField(signal_node, TrafficControlDeviceConstants::kSignType);
-  signal_definition.sign_type = sign_type_opt.has_value() ? sign_type_opt.value() : "traffic_light";
+  // --- Parse properties ---
+  signal_definition.device_type = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
 
-  // Parse bulbs.
-  ValidateSequenceSize(signal_node[TrafficControlDeviceConstants::kBulbs], TrafficControlDeviceConstants::kBulbs);
-  for (const auto& bulb_node : signal_node[TrafficControlDeviceConstants::kBulbs]) {
-    signal_definition.bulbs.push_back(ParseBulb(bulb_node));
+  signal_definition.device_semantics =
+      GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDeviceSemantics);
+
+  // is_position_dynamic (optional bool, defaults to false).
+  if (props_node[TrafficControlDeviceConstants::kIsPositionDynamic].IsDefined() &&
+      !props_node[TrafficControlDeviceConstants::kIsPositionDynamic].IsNull()) {
+    signal_definition.is_position_dynamic = props_node[TrafficControlDeviceConstants::kIsPositionDynamic].as<bool>();
+  }
+
+  // description (optional).
+  if (const auto desc = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDescription)) {
+    signal_definition.description = desc.value();
+  }
+
+  // default_bounding_box at device level (optional).
+  if (props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsDefined() &&
+      !props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsNull()) {
+    signal_definition.default_bounding_box =
+        ParseBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
+  }
+
+  // Parse bulbs (optional sequence).
+  if (props_node[TrafficControlDeviceConstants::kBulbs].IsDefined()) {
+    ValidateSequenceSize(props_node[TrafficControlDeviceConstants::kBulbs], TrafficControlDeviceConstants::kBulbs);
+    for (const auto& bulb_node : props_node[TrafficControlDeviceConstants::kBulbs]) {
+      signal_definition.bulbs.push_back(ParseBulb(bulb_node));
+    }
   }
 
   // Parse rule_states (optional).
-  if (signal_node[TrafficControlDeviceConstants::kRuleStates].IsDefined()) {
-    ValidateSequenceSize(signal_node[TrafficControlDeviceConstants::kRuleStates],
+  if (props_node[TrafficControlDeviceConstants::kRuleStates].IsDefined()) {
+    ValidateSequenceSize(props_node[TrafficControlDeviceConstants::kRuleStates],
                          TrafficControlDeviceConstants::kRuleStates);
-    for (const auto& rule_state_node : signal_node[TrafficControlDeviceConstants::kRuleStates]) {
+    for (const auto& rule_state_node : props_node[TrafficControlDeviceConstants::kRuleStates]) {
       signal_definition.rule_states.push_back(ParseRuleState(rule_state_node));
     }
   }
@@ -249,8 +295,8 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& signal_no
 std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> BuildFrom(const YAML::Node& root) {
   MALIDRIVE_THROW_UNLESS(root.IsMap(), maliput::common::road_network_description_parser_error);
 
-  // Get traffic_signal_types array.
-  const YAML::Node& signals_node = root["traffic_signal_types"];
+  // Get odr_signal_types array.
+  const YAML::Node& signals_node = root[TrafficControlDeviceConstants::kOdrSignalTypes];
   MALIDRIVE_THROW_UNLESS(signals_node.IsDefined(), maliput::common::road_network_description_parser_error);
   MALIDRIVE_THROW_UNLESS(signals_node.IsSequence(), maliput::common::road_network_description_parser_error);
 

@@ -90,10 +90,10 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
   }
   const auto& definition = definition_opt.value();
 
-  // Only build TrafficLight objects for signals whose database sign_type is "traffic_light".
-  if (definition.sign_type != kTrafficLightSignType) {
-    maliput::log()->debug("TrafficLightBuilder: signal id='", signal_.id.string(), "' has sign_type='",
-                          definition.sign_type, "', expected '", kTrafficLightSignType,
+  // Only build TrafficLight objects for signals whose database device_type is "traffic_light".
+  if (definition.device_type != kTrafficLightDeviceType) {
+    maliput::log()->debug("TrafficLightBuilder: signal id='", signal_.id.string(), "' has device_type='",
+                          definition.device_type, "', expected '", kTrafficLightDeviceType,
                           "'. Skipping TrafficLight creation.");
     return nullptr;
   }

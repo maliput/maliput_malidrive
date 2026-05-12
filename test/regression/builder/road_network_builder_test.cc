@@ -1446,8 +1446,8 @@ class TrafficSignalBooksCreationTest : public ::testing::Test {};
 // Verifies that when figure8_trafficlights.xodr is loaded together with the
 // traffic_control_device_db_example.yaml database, the TrafficLightBook is populated
 // with 4 traffic lights (all signals in that XODR have type "1000001" which
-// maps to sign_type="traffic_light") and the TrafficSignBook is empty because
-// there are no static traffic sign signals in that map.
+// maps to device_type="traffic_light") and the TrafficSignBook is empty because
+// there are no device_type="traffic_sign" signals in that map.
 TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) {
   const std::string xodr_file_path =
       utility::FindResourceInPath("figure8_trafficlights/figure8_trafficlights.xodr", kMalidriveResourceFolder);
@@ -1475,7 +1475,7 @@ TEST_F(TrafficSignalBooksCreationTest, FigureEightTrafficLightsPopulatedFromDb) 
 
 // Verifies that when TwoRoadsWithTrafficSigns.xodr is loaded together with the
 // traffic_control_device_db_example.yaml database, the TrafficSignBook is populated
-// with 2 stop signs (signals of type "206" which map to sign_type="stop") and
+// with 2 stop signs (signals of type "206" which map to device_semantics="stop") and
 // the TrafficLightBook is empty because there are no traffic light signals in
 // that map.
 TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
@@ -1499,7 +1499,7 @@ TEST_F(TrafficSignalBooksCreationTest, TwoRoadsTrafficSignsPopulatedFromDb) {
   // TwoRoadsWithTrafficSigns.xodr has no traffic lights.
   EXPECT_TRUE(dut->traffic_light_book()->TrafficLights().empty());
   // TwoRoadsWithTrafficSigns.xodr defines 2 stop sign signals (type "206")
-  // which the example database maps to sign_type="stop".
+  // which the example database maps to device_semantics="stop".
   EXPECT_EQ(2, static_cast<int>(dut->traffic_sign_book()->TrafficSigns().size()));
 }
 

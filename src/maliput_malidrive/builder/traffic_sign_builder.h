@@ -50,7 +50,7 @@ namespace builder {
 ///
 /// When no matching @ref traffic_control_device::TrafficControlDeviceDefinition is found in
 /// the loader for the given signal's type/subtype/country fingerprint, or when
-/// the definition's sign_type cannot be mapped to a known
+/// the definition's device_semantics cannot be mapped to a known
 /// @ref maliput::api::rules::TrafficSignType, the builder returns nullptr.
 class TrafficSignBuilder {
  public:

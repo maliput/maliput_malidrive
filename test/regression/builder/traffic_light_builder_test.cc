@@ -167,9 +167,9 @@ TEST_F(TrafficLightBuilderFigure8Test, BuildTrafficLightNoMatchingDefinition) {
 }
 
 // Verifies that the builder returns nullptr when the matching definition in the
-// YAML database has a sign_type other than "traffic_light" (e.g. "stop").
+// YAML database has a device_type other than "traffic_light" (e.g. "traffic_sign").
 TEST_F(TrafficLightBuilderFigure8Test, BuildTrafficLightNonTrafficLightSignType) {
-  // Type "206" exists in the YAML database with sign_type: "stop".
+  // Type "206" exists in the YAML database with device_type: "traffic_sign".
   xodr::signal::Signal stop_signal = signal_;
   stop_signal.type = "206";
 

@@ -45,143 +45,161 @@ static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 constexpr double kTolerance = 1e-6;
 
 const char kTrafficControlDeviceDb[] = R"(
-traffic_signal_types:
-  - type: "1000001"
-    subtype: "-1"
-    country: "OpenDRIVE"
-    country_revision: null
-    description: "Standard three-bulb vertical traffic light"
-    bulbs:
-      - id: "RedBulb"
-        position_traffic_light: [0.0, 0.0, 0.4]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Red"
-        type: "Round"
-        states: ["Off", "On", "Blinking"]
-        bounding_box:
-          p_min: [-0.0889, -0.1778, -0.1778]
-          p_max: [0.0889, 0.1778, 0.1778]
-      - id: "YellowBulb"
-        position_traffic_light: [0.0, 0.0, 0.0]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Yellow"
-        type: "Round"
-        states: ["Off", "On", "Blinking"]
-      - id: "GreenBulb"
-        position_traffic_light: [0.0, 0.0, -0.4]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Green"
-        type: "Round"
-        states: ["Off", "On"]
-    rule_states:
-      - condition:
-          - bulb: "RedBulb"
-            state: "On"
-          - bulb: "YellowBulb"
-            state: "Off"
-          - bulb: "GreenBulb"
-            state: "Off"
-        value: "Stop"
-      - condition:
-          - bulb: "RedBulb"
-            state: "Off"
-          - bulb: "YellowBulb"
-            state: "Off"
-          - bulb: "GreenBulb"
-            state: "On"
-        value: "Go"
-  - type: "1000011"
-    subtype: "10"
-    country: "OpenDRIVE"
-    country_revision: null
-    description: "Traffic light with arrow"
-    bulbs:
-      - id: "GreenArrow"
-        position_traffic_light: [0.0, 0.0, 0.0]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Green"
-        type: "Arrow"
-        states: ["Off", "On"]
-        arrow_orientation_rad: 1.5707963267948966
-    rule_states:
-      - condition:
-          - bulb: "GreenArrow"
-            state: "On"
-        value: "Go"
-  - type: "default_bulb_state"
-    subtype: null
-    country: null
-    country_revision: null
-    description: "Signal with default bulb states and bounding box"
-    bulbs:
-      - id: "DefaultBulb"
-        position_traffic_light: [0.0, 0.0, 0.0]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Red"
-        type: "Round"
-    rule_states: []
-  - type: "206"
-    subtype: "30"
-    country: "OpenDRIVE"
-    country_revision: null
-    description: "No overtaking sign"
-    sign_type: "no_overtaking"
-    bulbs: []
-    rule_states:
-      - condition: []
-        value: "Stop"
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Standard three-bulb vertical traffic light"
+      bulbs:
+        - id: "RedBulb"
+          position_traffic_light: [0.0, 0.0, 0.4]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Red"
+          type: "Round"
+          states: ["Off", "On", "Blinking"]
+          bounding_box:
+            p_min: [-0.0889, -0.1778, -0.1778]
+            p_max: [0.0889, 0.1778, 0.1778]
+        - id: "YellowBulb"
+          position_traffic_light: [0.0, 0.0, 0.0]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Yellow"
+          type: "Round"
+          states: ["Off", "On", "Blinking"]
+        - id: "GreenBulb"
+          position_traffic_light: [0.0, 0.0, -0.4]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Green"
+          type: "Round"
+          states: ["Off", "On"]
+      rule_states:
+        - conditions:
+            - bulb_id: "RedBulb"
+              state: "On"
+            - bulb_id: "YellowBulb"
+              state: "Off"
+            - bulb_id: "GreenBulb"
+              state: "Off"
+          value: "Stop"
+        - conditions:
+            - bulb_id: "RedBulb"
+              state: "Off"
+            - bulb_id: "YellowBulb"
+              state: "Off"
+            - bulb_id: "GreenBulb"
+              state: "On"
+          value: "Go"
+  - odr_representation:
+      type: "1000011"
+      subtype: "10"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Traffic light with arrow"
+      bulbs:
+        - id: "GreenArrow"
+          position_traffic_light: [0.0, 0.0, 0.0]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Green"
+          type: "Arrow"
+          states: ["Off", "On"]
+          arrow_orientation_rad: 1.5707963267948966
+      rule_states:
+        - conditions:
+            - bulb_id: "GreenArrow"
+              state: "On"
+          value: "Go"
+  - odr_representation:
+      type: "default_bulb_state"
+      subtype: null
+      country: null
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Signal with default bulb states and bounding box"
+      bulbs:
+        - id: "DefaultBulb"
+          position_traffic_light: [0.0, 0.0, 0.0]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Red"
+          type: "Round"
+      rule_states: []
+  - odr_representation:
+      type: "206"
+      subtype: "30"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: no_overtaking
+      description: "No overtaking sign"
+      bulbs: []
+      rule_states:
+        - conditions: []
+          value: "Stop"
 )";
 
 const char kRepeatedTrafficControlDeviceDb[] = R"(
-traffic_signal_types:
-  - type: "1234567"
-    subtype: "11"
-    country: "OpenDRIVE"
-    country_revision: null
-    description: "Single red bulb traffic light"
-    bulbs:
-      - id: "RedBulb"
-        position_traffic_light: [0.0, 0.0, 0.4]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Red"
-        type: "Round"
-        states: ["Off", "On", "Blinking"]
-        bounding_box:
-          p_min: [-0.0889, -0.1778, -0.1778]
-          p_max: [0.0889, 0.1778, 0.1778]
-    rule_states:
-      - condition:
-          - bulb: "RedBulb"
-            state: "On"
-        value: "Stop"
-      - condition:
-          - bulb: "RedBulb"
-            state: "Off"
-        value: "Go"
-  - type: "1234567"
-    subtype: "11"
-    country: "OpenDRIVE"
-    country_revision: null
-    description: "Single green bulb traffic light"
-    bulbs:
-      - id: "GreenBulb"
-        position_traffic_light: [0.0, 0.0, 0.4]
-        orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-        color: "Green"
-        type: "Round"
-        states: ["Off", "On", "Blinking"]
-        bounding_box:
-          p_min: [-0.0889, -0.1778, -0.1778]
-          p_max: [0.0889, 0.1778, 0.1778]
-    rule_states:
-      - condition:
-          - bulb: "GreenBulb"
-            state: "On"
-        value: "Go"
-      - condition:
-          - bulb: "GreenBulb"
-            state: "Off"
-        value: "Stop"
+odr_signal_types:
+  - odr_representation:
+      type: "1234567"
+      subtype: "11"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Single red bulb traffic light"
+      bulbs:
+        - id: "RedBulb"
+          position_traffic_light: [0.0, 0.0, 0.4]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Red"
+          type: "Round"
+          states: ["Off", "On", "Blinking"]
+          bounding_box:
+            p_min: [-0.0889, -0.1778, -0.1778]
+            p_max: [0.0889, 0.1778, 0.1778]
+      rule_states:
+        - conditions:
+            - bulb_id: "RedBulb"
+              state: "On"
+          value: "Stop"
+        - conditions:
+            - bulb_id: "RedBulb"
+              state: "Off"
+          value: "Go"
+  - odr_representation:
+      type: "1234567"
+      subtype: "11"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Single green bulb traffic light"
+      bulbs:
+        - id: "GreenBulb"
+          position_traffic_light: [0.0, 0.0, 0.4]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Green"
+          type: "Round"
+          states: ["Off", "On", "Blinking"]
+          bounding_box:
+            p_min: [-0.0889, -0.1778, -0.1778]
+            p_max: [0.0889, 0.1778, 0.1778]
+      rule_states:
+        - conditions:
+            - bulb_id: "GreenBulb"
+              state: "On"
+          value: "Go"
+        - conditions:
+            - bulb_id: "GreenBulb"
+              state: "Off"
+          value: "Stop"
 )";
 
 class TrafficControlDeviceParserTest : public ::testing::Test {
@@ -227,7 +245,8 @@ TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
   EXPECT_EQ(dut.fingerprint.subtype, "30");
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "No overtaking sign");
-  EXPECT_EQ(dut.sign_type, "no_overtaking");
+  EXPECT_EQ(dut.device_type, "traffic_sign");
+  EXPECT_EQ(dut.device_semantics, "no_overtaking");
 
   EXPECT_EQ(dut.bulbs.size(), 0);
   EXPECT_EQ(dut.rule_states.size(), 1);
@@ -248,7 +267,8 @@ TEST_F(TrafficControlDeviceParserTest, ValidateSignalType1000001) {
   EXPECT_EQ(dut.fingerprint.subtype, std::nullopt);
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "Standard three-bulb vertical traffic light");
-  EXPECT_EQ(dut.sign_type, "traffic_light");
+  EXPECT_EQ(dut.device_type, "traffic_light");
+  EXPECT_FALSE(dut.device_semantics.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 3);
 
@@ -281,7 +301,8 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
   EXPECT_EQ(dut.fingerprint.type, "1000011");
   EXPECT_EQ(dut.fingerprint.subtype, "10");
   EXPECT_EQ(dut.description, "Traffic light with arrow");
-  EXPECT_EQ(dut.sign_type, "traffic_light");
+  EXPECT_EQ(dut.device_type, "traffic_light");
+  EXPECT_FALSE(dut.device_semantics.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 1);
 
@@ -302,7 +323,7 @@ TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
 
   EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
   EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
-  EXPECT_EQ(dut.sign_type, "traffic_light");
+  EXPECT_EQ(dut.device_type, "traffic_light");
 
   EXPECT_EQ(dut.bulbs.size(), 1);
 
@@ -337,7 +358,7 @@ GTEST_TEST(RepeatedTrafficControlDeviceParserTest, RepeatedFingerprintOverwrites
   EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
   const auto& definition = signal_definitions.at(fingerprint);
   EXPECT_EQ(definition.description, "Single green bulb traffic light");
-  EXPECT_EQ(definition.sign_type, "traffic_light");
+  EXPECT_EQ(definition.device_type, "traffic_light");
   EXPECT_EQ(definition.bulbs.size(), 1);
   EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
 }

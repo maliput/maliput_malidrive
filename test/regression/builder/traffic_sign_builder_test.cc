@@ -112,11 +112,11 @@ TEST_F(TrafficSignBuilderFigure8Test, ConstructorThrows) {
 }
 
 // Verifies that the builder creates a TrafficSign with TrafficSignType::kUnknown
-// when the signal's type maps to an unrecognized sign_type in the YAML database.
+// when the signal's type has no device_semantics in the YAML database.
 TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignReturnsUnknownForUnrecognizedSignType) {
-  // The figure8 signal has type "1000001" which resolves to sign_type "traffic_light".
-  // "traffic_light" is not mapped to any TrafficSignType enum, so the builder
-  // should create a TrafficSign with TrafficSignType::kUnknown.
+  // The figure8 signal has type "1000001" which resolves to device_type "traffic_light"
+  // with no device_semantics. "other" (the default) is not mapped to any TrafficSignType
+  // enum, so the builder should create a TrafficSign with TrafficSignType::kUnknown.
   TrafficSignBuilder builder(signal_, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
   auto traffic_sign = builder();
   ASSERT_NE(traffic_sign, nullptr);
@@ -124,7 +124,7 @@ TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignReturnsUnknownForUnrecogni
 }
 
 // Verifies that a TrafficSign is successfully created from a XODR signal whose
-// type maps to sign_type "stop" in the YAML database (type "206").
+// type maps to device_semantics "stop" in the YAML database (type "206").
 TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSign) {
   xodr::signal::Signal stop_signal = signal_;
   stop_signal.type = "206";
@@ -181,7 +181,7 @@ TEST_F(TrafficSignBuilderFigure8Test, PositionOfTrafficSign) {
 //       no explicit validity (all lanes), signalReference to SS1.
 //
 // The companion YAML database (traffic_control_device_db_example.yaml) defines type
-// "206" as a static stop sign (sign_type: "stop").
+// "206" as a static stop sign (device_semantics: "stop").
 //
 // Expected maliput lane IDs:
 //   Road 1: "1_0_1" (left), "1_0_-1" (right)
@@ -227,7 +227,7 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS1Fields) {
   // ID.
   EXPECT_EQ(maliput::api::rules::TrafficSign::Id("SS1"), ts->id());
 
-  // Type: "206" maps to sign_type "stop" → kStop.
+  // Type: "206" maps to device_semantics "stop" → kStop.
   EXPECT_EQ(maliput::api::rules::TrafficSignType::kStop, ts->type());
 
   // Position: Road 1 is straight at y=0, hdg=0. Signal at s=50, t=2, zOffset=1 → (50, 2, 1).
@@ -266,7 +266,7 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS2Fields) {
   // ID.
   EXPECT_EQ(maliput::api::rules::TrafficSign::Id("SS2"), ts->id());
 
-  // Type: "206" maps to sign_type "stop" → kStop.
+  // Type: "206" maps to device_semantics "stop" → kStop.
   EXPECT_EQ(maliput::api::rules::TrafficSignType::kStop, ts->type());
 
   // Position: Road 2 starts at x=110, hdg=0. Signal at s=40, t=-2, zOffset=1 → (150, -2, 1).

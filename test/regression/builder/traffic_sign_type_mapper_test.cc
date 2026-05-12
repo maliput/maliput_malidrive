@@ -69,7 +69,10 @@ INSTANTIATE_TEST_CASE_P(AllKnownTypes, MapSignTypeStringTest,
                             MapSignTypeStringTestCase{"school_zone", TrafficSignType::kSchoolZone},
                             MapSignTypeStringTestCase{"construction", TrafficSignType::kConstruction},
                             MapSignTypeStringTestCase{"railroad_crossing", TrafficSignType::kRailroadCrossing},
-                            MapSignTypeStringTestCase{"no_overtaking", TrafficSignType::kNoOvertaking}));
+                            MapSignTypeStringTestCase{"no_overtaking", TrafficSignType::kNoOvertaking},
+                            MapSignTypeStringTestCase{"give_way", TrafficSignType::kYield},
+                            MapSignTypeStringTestCase{"speed_limit_begin", TrafficSignType::kSpeedLimit},
+                            MapSignTypeStringTestCase{"crosswalk", TrafficSignType::kPedestrianCrossing}));
 
 INSTANTIATE_TEST_CASE_P(UnknownTypes, MapSignTypeStringTest,
                         ::testing::Values(

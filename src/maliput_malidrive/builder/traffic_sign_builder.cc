@@ -96,10 +96,11 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   }
   const auto& definition = definition_opt.value();
 
-  const auto sign_type = MapSignTypeString(definition.sign_type);
-  if (sign_type == maliput::api::rules::TrafficSignType::kUnknown) {
-    maliput::log()->debug("TrafficSignBuilder: unrecognized sign_type='", definition.sign_type, "' for signal id='",
-                          signal_.id.string(), "'. Defaulting to TrafficSignType::kUnknown.");
+  const auto sign_meaning = MapSignTypeString(definition.device_semantics.value_or("other"));
+  if (sign_meaning == maliput::api::rules::TrafficSignType::kUnknown) {
+    maliput::log()->debug("TrafficSignBuilder: unrecognized device_semantics='",
+                          definition.device_semantics.value_or("other"), "' for signal id='", signal_.id.string(),
+                          "'. Defaulting to TrafficSignType::kUnknown.");
   }
 
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
@@ -129,13 +130,14 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                                                 maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
-                        signal_.type, "' subtype='", signal_.subtype, "' sign_type='", definition.sign_type,
-                        "'. TrafficSign position: (x=", pos.x(), ", y=", pos.y(), ", z=", pos.z(),
+                        signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
+                        definition.device_semantics.value_or("other"), "'. TrafficSign position: (x=", pos.x(),
+                        ", y=", pos.y(), ", z=", pos.z(),
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(),
                         "), related_lanes=", related_lanes.size(), ".");
 
   return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
-                                                            sign_type, pos, orientation_road_network, signal_.text,
+                                                            sign_meaning, pos, orientation_road_network, signal_.text,
                                                             std::move(related_lanes), bounding_box);
 }
 
