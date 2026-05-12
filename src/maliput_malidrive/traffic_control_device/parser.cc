@@ -34,6 +34,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/traffic_control_device/device_type.h"
 #include "maliput_malidrive/traffic_control_device/yaml_helper.h"
 
 namespace malidrive {
@@ -227,48 +228,50 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   MALIDRIVE_THROW_UNLESS(props_node[TrafficControlDeviceConstants::kDeviceType].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
-  TrafficControlDeviceDefinition signal_definition;
+  TrafficControlDeviceDefinition tcd_definition;
 
   // --- Parse fingerprint from odr_representation ---
-  signal_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
+  tcd_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
 
   if (const auto subtype = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kSubtype)) {
     if (subtype.value() == "-1" || subtype.value() == "none") {
-      signal_definition.fingerprint.subtype = std::nullopt;
+      tcd_definition.fingerprint.subtype = std::nullopt;
     } else {
-      signal_definition.fingerprint.subtype = subtype;
+      tcd_definition.fingerprint.subtype = subtype;
     }
   }
 
   if (const auto country = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountry)) {
-    signal_definition.fingerprint.country = country;
+    tcd_definition.fingerprint.country = country;
   }
 
   if (const auto revision = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountryRevision)) {
-    signal_definition.fingerprint.country_revision = revision;
+    tcd_definition.fingerprint.country_revision = revision;
   }
 
   // --- Parse properties ---
-  signal_definition.device_type = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
+  const std::string device_type_str = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
+  tcd_definition.device_type = StringToTrafficControlDeviceType(device_type_str);
+  MALIDRIVE_VALIDATE(tcd_definition.device_type != TrafficControlDeviceType::kUnknown,
+                     maliput::common::road_network_description_parser_error, "Invalid device type: " + device_type_str);
 
-  signal_definition.device_semantics =
-      GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDeviceSemantics);
+  tcd_definition.device_semantics = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDeviceSemantics);
 
   // is_position_dynamic (optional bool, defaults to false).
   if (props_node[TrafficControlDeviceConstants::kIsPositionDynamic].IsDefined() &&
       !props_node[TrafficControlDeviceConstants::kIsPositionDynamic].IsNull()) {
-    signal_definition.is_position_dynamic = props_node[TrafficControlDeviceConstants::kIsPositionDynamic].as<bool>();
+    tcd_definition.is_position_dynamic = props_node[TrafficControlDeviceConstants::kIsPositionDynamic].as<bool>();
   }
 
   // description (optional).
   if (const auto desc = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDescription)) {
-    signal_definition.description = desc.value();
+    tcd_definition.description = desc.value();
   }
 
   // default_bounding_box at device level (optional).
   if (props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsDefined() &&
       !props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsNull()) {
-    signal_definition.default_bounding_box =
+    tcd_definition.default_bounding_box =
         ParseBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
   }
 
@@ -276,7 +279,7 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   if (props_node[TrafficControlDeviceConstants::kBulbs].IsDefined()) {
     ValidateSequenceSize(props_node[TrafficControlDeviceConstants::kBulbs], TrafficControlDeviceConstants::kBulbs);
     for (const auto& bulb_node : props_node[TrafficControlDeviceConstants::kBulbs]) {
-      signal_definition.bulbs.push_back(ParseBulb(bulb_node));
+      tcd_definition.bulbs.push_back(ParseBulb(bulb_node));
     }
   }
 
@@ -285,11 +288,11 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
     ValidateSequenceSize(props_node[TrafficControlDeviceConstants::kRuleStates],
                          TrafficControlDeviceConstants::kRuleStates);
     for (const auto& rule_state_node : props_node[TrafficControlDeviceConstants::kRuleStates]) {
-      signal_definition.rule_states.push_back(ParseRuleState(rule_state_node));
+      tcd_definition.rule_states.push_back(ParseRuleState(rule_state_node));
     }
   }
 
-  return signal_definition;
+  return tcd_definition;
 }
 
 std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> BuildFrom(const YAML::Node& root) {

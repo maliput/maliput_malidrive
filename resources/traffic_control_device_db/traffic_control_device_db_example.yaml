@@ -280,3 +280,17 @@ odr_signal_types:
       rule_states:
         - conditions: []
           value: "StopThenGo"
+
+  # Unknown sign.
+  - odr_representation:
+      type: "999"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      description: "Unknown sign. No specific behavior defined."
+
+      rule_states:
+        - conditions: []
+          value: ""

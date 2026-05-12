@@ -64,7 +64,7 @@ static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
 // Builds a RoadNetwork from the figure8_trafficlights XODR (which contains
 // signals of type "1000001") and prepares a TrafficControlDeviceDatabaseLoader backed
 // by the example YAML database. Individual tests that require a static traffic
-// sign create a copy of the signal and change its type to "206" (stop sign).
+// sign create a copy of the signal and change its type to "206" (stop sign) or "999" (unknown sign).
 class TrafficSignBuilderFigure8Test : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -114,10 +114,11 @@ TEST_F(TrafficSignBuilderFigure8Test, ConstructorThrows) {
 // Verifies that the builder creates a TrafficSign with TrafficSignType::kUnknown
 // when the signal's type has no device_semantics in the YAML database.
 TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignReturnsUnknownForUnrecognizedSignType) {
-  // The figure8 signal has type "1000001" which resolves to device_type "traffic_light"
-  // with no device_semantics. "other" (the default) is not mapped to any TrafficSignType
-  // enum, so the builder should create a TrafficSign with TrafficSignType::kUnknown.
-  TrafficSignBuilder builder(signal_, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
+  // Changed parsed signal's type to "999", which maps to a signal with an unknown device_semantics in the database,
+  // so the builder should create a TrafficSign with TrafficSignType::kUnknown.
+  xodr::signal::Signal unknown_signal = signal_;
+  unknown_signal.type = "999";
+  TrafficSignBuilder builder(unknown_signal, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
   auto traffic_sign = builder();
   ASSERT_NE(traffic_sign, nullptr);
   EXPECT_EQ(maliput::api::rules::TrafficSignType::kUnknown, traffic_sign->type());

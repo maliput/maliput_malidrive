@@ -245,7 +245,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
   EXPECT_EQ(dut.fingerprint.subtype, "30");
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "No overtaking sign");
-  EXPECT_EQ(dut.device_type, "traffic_sign");
+  EXPECT_EQ(dut.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficSign);
   EXPECT_EQ(dut.device_semantics, "no_overtaking");
 
   EXPECT_EQ(dut.bulbs.size(), 0);
@@ -267,7 +267,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateSignalType1000001) {
   EXPECT_EQ(dut.fingerprint.subtype, std::nullopt);
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "Standard three-bulb vertical traffic light");
-  EXPECT_EQ(dut.device_type, "traffic_light");
+  EXPECT_EQ(dut.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficLight);
   EXPECT_FALSE(dut.device_semantics.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 3);
@@ -301,7 +301,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
   EXPECT_EQ(dut.fingerprint.type, "1000011");
   EXPECT_EQ(dut.fingerprint.subtype, "10");
   EXPECT_EQ(dut.description, "Traffic light with arrow");
-  EXPECT_EQ(dut.device_type, "traffic_light");
+  EXPECT_EQ(dut.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficLight);
   EXPECT_FALSE(dut.device_semantics.has_value());
 
   EXPECT_EQ(dut.bulbs.size(), 1);
@@ -323,7 +323,7 @@ TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
 
   EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
   EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
-  EXPECT_EQ(dut.device_type, "traffic_light");
+  EXPECT_EQ(dut.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficLight);
 
   EXPECT_EQ(dut.bulbs.size(), 1);
 
@@ -358,7 +358,7 @@ GTEST_TEST(RepeatedTrafficControlDeviceParserTest, RepeatedFingerprintOverwrites
   EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
   const auto& definition = signal_definitions.at(fingerprint);
   EXPECT_EQ(definition.description, "Single green bulb traffic light");
-  EXPECT_EQ(definition.device_type, "traffic_light");
+  EXPECT_EQ(definition.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficLight);
   EXPECT_EQ(definition.bulbs.size(), 1);
   EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
 }

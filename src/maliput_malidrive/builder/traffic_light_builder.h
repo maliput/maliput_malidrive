@@ -50,14 +50,12 @@ namespace builder {
 /// inputs and call @ref operator()() to produce the result.
 ///
 /// When no matching @ref traffic_control_device::TrafficControlDeviceDefinition is found in
-/// the loader for the given signal's type/subtype/country fingerprint, the
-/// builder returns nullptr. Callers are responsible for checking the return
-/// value.
+/// the loader for the given signal's type/subtype/country fingerprint, or when
+/// the definition's @ref traffic_control_device::TrafficControlDeviceType is not
+/// @ref traffic_control_device::TrafficControlDeviceType::kTrafficLight, the builder
+/// returns nullptr.
 class TrafficLightBuilder {
  public:
-  /// The device_type value that identifies a traffic light in the YAML database.
-  static constexpr const char* kTrafficLightDeviceType = "traffic_light";
-
   /// Constructs a TrafficLightBuilder.
   ///
   /// @param signal The XODR signal to build a @ref maliput::api::rules::TrafficLight from.

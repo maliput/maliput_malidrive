@@ -96,6 +96,14 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   }
   const auto& definition = definition_opt.value();
 
+  // Only build TrafficSign objects for signals whose database device_type is kTrafficSign.
+  if (definition.device_type != traffic_control_device::TrafficControlDeviceType::kTrafficSign) {
+    maliput::log()->debug("TrafficSignBuilder: signal id='", signal_.id.string(), "' has device_type='",
+                          traffic_control_device::TrafficControlDeviceTypeToString(definition.device_type),
+                          "', expected 'traffic_sign'. Skipping TrafficSign creation.");
+    return nullptr;
+  }
+
   const auto sign_meaning = MapSignTypeString(definition.device_semantics.value_or("other"));
   if (sign_meaning == maliput::api::rules::TrafficSignType::kUnknown) {
     maliput::log()->debug("TrafficSignBuilder: unrecognized device_semantics='",
