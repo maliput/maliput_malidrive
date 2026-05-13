@@ -131,7 +131,7 @@ struct TrafficControlDeviceDefinition {
   /// Required field; validated at parse time — kUnknown is rejected with a parser error.
   TrafficControlDeviceType device_type{TrafficControlDeviceType::kUnknown};
   /// Optional device semantics string (e.g. "stop", "give_way", "no_overtaking").
-  /// Read from properties.device_semantics. Defaults to "other" when absent.
+  /// Read from properties.device_semantics.
   std::optional<std::string> device_semantics;
   /// Whether the device position is dynamic (moveable). Defaults to false.
   bool is_position_dynamic{false};

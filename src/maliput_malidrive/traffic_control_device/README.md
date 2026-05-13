@@ -1,6 +1,6 @@
 # Traffic Control Device database parser
 
-This directory contains a C++ parser and supporting utilities that read and validate YAML-based traffic device definitions to create maliput traffic control devices objects such as `TrafficLight`s and `TrafficSign`s.
+This directory contains a C++ parser and supporting utilities that read and validate YAML-based traffic device definitions to create maliput traffic control devices such as `TrafficLight`s and `TrafficSign`s.
 
 ## Overview
 
@@ -37,7 +37,7 @@ Each YAML file in this directory should define a list of signal types under the 
     type: "1000001"           # Signal type identifier (must match XODR signal type)
     subtype: "-1"             # Optional: signal subtype ("-1" / "none" treated as absent)
     country: "OpenDRIVE"      # Optional: country code or standard
-    countryRevision: null     # Optional: country standard revision
+    country_revision: null     # Optional: country standard revision
   properties:
     device_type: traffic_light  # Required: "traffic_light" or "traffic_sign"
     device_semantics: stop      # Optional: semantic meaning for traffic signs
