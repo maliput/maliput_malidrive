@@ -29,6 +29,7 @@
 #include "maliput_malidrive/traffic_control_device/device_type.h"
 
 #include <algorithm>
+#include <cctype>
 #include <unordered_map>
 
 #include <maliput/common/maliput_hash.h>

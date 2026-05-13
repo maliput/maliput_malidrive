@@ -29,6 +29,7 @@
 #include "maliput_malidrive/builder/traffic_sign_type_mapper.h"
 
 #include <algorithm>
+#include <cctype>
 #include <unordered_map>
 
 #include <maliput/common/maliput_hash.h>
