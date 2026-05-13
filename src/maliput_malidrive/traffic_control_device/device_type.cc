@@ -26,7 +26,7 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/builder/traffic_sign_type_mapper.h"
+#include "maliput_malidrive/traffic_control_device/device_type.h"
 
 #include <algorithm>
 #include <cctype>
@@ -35,33 +35,30 @@
 #include <maliput/common/maliput_hash.h>
 
 namespace malidrive {
-namespace builder {
+namespace traffic_control_device {
 
-maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& device_semantics) {
-  using T = maliput::api::rules::TrafficSignType;
+TrafficControlDeviceType StringToTrafficControlDeviceType(const std::string& device_type_str) {
+  using T = TrafficControlDeviceType;
   static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"stop", T::kStop},
-      {"yield", T::kYield},
-      {"speed_limit", T::kSpeedLimit},
-      {"no_entry", T::kNoEntry},
-      {"one_way", T::kOneWay},
-      {"pedestrian_crossing", T::kPedestrianCrossing},
-      {"no_left_turn", T::kNoLeftTurn},
-      {"no_right_turn", T::kNoRightTurn},
-      {"no_u_turn", T::kNoUTurn},
-      {"school_zone", T::kSchoolZone},
-      {"construction", T::kConstruction},
-      {"railroad_crossing", T::kRailroadCrossing},
-      {"no_overtaking", T::kNoOvertaking},
-      {"give_way", T::kYield},
-      {"speed_limit_begin", T::kSpeedLimit},
-      {"crosswalk", T::kPedestrianCrossing},
+      {"traffic_light", T::kTrafficLight},
+      {"traffic_sign", T::kTrafficSign},
   };
-  std::string lower = device_semantics;
+  std::string lower = device_type_str;
   std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
   const auto it = kMapper.find(lower);
   return it != kMapper.end() ? it->second : T::kUnknown;
 }
 
-}  // namespace builder
+const char* TrafficControlDeviceTypeToString(TrafficControlDeviceType device_type) {
+  switch (device_type) {
+    case TrafficControlDeviceType::kTrafficLight:
+      return "traffic_light";
+    case TrafficControlDeviceType::kTrafficSign:
+      return "traffic_sign";
+    default:
+      return "unknown";
+  }
+}
+
+}  // namespace traffic_control_device
 }  // namespace malidrive

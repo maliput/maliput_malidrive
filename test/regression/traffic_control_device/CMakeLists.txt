@@ -10,6 +10,7 @@ set(TEST_TYPE UNIT)
 ##############################################################################
 
 set(UNIT_TEST_TRAFFIC_SIGNAL_SOURCES
+  device_type_test.cc
   parser_test.cc
 )
 

@@ -54,7 +54,7 @@ struct TrafficSignalBooks {
 /// Compared to the alternative design (separate `TrafficLightBookBuilder` /
 /// `TrafficSignBookBuilder`), this builder:
 ///  - Parses the YAML database exactly once.
-///  - Routes each XODR signal to the right book using the `sign_type` field of
+///  - Routes each XODR signal to the right book using the `device_type` field of
 ///    the matching @ref traffic_control_device::TrafficControlDeviceDefinition:
 ///      - `"traffic_light"` → @ref maliput::api::rules::TrafficLight
 ///        added to the TrafficLightBook.

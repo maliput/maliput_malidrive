@@ -111,18 +111,20 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
         refs = refs_it->second;
       }
 
-      if (definition.sign_type == TrafficLightBuilder::kTrafficLightSignType) {
-        auto tl = TrafficLightBuilder(signal, road_id, loader, road_geometry_, refs)();
+      if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kTrafficLight) {
+        auto tl = TrafficLightBuilder(signal, road_id, loader, road_geometry_, std::move(refs))();
         if (tl) {
           auto* tlb_impl = dynamic_cast<maliput::TrafficLightBook*>(tlb.get());
           tlb_impl->AddTrafficLight(std::move(tl));
         }
-      } else {
-        // Static traffic sign.
+      } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kTrafficSign) {
         auto ts = TrafficSignBuilder(signal, road_id, loader, road_geometry_, std::move(refs))();
         if (ts) {
           tsb->AddTrafficSign(std::move(ts));
         }
+      } else {
+        maliput::log()->debug("TrafficSignalBooksBuilder: definition for signal id='", signal.id.string(),
+                              "' has unrecognized device type. Skipping.");
       }
     }
   }

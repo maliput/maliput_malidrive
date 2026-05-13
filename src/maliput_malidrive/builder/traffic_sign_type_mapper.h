@@ -35,7 +35,7 @@
 namespace malidrive {
 namespace builder {
 
-/// Maps a sign_type string from the YAML traffic signal database to a
+/// Maps a device_semantics string from the YAML traffic control device database to a
 /// @ref maliput::api::rules::TrafficSignType enum.
 ///
 /// The comparison is case-insensitive: "Stop", "STOP", and "stop" all
@@ -43,9 +43,9 @@ namespace builder {
 ///
 /// Any unrecognized string (including "traffic_light") maps to kUnknown.
 ///
-/// @param sign_type_str The sign_type value from the YAML database.
+/// @param device_semantics The device_semantics value from the YAML database.
 /// @returns The corresponding TrafficSignType, or kUnknown if not recognized.
-maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& sign_type_str);
+maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& device_semantics);
 
 }  // namespace builder
 }  // namespace malidrive

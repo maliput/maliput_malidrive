@@ -54,14 +54,14 @@ namespace params {
 /// Parameters related to the creation of the RoadGeometry can be seen at @ref road_geometry_configuration_builder_keys.
 ///
 /// Parameters for passing filepath to road rulebook, rule registry, traffic light book, phase ring book, intersection
-/// book and traffic signal database are listed below.
+/// book and traffic control device database are listed below.
 /// @{
 
 /// Path to the configuration file to load a RoadRulebook
 ///   - Default: ""
 static constexpr char const* kRoadRuleBook{"road_rule_book"};
 
-/// Path to the configuration file to load a RoadRulebook
+/// Path to the configuration file to load a RuleRegistry
 ///   - Default: ""
 static constexpr char const* kRuleRegistry{"rule_registry"};
 

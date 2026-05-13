@@ -2,9 +2,10 @@
 # Malidrive traffic signal
 ##############################################################################
 add_library(traffic_control_device
+  device_type.cc
+  parser.cc
   traffic_control_device_database_loader.cc
   yaml_helper.cc
-  parser.cc
 )
 add_library(maliput_malidrive::traffic_control_device ALIAS traffic_control_device)
 set_target_properties(traffic_control_device

@@ -39,6 +39,8 @@
 #include <maliput/math/quaternion.h>
 #include <maliput/math/vector.h>
 
+#include "maliput_malidrive/traffic_control_device/device_type.h"
+
 namespace malidrive {
 namespace traffic_control_device {
 
@@ -125,39 +127,55 @@ struct TrafficControlDeviceDefinition {
   TrafficControlDeviceFingerprint fingerprint;
   /// Human-readable description of this signal definition.
   std::string description;
-  /// Type of traffic signal. Defaults to "traffic_light" when not specified in the YAML database.
-  /// Use a different value (e.g. "stop", "yield") to identify static traffic signs.
-  std::string sign_type;
-  /// Bulbs in this traffic signal.
+  /// Device category parsed from the `device_type` field in the YAML database `properties` section.
+  /// Required field; validated at parse time — kUnknown is rejected with a parser error.
+  TrafficControlDeviceType device_type{TrafficControlDeviceType::kUnknown};
+  /// Optional device semantics string (e.g. "stop", "give_way", "no_overtaking").
+  /// Read from properties.device_semantics.
+  std::optional<std::string> device_semantics;
+  /// Whether the device position is dynamic (moveable). Defaults to false.
+  bool is_position_dynamic{false};
+  /// Optional device-level bounding box. When set, represents the overall device dimensions.
+  /// Individual bulbs may still carry their own per-bulb bounding boxes.
+  std::optional<maliput::api::rules::Bulb::BoundingBox> default_bounding_box;
+  /// Bulbs in this traffic signal (only relevant when device_type == "traffic_light").
   std::vector<BulbDefinition> bulbs;
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
   std::vector<RuleState> rule_states;
 
   bool operator==(const TrafficControlDeviceDefinition& other) const {
-    return fingerprint == other.fingerprint && description == other.description && sign_type == other.sign_type &&
-           bulbs == other.bulbs && rule_states == other.rule_states;
+    const bool bbox_equal =
+        (default_bounding_box.has_value() == other.default_bounding_box.has_value()) &&
+        (!default_bounding_box.has_value() || (default_bounding_box->p_BMin == other.default_bounding_box->p_BMin &&
+                                               default_bounding_box->p_BMax == other.default_bounding_box->p_BMax));
+    return fingerprint == other.fingerprint && description == other.description && device_type == other.device_type &&
+           device_semantics == other.device_semantics && is_position_dynamic == other.is_position_dynamic &&
+           bbox_equal && bulbs == other.bulbs && rule_states == other.rule_states;
   }
   bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };
 
-/// Traffic signal parser that loads traffic signal definitions from a YAML database. These are then
-/// used in tandem with XODR signal data to create maliput TrafficLights and associated Right-Of-Way rules.
+/// Parser that loads traffic control device definitions from a YAML database using the `odr_signal_types`
+/// schema. The resulting definitions are used in tandem with XODR signal data to create maliput
+/// `TrafficLight` and `TrafficSign` objects.
 ///
 /// Design:
-/// - TrafficLights and DiscreteValueRules are independent systems that operate in parallel.
-/// - Both are created from the same XODR signal, but are not formally linked.
-/// - TrafficLights provide visual representation (bulbs with states).
-/// - DiscreteValueRules provide Right-Of-Way behavior (discrete values mapped to bulb states).
-/// - They are synchronized externally: when rule states change, bulb states change.
+/// - Each definition carries a `device_type` field that determines whether a `TrafficLight` or
+///   `TrafficSign` is created for a given XODR signal.
+/// - For traffic lights: `TrafficLight` is created with its bulbs and associated rule states.
+/// - For traffic signs: a `TrafficSign` is created with its type derived from the `device_semantics` field.
 ///
 /// Workflow:
-/// 1. Load signal database: TrafficControlDeviceParser::LoadFromFile().
-/// 2. For each signal in XODR, extract its type/subtype and look up signal definition.
-/// 3. Create traffic light: TrafficControlDeviceParser::CreateTrafficLight().
-/// 4. Create rules (one per affected lane/road): TrafficControlDeviceParser::CreateRules().
+/// 1. Load the device database: `TrafficControlDeviceParser::LoadFromFile()` or `LoadFromString()`.
+/// 2. For each signal in the XODR file, match its `type`/`subtype`/`country`/`country_revision`
+///    against a loaded `TrafficControlDeviceFingerprint`.
+/// 3. Inspect `device_type` to route the signal to the appropriate builder:
+///    - `"traffic_light"` → build a `TrafficLight`.
+///    - `"traffic_sign"`  → build a `TrafficSign` whose type is mapped from `device_semantics`.
+/// 4. Link the resulting objects to their affected lanes using signal validity data from the XODR file.
 class TrafficControlDeviceParser {
  public:
-  /// Loads a traffic signal database from a YAML string.
+  /// Loads a traffic control device database from a YAML string.
   ///
   /// @param yaml_content The YAML content as a string.
   /// @return Map of signal identifiers to their definitions.
@@ -165,7 +183,7 @@ class TrafficControlDeviceParser {
   static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromString(
       const std::string& yaml_content);
 
-  /// Loads a traffic signal database from a YAML file.
+  /// Loads a traffic control device database from a YAML file.
   ///
   /// @param file_path Path to the YAML database file.
   /// @return Map of signal identifiers to their definitions.

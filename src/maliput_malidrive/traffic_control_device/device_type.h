@@ -26,42 +26,45 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#include "maliput_malidrive/builder/traffic_sign_type_mapper.h"
+#pragma once
 
-#include <algorithm>
-#include <cctype>
-#include <unordered_map>
-
-#include <maliput/common/maliput_hash.h>
+#include <string>
 
 namespace malidrive {
-namespace builder {
+namespace traffic_control_device {
 
-maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& device_semantics) {
-  using T = maliput::api::rules::TrafficSignType;
-  static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"stop", T::kStop},
-      {"yield", T::kYield},
-      {"speed_limit", T::kSpeedLimit},
-      {"no_entry", T::kNoEntry},
-      {"one_way", T::kOneWay},
-      {"pedestrian_crossing", T::kPedestrianCrossing},
-      {"no_left_turn", T::kNoLeftTurn},
-      {"no_right_turn", T::kNoRightTurn},
-      {"no_u_turn", T::kNoUTurn},
-      {"school_zone", T::kSchoolZone},
-      {"construction", T::kConstruction},
-      {"railroad_crossing", T::kRailroadCrossing},
-      {"no_overtaking", T::kNoOvertaking},
-      {"give_way", T::kYield},
-      {"speed_limit_begin", T::kSpeedLimit},
-      {"crosswalk", T::kPedestrianCrossing},
-  };
-  std::string lower = device_semantics;
-  std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
-  const auto it = kMapper.find(lower);
-  return it != kMapper.end() ? it->second : T::kUnknown;
-}
+/// Identifies the category of a traffic control device.
+///
+/// Parsed from the `device_type` field of the YAML database `properties` section.
+enum class TrafficControlDeviceType {
+  kTrafficLight,  ///< Device is a traffic light ("traffic_light").
+  kTrafficSign,   ///< Device is a traffic sign ("traffic_sign").
+  kUnknown,       ///< Unrecognized or missing device_type value.
+};
 
-}  // namespace builder
+/// Converts a `device_type` string from the YAML database to a
+/// @ref TrafficControlDeviceType enum value.
+///
+/// Recognized values (case-insensitive):
+///   - `"traffic_light"` → `kTrafficLight`
+///   - `"traffic_sign"`  → `kTrafficSign`
+///
+/// Any other string maps to `kUnknown`.
+///
+/// @param device_type_str  The `device_type` string from the YAML `properties` section.
+/// @returns The corresponding @ref TrafficControlDeviceType.
+TrafficControlDeviceType StringToTrafficControlDeviceType(const std::string& device_type_str);
+
+/// Converts a @ref TrafficControlDeviceType enum value back to its canonical
+/// YAML string representation.
+///
+///   - `kTrafficLight` → `"traffic_light"`
+///   - `kTrafficSign`  → `"traffic_sign"`
+///   - `kUnknown`      → `"unknown"`
+///
+/// @param device_type  The @ref TrafficControlDeviceType to convert.
+/// @returns The corresponding string.
+const char* TrafficControlDeviceTypeToString(TrafficControlDeviceType device_type);
+
+}  // namespace traffic_control_device
 }  // namespace malidrive

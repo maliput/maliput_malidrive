@@ -38,14 +38,24 @@
 namespace malidrive {
 namespace traffic_control_device {
 
-/// Constants for traffic signal description YAML fields.
+/// Constants for traffic control device description YAML fields.
 struct TrafficControlDeviceConstants {
+  // Root-level keys.
+  static constexpr const char* kOdrSignalTypes = "odr_signal_types";
+  // Entry-level structural keys.
+  static constexpr const char* kOdrRepresentation = "odr_representation";
+  static constexpr const char* kProperties = "properties";
+  // odr_representation fields.
   static constexpr const char* kType = "type";
   static constexpr const char* kSubtype = "subtype";
   static constexpr const char* kCountry = "country";
   static constexpr const char* kCountryRevision = "country_revision";
+  // properties fields.
+  static constexpr const char* kDeviceType = "device_type";
+  static constexpr const char* kDeviceSemantics = "device_semantics";
+  static constexpr const char* kIsPositionDynamic = "is_position_dynamic";
+  static constexpr const char* kDefaultBoundingBox = "default_bounding_box";
   static constexpr const char* kDescription = "description";
-  static constexpr const char* kSignType = "sign_type";
   static constexpr const char* kBulbs = "bulbs";
   static constexpr const char* kRuleStates = "rule_states";
 };
@@ -70,13 +80,13 @@ struct BoundingBoxConstants {
 
 /// Constants for rule state YAML fields.
 struct RuleStateConstants {
-  static constexpr const char* kCondition = "condition";
+  static constexpr const char* kConditions = "conditions";
   static constexpr const char* kValue = "value";
 };
 
 /// Constants for bulb state condition YAML fields.
 struct BulbStateConditionConstants {
-  static constexpr const char* kBulb = "bulb";
+  static constexpr const char* kBulbId = "bulb_id";
   static constexpr const char* kState = "state";
 };
 
