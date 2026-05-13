@@ -112,7 +112,7 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
       }
 
       if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kTrafficLight) {
-        auto tl = TrafficLightBuilder(signal, road_id, loader, road_geometry_, refs)();
+        auto tl = TrafficLightBuilder(signal, road_id, loader, road_geometry_, std::move(refs))();
         if (tl) {
           auto* tlb_impl = dynamic_cast<maliput::TrafficLightBook*>(tlb.get());
           tlb_impl->AddTrafficLight(std::move(tl));
