@@ -175,7 +175,7 @@ struct TrafficControlDeviceDefinition {
 /// 4. Link the resulting objects to their affected lanes using signal validity data from the XODR file.
 class TrafficControlDeviceParser {
  public:
-  /// Loads a traffic signal database from a YAML string.
+  /// Loads a traffic control device database from a YAML string.
   ///
   /// @param yaml_content The YAML content as a string.
   /// @return Map of signal identifiers to their definitions.
@@ -183,7 +183,7 @@ class TrafficControlDeviceParser {
   static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromString(
       const std::string& yaml_content);
 
-  /// Loads a traffic signal database from a YAML file.
+  /// Loads a traffic control device database from a YAML file.
   ///
   /// @param file_path Path to the YAML database file.
   /// @return Map of signal identifiers to their definitions.

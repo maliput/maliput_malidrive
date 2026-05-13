@@ -87,7 +87,7 @@ The `device_semantics` matching is **case-insensitive**: `"No_Entry"`, `"NO_ENTR
 
 #### Signal Fingerprint Matching
 
-Each signal definition in the database is uniquely identified by a **fingerprint** composed of four fields:
+Each signal definition in the database is uniquely identified by a **fingerprint** composed of the following fields:
 
 | Field              | Required | Description                                |
 | ------------------ | -------- | ------------------------------------------ |
@@ -96,7 +96,7 @@ Each signal definition in the database is uniquely identified by a **fingerprint
 | `country`          | No       | Country code or standard                   |
 | `country_revision` | No       | Country standard revision                  |
 
-Only `type` is mandatory; `subtype`, `country`, and `country_revision` may be omitted (treated as null). When the parser looks up an XODR signal in the database, all four fields are compared — omitted fields match only when the corresponding database entry also leaves them unset. This means two entries that share the same `type` but differ in any optional field (present vs. absent, or different values) are considered distinct definitions.
+Only `type` is mandatory; `subtype`, `country`, and `country_revision` may be omitted (treated as null). When the parser looks up an XODR signal in the database, all fields are compared — omitted fields match only when the corresponding database entry also leaves them unset. This means two entries that share the same `type` but differ in any optional field (present vs. absent, or different values) are considered distinct definitions.
 
 ### Bulbs
 
@@ -167,7 +167,7 @@ See `resources/traffic_control_device_db/traffic_control_device_db_example.yaml`
 A parser loading these files should:
 
 1. Load the YAML file
-2. For each signal in the XODR file with type/subtype/country/country_revision/name matching a database entry:
+2. For each signal in the XODR file with type/subtype/country/country_revision matching a database entry:
    - Check the `device_type` to know whether to create a maliput `maliput::api::rules::TrafficLight` or `maliput::api::rules::TrafficSign`
    - If it is a `maliput::api::rules::TrafficSign`, assign its type by mapping the `device_semantics` field
    - If it is a `maliput::api::rules::TrafficLight`, load its bulb structure

@@ -38,7 +38,7 @@
 namespace malidrive {
 namespace traffic_control_device {
 
-/// Constants for traffic signal description YAML fields.
+/// Constants for traffic control device description YAML fields.
 struct TrafficControlDeviceConstants {
   // Root-level keys.
   static constexpr const char* kOdrSignalTypes = "odr_signal_types";
