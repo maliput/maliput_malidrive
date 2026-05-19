@@ -92,6 +92,7 @@ TrafficSignalBooks TrafficSignalBooksBuilder::operator()() const {
           }(),
           signal.country,
           signal.country_revision,
+          signal.name,
       };
 
       const auto definition_opt = loader.Lookup(fingerprint);

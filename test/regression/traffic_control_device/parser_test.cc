@@ -884,6 +884,7 @@ odr_signal_types:
       subtype: "*"
       country: "*"
       country_revision: "*"
+      name: "*"
     properties:
       device_type: traffic_sign
       device_semantics: generic
@@ -990,76 +991,157 @@ GTEST_TEST(WildcardParsingTest, AllFieldsStoredAsLiteralAsterisk) {
   EXPECT_EQ(defs[0].fingerprint.subtype, "*");
   EXPECT_EQ(defs[0].fingerprint.country, "*");
   EXPECT_EQ(defs[0].fingerprint.country_revision, "*");
+  EXPECT_EQ(defs[0].fingerprint.name, "*");
 }
 
 GTEST_TEST(SpecificityCalculationTest, AllConcrete) {
   const TrafficControlDeviceFingerprint fp{
-      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = "2020"};
-  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 4);
+      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = "2020", .name = "TrafficLight"};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 5);
 }
 
 GTEST_TEST(SpecificityCalculationTest, AllWildcards) {
-  const TrafficControlDeviceFingerprint fp{.type = "*", .subtype = "*", .country = "*", .country_revision = "*"};
+  const TrafficControlDeviceFingerprint fp{
+      .type = "*", .subtype = "*", .country = "*", .country_revision = "*", .name = "*"};
   EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 0);
 }
 
 GTEST_TEST(SpecificityCalculationTest, NulloptIsSpecific) {
-  const TrafficControlDeviceFingerprint fp{
-      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
-  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 4);
+  const TrafficControlDeviceFingerprint fp{.type = "1000001",
+                                           .subtype = std::nullopt,
+                                           .country = std::nullopt,
+                                           .country_revision = std::nullopt,
+                                           .name = std::nullopt};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 5);
 }
 
 GTEST_TEST(SpecificityCalculationTest, Mixed) {
-  // type concrete, subtype wildcard, country concrete, country_revision nullopt -> 3
-  const TrafficControlDeviceFingerprint fp{
-      .type = "1000001", .subtype = "*", .country = "OpenDRIVE", .country_revision = std::nullopt};
-  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 3);
+  // type concrete, subtype wildcard, country concrete, country_revision nullopt, name nullopt -> 4
+  const TrafficControlDeviceFingerprint fp{.type = "1000001",
+                                           .subtype = "*",
+                                           .country = "OpenDRIVE",
+                                           .country_revision = std::nullopt,
+                                           .name = std::nullopt};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 4);
 }
 
 GTEST_TEST(MatchingLogicTest, ExactMatchReturnsTrue) {
-  const TrafficControlDeviceFingerprint db_entry{
-      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query{
-      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint db_entry{.type = "1000001",
+                                                 .subtype = "10",
+                                                 .country = "OpenDRIVE",
+                                                 .country_revision = std::nullopt,
+                                                 .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "1000001",
+                                              .subtype = "10",
+                                              .country = "OpenDRIVE",
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query));
 }
 
 GTEST_TEST(MatchingLogicTest, WildcardTypeMatchesAny) {
-  const TrafficControlDeviceFingerprint db_entry{
-      .type = "*", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query{
-      .type = "anything", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint db_entry{.type = "*",
+                                                 .subtype = std::nullopt,
+                                                 .country = std::nullopt,
+                                                 .country_revision = std::nullopt,
+                                                 .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "anything",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query));
 }
 
 GTEST_TEST(MatchingLogicTest, WildcardSubtypeMatchesPresentAndNullopt) {
-  const TrafficControlDeviceFingerprint db_entry{
-      .type = "1000001", .subtype = "*", .country = std::nullopt, .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query_with_subtype{
-      .type = "1000001", .subtype = "10", .country = std::nullopt, .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query_nullopt_subtype{
-      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint db_entry{.type = "1000001",
+                                                 .subtype = "*",
+                                                 .country = std::nullopt,
+                                                 .country_revision = std::nullopt,
+                                                 .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query_with_subtype{.type = "1000001",
+                                                           .subtype = "10",
+                                                           .country = std::nullopt,
+                                                           .country_revision = std::nullopt,
+                                                           .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query_nullopt_subtype{.type = "1000001",
+                                                              .subtype = "10",
+                                                              .country = std::nullopt,
+                                                              .country_revision = std::nullopt,
+                                                              .name = std::nullopt};
   EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_with_subtype));
   EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_nullopt_subtype));
 }
 
 GTEST_TEST(MatchingLogicTest, NulloptSubtypeOnlyMatchesNullopt) {
-  const TrafficControlDeviceFingerprint db_entry{
-      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query_nullopt{
-      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query_concrete{
-      .type = "1000001", .subtype = "10", .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint db_entry{.type = "1000001",
+                                                 .subtype = std::nullopt,
+                                                 .country = std::nullopt,
+                                                 .country_revision = std::nullopt,
+                                                 .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query_nullopt{.type = "1000001",
+                                                      .subtype = std::nullopt,
+                                                      .country = std::nullopt,
+                                                      .country_revision = std::nullopt,
+                                                      .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query_concrete{.type = "1000001",
+                                                       .subtype = "10",
+                                                       .country = std::nullopt,
+                                                       .country_revision = std::nullopt,
+                                                       .name = std::nullopt};
   EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_nullopt));
   EXPECT_FALSE(TrafficControlDeviceParser::Matches(db_entry, query_concrete));
 }
 
 GTEST_TEST(MatchingLogicTest, ConcreteMismatchReturnsFalse) {
-  const TrafficControlDeviceFingerprint db_entry{
-      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
-  const TrafficControlDeviceFingerprint query{
-      .type = "1000002", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint db_entry{.type = "1000001",
+                                                 .subtype = "10",
+                                                 .country = "OpenDRIVE",
+                                                 .country_revision = std::nullopt,
+                                                 .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "1000002",
+                                              .subtype = "10",
+                                              .country = "OpenDRIVE",
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   EXPECT_FALSE(TrafficControlDeviceParser::Matches(db_entry, query));
+}
+
+GTEST_TEST(MatchingLogicTest, WildcardNameMatchesPresentAndNullopt) {
+  const TrafficControlDeviceFingerprint db_entry{.type = "1000001",
+                                                 .subtype = std::nullopt,
+                                                 .country = std::nullopt,
+                                                 .country_revision = std::nullopt,
+                                                 .name = "*"};
+  const TrafficControlDeviceFingerprint query_with_name{.type = "1000001",
+                                                        .subtype = std::nullopt,
+                                                        .country = std::nullopt,
+                                                        .country_revision = std::nullopt,
+                                                        .name = "stop_sign"};
+  const TrafficControlDeviceFingerprint query_nullopt_name{
+      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_with_name));
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_nullopt_name));
+}
+
+GTEST_TEST(MatchingLogicTest, NulloptNameOnlyMatchesNullopt) {
+  const TrafficControlDeviceFingerprint db_entry{.type = "1000001",
+                                                 .subtype = std::nullopt,
+                                                 .country = std::nullopt,
+                                                 .country_revision = std::nullopt,
+                                                 .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query_nullopt{.type = "1000001",
+                                                      .subtype = std::nullopt,
+                                                      .country = std::nullopt,
+                                                      .country_revision = std::nullopt,
+                                                      .name = std::nullopt};
+  const TrafficControlDeviceFingerprint query_with_name{.type = "1000001",
+                                                        .subtype = std::nullopt,
+                                                        .country = std::nullopt,
+                                                        .country_revision = std::nullopt,
+                                                        .name = "stop_sign"};
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_nullopt));
+  EXPECT_FALSE(TrafficControlDeviceParser::Matches(db_entry, query_with_name));
 }
 
 GTEST_TEST(ConflictDetectionTest, EqualSpecificityOverlapThrows) {
@@ -1073,8 +1155,11 @@ GTEST_TEST(ConflictDetectionTest, DifferentSpecificityOverlapDoesNotThrow) {
 
 GTEST_TEST(WildcardLookupTest, ExactMatchPreferredOverWildcard) {
   const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
-  const TrafficControlDeviceFingerprint query{
-      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "1000001",
+                                              .subtype = "10",
+                                              .country = "OpenDRIVE",
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   const auto result = loader.Lookup(query);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "exact_match");
@@ -1082,8 +1167,11 @@ GTEST_TEST(WildcardLookupTest, ExactMatchPreferredOverWildcard) {
 
 GTEST_TEST(WildcardLookupTest, PartialWildcardPreferredOverCatchAll) {
   const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
-  const TrafficControlDeviceFingerprint query{
-      .type = "1000001", .subtype = "99", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "1000001",
+                                              .subtype = "99",
+                                              .country = "OpenDRIVE",
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   const auto result = loader.Lookup(query);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "partial_wildcard");
@@ -1091,8 +1179,11 @@ GTEST_TEST(WildcardLookupTest, PartialWildcardPreferredOverCatchAll) {
 
 GTEST_TEST(WildcardLookupTest, FallbackToCatchAll) {
   const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
-  const TrafficControlDeviceFingerprint query{
-      .type = "9999999", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "9999999",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   const auto result = loader.Lookup(query);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "catch_all");
@@ -1100,19 +1191,54 @@ GTEST_TEST(WildcardLookupTest, FallbackToCatchAll) {
 
 GTEST_TEST(WildcardLookupTest, NoMatchReturnsNullopt) {
   const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kTrafficControlDeviceDb);
-  const TrafficControlDeviceFingerprint query{
-      .type = "9999999", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{.type = "9999999",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = std::nullopt};
   const auto result = loader.Lookup(query);
   EXPECT_FALSE(result.has_value());
 }
 
 GTEST_TEST(WildcardLookupTest, CatchAllMatchesAnyQuery) {
   const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardParsingDb);
-  const TrafficControlDeviceFingerprint query{
-      .type = "any_type", .subtype = "any_subtype", .country = "any_country", .country_revision = "rev1"};
+  const TrafficControlDeviceFingerprint query{.type = "any_type",
+                                              .subtype = "any_subtype",
+                                              .country = "any_country",
+                                              .country_revision = "rev1",
+                                              .name = "any_name"};
   const auto result = loader.Lookup(query);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "generic");
+}
+
+GTEST_TEST(WildcardLookupTest, ConcreteNameWinsOverWildcardName) {
+  const char kNameLookupDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      name: "stop_sign"
+    properties:
+      device_type: traffic_sign
+      device_semantics: concrete_name
+      description: "Concrete name entry"
+      bulbs: []
+      rule_states: []
+  - odr_representation:
+      type: "1000001"
+      name: "*"
+    properties:
+      device_type: traffic_sign
+      device_semantics: wildcard_name
+      description: "Wildcard name entry"
+      bulbs: []
+      rule_states: []
+)";
+  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kNameLookupDb);
+  const TrafficControlDeviceFingerprint query{.type = "1000001", .name = "stop_sign"};
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->device_semantics, "concrete_name");
 }
 
 }  // namespace

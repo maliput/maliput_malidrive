@@ -28,11 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include <maliput/api/rules/traffic_lights.h>
@@ -113,10 +111,12 @@ struct TrafficControlDeviceFingerprint {
   std::optional<std::string> country;
   /// Optional country standard revision.
   std::optional<std::string> country_revision;
+  /// Optional signal name. Matches XODR signal name attribute.
+  std::optional<std::string> name;
 
   bool operator==(const TrafficControlDeviceFingerprint& other) const {
     return type == other.type && subtype == other.subtype && country == other.country &&
-           country_revision == other.country_revision;
+           country_revision == other.country_revision && name == other.name;
   }
   bool operator!=(const TrafficControlDeviceFingerprint& other) const { return !(*this == other); }
 };
@@ -204,7 +204,7 @@ class TrafficControlDeviceParser {
 
   /// Computes the specificity of @p fp: the number of fields that are NOT wildcards.
   /// @p nullopt counts as specific (constrains to "absent"); only `"*"` is non-specific.
-  /// Returns a value in [0, 4].
+  /// Returns a value in [0, 5].
   static int Specificity(const TrafficControlDeviceFingerprint& fp);
 
   /// Returns true if @p db_entry matches @p query.
@@ -223,46 +223,3 @@ class TrafficControlDeviceParser {
 
 }  // namespace traffic_control_device
 }  // namespace malidrive
-
-namespace std {
-
-/// Hash function to use TrafficControlDeviceFingerprint as a key in unordered containers. Combines the hash of each
-/// member variable.
-template <>
-struct hash<malidrive::traffic_control_device::TrafficControlDeviceFingerprint> {
-  size_t operator()(const malidrive::traffic_control_device::TrafficControlDeviceFingerprint& f) const {
-    size_t seed = 0;
-
-    // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
-    // During the Boost formal review, Dave Harris pointed out that this suffers from the so-called
-    // "zero trap"; if seed is initially 0, and all the inputs are 0 (or hash to 0), seed remains 0 no
-    // matter how many input values are combined.
-    // This is an undesirable property, because it causes containers of zeroes to have a zero hash value
-    // regardless of their sizes.
-    // To fix this, the arbitrary constant 0x9e3779b9 (the golden ratio in a 32 bit fixed point
-    // representation) was added to the computation.
-    auto hash_combine = [&seed](const auto& v) {
-      using T = std::decay_t<decltype(v)>;
-      seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    };
-
-    // 1. Hash the mandatory string.
-    hash_combine(f.type);
-
-    // 2. Hash optionals (only if they have values, otherwise use a constant).
-    auto hash_optional = [&](const auto& opt) {
-      if (opt) {
-        hash_combine(*opt);
-      } else {
-        hash_combine(size_t(0));  // Or any sentinel value
-      }
-    };
-
-    hash_optional(f.subtype);
-    hash_optional(f.country);
-    hash_optional(f.country_revision);
-
-    return seed;
-  }
-};
-}  // namespace std

@@ -53,6 +53,7 @@ int TrafficControlDeviceParser::Specificity(const TrafficControlDeviceFingerprin
   if (!IsWildcard(fp.subtype)) ++score;
   if (!IsWildcard(fp.country)) ++score;
   if (!IsWildcard(fp.country_revision)) ++score;
+  if (!IsWildcard(fp.name)) ++score;
   return score;
 }
 
@@ -69,7 +70,8 @@ bool TrafficControlDeviceParser::Matches(const TrafficControlDeviceFingerprint& 
   };
   return field_matches(db_entry.type, query.type) && optional_field_matches(db_entry.subtype, query.subtype) &&
          optional_field_matches(db_entry.country, query.country) &&
-         optional_field_matches(db_entry.country_revision, query.country_revision);
+         optional_field_matches(db_entry.country_revision, query.country_revision) &&
+         optional_field_matches(db_entry.name, query.name);
 }
 
 bool TrafficControlDeviceParser::CanOverlap(const TrafficControlDeviceFingerprint& a,
@@ -84,7 +86,8 @@ bool TrafficControlDeviceParser::CanOverlap(const TrafficControlDeviceFingerprin
   };
   return field_can_overlap(a.type, b.type) && optional_field_can_overlap(a.subtype, b.subtype) &&
          optional_field_can_overlap(a.country, b.country) &&
-         optional_field_can_overlap(a.country_revision, b.country_revision);
+         optional_field_can_overlap(a.country_revision, b.country_revision) &&
+         optional_field_can_overlap(a.name, b.name);
 }
 
 namespace {
@@ -294,6 +297,10 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
 
   if (const auto revision = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountryRevision)) {
     tcd_definition.fingerprint.country_revision = revision;
+  }
+
+  if (const auto name = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kName)) {
+    tcd_definition.fingerprint.name = name;
   }
 
   // --- Parse properties ---
