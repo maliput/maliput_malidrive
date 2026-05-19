@@ -874,6 +874,159 @@ GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, DifferentRuleStat
 }
 
 // ---------------------------------------------------------------------------
+// IsWildcard tests
+// ---------------------------------------------------------------------------
+
+GTEST_TEST(IsWildcardStringTest, WildcardStringReturnsTrue) {
+  EXPECT_TRUE(TrafficControlDeviceParser::IsWildcard(std::string("*")));
+}
+
+GTEST_TEST(IsWildcardStringTest, NonWildcardStringReturnsFalse) {
+  EXPECT_FALSE(TrafficControlDeviceParser::IsWildcard(std::string("1000001")));
+}
+
+GTEST_TEST(IsWildcardStringTest, EmptyStringReturnsFalse) {
+  EXPECT_FALSE(TrafficControlDeviceParser::IsWildcard(std::string("")));
+}
+
+GTEST_TEST(IsWildcardOptionalTest, PresentWildcardReturnsTrue) {
+  EXPECT_TRUE(TrafficControlDeviceParser::IsWildcard(std::optional<std::string>{"*"}));
+}
+
+GTEST_TEST(IsWildcardOptionalTest, NulloptReturnsFalse) {
+  EXPECT_FALSE(TrafficControlDeviceParser::IsWildcard(std::optional<std::string>{std::nullopt}));
+}
+
+GTEST_TEST(IsWildcardOptionalTest, PresentNonWildcardReturnsFalse) {
+  EXPECT_FALSE(TrafficControlDeviceParser::IsWildcard(std::optional<std::string>{"OpenDRIVE"}));
+}
+
+// ---------------------------------------------------------------------------
+// CanOverlap tests
+// ---------------------------------------------------------------------------
+
+GTEST_TEST(CanOverlapTest, BothAllWildcardsOverlap) {
+  const TrafficControlDeviceFingerprint a{
+      .type = "*", .subtype = "*", .country = "*", .country_revision = "*", .name = "*"};
+  const TrafficControlDeviceFingerprint b{
+      .type = "*", .subtype = "*", .country = "*", .country_revision = "*", .name = "*"};
+  EXPECT_TRUE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, SameConcreteValuesOverlap) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = "10",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = "10",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, WildcardOnOneSideOverlapsConcreteOnOtherSide) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = "*",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = "10",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, WildcardOnOneSideOverlapsNulloptOnOtherSide) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = "*",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, DifferentConcreteValuesOnOneFieldNoOverlap) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = "10",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  const TrafficControlDeviceFingerprint b{.type = "9999999",
+                                          .subtype = "10",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  EXPECT_FALSE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, ConcreteVsNulloptOnSameFieldNoOverlap) {
+  // subtype = "10" vs subtype = nullopt: neither is a wildcard and they differ.
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = "10",
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = "OpenDRIVE",
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  EXPECT_FALSE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, BothNulloptOnFieldOverlap) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = std::nullopt,
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = std::nullopt,
+                                          .country_revision = std::nullopt,
+                                          .name = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, NameFieldDifferencePreventsOverlap) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = std::nullopt,
+                                          .country_revision = std::nullopt,
+                                          .name = "stop_sign"};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = std::nullopt,
+                                          .country_revision = std::nullopt,
+                                          .name = "yield_sign"};
+  EXPECT_FALSE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+GTEST_TEST(CanOverlapTest, WildcardNameOverlapsAnyName) {
+  const TrafficControlDeviceFingerprint a{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = std::nullopt,
+                                          .country_revision = std::nullopt,
+                                          .name = "*"};
+  const TrafficControlDeviceFingerprint b{.type = "1000001",
+                                          .subtype = std::nullopt,
+                                          .country = std::nullopt,
+                                          .country_revision = std::nullopt,
+                                          .name = "stop_sign"};
+  EXPECT_TRUE(TrafficControlDeviceParser::CanOverlap(a, b));
+}
+
+// ---------------------------------------------------------------------------
 // YAML fixtures for wildcard / specificity / lookup tests
 // ---------------------------------------------------------------------------
 

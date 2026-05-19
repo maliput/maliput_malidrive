@@ -196,24 +196,57 @@ class TrafficControlDeviceParser {
   /// A field set to this value matches any query value for that field.
   static constexpr char kWildcard[] = "*";
 
-  /// Returns true if @p value is the wildcard string.
+  /// Returns true if @p value equals the wildcard string `kWildcard` (`"*"`).
+  ///
+  /// @param value The string to test.
+  /// @return `true` if @p value is `"*"`, `false` otherwise.
   static bool IsWildcard(const std::string& value);
 
-  /// Returns true if @p value is present and equals the wildcard string.
+  /// Returns true if @p value is present and equals the wildcard string `kWildcard` (`"*"`).
+  ///
+  /// A `std::nullopt` argument returns `false` — absent fields are treated as specific constraints,
+  /// not as wildcards.
+  ///
+  /// @param value The optional string to test.
+  /// @return `true` if @p value holds `"*"`, `false` if it is `std::nullopt` or any other string.
   static bool IsWildcard(const std::optional<std::string>& value);
 
-  /// Computes the specificity of @p fp: the number of fields that are NOT wildcards.
-  /// @p nullopt counts as specific (constrains to "absent"); only `"*"` is non-specific.
-  /// Returns a value in [0, 5].
+  /// Computes the specificity score of @p fp: the count of fields that are NOT wildcards.
+  ///
+  /// A field contributes 1 to the score regardless of whether it is a concrete string or
+  /// `std::nullopt`. Only the literal `"*"` string is considered non-specific (contributes 0).
+  /// The score ranges from 0 (all five fields are `"*"`) to 5 (no field is `"*"`).
+  ///
+  /// @param fp The fingerprint to evaluate.
+  /// @return Integer in [0, 5] representing the number of non-wildcard fields.
   static int Specificity(const TrafficControlDeviceFingerprint& fp);
 
-  /// Returns true if @p db_entry matches @p query.
-  /// A field in @p db_entry matches the corresponding @p query field if the db_entry field is the
-  /// wildcard string or equals the query field. The @p query is expected to never contain wildcards.
+  /// Returns true if @p db_entry matches @p query for lookup purposes.
+  ///
+  /// A field in @p db_entry matches the corresponding field in @p query if:
+  ///   - the db_entry field is the wildcard `"*"` (matches any query value, including `nullopt`), or
+  ///   - both fields compare equal (including both being `std::nullopt`).
+  ///
+  /// @note @p query is expected to carry no wildcards — it is built directly from XODR signal data.
+  ///
+  /// @param db_entry A fingerprint loaded from the YAML database. May contain `"*"` wildcards.
+  /// @param query    A fingerprint built from an XODR signal. Must not contain `"*"`.
+  /// @return `true` if every field of @p db_entry matches the corresponding field of @p query.
   static bool Matches(const TrafficControlDeviceFingerprint& db_entry, const TrafficControlDeviceFingerprint& query);
 
-  /// Returns true if there exists at least one input that would match both @p a and @p b.
-  /// Per field: overlap if at least one is wildcard OR both are equal.
+  /// Returns true if there exists at least one input fingerprint that would match both @p a and @p b.
+  ///
+  /// Per-field rule: the two fingerprints can overlap on a given field if at least one of them
+  /// carries the wildcard `"*"` for that field, or both carry the same concrete value (including
+  /// both being `std::nullopt`). All five fields must satisfy this condition simultaneously for
+  /// the function to return `true`.
+  ///
+  /// This is used at database load time to detect conflicting entries that have equal specificity
+  /// and would therefore produce an ambiguous lookup result.
+  ///
+  /// @param a First fingerprint (may contain wildcards).
+  /// @param b Second fingerprint (may contain wildcards).
+  /// @return `true` if @p a and @p b can both match the same query input.
   static bool CanOverlap(const TrafficControlDeviceFingerprint& a, const TrafficControlDeviceFingerprint& b);
 
  private:
