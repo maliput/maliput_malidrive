@@ -28,16 +28,15 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include <maliput/api/rules/traffic_lights.h>
 #include <maliput/math/quaternion.h>
 #include <maliput/math/vector.h>
+#include <yaml-cpp/yaml.h>
 
 #include "maliput_malidrive/traffic_control_device/device_type.h"
 
@@ -112,10 +111,12 @@ struct TrafficControlDeviceFingerprint {
   std::optional<std::string> country;
   /// Optional country standard revision.
   std::optional<std::string> country_revision;
+  /// Optional signal name. Matches XODR signal name attribute.
+  std::optional<std::string> name;
 
   bool operator==(const TrafficControlDeviceFingerprint& other) const {
     return type == other.type && subtype == other.subtype && country == other.country &&
-           country_revision == other.country_revision;
+           country_revision == other.country_revision && name == other.name;
   }
   bool operator!=(const TrafficControlDeviceFingerprint& other) const { return !(*this == other); }
 };
@@ -178,62 +179,80 @@ class TrafficControlDeviceParser {
   /// Loads a traffic control device database from a YAML string.
   ///
   /// @param yaml_content The YAML content as a string.
-  /// @return Map of signal identifiers to their definitions.
-  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails or schema validation fails.
-  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromString(
-      const std::string& yaml_content);
+  /// @return Vector of signal definitions. Entries are validated for conflicts at load time.
+  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails, schema validation
+  ///         fails, or two entries with equal specificity overlap.
+  static std::vector<TrafficControlDeviceDefinition> LoadFromString(const std::string& yaml_content);
 
   /// Loads a traffic control device database from a YAML file.
   ///
   /// @param file_path Path to the YAML database file.
-  /// @return Map of signal identifiers to their definitions.
-  /// @throws maliput::common::road_network_description_parser_error YAML parsing or schema validation fails.
-  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromFile(
-      const std::string& yaml_file_path);
+  /// @return Vector of signal definitions. Entries are validated for conflicts at load time.
+  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails, schema validation
+  ///         fails, or two entries with equal specificity overlap.
+  static std::vector<TrafficControlDeviceDefinition> LoadFromFile(const std::string& yaml_file_path);
+
+  /// The wildcard value for traffic control device fingerprint fields.
+  /// A field set to this value matches any query value for that field.
+  static constexpr char kWildcard[] = "*";
+
+  /// Returns true if @p value equals the wildcard string `kWildcard` (`"*"`).
+  ///
+  /// @param value The string to test.
+  /// @return `true` if @p value is `"*"`, `false` otherwise.
+  static bool IsWildcard(const std::string& value);
+
+  /// Returns true if @p value is present and equals the wildcard string `kWildcard` (`"*"`).
+  ///
+  /// A `std::nullopt` argument returns `false` — absent fields are treated as specific constraints,
+  /// not as wildcards.
+  ///
+  /// @param value The optional string to test.
+  /// @return `true` if @p value holds `"*"`, `false` if it is `std::nullopt` or any other string.
+  static bool IsWildcard(const std::optional<std::string>& value);
+
+  /// Computes the specificity score of @p fp: the count of fields that are NOT wildcards.
+  ///
+  /// A field contributes 1 to the score regardless of whether it is a concrete string or
+  /// `std::nullopt`. Only the literal `"*"` string is considered non-specific (contributes 0).
+  /// The score ranges from 0 (all five fields are `"*"`) to 5 (no field is `"*"`).
+  ///
+  /// @param fp The fingerprint to evaluate.
+  /// @return Integer in [0, 5] representing the number of non-wildcard fields.
+  static int Specificity(const TrafficControlDeviceFingerprint& fp);
+
+  /// Returns true if @p db_entry matches @p query for lookup purposes.
+  ///
+  /// A field in @p db_entry matches the corresponding field in @p query if:
+  ///   - the db_entry field is the wildcard `"*"` (matches any query value, including `nullopt`), or
+  ///   - both fields compare equal (including both being `std::nullopt`).
+  ///
+  /// @note @p query is expected to carry no wildcards — it is built directly from XODR signal data.
+  ///
+  /// @param db_entry A fingerprint loaded from the YAML database. May contain `"*"` wildcards.
+  /// @param query    A fingerprint built from an XODR signal. Must not contain `"*"`.
+  /// @return `true` if every field of @p db_entry matches the corresponding field of @p query.
+  static bool Matches(const TrafficControlDeviceFingerprint& db_entry, const TrafficControlDeviceFingerprint& query);
+
+  /// Returns true if there exists at least one input fingerprint that would match both @p a and @p b.
+  ///
+  /// Per-field rule: the two fingerprints can overlap on a given field if at least one of them
+  /// carries the wildcard `"*"` for that field, or both carry the same concrete value (including
+  /// both being `std::nullopt`). All five fields must satisfy this condition simultaneously for
+  /// the function to return `true`.
+  ///
+  /// This is used at database load time to detect conflicting entries that have equal specificity
+  /// and would therefore produce an ambiguous lookup result.
+  ///
+  /// @param a First fingerprint (may contain wildcards).
+  /// @param b Second fingerprint (may contain wildcards).
+  /// @return `true` if @p a and @p b can both match the same query input.
+  static bool CanOverlap(const TrafficControlDeviceFingerprint& a, const TrafficControlDeviceFingerprint& b);
+
+ private:
+  /// Builds a vector of definitions from a parsed YAML root node.
+  static std::vector<TrafficControlDeviceDefinition> BuildFrom(const YAML::Node& root);
 };
 
 }  // namespace traffic_control_device
 }  // namespace malidrive
-
-namespace std {
-
-/// Hash function to use TrafficControlDeviceFingerprint as a key in unordered containers. Combines the hash of each
-/// member variable.
-template <>
-struct hash<malidrive::traffic_control_device::TrafficControlDeviceFingerprint> {
-  size_t operator()(const malidrive::traffic_control_device::TrafficControlDeviceFingerprint& f) const {
-    size_t seed = 0;
-
-    // https://www.boost.org/doc/libs/1_84_0/libs/container_hash/doc/html/hash.html#notes_hash_combine
-    // During the Boost formal review, Dave Harris pointed out that this suffers from the so-called
-    // "zero trap"; if seed is initially 0, and all the inputs are 0 (or hash to 0), seed remains 0 no
-    // matter how many input values are combined.
-    // This is an undesirable property, because it causes containers of zeroes to have a zero hash value
-    // regardless of their sizes.
-    // To fix this, the arbitrary constant 0x9e3779b9 (the golden ratio in a 32 bit fixed point
-    // representation) was added to the computation.
-    auto hash_combine = [&seed](const auto& v) {
-      using T = std::decay_t<decltype(v)>;
-      seed ^= std::hash<T>{}(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-    };
-
-    // 1. Hash the mandatory string.
-    hash_combine(f.type);
-
-    // 2. Hash optionals (only if they have values, otherwise use a constant).
-    auto hash_optional = [&](const auto& opt) {
-      if (opt) {
-        hash_combine(*opt);
-      } else {
-        hash_combine(size_t(0));  // Or any sentinel value
-      }
-    };
-
-    hash_optional(f.subtype);
-    hash_optional(f.country);
-    hash_optional(f.country_revision);
-
-    return seed;
-  }
-};
-}  // namespace std

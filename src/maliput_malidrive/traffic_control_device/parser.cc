@@ -31,7 +31,6 @@
 #include <utility>
 
 #include <maliput/common/maliput_throw.h>
-#include <yaml-cpp/yaml.h>
 
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/traffic_control_device/device_type.h"
@@ -39,6 +38,57 @@
 
 namespace malidrive {
 namespace traffic_control_device {
+
+bool TrafficControlDeviceParser::IsWildcard(const std::string& value) { return value == kWildcard; }
+
+bool TrafficControlDeviceParser::IsWildcard(const std::optional<std::string>& value) {
+  return value.has_value() && *value == kWildcard;
+}
+
+int TrafficControlDeviceParser::Specificity(const TrafficControlDeviceFingerprint& fp) {
+  // Each field contributes 1 to specificity when it is NOT a wildcard.
+  // nullopt is specific; only "*" is non-specific.
+  int score = 0;
+  if (!IsWildcard(fp.type)) ++score;
+  if (!IsWildcard(fp.subtype)) ++score;
+  if (!IsWildcard(fp.country)) ++score;
+  if (!IsWildcard(fp.country_revision)) ++score;
+  if (!IsWildcard(fp.name)) ++score;
+  return score;
+}
+
+bool TrafficControlDeviceParser::Matches(const TrafficControlDeviceFingerprint& db_entry,
+                                         const TrafficControlDeviceFingerprint& query) {
+  // For each field: db_entry matches if it is the wildcard OR equals the query field.
+  auto field_matches = [](const std::string& db_val, const std::string& query_val) -> bool {
+    return IsWildcard(db_val) || db_val == query_val;
+  };
+  auto optional_field_matches = [](const std::optional<std::string>& db_opt,
+                                   const std::optional<std::string>& query_opt) -> bool {
+    if (IsWildcard(db_opt)) return true;
+    return db_opt == query_opt;
+  };
+  return field_matches(db_entry.type, query.type) && optional_field_matches(db_entry.subtype, query.subtype) &&
+         optional_field_matches(db_entry.country, query.country) &&
+         optional_field_matches(db_entry.country_revision, query.country_revision) &&
+         optional_field_matches(db_entry.name, query.name);
+}
+
+bool TrafficControlDeviceParser::CanOverlap(const TrafficControlDeviceFingerprint& a,
+                                            const TrafficControlDeviceFingerprint& b) {
+  // Two entries can overlap when, for every field, at least one is wildcard OR both are equal.
+  auto field_can_overlap = [](const std::string& va, const std::string& vb) -> bool {
+    return IsWildcard(va) || IsWildcard(vb) || va == vb;
+  };
+  auto optional_field_can_overlap = [](const std::optional<std::string>& oa,
+                                       const std::optional<std::string>& ob) -> bool {
+    return IsWildcard(oa) || IsWildcard(ob) || oa == ob;
+  };
+  return field_can_overlap(a.type, b.type) && optional_field_can_overlap(a.subtype, b.subtype) &&
+         optional_field_can_overlap(a.country, b.country) &&
+         optional_field_can_overlap(a.country_revision, b.country_revision) &&
+         optional_field_can_overlap(a.name, b.name);
+}
 
 namespace {
 
@@ -249,6 +299,10 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
     tcd_definition.fingerprint.country_revision = revision;
   }
 
+  if (const auto name = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kName)) {
+    tcd_definition.fingerprint.name = name;
+  }
+
   // --- Parse properties ---
   const std::string device_type_str = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
   tcd_definition.device_type = StringToTrafficControlDeviceType(device_type_str);
@@ -295,7 +349,9 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   return tcd_definition;
 }
 
-std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> BuildFrom(const YAML::Node& root) {
+}  // namespace
+
+std::vector<TrafficControlDeviceDefinition> TrafficControlDeviceParser::BuildFrom(const YAML::Node& root) {
   MALIDRIVE_THROW_UNLESS(root.IsMap(), maliput::common::road_network_description_parser_error);
 
   // Get odr_signal_types array.
@@ -303,29 +359,41 @@ std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefiniti
   MALIDRIVE_THROW_UNLESS(signals_node.IsDefined(), maliput::common::road_network_description_parser_error);
   MALIDRIVE_THROW_UNLESS(signals_node.IsSequence(), maliput::common::road_network_description_parser_error);
 
-  std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> result;
+  std::vector<TrafficControlDeviceDefinition> result;
   // Parse each signal definition.
   for (const auto& signal_node : signals_node) {
-    const auto signal_definition = ParseSignalDefinition(signal_node);
-    const auto& it = result.emplace(signal_definition.fingerprint, signal_definition);
-    if (!it.second) {
-      result[signal_definition.fingerprint] = signal_definition;
+    result.push_back(ParseSignalDefinition(signal_node));
+  }
+
+  // Pairwise conflict validation: two entries conflict when they can overlap AND have equal specificity.
+  for (std::size_t i = 0; i < result.size(); ++i) {
+    for (std::size_t j = i + 1; j < result.size(); ++j) {
+      const auto& fp_i = result[i].fingerprint;
+      const auto& fp_j = result[j].fingerprint;
+      if (CanOverlap(fp_i, fp_j) && Specificity(fp_i) == Specificity(fp_j)) {
+        MALIDRIVE_THROW_MESSAGE(
+            "Conflicting traffic control device database entries with equal specificity: "
+            "entry '" +
+                result[i].description + "' (type='" + fp_i.type +
+                "') conflicts with "
+                "entry '" +
+                result[j].description + "' (type='" + fp_j.type + "').",
+            maliput::common::road_network_description_parser_error);
+      }
     }
   }
 
   return result;
 }
 
-}  // namespace
-
-std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition>
-TrafficControlDeviceParser::LoadFromString(const std::string& yaml_content) {
+std::vector<TrafficControlDeviceDefinition> TrafficControlDeviceParser::LoadFromString(
+    const std::string& yaml_content) {
   YAML::Node root = YAML::Load(yaml_content);
   return BuildFrom(root);
 }
 
-std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition>
-TrafficControlDeviceParser::LoadFromFile(const std::string& yaml_file_path) {
+std::vector<TrafficControlDeviceDefinition> TrafficControlDeviceParser::LoadFromFile(
+    const std::string& yaml_file_path) {
   YAML::Node root = YAML::LoadFile(yaml_file_path);
   return BuildFrom(root);
 }

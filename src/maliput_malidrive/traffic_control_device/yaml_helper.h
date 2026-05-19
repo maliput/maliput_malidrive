@@ -50,6 +50,7 @@ struct TrafficControlDeviceConstants {
   static constexpr const char* kSubtype = "subtype";
   static constexpr const char* kCountry = "country";
   static constexpr const char* kCountryRevision = "country_revision";
+  static constexpr const char* kName = "name";
   // properties fields.
   static constexpr const char* kDeviceType = "device_type";
   static constexpr const char* kDeviceSemantics = "device_semantics";
