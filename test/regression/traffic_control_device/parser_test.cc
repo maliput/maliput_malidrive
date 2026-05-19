@@ -28,11 +28,14 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_control_device/parser.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 
 #include <gtest/gtest.h>
+#include <maliput/common/maliput_throw.h>
 
+#include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "utility/resources.h"
 
 namespace malidrive {
@@ -202,17 +205,24 @@ odr_signal_types:
           value: "Stop"
 )";
 
+// Returns a pointer to the first definition whose fingerprint equals @p fp, or nullptr if not found.
+const TrafficControlDeviceDefinition* FindDefinition(const std::vector<TrafficControlDeviceDefinition>& defs,
+                                                     const TrafficControlDeviceFingerprint& fp) {
+  const auto it = std::find_if(defs.begin(), defs.end(),
+                               [&fp](const TrafficControlDeviceDefinition& d) { return d.fingerprint == fp; });
+  return it != defs.end() ? &(*it) : nullptr;
+}
+
 class TrafficControlDeviceParserTest : public ::testing::Test {
  public:
   static void SetUpTestCase() {
     signal_definitions_ = TrafficControlDeviceParser::LoadFromString(kTrafficControlDeviceDb);
   }
-  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> signal_definitions_;
+  static std::vector<TrafficControlDeviceDefinition> signal_definitions_;
 };
 
 // Needed to allocate memory for static member variable.
-std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition>
-    TrafficControlDeviceParserTest::signal_definitions_;
+std::vector<TrafficControlDeviceDefinition> TrafficControlDeviceParserTest::signal_definitions_;
 
 TEST_F(TrafficControlDeviceParserTest, LoadFromString) {
   EXPECT_EQ(signal_definitions_.size(), 4);
@@ -228,8 +238,8 @@ TEST_F(TrafficControlDeviceParserTest, LoadFromString) {
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  EXPECT_TRUE(signal_definitions_.find(standard_fingerprint) != signal_definitions_.end());
-  EXPECT_TRUE(signal_definitions_.find(arrow_fingerprint) != signal_definitions_.end());
+  EXPECT_NE(FindDefinition(signal_definitions_, standard_fingerprint), nullptr);
+  EXPECT_NE(FindDefinition(signal_definitions_, arrow_fingerprint), nullptr);
 }
 
 TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
@@ -239,7 +249,9 @@ TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions_.at(sign_fingerprint);
+  const auto* dut_ptr = FindDefinition(signal_definitions_, sign_fingerprint);
+  ASSERT_NE(dut_ptr, nullptr);
+  const auto& dut = *dut_ptr;
 
   EXPECT_EQ(dut.fingerprint.type, "206");
   EXPECT_EQ(dut.fingerprint.subtype, "30");
@@ -261,7 +273,9 @@ TEST_F(TrafficControlDeviceParserTest, ValidateSignalType1000001) {
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions_.at(fingerprint);
+  const auto* dut_ptr = FindDefinition(signal_definitions_, fingerprint);
+  ASSERT_NE(dut_ptr, nullptr);
+  const auto& dut = *dut_ptr;
 
   EXPECT_EQ(dut.fingerprint.type, "1000001");
   EXPECT_EQ(dut.fingerprint.subtype, std::nullopt);
@@ -296,7 +310,9 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions_.at(arrow_fingerprint);
+  const auto* dut_ptr = FindDefinition(signal_definitions_, arrow_fingerprint);
+  ASSERT_NE(dut_ptr, nullptr);
+  const auto& dut = *dut_ptr;
 
   EXPECT_EQ(dut.fingerprint.type, "1000011");
   EXPECT_EQ(dut.fingerprint.subtype, "10");
@@ -319,7 +335,9 @@ TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
       .country = std::nullopt,
       .country_revision = std::nullopt,
   };
-  const auto& dut = signal_definitions_.at(default_fingerprint);
+  const auto* dut_ptr = FindDefinition(signal_definitions_, default_fingerprint);
+  ASSERT_NE(dut_ptr, nullptr);
+  const auto& dut = *dut_ptr;
 
   EXPECT_EQ(dut.fingerprint.type, "default_bulb_state");
   EXPECT_EQ(dut.description, "Signal with default bulb states and bounding box");
@@ -346,21 +364,9 @@ TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
   EXPECT_NEAR(default_bulb.bounding_box.p_BMax.z(), 0.1778, kTolerance);
 }
 
-GTEST_TEST(RepeatedTrafficControlDeviceParserTest, RepeatedFingerprintOverwrites) {
-  const auto signal_definitions = TrafficControlDeviceParser::LoadFromString(kRepeatedTrafficControlDeviceDb);
-  EXPECT_EQ(signal_definitions.size(), 1);
-  const TrafficControlDeviceFingerprint fingerprint{
-      .type = "1234567",
-      .subtype = "11",
-      .country = "OpenDRIVE",
-      .country_revision = std::nullopt,
-  };
-  EXPECT_TRUE(signal_definitions.find(fingerprint) != signal_definitions.end());
-  const auto& definition = signal_definitions.at(fingerprint);
-  EXPECT_EQ(definition.description, "Single green bulb traffic light");
-  EXPECT_EQ(definition.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficLight);
-  EXPECT_EQ(definition.bulbs.size(), 1);
-  EXPECT_EQ(definition.bulbs[0].id, "GreenBulb");
+GTEST_TEST(RepeatedTrafficControlDeviceParserTest, RepeatedFingerprintThrows) {
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRepeatedTrafficControlDeviceDb),
+               maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(TrafficControlDeviceYamlFileParserTest, LoadFromFile) {
@@ -865,6 +871,248 @@ GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, DifferentRuleStat
   };
   EXPECT_NE(definition1, definition2);
   EXPECT_TRUE(definition1 != definition2);
+}
+
+// ---------------------------------------------------------------------------
+// YAML fixtures for wildcard / specificity / lookup tests
+// ---------------------------------------------------------------------------
+
+const char kWildcardParsingDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "*"
+      subtype: "*"
+      country: "*"
+      country_revision: "*"
+    properties:
+      device_type: traffic_sign
+      device_semantics: generic
+      description: "All-wildcard entry"
+      bulbs: []
+      rule_states: []
+)";
+
+const char kConflictingDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "*"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: generic
+      description: "Entry A"
+      bulbs: []
+      rule_states: []
+  - odr_representation:
+      type: "1000001"
+      subtype: "*"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: generic
+      description: "Entry B"
+      bulbs: []
+      rule_states: []
+)";
+
+const char kDifferentSpecificityDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "*"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: more_specific
+      description: "More specific entry"
+      bulbs: []
+      rule_states: []
+  - odr_representation:
+      type: "1000001"
+      subtype: "*"
+      country: "*"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: less_specific
+      description: "Less specific entry"
+      bulbs: []
+      rule_states: []
+)";
+
+const char kWildcardLookupDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "10"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: exact_match
+      description: "Exact match entry"
+      bulbs: []
+      rule_states: []
+  - odr_representation:
+      type: "1000001"
+      subtype: "*"
+      country: "OpenDRIVE"
+      country_revision: null
+    properties:
+      device_type: traffic_sign
+      device_semantics: partial_wildcard
+      description: "Partial wildcard entry"
+      bulbs: []
+      rule_states: []
+  - odr_representation:
+      type: "*"
+      subtype: "*"
+      country: "*"
+      country_revision: "*"
+    properties:
+      device_type: traffic_sign
+      device_semantics: catch_all
+      description: "Catch-all entry"
+      bulbs: []
+      rule_states: []
+)";
+
+// ---- Step 5: New wildcard / specificity / conflict / lookup tests ----
+
+GTEST_TEST(WildcardParsingTest, AllFieldsStoredAsLiteralAsterisk) {
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kWildcardParsingDb);
+  ASSERT_EQ(defs.size(), 1u);
+  EXPECT_EQ(defs[0].fingerprint.type, "*");
+  EXPECT_EQ(defs[0].fingerprint.subtype, "*");
+  EXPECT_EQ(defs[0].fingerprint.country, "*");
+  EXPECT_EQ(defs[0].fingerprint.country_revision, "*");
+}
+
+GTEST_TEST(SpecificityCalculationTest, AllConcrete) {
+  const TrafficControlDeviceFingerprint fp{
+      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = "2020"};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 4);
+}
+
+GTEST_TEST(SpecificityCalculationTest, AllWildcards) {
+  const TrafficControlDeviceFingerprint fp{.type = "*", .subtype = "*", .country = "*", .country_revision = "*"};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 0);
+}
+
+GTEST_TEST(SpecificityCalculationTest, NulloptIsSpecific) {
+  const TrafficControlDeviceFingerprint fp{
+      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 4);
+}
+
+GTEST_TEST(SpecificityCalculationTest, Mixed) {
+  // type concrete, subtype wildcard, country concrete, country_revision nullopt -> 3
+  const TrafficControlDeviceFingerprint fp{
+      .type = "1000001", .subtype = "*", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  EXPECT_EQ(TrafficControlDeviceParser::Specificity(fp), 3);
+}
+
+GTEST_TEST(MatchingLogicTest, ExactMatchReturnsTrue) {
+  const TrafficControlDeviceFingerprint db_entry{
+      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{
+      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query));
+}
+
+GTEST_TEST(MatchingLogicTest, WildcardTypeMatchesAny) {
+  const TrafficControlDeviceFingerprint db_entry{
+      .type = "*", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{
+      .type = "anything", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query));
+}
+
+GTEST_TEST(MatchingLogicTest, WildcardSubtypeMatchesPresentAndNullopt) {
+  const TrafficControlDeviceFingerprint db_entry{
+      .type = "1000001", .subtype = "*", .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query_with_subtype{
+      .type = "1000001", .subtype = "10", .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query_nullopt_subtype{
+      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_with_subtype));
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_nullopt_subtype));
+}
+
+GTEST_TEST(MatchingLogicTest, NulloptSubtypeOnlyMatchesNullopt) {
+  const TrafficControlDeviceFingerprint db_entry{
+      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query_nullopt{
+      .type = "1000001", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query_concrete{
+      .type = "1000001", .subtype = "10", .country = std::nullopt, .country_revision = std::nullopt};
+  EXPECT_TRUE(TrafficControlDeviceParser::Matches(db_entry, query_nullopt));
+  EXPECT_FALSE(TrafficControlDeviceParser::Matches(db_entry, query_concrete));
+}
+
+GTEST_TEST(MatchingLogicTest, ConcreteMismatchReturnsFalse) {
+  const TrafficControlDeviceFingerprint db_entry{
+      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const TrafficControlDeviceFingerprint query{
+      .type = "1000002", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  EXPECT_FALSE(TrafficControlDeviceParser::Matches(db_entry, query));
+}
+
+GTEST_TEST(ConflictDetectionTest, EqualSpecificityOverlapThrows) {
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kConflictingDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(ConflictDetectionTest, DifferentSpecificityOverlapDoesNotThrow) {
+  EXPECT_NO_THROW(TrafficControlDeviceParser::LoadFromString(kDifferentSpecificityDb));
+}
+
+GTEST_TEST(WildcardLookupTest, ExactMatchPreferredOverWildcard) {
+  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
+  const TrafficControlDeviceFingerprint query{
+      .type = "1000001", .subtype = "10", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->device_semantics, "exact_match");
+}
+
+GTEST_TEST(WildcardLookupTest, PartialWildcardPreferredOverCatchAll) {
+  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
+  const TrafficControlDeviceFingerprint query{
+      .type = "1000001", .subtype = "99", .country = "OpenDRIVE", .country_revision = std::nullopt};
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->device_semantics, "partial_wildcard");
+}
+
+GTEST_TEST(WildcardLookupTest, FallbackToCatchAll) {
+  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
+  const TrafficControlDeviceFingerprint query{
+      .type = "9999999", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->device_semantics, "catch_all");
+}
+
+GTEST_TEST(WildcardLookupTest, NoMatchReturnsNullopt) {
+  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kTrafficControlDeviceDb);
+  const TrafficControlDeviceFingerprint query{
+      .type = "9999999", .subtype = std::nullopt, .country = std::nullopt, .country_revision = std::nullopt};
+  const auto result = loader.Lookup(query);
+  EXPECT_FALSE(result.has_value());
+}
+
+GTEST_TEST(WildcardLookupTest, CatchAllMatchesAnyQuery) {
+  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardParsingDb);
+  const TrafficControlDeviceFingerprint query{
+      .type = "any_type", .subtype = "any_subtype", .country = "any_country", .country_revision = "rev1"};
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->device_semantics, "generic");
 }
 
 }  // namespace

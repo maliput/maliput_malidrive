@@ -38,6 +38,7 @@
 #include <maliput/api/rules/traffic_lights.h>
 #include <maliput/math/quaternion.h>
 #include <maliput/math/vector.h>
+#include <yaml-cpp/yaml.h>
 
 #include "maliput_malidrive/traffic_control_device/device_type.h"
 
@@ -178,18 +179,46 @@ class TrafficControlDeviceParser {
   /// Loads a traffic control device database from a YAML string.
   ///
   /// @param yaml_content The YAML content as a string.
-  /// @return Map of signal identifiers to their definitions.
-  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails or schema validation fails.
-  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromString(
-      const std::string& yaml_content);
+  /// @return Vector of signal definitions. Entries are validated for conflicts at load time.
+  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails, schema validation
+  ///         fails, or two entries with equal specificity overlap.
+  static std::vector<TrafficControlDeviceDefinition> LoadFromString(const std::string& yaml_content);
 
   /// Loads a traffic control device database from a YAML file.
   ///
   /// @param file_path Path to the YAML database file.
-  /// @return Map of signal identifiers to their definitions.
-  /// @throws maliput::common::road_network_description_parser_error YAML parsing or schema validation fails.
-  static std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> LoadFromFile(
-      const std::string& yaml_file_path);
+  /// @return Vector of signal definitions. Entries are validated for conflicts at load time.
+  /// @throws maliput::common::road_network_description_parser_error if YAML parsing fails, schema validation
+  ///         fails, or two entries with equal specificity overlap.
+  static std::vector<TrafficControlDeviceDefinition> LoadFromFile(const std::string& yaml_file_path);
+
+  /// The wildcard value for traffic control device fingerprint fields.
+  /// A field set to this value matches any query value for that field.
+  static constexpr char kWildcard[] = "*";
+
+  /// Returns true if @p value is the wildcard string.
+  static bool IsWildcard(const std::string& value);
+
+  /// Returns true if @p value is present and equals the wildcard string.
+  static bool IsWildcard(const std::optional<std::string>& value);
+
+  /// Computes the specificity of @p fp: the number of fields that are NOT wildcards.
+  /// @p nullopt counts as specific (constrains to "absent"); only `"*"` is non-specific.
+  /// Returns a value in [0, 4].
+  static int Specificity(const TrafficControlDeviceFingerprint& fp);
+
+  /// Returns true if @p db_entry matches @p query.
+  /// A field in @p db_entry matches the corresponding @p query field if the db_entry field is the
+  /// wildcard string or equals the query field. The @p query is expected to never contain wildcards.
+  static bool Matches(const TrafficControlDeviceFingerprint& db_entry, const TrafficControlDeviceFingerprint& query);
+
+  /// Returns true if there exists at least one input that would match both @p a and @p b.
+  /// Per field: overlap if at least one is wildcard OR both are equal.
+  static bool CanOverlap(const TrafficControlDeviceFingerprint& a, const TrafficControlDeviceFingerprint& b);
+
+ private:
+  /// Builds a vector of definitions from a parsed YAML root node.
+  static std::vector<TrafficControlDeviceDefinition> BuildFrom(const YAML::Node& root);
 };
 
 }  // namespace traffic_control_device

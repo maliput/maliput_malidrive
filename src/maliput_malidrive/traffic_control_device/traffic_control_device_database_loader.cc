@@ -28,6 +28,10 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 
+#include <maliput/common/maliput_throw.h>
+
+#include "maliput_malidrive/common/macros.h"
+
 namespace malidrive {
 namespace traffic_control_device {
 
@@ -37,13 +41,37 @@ TrafficControlDeviceDatabaseLoader::TrafficControlDeviceDatabaseLoader(const std
   }
 }
 
+TrafficControlDeviceDatabaseLoader TrafficControlDeviceDatabaseLoader::FromString(const std::string& yaml_content) {
+  TrafficControlDeviceDatabaseLoader loader;
+  loader.definitions_ = TrafficControlDeviceParser::LoadFromString(yaml_content);
+  return loader;
+}
+
 std::optional<TrafficControlDeviceDefinition> TrafficControlDeviceDatabaseLoader::Lookup(
     const TrafficControlDeviceFingerprint& fingerprint) const {
-  const auto it = definitions_.find(fingerprint);
-  if (it == definitions_.end()) {
+  const TrafficControlDeviceDefinition* best = nullptr;
+  int best_specificity = -1;
+
+  for (const auto& def : definitions_) {
+    if (TrafficControlDeviceParser::Matches(def.fingerprint, fingerprint)) {
+      const int specificity = TrafficControlDeviceParser::Specificity(def.fingerprint);
+      if (specificity > best_specificity) {
+        best_specificity = specificity;
+        best = &def;
+      } else if (specificity == best_specificity) {
+        // Two matches with equal specificity should have been caught at load time.
+        MALIDRIVE_THROW_MESSAGE(
+            "Multiple traffic control device database entries with equal specificity matched the "
+            "same query; this indicates a database conflict that was not caught at load time.",
+            maliput::common::road_network_description_parser_error);
+      }
+    }
+  }
+
+  if (best == nullptr) {
     return std::nullopt;
   }
-  return it->second;
+  return *best;
 }
 
 }  // namespace traffic_control_device

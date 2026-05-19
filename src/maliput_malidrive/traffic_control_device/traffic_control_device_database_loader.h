@@ -30,7 +30,7 @@
 
 #include <optional>
 #include <string>
-#include <unordered_map>
+#include <vector>
 
 #include "maliput_malidrive/traffic_control_device/parser.h"
 
@@ -42,7 +42,7 @@ namespace traffic_control_device {
 ///
 /// The loader is backed by the @ref TrafficControlDeviceParser. When a file path is
 /// provided at construction time the file is parsed immediately; subsequent
-/// @ref Lookup calls are O(1) map lookups with no additional I/O.
+/// @ref Lookup calls perform a linear scan with specificity ranking.
 ///
 /// If no file path is provided (std::nullopt) the loader starts empty and all
 /// @ref Lookup calls will return std::nullopt.
@@ -57,6 +57,14 @@ class TrafficControlDeviceDatabaseLoader {
   ///         cannot be parsed or fails schema validation.
   explicit TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& file_path);
 
+  /// Constructs a TrafficControlDeviceDatabaseLoader from a YAML string.
+  ///
+  /// @param yaml_content The YAML content as a string.
+  /// @return A TrafficControlDeviceDatabaseLoader instance initialized with the definitions from the YAML content.
+  /// @throws maliput::common::road_network_description_parser_error if the YAML
+  ///         cannot be parsed or fails schema validation.
+  static TrafficControlDeviceDatabaseLoader FromString(const std::string& yaml_content);
+
   /// Looks up a TrafficControlDeviceDefinition by fingerprint.
   ///
   /// @param fingerprint The @ref TrafficControlDeviceFingerprint to look up.
@@ -65,7 +73,8 @@ class TrafficControlDeviceDatabaseLoader {
   std::optional<TrafficControlDeviceDefinition> Lookup(const TrafficControlDeviceFingerprint& fingerprint) const;
 
  private:
-  std::unordered_map<TrafficControlDeviceFingerprint, TrafficControlDeviceDefinition> definitions_;
+  TrafficControlDeviceDatabaseLoader() = default;
+  std::vector<TrafficControlDeviceDefinition> definitions_;
 };
 
 }  // namespace traffic_control_device
