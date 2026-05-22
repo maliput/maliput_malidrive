@@ -136,20 +136,6 @@ bulbs:
 - `initial_state` is optional; if omitted, it defaults to `off`.
 - `arrow_orientation_rad` is only valid for `type: arrow`.
 
-### Rule States
-
-Traffic light definitions may also contain `rule_states`:
-
-```yaml
-rule_states:
-  - conditions:
-      - bulb_id: "RedBulb"
-        state: on
-      - bulb_id: "GreenBulb"
-        state: off
-    value: "Stop"
-```
-
 ## Coordinate Frames
 
 All positions and orientations use right-handed coordinate systems:
