@@ -87,6 +87,8 @@ struct BulbDefinition {
   /// Arrow orientation in radians (only for Arrow type bulbs).
   /// Required when type is Arrow.
   std::optional<double> arrow_orientation_rad;
+  /// Initial state of the bulb. Defaults to kOff when not specified in the YAML.
+  std::optional<maliput::api::rules::BulbState> initial_state;
   /// Custom bounding box for this bulb.
   /// If not specified, uses default maliput dimensions.
   maliput::api::rules::Bulb::BoundingBox bounding_box;
@@ -95,8 +97,8 @@ struct BulbDefinition {
     return id == other.id && color == other.color && type == other.type &&
            position_traffic_light == other.position_traffic_light &&
            orientation_traffic_light == other.orientation_traffic_light && states == other.states &&
-           arrow_orientation_rad == other.arrow_orientation_rad && bounding_box.p_BMin == other.bounding_box.p_BMin &&
-           bounding_box.p_BMax == other.bounding_box.p_BMax;
+           arrow_orientation_rad == other.arrow_orientation_rad && initial_state == other.initial_state &&
+           bounding_box.p_BMin == other.bounding_box.p_BMin && bounding_box.p_BMax == other.bounding_box.p_BMax;
   }
   bool operator!=(const BulbDefinition& other) const { return !(*this == other); }
 };
@@ -156,9 +158,9 @@ struct TrafficControlDeviceDefinition {
   bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };
 
-/// Parser that loads traffic control device definitions from a YAML database using the `odr_signal_types`
-/// schema. The resulting definitions are used in tandem with XODR signal data to create maliput
-/// `TrafficLight` and `TrafficSign` objects.
+/// Parser that loads traffic control device definitions from a YAML database using the
+/// `odr_signal_types` and `odr_object_types` schemas. The resulting definitions are used in tandem
+/// with XODR signal and object data to create maliput traffic control devices.
 ///
 /// Design:
 /// - Each definition carries a `device_type` field that determines whether a `TrafficLight` or

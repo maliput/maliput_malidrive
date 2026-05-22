@@ -113,100 +113,104 @@ Each signal type contains a list of `bulbs`:
       bounding_box: (optional)  # Custom bounding box if needed
         p_min: [x, y, z]
         p_max: [x, y, z]
-      arrow_orientation_rad: (optional, required if type is Arrow)  # Arrow angle in radians
+## Bulbs
+
+Traffic light definitions may contain a `bulbs` list:
+
+```yaml
+bulbs:
+  - id: "RedBulb"
+    position_traffic_light: [x, y, z]
+    orientation_traffic_light: [w, x, y, z]
+    color: red
+    type: round
+    states: [off, on, blinking]
+    initial_state: off
+    bounding_box:
+      p_min: [x, y, z]
+      p_max: [x, y, z]
+    arrow_orientation_rad: 0.0  # Required only when type: arrow
 ```
+
+- `states` is optional; if omitted, the parser defaults to `[off, on]`.
+- `initial_state` is optional; if omitted, it defaults to `off`.
+- `arrow_orientation_rad` is only valid for `type: arrow`.
 
 ### Rule States
 
-Rule states map bulb state combinations to Right-Of-Way Rule values:
+Traffic light definitions may also contain `rule_states`:
 
 ```yaml
-      rule_states:
-        - conditions:
-            - bulb_id: "BulbId"
-              state: "On"
-            - bulb_id: "OtherBulbId"
-              state: "Off"
-          value: "Go"              # Rule value: Go, Stop, StopIfSafe, StopThenGo, ProceedWithCaution, or SignalMalfunctioning
+rule_states:
+  - conditions:
+      - bulb_id: "RedBulb"
+        state: on
+      - bulb_id: "GreenBulb"
+        state: off
+    value: "Stop"
 ```
 
 ## Coordinate Frames
 
-All positions and orientations use right-handed coordinate systems with axes:
+All positions and orientations use right-handed coordinate systems:
 
-- **+X**: Direction the bulb is facing
-- **+Y**: Left when facing the +X direction
-- **+Z**: Up (gravity opposite)
+- **+X**: device forward
+- **+Y**: left
+- **+Z**: up
 
-### Frame Hierarchy
+Frame hierarchy:
 
-1. **Inertial/Road Network Frame**: Global reference frame for the entire road network
-2. **Traffic Light Frame**: Origin at traffic light's center of mass; obtained from XODR signal position/orientation
-3. **Bulb Frame**: Origin at bulb's center of mass; positioned/oriented relative to traffic light frame
+1. **Inertial / road network frame**
+2. **Traffic light frame**
+3. **Bulb frame**
 
-## Bulb States
+## Enum Mappings
 
-Three possible states for bulbs:
+Enum parsing is case-insensitive. Preferred YAML values are lowercase / snake_case. Legacy PascalCase values are still accepted for backward compatibility.
 
-- **Off**: Bulb is not illuminated
-- **On**: Bulb is fully illuminated
-- **Blinking**: Bulb is flashing/blinking
+### BulbColor
 
-Not all bulbs support all states. Define `states` array to specify which states are valid for each bulb.
+| Preferred value | Legacy alias | maliput enum |
+|-----------------|--------------|--------------|
+| `red`           | `Red`        | `BulbColor::kRed` |
+| `yellow`        | `Yellow`     | `BulbColor::kYellow` |
+| `green`         | `Green`      | `BulbColor::kGreen` |
+
+### BulbType
+
+The preferred snake_case values include the newer aliases `arrow_left`, `arrow_right`, `arrow_up`, `arrow_upper_left`, `arrow_upper_right`, `u_turn_left`, `u_turn_right`, and `dont_walk`.
+
+| Preferred value       | Legacy alias        | maliput enum |
+|-----------------------|---------------------|--------------|
+| `round`               | `Round`             | `BulbType::kRound` |
+| `arrow`               | `Arrow`             | `BulbType::kArrow` |
+| `arrow_left`          | `ArrowLeft`         | `BulbType::kArrowLeft` |
+| `arrow_right`         | `ArrowRight`        | `BulbType::kArrowRight` |
+| `arrow_up`            | `ArrowUp`           | `BulbType::kArrowUp` |
+| `arrow_upper_left`    | `ArrowUpperLeft`    | `BulbType::kArrowUpperLeft` |
+| `arrow_upper_right`   | `ArrowUpperRight`   | `BulbType::kArrowUpperRight` |
+| `u_turn_left`         | `UTurnLeft`         | `BulbType::kUTurnLeft` |
+| `u_turn_right`        | `UTurnRight`        | `BulbType::kUTurnRight` |
+| `walk`                | `Walk`              | `BulbType::kWalk` |
+| `dont_walk`           | `DontWalk`          | `BulbType::kDontWalk` |
+
+### BulbState
+
+| Preferred value | Legacy alias | maliput enum |
+|-----------------|--------------|--------------|
+| `off`           | `Off`        | `BulbState::kOff` |
+| `on`            | `On`         | `BulbState::kOn` |
+| `blinking`      | `Blinking`   | `BulbState::kBlinking` |
+| `counting`      | `Counting`   | `BulbState::kCounting` |
 
 ## Examples
 
-See `resources/traffic_control_device_db/traffic_control_device_db_example.yaml` for detailed examples including:
+See:
 
-- Standard three-bulb vertical traffic light (type 1000001)
-- Arrow-based traffic light (type 1000011)
-- Pedestrian signal (type 1000002)
-
-## Usage in Parsers
-
-A parser loading these files should:
-
-1. Load the YAML file
-2. For each signal in the XODR file with type/subtype/country/country_revision matching a database entry:
-   - Check the `device_type` to know whether to create a maliput `maliput::api::rules::TrafficLight` or `maliput::api::rules::TrafficSign`
-   - If it is a `maliput::api::rules::TrafficSign`, assign its type by mapping the `device_semantics` field
-   - If it is a `maliput::api::rules::TrafficLight`, load its bulb structure
-3. Check for lane validities in the XODR file and set the related lanes for each signal and traffic light.
-4. Add `maliput::api::rules::TrafficSign`s to the `maliput::api::rules::TrafficSignBook` and `maliput::api::rules::TrafficLight`s to the `maliput::api::rules::TrafficLightBook`
-
-## Color Mapping to maliput
-
-YAML colors map to `maliput::api::rules::BulbColor` enum:
-
-- `"Red"` → `BulbColor::kRed`
-- `"Yellow"` → `BulbColor::kYellow`
-- `"Green"` → `BulbColor::kGreen`
-
-## Type Mapping to maliput
-
-YAML types map to `maliput::api::rules::BulbType` enum:
-
-- `"Round"` → `BulbType::kRound`
-- `"Arrow"` → `BulbType::kArrow`
-- `"ArrowLeft"` → `BulbType::kArrowLeft`
-- `"ArrowRight"` → `BulbType::kArrowRight`
-- `"ArrowUp"` → `BulbType::kArrowUp`
-- `"ArrowUpperLeft"` → `BulbType::kArrowUpperLeft`
-- `"ArrowUpperRight"` → `BulbType::kArrowUpperRight`
-- `"UTurnLeft"` → `BulbType::kUTurnLeft`
-- `"UTurnRight"` → `BulbType::kUTurnRight`
-- `"Walk"` → `BulbType::kWalk`
-- `"DontWalk"` → `BulbType::kDontWalk`
-
-## State Mapping to maliput
-
-YAML states map to `maliput::api::rules::BulbState` enum:
-
-- `"Off"` → `BulbState::kOff`
-- `"On"` → `BulbState::kOn`
-- `"Blinking"` → `BulbState::kBlinking`
+- `resources/traffic_control_device_db/traffic_control_device_db_example.yaml`
 
 ## Notes
 
-- If `bounding_box` is omitted, maliput uses default dimensions (~12" lens: 0.356m tall × 0.356m wide × 0.177m deep)
-- Arrow orientation is only valid (and required) when `type: "Arrow"`
+- If `bounding_box` is omitted, maliput uses its default bulb dimensions.
+- OpenDRIVE `length`, `width`, and `height` may override `default_bounding_box` values.
+- The OpenDRIVE `name` field is supported for matching because some authoring tools encode object meaning there.

@@ -70,6 +70,7 @@ struct BulbConstants {
   static constexpr const char* kOrientationTrafficLight = "orientation_traffic_light";
   static constexpr const char* kStates = "states";
   static constexpr const char* kArrowOrientationRad = "arrow_orientation_rad";
+  static constexpr const char* kInitialState = "initial_state";
   static constexpr const char* kBoundingBox = "bounding_box";
 };
 
