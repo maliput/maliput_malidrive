@@ -112,6 +112,7 @@ odr_signal_types:
           type: "Arrow"
           states: ["Off", "On"]
           arrow_orientation_rad: 1.5707963267948966
+          initial_state: "On"
       rule_states:
         - conditions:
             - bulb_id: "GreenArrow"
@@ -203,6 +204,108 @@ odr_signal_types:
             - bulb_id: "GreenBulb"
               state: "Off"
           value: "Stop"
+)";
+
+const char kCaseInsensitiveBulbEnumsDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "case_insensitive_bulb_enums"
+      subtype: null
+      country: null
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Traffic light with case-insensitive bulb enums"
+      bulbs:
+        - id: "ArrowLeftBulb"
+          position_traffic_light: [0.0, 0.0, 0.2]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "red"
+          type: "arrow_left"
+          states: ["off", "On", "BLINKING"]
+          initial_state: "bLiNkInG"
+        - id: "UTurnBulb"
+          position_traffic_light: [0.0, 0.0, -0.2]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "GrEeN"
+          type: "UtUrNlEfT"
+          states: ["OFF"]
+      rule_states:
+        - conditions:
+            - bulb_id: "ArrowLeftBulb"
+              state: "blinking"
+            - bulb_id: "UTurnBulb"
+              state: "off"
+          value: "ProceedWithCaution"
+)";
+
+const char kBulbEnumVariantsDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "bulb_enum_variants"
+      subtype: null
+      country: null
+      country_revision: null
+    properties:
+      device_type: traffic_light
+      description: "Traffic light with bulb enum variants"
+      bulbs:
+        - id: "SnakeCaseBulb"
+          position_traffic_light: [0.0, 0.0, 0.5]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "red"
+          type: "arrow_left"
+          states: ["off", "on", "blinking"]
+        - id: "PascalCaseArrowBulb"
+          position_traffic_light: [0.0, 0.0, 0.3]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Yellow"
+          type: "ArrowLeft"
+          states: ["Off"]
+          initial_state: "Off"
+        - id: "PascalCaseUTurnBulb"
+          position_traffic_light: [0.0, 0.0, 0.1]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Green"
+          type: "UTurnLeft"
+          states: ["On"]
+          initial_state: "On"
+        - id: "CaseInsensitiveBulb"
+          position_traffic_light: [0.0, 0.0, -0.1]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "yellow"
+          type: "Arrow_Left"
+          states: ["BLINKING"]
+          initial_state: "OFF"
+        - id: "SnakeCaseUTurnBulb"
+          position_traffic_light: [0.0, 0.0, -0.3]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "green"
+          type: "u_turn_left"
+          states: ["off"]
+          initial_state: "on"
+        - id: "DontWalkBulb"
+          position_traffic_light: [0.0, 0.0, -0.5]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "RED"
+          type: "dont_walk"
+          states: ["on"]
+          initial_state: "on"
+      rule_states:
+        - conditions:
+            - bulb_id: "SnakeCaseBulb"
+              state: "blinking"
+            - bulb_id: "PascalCaseArrowBulb"
+              state: "Off"
+            - bulb_id: "PascalCaseUTurnBulb"
+              state: "On"
+            - bulb_id: "CaseInsensitiveBulb"
+              state: "off"
+            - bulb_id: "SnakeCaseUTurnBulb"
+              state: "on"
+            - bulb_id: "DontWalkBulb"
+              state: "ON"
+          value: "VariantState"
 )";
 
 // Returns a pointer to the first definition whose fingerprint equals @p fp, or nullptr if not found.
@@ -326,6 +429,97 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
   EXPECT_EQ(arrow_bulb.type, maliput::api::rules::BulbType::kArrow);
   EXPECT_TRUE(arrow_bulb.arrow_orientation_rad.has_value());
   EXPECT_NEAR(arrow_bulb.arrow_orientation_rad.value(), 1.570796, kTolerance);
+  ASSERT_TRUE(arrow_bulb.initial_state.has_value());
+  EXPECT_EQ(arrow_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
+}
+
+GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadCaseInsensitiveBulbEnums) {
+  const auto definitions = TrafficControlDeviceParser::LoadFromString(kCaseInsensitiveBulbEnumsDb);
+  ASSERT_EQ(definitions.size(), 1);
+
+  const auto& dut = definitions.front();
+  ASSERT_EQ(dut.bulbs.size(), 2);
+  ASSERT_EQ(dut.rule_states.size(), 1);
+
+  const auto& arrow_left_bulb = dut.bulbs[0];
+  EXPECT_EQ(arrow_left_bulb.color, maliput::api::rules::BulbColor::kRed);
+  EXPECT_EQ(arrow_left_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
+  EXPECT_EQ(arrow_left_bulb.states.size(), 3);
+  EXPECT_EQ(arrow_left_bulb.states[0], maliput::api::rules::BulbState::kOff);
+  EXPECT_EQ(arrow_left_bulb.states[1], maliput::api::rules::BulbState::kOn);
+  EXPECT_EQ(arrow_left_bulb.states[2], maliput::api::rules::BulbState::kBlinking);
+  ASSERT_TRUE(arrow_left_bulb.initial_state.has_value());
+  EXPECT_EQ(arrow_left_bulb.initial_state.value(), maliput::api::rules::BulbState::kBlinking);
+
+  const auto& u_turn_bulb = dut.bulbs[1];
+  EXPECT_EQ(u_turn_bulb.color, maliput::api::rules::BulbColor::kGreen);
+  EXPECT_EQ(u_turn_bulb.type, maliput::api::rules::BulbType::kUTurnLeft);
+  ASSERT_EQ(u_turn_bulb.states.size(), 1);
+  EXPECT_EQ(u_turn_bulb.states[0], maliput::api::rules::BulbState::kOff);
+
+  const auto& rule_state = dut.rule_states[0];
+  ASSERT_EQ(rule_state.bulb_conditions.size(), 2);
+  EXPECT_EQ(rule_state.bulb_conditions[0].state, maliput::api::rules::BulbState::kBlinking);
+  EXPECT_EQ(rule_state.bulb_conditions[1].state, maliput::api::rules::BulbState::kOff);
+}
+
+GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadSnakeCasePascalCaseAndCaseInsensitiveBulbEnums) {
+  const auto definitions = TrafficControlDeviceParser::LoadFromString(kBulbEnumVariantsDb);
+  ASSERT_EQ(definitions.size(), 1);
+
+  const auto& dut = definitions.front();
+  ASSERT_EQ(dut.bulbs.size(), 6);
+  ASSERT_EQ(dut.rule_states.size(), 1);
+
+  const auto& snake_case_bulb = dut.bulbs[0];
+  EXPECT_EQ(snake_case_bulb.color, maliput::api::rules::BulbColor::kRed);
+  EXPECT_EQ(snake_case_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
+  ASSERT_EQ(snake_case_bulb.states.size(), 3);
+  EXPECT_EQ(snake_case_bulb.states[0], maliput::api::rules::BulbState::kOff);
+  EXPECT_EQ(snake_case_bulb.states[1], maliput::api::rules::BulbState::kOn);
+  EXPECT_EQ(snake_case_bulb.states[2], maliput::api::rules::BulbState::kBlinking);
+  EXPECT_FALSE(snake_case_bulb.initial_state.has_value());
+
+  const auto& pascal_case_arrow_bulb = dut.bulbs[1];
+  EXPECT_EQ(pascal_case_arrow_bulb.color, maliput::api::rules::BulbColor::kYellow);
+  EXPECT_EQ(pascal_case_arrow_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
+  ASSERT_TRUE(pascal_case_arrow_bulb.initial_state.has_value());
+  EXPECT_EQ(pascal_case_arrow_bulb.initial_state.value(), maliput::api::rules::BulbState::kOff);
+
+  const auto& pascal_case_u_turn_bulb = dut.bulbs[2];
+  EXPECT_EQ(pascal_case_u_turn_bulb.color, maliput::api::rules::BulbColor::kGreen);
+  EXPECT_EQ(pascal_case_u_turn_bulb.type, maliput::api::rules::BulbType::kUTurnLeft);
+  ASSERT_TRUE(pascal_case_u_turn_bulb.initial_state.has_value());
+  EXPECT_EQ(pascal_case_u_turn_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
+
+  const auto& case_insensitive_bulb = dut.bulbs[3];
+  EXPECT_EQ(case_insensitive_bulb.color, maliput::api::rules::BulbColor::kYellow);
+  EXPECT_EQ(case_insensitive_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
+  ASSERT_EQ(case_insensitive_bulb.states.size(), 1);
+  EXPECT_EQ(case_insensitive_bulb.states[0], maliput::api::rules::BulbState::kBlinking);
+  ASSERT_TRUE(case_insensitive_bulb.initial_state.has_value());
+  EXPECT_EQ(case_insensitive_bulb.initial_state.value(), maliput::api::rules::BulbState::kOff);
+
+  const auto& snake_case_u_turn_bulb = dut.bulbs[4];
+  EXPECT_EQ(snake_case_u_turn_bulb.color, maliput::api::rules::BulbColor::kGreen);
+  EXPECT_EQ(snake_case_u_turn_bulb.type, maliput::api::rules::BulbType::kUTurnLeft);
+  ASSERT_TRUE(snake_case_u_turn_bulb.initial_state.has_value());
+  EXPECT_EQ(snake_case_u_turn_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
+
+  const auto& dont_walk_bulb = dut.bulbs[5];
+  EXPECT_EQ(dont_walk_bulb.color, maliput::api::rules::BulbColor::kRed);
+  EXPECT_EQ(dont_walk_bulb.type, maliput::api::rules::BulbType::kDontWalk);
+  ASSERT_TRUE(dont_walk_bulb.initial_state.has_value());
+  EXPECT_EQ(dont_walk_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
+
+  const auto& rule_state = dut.rule_states[0];
+  ASSERT_EQ(rule_state.bulb_conditions.size(), 6);
+  EXPECT_EQ(rule_state.bulb_conditions[0].state, maliput::api::rules::BulbState::kBlinking);
+  EXPECT_EQ(rule_state.bulb_conditions[1].state, maliput::api::rules::BulbState::kOff);
+  EXPECT_EQ(rule_state.bulb_conditions[2].state, maliput::api::rules::BulbState::kOn);
+  EXPECT_EQ(rule_state.bulb_conditions[3].state, maliput::api::rules::BulbState::kOff);
+  EXPECT_EQ(rule_state.bulb_conditions[4].state, maliput::api::rules::BulbState::kOn);
+  EXPECT_EQ(rule_state.bulb_conditions[5].state, maliput::api::rules::BulbState::kOn);
 }
 
 TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
@@ -522,6 +716,7 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, EqualBulbDefinitions) {
               maliput::api::rules::BulbState::kBlinking,
           },
       .arrow_orientation_rad = std::nullopt,
+      .initial_state = std::nullopt,
       .bounding_box = {},
   };
   const BulbDefinition bulb2{
@@ -537,6 +732,7 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, EqualBulbDefinitions) {
               maliput::api::rules::BulbState::kBlinking,
           },
       .arrow_orientation_rad = std::nullopt,
+      .initial_state = std::nullopt,
       .bounding_box = {},
   };
   EXPECT_EQ(bulb1, bulb2);
@@ -556,6 +752,7 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentId) {
               maliput::api::rules::BulbState::kOn,
           },
       .arrow_orientation_rad = std::nullopt,
+      .initial_state = std::nullopt,
       .bounding_box = {},
   };
   const BulbDefinition bulb2{
@@ -570,6 +767,7 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentId) {
               maliput::api::rules::BulbState::kOn,
           },
       .arrow_orientation_rad = std::nullopt,
+      .initial_state = std::nullopt,
       .bounding_box = {},
   };
   EXPECT_NE(bulb1, bulb2);
@@ -589,6 +787,7 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
               maliput::api::rules::BulbState::kOn,
           },
       .arrow_orientation_rad = std::nullopt,
+      .initial_state = std::nullopt,
       .bounding_box = {},
   };
   const BulbDefinition bulb2{
@@ -603,6 +802,42 @@ GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentColor) {
               maliput::api::rules::BulbState::kOn,
           },
       .arrow_orientation_rad = std::nullopt,
+      .initial_state = std::nullopt,
+      .bounding_box = {},
+  };
+  EXPECT_NE(bulb1, bulb2);
+  EXPECT_TRUE(bulb1 != bulb2);
+}
+
+GTEST_TEST(BulbDefinitionEqualityOperatorTest, DifferentInitialState) {
+  const BulbDefinition bulb1{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .initial_state = maliput::api::rules::BulbState::kOff,
+      .bounding_box = {},
+  };
+  const BulbDefinition bulb2{
+      .id = "RedBulb",
+      .color = maliput::api::rules::BulbColor::kRed,
+      .type = maliput::api::rules::BulbType::kRound,
+      .position_traffic_light = maliput::math::Vector3(0.0, 0.0, 0.4),
+      .orientation_traffic_light = maliput::math::Quaternion(1.0, 0.0, 0.0, 0.0),
+      .states =
+          {
+              maliput::api::rules::BulbState::kOff,
+              maliput::api::rules::BulbState::kOn,
+          },
+      .arrow_orientation_rad = std::nullopt,
+      .initial_state = maliput::api::rules::BulbState::kOn,
       .bounding_box = {},
   };
   EXPECT_NE(bulb1, bulb2);
@@ -701,6 +936,7 @@ GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, EqualTrafficContr
                           maliput::api::rules::BulbState::kOn,
                       },
                   .arrow_orientation_rad = std::nullopt,
+                  .initial_state = std::nullopt,
                   .bounding_box = {},
               },
           },
@@ -741,6 +977,7 @@ GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, EqualTrafficContr
                           maliput::api::rules::BulbState::kOn,
                       },
                   .arrow_orientation_rad = std::nullopt,
+                  .initial_state = std::nullopt,
                   .bounding_box = {},
               },
           },
