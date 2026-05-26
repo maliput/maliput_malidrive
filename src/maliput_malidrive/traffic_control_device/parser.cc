@@ -122,40 +122,13 @@ maliput::api::rules::BulbColor StringToBulbColor(const std::string& color_str) {
 }
 
 // Helper function to convert a type string to BulbType enum.
-// @param type_str The type string (e.g., "Round", "Arrow", "ArrowLeft").
+// @param type_str The type string (e.g., "Round", "ArrowLeft", "arrow_left").
 // @return The corresponding BulbType enum value.
 // @throws std::runtime_error if the type string is invalid.
 maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
-  using T = maliput::api::rules::BulbType;
-  static const auto kMapper = []() {
-    std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
-    for (const auto& [bulb_type, bulb_type_str] : maliput::api::rules::BulbTypeMapper()) {
-      result.emplace(ToLower(bulb_type_str), bulb_type);
-    }
-    result.emplace("round", T::kRound);
-    result.emplace("arrow", T::kArrow);
-    result.emplace("arrow_left", T::kArrowLeft);
-    result.emplace("arrow_right", T::kArrowRight);
-    result.emplace("arrow_up", T::kArrowUp);
-    result.emplace("arrow_upper_left", T::kArrowUpperLeft);
-    result.emplace("arrow_upper_right", T::kArrowUpperRight);
-    result.emplace("u_turn_left", T::kUTurnLeft);
-    result.emplace("u_turn_right", T::kUTurnRight);
-    result.emplace("walk", T::kWalk);
-    result.emplace("dont_walk", T::kDontWalk);
-    result.emplace("cross", T::kCross);
-    result.emplace("pedestrian", T::kPedestrian);
-    result.emplace("bicycle", T::kBicycle);
-    result.emplace("pedestrian_and_bicycle", T::kPedestrianAndBicycle);
-    result.emplace("tram", T::kTram);
-    result.emplace("bus", T::kBus);
-    result.emplace("bus_and_tram", T::kBusAndTram);
-    result.emplace("countdown_in_seconds", T::kCountdownInSeconds);
-    result.emplace("countdown_in_percent", T::kCountdownInPercent);
-    return result;
-  }();
-  const auto it = kMapper.find(ToLower(type_str));
-  if (it != kMapper.end()) {
+  static const auto mapper = maliput::api::rules::BulbTypeStringToEnumMapper();
+  const auto it = mapper.find(type_str);
+  if (it != mapper.end()) {
     return it->second;
   }
   MALIDRIVE_THROW_MESSAGE("Invalid bulb type: " + type_str, maliput::common::road_network_description_parser_error);
