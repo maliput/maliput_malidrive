@@ -158,9 +158,9 @@ struct TrafficControlDeviceDefinition {
   bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };
 
-/// Parser that loads traffic control device definitions from a YAML database using the
-/// `odr_signal_types` and `odr_object_types` schemas. The resulting definitions are used in tandem
-/// with XODR signal and object data to create maliput traffic control devices.
+/// Parser that loads traffic control device definitions from a YAML database using the `odr_signal_types`
+/// schema. The resulting definitions are used in tandem with XODR signal data to create maliput
+/// `TrafficLight` and `TrafficSign` objects.
 ///
 /// Design:
 /// - Each definition carries a `device_type` field that determines whether a `TrafficLight` or
