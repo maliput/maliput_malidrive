@@ -126,9 +126,16 @@ maliput::api::rules::BulbColor StringToBulbColor(const std::string& color_str) {
 // @return The corresponding BulbType enum value.
 // @throws std::runtime_error if the type string is invalid.
 maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
-  static const auto mapper = maliput::api::rules::BulbTypeStringToEnumMapper();
-  const auto it = mapper.find(type_str);
-  if (it != mapper.end()) {
+  using T = maliput::api::rules::BulbType;
+  static const auto kMapper = []() {
+    std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
+    for (const auto& [bulb_type_str, bulb_type] : maliput::api::rules::BulbTypeStringToEnumMapper()) {
+      result.emplace(ToLower(bulb_type_str), bulb_type);
+    }
+    return result;
+  }();
+  const auto it = kMapper.find(ToLower(type_str));
+  if (it != kMapper.end()) {
     return it->second;
   }
   MALIDRIVE_THROW_MESSAGE("Invalid bulb type: " + type_str, maliput::common::road_network_description_parser_error);
