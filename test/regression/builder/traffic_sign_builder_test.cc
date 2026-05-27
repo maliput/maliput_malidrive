@@ -168,6 +168,16 @@ TEST_F(TrafficSignBuilderFigure8Test, PositionOfTrafficSign) {
   EXPECT_NEAR(position.y(), -2.8325, 1e-3);
 }
 
+// Verifies that the builder throws when a signal has a value with an unrecognized unit.
+TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignThrowsOnUnrecognizedUnit) {
+  xodr::signal::Signal bad_signal = signal_;
+  bad_signal.type = "206";
+  bad_signal.value = xodr::signal::Signal::Value{100.0, "unknown_unit"};
+
+  TrafficSignBuilder builder(bad_signal, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
+  EXPECT_THROW(builder(), maliput::common::road_network_description_parser_error);
+}
+
 // ---------------------------------------------------------------------------
 // Tests using TwoRoadsWithTrafficSigns.xodr / traffic_control_device_db/traffic_control_device_db_example.yaml.
 //
@@ -322,7 +332,7 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, GetValueReturnsNulloptForStopSign) {
 }
 
 // ---------------------------------------------------------------------------
-// Tests using SingleRoadWithSpeedLimit.xodr / traffic_control_device_db_example.yaml.
+// Tests using SingleRoadWithSpeedLimit.xodr / testing_database.yaml.
 //
 // This XODR defines a single straight road (Road 1) with a speed-limit signal
 // carrying value="60" and unit="km/h".
@@ -343,7 +353,7 @@ class TrafficSignBuilderSpeedLimitTest : public ::testing::Test {
     const std::string xodr_file =
         utility::FindResourceInPath("SingleRoadWithSpeedLimit.xodr", kMalidriveResourceFolder);
     const std::string yaml_db = utility::FindResourceInPath(
-        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
+        "traffic_control_device_db/testing_database.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file},
@@ -385,16 +395,6 @@ TEST_F(TrafficSignBuilderSpeedLimitTest, SpeedLimitSignPosition) {
   EXPECT_NEAR(100., pos.x(), 1e-1);
   EXPECT_NEAR(3., pos.y(), 1e-1);
   EXPECT_NEAR(2.5, pos.z(), 1e-1);
-}
-
-// Verifies that the builder throws when a signal has a value with an unrecognized unit.
-TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignThrowsOnUnrecognizedUnit) {
-  xodr::signal::Signal bad_signal = signal_;
-  bad_signal.type = "274";
-  bad_signal.value = xodr::signal::Signal::Value{100.0, "unknown_unit"};
-
-  TrafficSignBuilder builder(bad_signal, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
-  EXPECT_THROW(builder(), maliput::common::road_network_description_parser_error);
 }
 
 }  // namespace
