@@ -28,8 +28,12 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_control_device/parser.h"
 
+#include <algorithm>
+#include <cctype>
+#include <unordered_map>
 #include <utility>
 
+#include <maliput/common/maliput_hash.h>
 #include <maliput/common/maliput_throw.h>
 
 #include "maliput_malidrive/common/macros.h"
@@ -92,30 +96,47 @@ bool TrafficControlDeviceParser::CanOverlap(const TrafficControlDeviceFingerprin
 
 namespace {
 
+std::string ToLower(std::string value) {
+  std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
+  return value;
+}
+
 // Helper function to convert a color string to BulbColor enum.
 // @param color_str The color string (e.g., "Red", "Yellow", "Green").
 // @return The corresponding BulbColor enum value.
 // @throws std::runtime_error if the color string is invalid.
 maliput::api::rules::BulbColor StringToBulbColor(const std::string& color_str) {
-  const auto mapper = maliput::api::rules::BulbColorMapper();
-  for (const auto& pair : mapper) {
-    if (pair.second == color_str) {
-      return pair.first;
+  using C = maliput::api::rules::BulbColor;
+  static const auto kMapper = []() {
+    std::unordered_map<std::string, C, maliput::common::DefaultHash> result;
+    for (const auto& [bulb_color, bulb_color_str] : maliput::api::rules::BulbColorMapper()) {
+      result.emplace(ToLower(bulb_color_str), bulb_color);
     }
+    return result;
+  }();
+  const auto it = kMapper.find(ToLower(color_str));
+  if (it != kMapper.end()) {
+    return it->second;
   }
   MALIDRIVE_THROW_MESSAGE("Invalid bulb color: " + color_str, maliput::common::road_network_description_parser_error);
 }
 
 // Helper function to convert a type string to BulbType enum.
-// @param type_str The type string (e.g., "Round", "Arrow", "ArrowLeft").
+// @param type_str The type string (e.g., "Round", "ArrowLeft", "arrow_left").
 // @return The corresponding BulbType enum value.
 // @throws std::runtime_error if the type string is invalid.
 maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
-  const auto mapper = maliput::api::rules::BulbTypeMapper();
-  for (const auto& pair : mapper) {
-    if (pair.second == type_str) {
-      return pair.first;
+  using T = maliput::api::rules::BulbType;
+  static const auto kMapper = []() {
+    std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
+    for (const auto& [bulb_type_str, bulb_type] : maliput::api::rules::BulbTypeStringToEnumMapper()) {
+      result.emplace(ToLower(bulb_type_str), bulb_type);
     }
+    return result;
+  }();
+  const auto it = kMapper.find(ToLower(type_str));
+  if (it != kMapper.end()) {
+    return it->second;
   }
   MALIDRIVE_THROW_MESSAGE("Invalid bulb type: " + type_str, maliput::common::road_network_description_parser_error);
 }
@@ -125,11 +146,17 @@ maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
 // @return The corresponding BulbState enum value.
 // @throws std::runtime_error if the state string is invalid.
 maliput::api::rules::BulbState StringToBulbState(const std::string& state_str) {
-  const auto mapper = maliput::api::rules::BulbStateMapper();
-  for (const auto& pair : mapper) {
-    if (pair.second == state_str) {
-      return pair.first;
+  using S = maliput::api::rules::BulbState;
+  static const auto kMapper = []() {
+    std::unordered_map<std::string, S, maliput::common::DefaultHash> result;
+    for (const auto& [bulb_state, bulb_state_str] : maliput::api::rules::BulbStateMapper()) {
+      result.emplace(ToLower(bulb_state_str), bulb_state);
     }
+    return result;
+  }();
+  const auto it = kMapper.find(ToLower(state_str));
+  if (it != kMapper.end()) {
+    return it->second;
   }
   MALIDRIVE_THROW_MESSAGE("Invalid bulb state: " + state_str, maliput::common::road_network_description_parser_error);
 }
@@ -198,6 +225,11 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
   // Parse arrow orientation (only for Arrow type bulbs).
   if (const auto arrow_orientation = GetOptionalDoubleField(bulb_node, BulbConstants::kArrowOrientationRad)) {
     bulb.arrow_orientation_rad = arrow_orientation;
+  }
+
+  // Parse initial_state (optional, defaults to kOff).
+  if (const auto initial_state_str = GetOptionalStringField(bulb_node, BulbConstants::kInitialState)) {
+    bulb.initial_state = StringToBulbState(initial_state_str.value());
   }
 
   // Parse bounding box (optional).
