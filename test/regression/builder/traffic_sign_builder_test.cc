@@ -352,8 +352,8 @@ class TrafficSignBuilderSpeedLimitTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file =
         utility::FindResourceInPath("SingleRoadWithSpeedLimit.xodr", kMalidriveResourceFolder);
-    const std::string yaml_db = utility::FindResourceInPath(
-        "traffic_control_device_db/testing_database.yaml", kMalidriveResourceFolder);
+    const std::string yaml_db =
+        utility::FindResourceInPath("traffic_control_device_db/testing_database.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file},
