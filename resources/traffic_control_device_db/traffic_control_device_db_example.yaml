@@ -299,3 +299,19 @@ odr_signal_types:
       rule_states:
         - conditions: []
           value: ""
+
+  # Speed limit sign (static traffic sign).
+  - odr_representation:
+      type: "274"
+      subtype: "*"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: traffic_sign
+      device_semantics: speed_limit
+      description: "Speed limit sign. Indicates the maximum permitted speed."
+
+      rule_states:
+        - conditions: []
+          value: "SpeedLimit"

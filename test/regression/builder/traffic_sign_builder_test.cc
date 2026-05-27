@@ -39,6 +39,7 @@
 #include <maliput/api/road_network.h>
 #include <maliput/api/rules/traffic_sign.h>
 #include <maliput/api/rules/traffic_sign_book.h>
+#include <maliput/common/maliput_throw.h>
 
 #include "maliput_malidrive/base/road_geometry.h"
 #include "maliput_malidrive/builder/params.h"
@@ -311,6 +312,89 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficLightBookIsEmpty) {
   const auto* tlb = road_network_->traffic_light_book();
   ASSERT_NE(tlb, nullptr);
   EXPECT_TRUE(tlb->TrafficLights().empty());
+}
+
+// Verifies that stop signs without a valid value/unit pair return std::nullopt from GetValue().
+TEST_F(TrafficSignBuilderTwoRoadsTest, GetValueReturnsNulloptForStopSign) {
+  const auto* ts = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id("SS1"));
+  ASSERT_NE(ts, nullptr);
+  EXPECT_FALSE(ts->GetValue().has_value());
+}
+
+// ---------------------------------------------------------------------------
+// Tests using SingleRoadWithSpeedLimit.xodr / traffic_control_device_db_example.yaml.
+//
+// This XODR defines a single straight road (Road 1) with a speed-limit signal
+// carrying value="60" and unit="km/h".
+//
+//   Road 1 (200 m, hdg=0, x=[0,200]):
+//     - Signal SL1: type="274", s=100, t=3, orientation="+", zOffset=2.5,
+//       value="60", unit="km/h", validity={fromLane=-1, toLane=-1}.
+//
+// Expected TrafficSign:
+//   - id: "SL1"
+//   - type: kSpeedLimit
+//   - GetValue(): TrafficSignValue{60.0, kKilometersPerHour}
+// ---------------------------------------------------------------------------
+
+class TrafficSignBuilderSpeedLimitTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadWithSpeedLimit.xodr", kMalidriveResourceFolder);
+    const std::string yaml_db = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    traffic_sign_book_ = road_network_->traffic_sign_book();
+    ASSERT_NE(traffic_sign_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::rules::TrafficSignBook* traffic_sign_book_{};
+};
+
+// Verifies that the speed-limit sign is created with correct type.
+TEST_F(TrafficSignBuilderSpeedLimitTest, SpeedLimitSignCreated) {
+  const auto* ts = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id("SL1"));
+  ASSERT_NE(ts, nullptr);
+  EXPECT_EQ(maliput::api::rules::TrafficSignType::kSpeedLimit, ts->type());
+}
+
+// Verifies that GetValue() returns the expected numeric value and unit.
+TEST_F(TrafficSignBuilderSpeedLimitTest, GetValueReturnsExpectedValue) {
+  const auto* ts = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id("SL1"));
+  ASSERT_NE(ts, nullptr);
+  const auto& value = ts->GetValue();
+  ASSERT_TRUE(value.has_value());
+  EXPECT_DOUBLE_EQ(60.0, value->value);
+  EXPECT_EQ(maliput::api::rules::TrafficSignValueUnit::kKilometersPerHour, value->unit);
+}
+
+// Verifies that the sign's position is correct.
+TEST_F(TrafficSignBuilderSpeedLimitTest, SpeedLimitSignPosition) {
+  const auto* ts = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id("SL1"));
+  ASSERT_NE(ts, nullptr);
+  const auto& pos = ts->position_road_network();
+  EXPECT_NEAR(100., pos.x(), 1e-1);
+  EXPECT_NEAR(3., pos.y(), 1e-1);
+  EXPECT_NEAR(2.5, pos.z(), 1e-1);
+}
+
+// Verifies that the builder throws when a signal has a value with an unrecognized unit.
+TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignThrowsOnUnrecognizedUnit) {
+  xodr::signal::Signal bad_signal = signal_;
+  bad_signal.type = "274";
+  bad_signal.value = xodr::signal::Signal::Value{100.0, "unknown_unit"};
+
+  TrafficSignBuilder builder(bad_signal, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
+  EXPECT_THROW(builder(), maliput::common::road_network_description_parser_error);
 }
 
 }  // namespace

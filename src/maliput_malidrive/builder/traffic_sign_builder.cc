@@ -66,6 +66,19 @@ std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
   return subtype;
 }
 
+/// Maps a string to a TrafficSignValueUnit enum value.
+/// @param unit_string The string representation of the unit.
+/// @return The corresponding TrafficSignValueUnit enum value or std::nullopt if the string does not map to any Unit.
+std::optional<maliput::api::rules::TrafficSignValueUnit> StringToValueUnit(const std::string& unit_string) {
+  const auto mapper = maliput::api::rules::TrafficSignValueUnitMapper();
+  for (const auto& pair : mapper) {
+    if (pair.second == unit_string) {
+      return std::make_optional(pair.first);
+    }
+  }
+  return std::nullopt;
+}
+
 }  // namespace
 
 TrafficSignBuilder::TrafficSignBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
@@ -137,6 +150,19 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                                                 maliput::math::Vector3(depth, width, height),
                                                 maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
+  // Map the XODR signal value/unit pair to a TrafficSignValue, if present.
+  // A value of -1.0 is the XODR sentinel for "no value" and is skipped.
+  std::optional<maliput::api::rules::TrafficSignValue> traffic_sign_value;
+  if (signal_.value.has_value() && signal_.value->value != -1.0) {
+    const auto mapped_unit = StringToValueUnit(signal_.value->unit);
+    if (!mapped_unit.has_value()) {
+      MALIDRIVE_THROW_MESSAGE("TrafficSignBuilder: signal id='" + signal_.id.string() +
+                                  "' has value attribute with unrecognized unit '" + signal_.value->unit + "'.",
+                              maliput::common::road_network_description_parser_error);
+    }
+    traffic_sign_value = maliput::api::rules::TrafficSignValue{signal_.value->value, mapped_unit.value()};
+  }
+
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
                         definition.device_semantics.value_or("other"), "'. TrafficSign position: (x=", pos.x(),
@@ -146,7 +172,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
 
   return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
                                                             sign_meaning, pos, orientation_road_network, signal_.text,
-                                                            std::move(related_lanes), bounding_box);
+                                                            std::move(related_lanes), bounding_box, traffic_sign_value);
 }
 
 }  // namespace builder
