@@ -257,11 +257,11 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS1Fields) {
   EXPECT_NEAR(2., pos.y(), 1e-1);
   EXPECT_NEAR(6., pos.z(), 1e-1);
 
-  // Orientation: Road heading = 0, h_offset = 0, orientation = "+" → yaw ~ 0.
+  // Orientation: Road heading = 0, h_offset = 0, orientation = "+" → yaw ~ π.
   const auto& rot = tl->orientation_road_network();
   EXPECT_NEAR(0., rot.roll(), 1e-3);
   EXPECT_NEAR(0., rot.pitch(), 1e-3);
-  EXPECT_NEAR(0., rot.yaw(), 1e-1);
+  EXPECT_NEAR(M_PI, rot.yaw(), 1e-1);
 
   // BulbGroups: one group named "TrafficLight_S1_Bulbs".
   const auto bulb_groups = tl->bulb_groups();
@@ -338,11 +338,11 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS2Fields) {
   EXPECT_NEAR(-2., pos.y(), 1e-1);
   EXPECT_NEAR(6., pos.z(), 1e-1);
 
-  // Orientation: Road heading = 0, h_offset = 0, orientation = "-" (against S) → yaw ~ π.
+  // Orientation: Road heading = 0, h_offset = 0, orientation = "-" (against S) → yaw ~ 0.
   const auto& rot = tl->orientation_road_network();
   EXPECT_NEAR(0., rot.roll(), 1e-3);
   EXPECT_NEAR(0., rot.pitch(), 1e-3);
-  EXPECT_NEAR(M_PI, std::abs(rot.yaw()), 1e-1);
+  EXPECT_NEAR(0., std::abs(rot.yaw()), 1e-1);
 
   // BulbGroups: one group.
   const auto bulb_groups = tl->bulb_groups();

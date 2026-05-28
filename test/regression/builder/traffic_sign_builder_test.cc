@@ -237,11 +237,11 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS1Fields) {
   EXPECT_NEAR(2., pos.y(), 1e-1);
   EXPECT_NEAR(1., pos.z(), 1e-1);
 
-  // Orientation: Road heading = 0, h_offset = 0, orientation = "+" → yaw ~ 0.
+  // Orientation: Road heading = 0, h_offset = 0, orientation = "+" → yaw ~ π.
   const auto& rot = ts->orientation_road_network();
   EXPECT_NEAR(0., rot.roll(), 1e-3);
   EXPECT_NEAR(0., rot.pitch(), 1e-3);
-  EXPECT_NEAR(0., rot.yaw(), 1e-1);
+  EXPECT_NEAR(M_PI, rot.yaw(), 1e-1);
 
   // Related lanes for SS1:
   //   - From signal's own validity (fromLane=-1, toLane=-1) on road 1 → {"1_0_-1"}
@@ -276,11 +276,11 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS2Fields) {
   EXPECT_NEAR(-2., pos.y(), 1e-1);
   EXPECT_NEAR(1., pos.z(), 1e-1);
 
-  // Orientation: Road heading = 0, h_offset = 0, orientation = "-" (against S) → yaw ~ π.
+  // Orientation: Road heading = 0, h_offset = 0, orientation = "-" (against S) → yaw ~ 0.
   const auto& rot = ts->orientation_road_network();
   EXPECT_NEAR(0., rot.roll(), 1e-3);
   EXPECT_NEAR(0., rot.pitch(), 1e-3);
-  EXPECT_NEAR(M_PI, std::abs(rot.yaw()), 1e-1);
+  EXPECT_NEAR(0., std::abs(rot.yaw()), 1e-1);
 
   // Related lanes for SS2:
   //   - From signal's own validity (empty → all lanes) on road 2 → {"2_0_1", "2_0_-1"}
