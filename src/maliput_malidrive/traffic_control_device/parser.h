@@ -158,15 +158,25 @@ struct TrafficControlDeviceDefinition {
   bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };
 
-/// Parser that loads traffic control device definitions from a YAML database using the `odr_signal_types`
-/// schema. The resulting definitions are used in tandem with XODR signal data to create maliput
-/// `TrafficLight` and `TrafficSign` objects.
+/// Parser that loads traffic control device definitions from a YAML database using the
+/// `odr_signal_types` and `odr_object_types` schemas. The resulting definitions are used in
+/// tandem with XODR signal/object data to create maliput `TrafficLight`, `TrafficSign`,
+/// `RoadMarking`, and `RoadObject` representations.
 ///
 /// Design:
-/// - Each definition carries a `device_type` field that determines whether a `TrafficLight` or
-///   `TrafficSign` is created for a given XODR signal.
-/// - For traffic lights: `TrafficLight` is created with its bulbs and associated rule states.
-/// - For traffic signs: a `TrafficSign` is created with its type derived from the `device_semantics` field.
+/// - Each definition carries a `device_type` field that determines whether the entry is a
+///   traffic light, traffic sign, road marking, or road object.
+/// - For signals (`odr_signal_types`): `device_type` must be `traffic_light` or
+///   `traffic_sign`.
+/// - For objects (`odr_object_types`): `device_type` must be `road_marking` or
+///   `road_object`. Object entries' `odr_representation` only carries `type`, `subtype`,
+///   and `name`; `country`/`country_revision` are not permitted. Object entries'
+///   `properties` may not include `bulbs` or `rule_states`.
+///
+/// The two root keys are independently validated for equal-specificity conflicts: a signal
+/// and an object sharing a fingerprint do NOT conflict, because OpenDRIVE signals and
+/// objects live in disjoint namespaces. Both vectors are merged into a single flat result
+/// returned to the caller; downstream code discriminates entries by `device_type`.
 ///
 /// Workflow:
 /// 1. Load the device database: `TrafficControlDeviceParser::LoadFromFile()` or `LoadFromString()`.
@@ -222,6 +232,17 @@ class TrafficControlDeviceParser {
   /// @param fp The fingerprint to evaluate.
   /// @return Integer in [0, 5] representing the number of non-wildcard fields.
   static int Specificity(const TrafficControlDeviceFingerprint& fp);
+
+  /// Computes the specificity score of @p fp for an object entry.
+  ///
+  /// Object entries only carry `type`, `subtype`, and `name` in their `odr_representation`
+  /// (no `country` / `country_revision`), so only those three fields contribute. Counting
+  /// rules are identical to @ref Specificity: only the literal `"*"` is non-specific.
+  ///
+  /// @param fp The fingerprint to evaluate.
+  /// @return Integer in [0, 3] representing the number of non-wildcard fields among
+  ///         `type`, `subtype`, and `name`.
+  static int SpecificityForObject(const TrafficControlDeviceFingerprint& fp);
 
   /// Returns true if @p db_entry matches @p query for lookup purposes.
   ///

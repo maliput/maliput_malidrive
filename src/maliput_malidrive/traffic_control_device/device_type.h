@@ -39,6 +39,8 @@ namespace traffic_control_device {
 enum class TrafficControlDeviceType {
   kTrafficLight,  ///< Device is a traffic light ("traffic_light").
   kTrafficSign,   ///< Device is a traffic sign ("traffic_sign").
+  kRoadMarking,   ///< Device is a road marking ("road_marking").
+  kRoadObject,    ///< Device is a road object ("road_object").
   kUnknown,       ///< Unrecognized or missing device_type value.
 };
 
@@ -48,6 +50,8 @@ enum class TrafficControlDeviceType {
 /// Recognized values (case-insensitive):
 ///   - `"traffic_light"` → `kTrafficLight`
 ///   - `"traffic_sign"`  → `kTrafficSign`
+///   - `"road_marking"`  → `kRoadMarking`
+///   - `"road_object"`   → `kRoadObject`
 ///
 /// Any other string maps to `kUnknown`.
 ///
@@ -60,6 +64,8 @@ TrafficControlDeviceType StringToTrafficControlDeviceType(const std::string& dev
 ///
 ///   - `kTrafficLight` → `"traffic_light"`
 ///   - `kTrafficSign`  → `"traffic_sign"`
+///   - `kRoadMarking`  → `"road_marking"`
+///   - `kRoadObject`   → `"road_object"`
 ///   - `kUnknown`      → `"unknown"`
 ///
 /// @param device_type  The @ref TrafficControlDeviceType to convert.

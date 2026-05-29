@@ -42,6 +42,7 @@ namespace traffic_control_device {
 struct TrafficControlDeviceConstants {
   // Root-level keys.
   static constexpr const char* kOdrSignalTypes = "odr_signal_types";
+  static constexpr const char* kOdrObjectTypes = "odr_object_types";
   // Entry-level structural keys.
   static constexpr const char* kOdrRepresentation = "odr_representation";
   static constexpr const char* kProperties = "properties";

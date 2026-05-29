@@ -42,6 +42,8 @@ TrafficControlDeviceType StringToTrafficControlDeviceType(const std::string& dev
   static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
       {"traffic_light", T::kTrafficLight},
       {"traffic_sign", T::kTrafficSign},
+      {"road_marking", T::kRoadMarking},
+      {"road_object", T::kRoadObject},
   };
   std::string lower = device_type_str;
   std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
@@ -55,6 +57,10 @@ const char* TrafficControlDeviceTypeToString(TrafficControlDeviceType device_typ
       return "traffic_light";
     case TrafficControlDeviceType::kTrafficSign:
       return "traffic_sign";
+    case TrafficControlDeviceType::kRoadMarking:
+      return "road_marking";
+    case TrafficControlDeviceType::kRoadObject:
+      return "road_object";
     default:
       return "unknown";
   }
