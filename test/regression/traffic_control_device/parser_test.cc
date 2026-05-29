@@ -1631,6 +1631,488 @@ odr_signal_types:
   EXPECT_EQ(result->device_semantics, "concrete_name");
 }
 
+// ============================================================================
+// odr_object_types parsing
+// ============================================================================
+
+// Helper that filters `defs` by device_type for assertions on object/signal subsets.
+std::vector<TrafficControlDeviceDefinition> FilterByDeviceType(
+    const std::vector<TrafficControlDeviceDefinition>& defs, TrafficControlDeviceType type) {
+  std::vector<TrafficControlDeviceDefinition> out;
+  std::copy_if(defs.begin(), defs.end(), std::back_inserter(out),
+               [type](const TrafficControlDeviceDefinition& d) { return d.device_type == type; });
+  return out;
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, LoadObjectsOnlyDatabase) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+      name: "StopLine"
+    properties:
+      device_type: road_marking
+      device_semantics: stop_line
+      description: "Stop line road marking"
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      description: "Generic pole"
+      is_position_dynamic: false
+      default_bounding_box:
+        length: 0.2
+        width: 0.2
+        height: 2.0
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  EXPECT_EQ(defs.size(), 2);
+
+  const auto road_markings = FilterByDeviceType(defs, TrafficControlDeviceType::kRoadMarking);
+  ASSERT_EQ(road_markings.size(), 1);
+  EXPECT_EQ(road_markings[0].fingerprint.type, "roadMark");
+  ASSERT_TRUE(road_markings[0].fingerprint.name.has_value());
+  EXPECT_EQ(road_markings[0].fingerprint.name.value(), "StopLine");
+  EXPECT_FALSE(road_markings[0].fingerprint.country.has_value());
+  EXPECT_FALSE(road_markings[0].fingerprint.country_revision.has_value());
+  ASSERT_TRUE(road_markings[0].device_semantics.has_value());
+  EXPECT_EQ(road_markings[0].device_semantics.value(), "stop_line");
+  EXPECT_TRUE(road_markings[0].bulbs.empty());
+  EXPECT_TRUE(road_markings[0].rule_states.empty());
+
+  const auto road_objects = FilterByDeviceType(defs, TrafficControlDeviceType::kRoadObject);
+  ASSERT_EQ(road_objects.size(), 1);
+  EXPECT_EQ(road_objects[0].fingerprint.type, "pole");
+  EXPECT_FALSE(road_objects[0].fingerprint.subtype.has_value());
+  EXPECT_FALSE(road_objects[0].fingerprint.name.has_value());
+  ASSERT_TRUE(road_objects[0].default_bounding_box.has_value());
+  EXPECT_NEAR(road_objects[0].default_bounding_box->length, 0.2, kTolerance);
+  EXPECT_NEAR(road_objects[0].default_bounding_box->width, 0.2, kTolerance);
+  EXPECT_NEAR(road_objects[0].default_bounding_box->height, 2.0, kTolerance);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, LoadBothRootsDatabase) {
+  const char kDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "206"
+      subtype: "-1"
+    properties:
+      device_type: traffic_sign
+      device_semantics: give_way
+      description: "Give way sign"
+      rule_states:
+        - conditions: []
+          value: "StopIfSafe"
+odr_object_types:
+  - odr_representation:
+      type: crosswalk
+    properties:
+      device_type: road_marking
+      device_semantics: crosswalk
+      description: "Generic crosswalk"
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 2);
+  EXPECT_EQ(FilterByDeviceType(defs, TrafficControlDeviceType::kTrafficSign).size(), 1);
+  EXPECT_EQ(FilterByDeviceType(defs, TrafficControlDeviceType::kRoadMarking).size(), 1);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, EmptyObjectArrayIsValid) {
+  const char kDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "206"
+    properties:
+      device_type: traffic_sign
+      description: "Sign"
+odr_object_types: []
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+  EXPECT_EQ(defs[0].device_type, TrafficControlDeviceType::kTrafficSign);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, MissingBothRootsIsRejected) {
+  const char kDb[] = R"(
+some_unrelated_key: 42
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsCountryInObject) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+      country: "DE"
+    properties:
+      device_type: road_marking
+      description: "Should fail"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsCountryRevisionInObject) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+      country_revision: "2017"
+    properties:
+      device_type: road_marking
+      description: "Should fail"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsBulbsInObject) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+    properties:
+      device_type: road_marking
+      description: "Should fail"
+      bulbs:
+        - id: "Bulb"
+          position_traffic_light: [0.0, 0.0, 0.0]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: red
+          type: round
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsRuleStatesInObject) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+    properties:
+      device_type: road_marking
+      description: "Should fail"
+      rule_states:
+        - conditions: []
+          value: "Stop"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsSignalDeviceTypeInObject) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+    properties:
+      device_type: traffic_light
+      description: "Should fail"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsTrafficSignDeviceTypeInObject) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+    properties:
+      device_type: traffic_sign
+      description: "Should fail"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, RejectsObjectDeviceTypeInSignal) {
+  const char kRoadMarkingInSignal[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+    properties:
+      device_type: road_marking
+      description: "Should fail"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRoadMarkingInSignal),
+               maliput::common::road_network_description_parser_error);
+  const char kRoadObjectInSignal[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+    properties:
+      device_type: road_object
+      description: "Should fail"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRoadObjectInSignal),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, EqualSpecificityObjectConflictIsRejected) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+      name: "*"
+    properties:
+      device_type: road_marking
+      description: "First wildcard"
+  - odr_representation:
+      type: roadMark
+      name: "*"
+    properties:
+      device_type: road_marking
+      description: "Second wildcard"
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
+               maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, SignalAndObjectWithSameFingerprintDoNotConflict) {
+  // The two entries share `type = "roadMark"` and have equal specificity. Per the per-root
+  // validation rule, they MUST NOT be flagged as conflicting because signals and objects
+  // live in disjoint namespaces.
+  const char kDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "roadMark"
+    properties:
+      device_type: traffic_sign
+      description: "Signal entry"
+      rule_states: []
+odr_object_types:
+  - odr_representation:
+      type: "roadMark"
+    properties:
+      device_type: road_marking
+      description: "Object entry"
+)";
+  EXPECT_NO_THROW({
+    const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+    EXPECT_EQ(defs.size(), 2);
+  });
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, WildcardWorksForObjectFields) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: roadMark
+      name: "*"
+    properties:
+      device_type: road_marking
+      description: "Wildcard name catch-all"
+  - odr_representation:
+      type: roadMark
+      name: "StopLine"
+    properties:
+      device_type: road_marking
+      device_semantics: stop_line
+      description: "Specific stop line"
+)";
+  // Two roadMark entries, one with wildcard name and one with concrete name —
+  // different specificities, so no conflict.
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 2);
+}
+
+GTEST_TEST(OdrObjectTypesParserTest, TypeOnlyObjectEntryParses) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      description: "Minimal object entry"
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+  EXPECT_EQ(defs[0].fingerprint.type, "pole");
+  EXPECT_FALSE(defs[0].fingerprint.subtype.has_value());
+  EXPECT_FALSE(defs[0].fingerprint.name.has_value());
+  EXPECT_FALSE(defs[0].fingerprint.country.has_value());
+  EXPECT_FALSE(defs[0].fingerprint.country_revision.has_value());
+}
+
+// ============================================================================
+// SpecificityForObject — direct unit tests
+// ============================================================================
+
+GTEST_TEST(SpecificityForObjectTest, CountsOnlyTypeSubtypeName) {
+  const TrafficControlDeviceFingerprint all_wildcards{
+      .type = "*", .subtype = "*", .country = std::nullopt, .country_revision = std::nullopt, .name = "*"};
+  EXPECT_EQ(TrafficControlDeviceParser::SpecificityForObject(all_wildcards), 0);
+
+  const TrafficControlDeviceFingerprint type_only{
+      .type = "roadMark", .subtype = "*", .country = std::nullopt, .country_revision = std::nullopt, .name = "*"};
+  EXPECT_EQ(TrafficControlDeviceParser::SpecificityForObject(type_only), 1);
+
+  const TrafficControlDeviceFingerprint all_three{.type = "roadMark",
+                                                  .subtype = "10",
+                                                  .country = std::nullopt,
+                                                  .country_revision = std::nullopt,
+                                                  .name = "StopLine"};
+  EXPECT_EQ(TrafficControlDeviceParser::SpecificityForObject(all_three), 3);
+}
+
+// ---------------------------------------------------------------------------
+// Device-level default_bounding_box (BoundingBoxDimensions) parsing.
+// ---------------------------------------------------------------------------
+
+GTEST_TEST(DefaultBoundingBoxParserTest, FullySpecifiedFields) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        length: 0.5
+        width: 0.6
+        height: 2.4
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+  ASSERT_TRUE(defs[0].default_bounding_box.has_value());
+  const auto& bbox = *defs[0].default_bounding_box;
+  EXPECT_NEAR(bbox.length, 0.5, kTolerance);
+  EXPECT_NEAR(bbox.width, 0.6, kTolerance);
+  EXPECT_NEAR(bbox.height, 2.4, kTolerance);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, WorksOnSignalEntries) {
+  const char kDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "206"
+    properties:
+      device_type: traffic_sign
+      device_semantics: stop
+      default_bounding_box:
+        length: 0.05
+        width: 0.6
+        height: 0.6
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+  ASSERT_TRUE(defs[0].default_bounding_box.has_value());
+  EXPECT_NEAR(defs[0].default_bounding_box->length, 0.05, kTolerance);
+  EXPECT_NEAR(defs[0].default_bounding_box->width, 0.6, kTolerance);
+  EXPECT_NEAR(defs[0].default_bounding_box->height, 0.6, kTolerance);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, MissingLengthRejected) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        width: 1.0
+        height: 1.0
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, MissingWidthRejected) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        length: 1.0
+        height: 1.0
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, MissingHeightRejected) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        length: 1.0
+        width: 1.0
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, NegativeDimensionRejected) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        length: 1.0
+        width: -1.0
+        height: 1.0
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, UnknownFieldRejected) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        length: 1.0
+        width: 1.0
+        height: 1.0
+        p_min: [0.0, 0.0, 0.0]
+)";
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, NullDefaultBoundingBoxLeavesItUnset) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box: null
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+  EXPECT_FALSE(defs[0].default_bounding_box.has_value());
+}
+
+GTEST_TEST(DefaultBoundingBoxParserTest, ZeroDimensionsAllowed) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: pole
+    properties:
+      device_type: road_object
+      default_bounding_box:
+        length: 0.0
+        width: 0.0
+        height: 0.0
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+  ASSERT_TRUE(defs[0].default_bounding_box.has_value());
+  EXPECT_NEAR(defs[0].default_bounding_box->length, 0.0, kTolerance);
+  EXPECT_NEAR(defs[0].default_bounding_box->width, 0.0, kTolerance);
+  EXPECT_NEAR(defs[0].default_bounding_box->height, 0.0, kTolerance);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace traffic_control_device

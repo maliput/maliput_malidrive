@@ -170,28 +170,73 @@ maliput::api::rules::BulbState StringToBulbState(const std::string& state_str) {
   MALIDRIVE_THROW_MESSAGE("Invalid bulb state: " + state_str, maliput::common::road_network_description_parser_error);
 }
 
-// Helper function to parse a bounding box from a YAML map.
+// Helper function to parse a bulb's axis-aligned bounding box from a YAML map.
 // @param node The YAML node containing p_min and p_max keys.
-// @return A Bulb::BoundingBox with the parsed values.
-maliput::api::rules::Bulb::BoundingBox ParseBoundingBox(const YAML::Node& node) {
-  auto bounding_box = maliput::api::rules::Bulb::BoundingBox();
+// @return A Bulb::BoundingBox with the parsed values, or the default Bulb::BoundingBox
+//         when @p node is not defined.
+maliput::api::rules::Bulb::BoundingBox ParseBulbBoundingBox(const YAML::Node& node) {
+  maliput::api::rules::Bulb::BoundingBox bounding_box;
   if (!node.IsDefined()) {
     // If not defined, return the default bounding box.
     return bounding_box;
   }
   MALIDRIVE_THROW_UNLESS(node.IsMap(), maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(node[BoundingBoxConstants::kPMin].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(node[BulbBoundingBoxConstants::kPMin].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(node[BoundingBoxConstants::kPMax].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(node[BulbBoundingBoxConstants::kPMax].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
-  const auto p_min = GetVector3(node[BoundingBoxConstants::kPMin], BoundingBoxConstants::kPMin);
-  const auto p_max = GetVector3(node[BoundingBoxConstants::kPMax], BoundingBoxConstants::kPMax);
+  const auto p_min = GetVector3(node[BulbBoundingBoxConstants::kPMin], BulbBoundingBoxConstants::kPMin);
+  const auto p_max = GetVector3(node[BulbBoundingBoxConstants::kPMax], BulbBoundingBoxConstants::kPMax);
 
   bounding_box.p_BMin = p_min;
   bounding_box.p_BMax = p_max;
 
   return bounding_box;
+}
+
+// Helper function to parse a device-level bounding box from a YAML map.
+//
+// Expected schema (all three fields required when the node is present):
+//   default_bounding_box:
+//     length: <number>  # >= 0, local u-axis
+//     width:  <number>  # >= 0, local v-axis
+//     height: <number>  # >= 0, local z-axis
+//
+// @return A BoundingBoxDimensions with the parsed values.
+// @throws maliput::common::assertion_error When required fields are missing, when unknown keys
+//         are present, or when any dimension is negative.
+BoundingBoxDimensions ParseDeviceBoundingBox(const YAML::Node& node) {
+  MALIDRIVE_THROW_UNLESS(node.IsDefined(), maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(node.IsMap(), maliput::common::road_network_description_parser_error);
+
+  // Reject unknown keys to surface typos early.
+  for (const auto& kv : node) {
+    const auto key = kv.first.as<std::string>();
+    if (key != DeviceBoundingBoxConstants::kLength && key != DeviceBoundingBoxConstants::kWidth &&
+        key != DeviceBoundingBoxConstants::kHeight) {
+      MALIDRIVE_THROW_MESSAGE("Unknown field in default_bounding_box: '" + key + "'",
+                              maliput::common::road_network_description_parser_error);
+    }
+  }
+
+  MALIDRIVE_THROW_UNLESS(node[DeviceBoundingBoxConstants::kLength].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(node[DeviceBoundingBoxConstants::kWidth].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(node[DeviceBoundingBoxConstants::kHeight].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+
+  const double length = node[DeviceBoundingBoxConstants::kLength].as<double>();
+  const double width = node[DeviceBoundingBoxConstants::kWidth].as<double>();
+  const double height = node[DeviceBoundingBoxConstants::kHeight].as<double>();
+
+  if (length < 0.0 || width < 0.0 || height < 0.0) {
+    MALIDRIVE_THROW_MESSAGE("default_bounding_box dimensions must be non-negative",
+                            maliput::common::road_network_description_parser_error);
+  }
+
+  return BoundingBoxDimensions{length, width, height};
 }
 
 // Helper function to parse a BulbDefinition from a YAML map.
@@ -242,7 +287,7 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
   }
 
   // Parse bounding box (optional).
-  bulb.bounding_box = ParseBoundingBox(bulb_node[BulbConstants::kBoundingBox]);
+  bulb.bounding_box = ParseBulbBoundingBox(bulb_node[BulbConstants::kBoundingBox]);
 
   return bulb;
 }
@@ -371,7 +416,7 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   if (props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsDefined() &&
       !props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsNull()) {
     tcd_definition.default_bounding_box =
-        ParseBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
+        ParseDeviceBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
   }
 
   // Parse bulbs (optional sequence).
@@ -487,7 +532,7 @@ TrafficControlDeviceDefinition ParseObjectDefinition(const YAML::Node& entry_nod
   if (props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsDefined() &&
       !props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsNull()) {
     tcd_definition.default_bounding_box =
-        ParseBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
+        ParseDeviceBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
   }
 
   return tcd_definition;

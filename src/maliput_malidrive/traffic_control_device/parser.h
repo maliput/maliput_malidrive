@@ -103,6 +103,23 @@ struct BulbDefinition {
   bool operator!=(const BulbDefinition& other) const { return !(*this == other); }
 };
 
+/// Holds the device-level bounding box dimensions parsed from the YAML database.
+/// Builders use these values to construct a `maliput::math::BoundingBox` at device
+/// builder time (centred at the device bottom position, with appropriate orientation).
+struct BoundingBoxDimensions {
+  /// Length of the bounding box along the local u-axis (must be >= 0).
+  double length{0.0};
+  /// Width of the bounding box along the local v-axis (must be >= 0).
+  double width{0.0};
+  /// Height of the bounding box along the local z-axis (must be >= 0).
+  double height{0.0};
+
+  bool operator==(const BoundingBoxDimensions& other) const {
+    return length == other.length && width == other.width && height == other.height;
+  }
+  bool operator!=(const BoundingBoxDimensions& other) const { return !(*this == other); }
+};
+
 /// Unique identifier for a traffic signal definition.
 struct TrafficControlDeviceFingerprint {
   /// Signal type identifier. Matches XODR signal type attribute.
@@ -138,22 +155,20 @@ struct TrafficControlDeviceDefinition {
   std::optional<std::string> device_semantics;
   /// Whether the device position is dynamic (moveable). Defaults to false.
   bool is_position_dynamic{false};
-  /// Optional device-level bounding box. When set, represents the overall device dimensions.
+  /// Optional device-level bounding box dimensions (length, width, height).
+  /// Builders use these to construct a `maliput::math::BoundingBox` at builder time.
   /// Individual bulbs may still carry their own per-bulb bounding boxes.
-  std::optional<maliput::api::rules::Bulb::BoundingBox> default_bounding_box;
+  std::optional<BoundingBoxDimensions> default_bounding_box;
   /// Bulbs in this traffic signal (only relevant when device_type == "traffic_light").
   std::vector<BulbDefinition> bulbs;
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
   std::vector<RuleState> rule_states;
 
   bool operator==(const TrafficControlDeviceDefinition& other) const {
-    const bool bbox_equal =
-        (default_bounding_box.has_value() == other.default_bounding_box.has_value()) &&
-        (!default_bounding_box.has_value() || (default_bounding_box->p_BMin == other.default_bounding_box->p_BMin &&
-                                               default_bounding_box->p_BMax == other.default_bounding_box->p_BMax));
     return fingerprint == other.fingerprint && description == other.description && device_type == other.device_type &&
            device_semantics == other.device_semantics && is_position_dynamic == other.is_position_dynamic &&
-           bbox_equal && bulbs == other.bulbs && rule_states == other.rule_states;
+           default_bounding_box == other.default_bounding_box && bulbs == other.bulbs &&
+           rule_states == other.rule_states;
   }
   bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };

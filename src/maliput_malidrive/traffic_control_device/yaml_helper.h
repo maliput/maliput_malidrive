@@ -75,10 +75,19 @@ struct BulbConstants {
   static constexpr const char* kBoundingBox = "bounding_box";
 };
 
-/// Constants for bounding box YAML fields.
-struct BoundingBoxConstants {
+/// Constants for bulb bounding box YAML fields (axis-aligned, two-corner form).
+/// Used by `bulbs[i].bounding_box`, which maps to `maliput::api::rules::Bulb::BoundingBox`.
+struct BulbBoundingBoxConstants {
   static constexpr const char* kPMin = "p_min";
   static constexpr const char* kPMax = "p_max";
+};
+
+/// Constants for device-level bounding box YAML fields (dimensions form).
+/// Used by `properties.default_bounding_box`, parsed into `BoundingBoxDimensions`.
+struct DeviceBoundingBoxConstants {
+  static constexpr const char* kLength = "length";
+  static constexpr const char* kWidth = "width";
+  static constexpr const char* kHeight = "height";
 };
 
 /// Constants for rule state YAML fields.
