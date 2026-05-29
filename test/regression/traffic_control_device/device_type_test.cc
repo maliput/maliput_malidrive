@@ -100,6 +100,8 @@ INSTANTIATE_TEST_CASE_P(AllValues, TrafficControlDeviceTypeToStringTest,
                         ::testing::Values(TypeToStringTestCase{TrafficControlDeviceType::kTrafficLight,
                                                                "traffic_light"},
                                           TypeToStringTestCase{TrafficControlDeviceType::kTrafficSign, "traffic_sign"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadMarking, "road_marking"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadObject, "road_object"},
                                           TypeToStringTestCase{TrafficControlDeviceType::kUnknown, "unknown"}));
 
 // ---------------------------------------------------------------------------
@@ -113,6 +115,16 @@ TEST(TrafficControlDeviceTypeRoundTripTest, TrafficLight) {
 
 TEST(TrafficControlDeviceTypeRoundTripTest, TrafficSign) {
   const auto type = TrafficControlDeviceType::kTrafficSign;
+  EXPECT_EQ(type, StringToTrafficControlDeviceType(TrafficControlDeviceTypeToString(type)));
+}
+
+TEST(TrafficControlDeviceTypeRoundTripTest, RoadMarking) {
+  const auto type = TrafficControlDeviceType::kRoadMarking;
+  EXPECT_EQ(type, StringToTrafficControlDeviceType(TrafficControlDeviceTypeToString(type)));
+}
+
+TEST(TrafficControlDeviceTypeRoundTripTest, RoadObject) {
+  const auto type = TrafficControlDeviceType::kRoadObject;
   EXPECT_EQ(type, StringToTrafficControlDeviceType(TrafficControlDeviceTypeToString(type)));
 }
 
