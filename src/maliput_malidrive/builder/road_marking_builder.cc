@@ -136,7 +136,8 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
   // --- Bounding box ---
   double bb_length = object_.length.value_or(definition.default_bounding_box.value_or(bounding_box_dimensions).length);
   double bb_width = object_.width.value_or(definition.default_bounding_box.value_or(bounding_box_dimensions).width);
-  const double bb_height = object_.height.value_or(definition.default_bounding_box.value_or(bounding_box_dimensions).height);
+  const double bb_height =
+      object_.height.value_or(definition.default_bounding_box.value_or(bounding_box_dimensions).height);
   if (object_.radius.has_value()) {
     bb_length = 2.0 * object_.radius.value();
     bb_width = 2.0 * object_.radius.value();
