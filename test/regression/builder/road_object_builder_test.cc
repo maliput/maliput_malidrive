@@ -68,13 +68,9 @@ TEST_F(RoadObjectTypeMapperTest, DirectMappings) {
 
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier));
   EXPECT_EQ(MaliputType::kBuilding, MapXodrObjectType(XodrType::kBuilding));
-  EXPECT_EQ(MaliputType::kCrosswalk, MapXodrObjectType(XodrType::kCrosswalk));
   EXPECT_EQ(MaliputType::kGantry, MapXodrObjectType(XodrType::kGantry));
   EXPECT_EQ(MaliputType::kObstacle, MapXodrObjectType(XodrType::kObstacle));
-  EXPECT_EQ(MaliputType::kParkingSpace, MapXodrObjectType(XodrType::kParkingSpace));
   EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kPole));
-  EXPECT_EQ(MaliputType::kRoadMark, MapXodrObjectType(XodrType::kRoadMark));
-  EXPECT_EQ(MaliputType::kRoadSurface, MapXodrObjectType(XodrType::kRoadSurface));
   EXPECT_EQ(MaliputType::kTrafficIsland, MapXodrObjectType(XodrType::kTrafficIsland));
   EXPECT_EQ(MaliputType::kTree, MapXodrObjectType(XodrType::kTree));
   EXPECT_EQ(MaliputType::kVegetation, MapXodrObjectType(XodrType::kVegetation));
@@ -88,32 +84,16 @@ TEST_F(RoadObjectTypeMapperTest, CloseMappings) {
   EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kWind));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kRailing));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kSoundBarrier));
-  EXPECT_EQ(MaliputType::kRoadSurface, MapXodrObjectType(XodrType::kPatch));
-}
-
-TEST_F(RoadObjectTypeMapperTest, StopLineMappings) {
-  using XodrType = xodr::object::Object::ObjectType;
-  using MaliputType = maliput::api::objects::RoadObjectType;
-
-  // roadMark with name "stopLine" → kStopLine.
-  EXPECT_EQ(MaliputType::kStopLine, MapXodrObjectType(XodrType::kRoadMark, std::string("stopLine"), std::nullopt));
-  // roadMark with subtype "stopLine" → kStopLine.
-  EXPECT_EQ(MaliputType::kStopLine, MapXodrObjectType(XodrType::kRoadMark, std::nullopt, std::string("stopLine")));
-  // roadMark with both name and subtype "stopLine" → kStopLine.
-  EXPECT_EQ(MaliputType::kStopLine,
-            MapXodrObjectType(XodrType::kRoadMark, std::string("stopLine"), std::string("stopLine")));
-  // roadMark without stop-line indicators → kRoadMark.
-  EXPECT_EQ(MaliputType::kRoadMark, MapXodrObjectType(XodrType::kRoadMark, std::nullopt, std::nullopt));
-  EXPECT_EQ(MaliputType::kRoadMark,
-            MapXodrObjectType(XodrType::kRoadMark, std::string("arrow"), std::string("turnLeft")));
-  // Non-roadMark type with "stopLine" name → still maps by type, not to kStopLine.
-  EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, std::string("stopLine"), std::nullopt));
 }
 
 TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
   using XodrType = xodr::object::Object::ObjectType;
   using MaliputType = maliput::api::objects::RoadObjectType;
 
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCrosswalk));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kPatch));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kParkingSpace));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kRoadMark));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kBike));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCar));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kVan));

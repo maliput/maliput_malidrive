@@ -42,39 +42,52 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
   }
 
   switch (xodr_type.value()) {
+    // @{
     case XodrType::kBarrier:
     case XodrType::kSoundBarrier:
     case XodrType::kRailing:
       return MaliputType::kBarrier;
+    // @}
+    // @{
     case XodrType::kBuilding:
       return MaliputType::kBuilding;
-    case XodrType::kCrosswalk:
-      return MaliputType::kCrosswalk;
+    // @}
     case XodrType::kGantry:
       return MaliputType::kGantry;
+    // @}
+    // @{
     case XodrType::kObstacle:
       return MaliputType::kObstacle;
-    case XodrType::kParkingSpace:
-      return MaliputType::kParkingSpace;
+    // @}
+    // @{
     case XodrType::kPole:
     case XodrType::kWind:
     case XodrType::kStreetLamp:
       return MaliputType::kPole;
-    case XodrType::kRoadMark:
-      if ((name.has_value() && name.value() == "stopLine") || (subtype.has_value() && subtype.value() == "stopLine")) {
-        return MaliputType::kStopLine;
-      }
-      return MaliputType::kRoadMark;
+    // @}
+    // @{
     case XodrType::kRoadSurface:
-    case XodrType::kPatch:
-      return MaliputType::kRoadSurface;
     case XodrType::kTrafficIsland:
       return MaliputType::kTrafficIsland;
+    // @}
+    // @{
     case XodrType::kTree:
       return MaliputType::kTree;
+    // @}
+    // @{
     case XodrType::kVegetation:
       return MaliputType::kVegetation;
+    // @}
+    // These types are now covered by RoadMarkingTypes, so we map them to kUnknown to avoid misclassification.
+    // @{
+    case XodrType::kCrosswalk:
+    case XodrType::kPatch:
+    case XodrType::kParkingSpace:
+    case XodrType::kRoadMark:
+      return MaliputType::kUnknown;
+    // @}
     // Deprecated types map to kUnknown.
+    // @{
     case XodrType::kBike:
     case XodrType::kBus:
     case XodrType::kCar:
@@ -86,6 +99,7 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     case XodrType::kVan:
     case XodrType::kNone:
       return MaliputType::kUnknown;
+    // @}
   }
   return MaliputType::kUnknown;  // Fallback for any future additions.
 }
