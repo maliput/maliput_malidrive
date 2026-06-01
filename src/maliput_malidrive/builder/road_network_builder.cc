@@ -42,6 +42,7 @@
 #include <maliput/base/manual_rulebook.h>
 #include <maliput/base/phase_based_right_of_way_rule_state_provider.h>
 #include <maliput/base/phase_ring_book_loader.h>
+#include <maliput/base/road_marking_book.h>
 #include <maliput/base/road_object_book.h>
 #include <maliput/base/rule_registry.h>
 #include <maliput/base/traffic_light_book.h>
@@ -153,7 +154,8 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
       std::move(rg), std::move(rule_book), std::move(traffic_light_book), std::move(intersection_book),
       std::move(phase_ring_book), std::move(state_provider), std::move(manual_phase_provider), std::move(rule_registry),
       std::move(discrete_value_rule_state_provider), std::move(range_value_rule_state_provider),
-      std::move(road_object_book), std::move(traffic_sign_book));
+      std::move(road_object_book), std::move(traffic_sign_book),
+      std::unique_ptr<maliput::api::objects::RoadMarkingBook>());
 }
 
 }  // namespace builder
