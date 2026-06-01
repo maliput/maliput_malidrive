@@ -30,11 +30,14 @@
 #include "maliput_malidrive/builder/builder_tools.h"
 
 #include <algorithm>
+#include <cmath>
 #include <map>
 
 #include <maliput/api/lane.h>
+#include <maliput/api/objects/road_object.h>
 #include <maliput/common/logger.h>
 #include <maliput/common/maliput_unused.h>
+#include <maliput/math/vector.h>
 #include <tinyxml2.h>
 
 #include "maliput_malidrive/base/road_geometry.h"
@@ -610,6 +613,55 @@ std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
                       related_lanes.end());
 
   return related_lanes;
+}
+
+std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
+    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+    const maliput::api::RoadGeometry* road_geometry, const maliput::api::InertialPosition& object_inertial_pos,
+    const maliput::api::Rotation& object_orientation) {
+  std::vector<std::unique_ptr<maliput::api::objects::Outline>> result;
+  if (!object.outlines.has_value()) {
+    return result;
+  }
+
+  const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry);
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error,
+                     "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+
+  int outline_index = 0;
+  for (const auto& xodr_outline : object.outlines->outlines) {
+    std::vector<maliput::api::objects::OutlineCorner> corners;
+
+    if (!xodr_outline.corner_road.empty()) {
+      for (const auto& cr : xodr_outline.corner_road) {
+        const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_pos{std::stoi(road_id.string()), cr.s, cr.t};
+        const maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_pos, true);
+        maliput::api::InertialPosition ip = rp.ToInertialPosition();
+        ip.set_z(ip.z() + cr.dz);
+        corners.emplace_back(maliput::math::Vector3(ip.x(), ip.y(), ip.z()), cr.height);
+      }
+    } else if (!xodr_outline.corner_local.empty()) {
+      const double cos_yaw = std::cos(object_orientation.yaw());
+      const double sin_yaw = std::sin(object_orientation.yaw());
+      for (const auto& cl : xodr_outline.corner_local) {
+        const double x = object_inertial_pos.x() + cos_yaw * cl.u - sin_yaw * cl.v;
+        const double y = object_inertial_pos.y() + sin_yaw * cl.u + cos_yaw * cl.v;
+        const double z = object_inertial_pos.z() + cl.z;
+        corners.emplace_back(maliput::math::Vector3(x, y, z), cl.height);
+      }
+    }
+
+    if (corners.size() >= 3u) {
+      const std::string outline_id_str = xodr_outline.id.has_value()
+                                             ? xodr_outline.id->string()
+                                             : (object.id.string() + "_outline_" + std::to_string(outline_index));
+      const bool closed = xodr_outline.closed.value_or(true);
+      result.push_back(std::make_unique<maliput::api::objects::Outline>(
+          maliput::api::objects::Outline::Id(outline_id_str), std::move(corners), closed));
+    }
+    ++outline_index;
+  }
+  return result;
 }
 
 }  // namespace builder
