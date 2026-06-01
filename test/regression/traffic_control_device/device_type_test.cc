@@ -57,22 +57,27 @@ INSTANTIATE_TEST_CASE_P(KnownValues, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
                             // Canonical lower-case forms.
                             StringToTypeTestCase{"traffic_light", TrafficControlDeviceType::kTrafficLight},
-                            StringToTypeTestCase{"traffic_sign", TrafficControlDeviceType::kTrafficSign}));
+                            StringToTypeTestCase{"traffic_sign", TrafficControlDeviceType::kTrafficSign},
+                            StringToTypeTestCase{"road_marking", TrafficControlDeviceType::kRoadMarking},
+                            StringToTypeTestCase{"road_object", TrafficControlDeviceType::kRoadObject}));
 
 INSTANTIATE_TEST_CASE_P(CaseInsensitive, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
                             // Upper-case variants.
                             StringToTypeTestCase{"TRAFFIC_LIGHT", TrafficControlDeviceType::kTrafficLight},
                             StringToTypeTestCase{"TRAFFIC_SIGN", TrafficControlDeviceType::kTrafficSign},
+                            StringToTypeTestCase{"ROAD_MARKING", TrafficControlDeviceType::kRoadMarking},
+                            StringToTypeTestCase{"ROAD_OBJECT", TrafficControlDeviceType::kRoadObject},
                             // Mixed-case variants.
                             StringToTypeTestCase{"Traffic_Light", TrafficControlDeviceType::kTrafficLight},
-                            StringToTypeTestCase{"Traffic_Sign", TrafficControlDeviceType::kTrafficSign}));
+                            StringToTypeTestCase{"Traffic_Sign", TrafficControlDeviceType::kTrafficSign},
+                            StringToTypeTestCase{"Road_Marking", TrafficControlDeviceType::kRoadMarking},
+                            StringToTypeTestCase{"Road_Object", TrafficControlDeviceType::kRoadObject}));
 
 INSTANTIATE_TEST_CASE_P(UnknownValues, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
                             // Unrecognized strings map to kUnknown.
                             StringToTypeTestCase{"", TrafficControlDeviceType::kUnknown},
-                            StringToTypeTestCase{"road_marking", TrafficControlDeviceType::kUnknown},
                             StringToTypeTestCase{"other", TrafficControlDeviceType::kUnknown},
                             StringToTypeTestCase{"unknown_value", TrafficControlDeviceType::kUnknown}));
 
@@ -95,6 +100,8 @@ INSTANTIATE_TEST_CASE_P(AllValues, TrafficControlDeviceTypeToStringTest,
                         ::testing::Values(TypeToStringTestCase{TrafficControlDeviceType::kTrafficLight,
                                                                "traffic_light"},
                                           TypeToStringTestCase{TrafficControlDeviceType::kTrafficSign, "traffic_sign"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadMarking, "road_marking"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadObject, "road_object"},
                                           TypeToStringTestCase{TrafficControlDeviceType::kUnknown, "unknown"}));
 
 // ---------------------------------------------------------------------------
@@ -108,6 +115,16 @@ TEST(TrafficControlDeviceTypeRoundTripTest, TrafficLight) {
 
 TEST(TrafficControlDeviceTypeRoundTripTest, TrafficSign) {
   const auto type = TrafficControlDeviceType::kTrafficSign;
+  EXPECT_EQ(type, StringToTrafficControlDeviceType(TrafficControlDeviceTypeToString(type)));
+}
+
+TEST(TrafficControlDeviceTypeRoundTripTest, RoadMarking) {
+  const auto type = TrafficControlDeviceType::kRoadMarking;
+  EXPECT_EQ(type, StringToTrafficControlDeviceType(TrafficControlDeviceTypeToString(type)));
+}
+
+TEST(TrafficControlDeviceTypeRoundTripTest, RoadObject) {
+  const auto type = TrafficControlDeviceType::kRoadObject;
   EXPECT_EQ(type, StringToTrafficControlDeviceType(TrafficControlDeviceTypeToString(type)));
 }
 

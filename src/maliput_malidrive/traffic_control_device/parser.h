@@ -103,6 +103,23 @@ struct BulbDefinition {
   bool operator!=(const BulbDefinition& other) const { return !(*this == other); }
 };
 
+/// Holds the device-level bounding box dimensions parsed from the YAML database.
+/// Builders use these values to construct a `maliput::math::BoundingBox` at device
+/// builder time (centred at the device bottom position, with appropriate orientation).
+struct BoundingBoxDimensions {
+  /// Length of the bounding box along the local u-axis (must be >= 0).
+  double length{0.0};
+  /// Width of the bounding box along the local v-axis (must be >= 0).
+  double width{0.0};
+  /// Height of the bounding box along the local z-axis (must be >= 0).
+  double height{0.0};
+
+  bool operator==(const BoundingBoxDimensions& other) const {
+    return length == other.length && width == other.width && height == other.height;
+  }
+  bool operator!=(const BoundingBoxDimensions& other) const { return !(*this == other); }
+};
+
 /// Unique identifier for a traffic signal definition.
 struct TrafficControlDeviceFingerprint {
   /// Signal type identifier. Matches XODR signal type attribute.
@@ -138,35 +155,43 @@ struct TrafficControlDeviceDefinition {
   std::optional<std::string> device_semantics;
   /// Whether the device position is dynamic (moveable). Defaults to false.
   bool is_position_dynamic{false};
-  /// Optional device-level bounding box. When set, represents the overall device dimensions.
+  /// Optional device-level bounding box dimensions (length, width, height).
+  /// Builders use these to construct a `maliput::math::BoundingBox` at builder time.
   /// Individual bulbs may still carry their own per-bulb bounding boxes.
-  std::optional<maliput::api::rules::Bulb::BoundingBox> default_bounding_box;
+  std::optional<BoundingBoxDimensions> default_bounding_box;
   /// Bulbs in this traffic signal (only relevant when device_type == "traffic_light").
   std::vector<BulbDefinition> bulbs;
   /// Rule conditions mapping bulb state combinations to Right-Of-Way rule values.
   std::vector<RuleState> rule_states;
 
   bool operator==(const TrafficControlDeviceDefinition& other) const {
-    const bool bbox_equal =
-        (default_bounding_box.has_value() == other.default_bounding_box.has_value()) &&
-        (!default_bounding_box.has_value() || (default_bounding_box->p_BMin == other.default_bounding_box->p_BMin &&
-                                               default_bounding_box->p_BMax == other.default_bounding_box->p_BMax));
     return fingerprint == other.fingerprint && description == other.description && device_type == other.device_type &&
            device_semantics == other.device_semantics && is_position_dynamic == other.is_position_dynamic &&
-           bbox_equal && bulbs == other.bulbs && rule_states == other.rule_states;
+           default_bounding_box == other.default_bounding_box && bulbs == other.bulbs &&
+           rule_states == other.rule_states;
   }
   bool operator!=(const TrafficControlDeviceDefinition& other) const { return !(*this == other); }
 };
 
-/// Parser that loads traffic control device definitions from a YAML database using the `odr_signal_types`
-/// schema. The resulting definitions are used in tandem with XODR signal data to create maliput
-/// `TrafficLight` and `TrafficSign` objects.
+/// Parser that loads traffic control device definitions from a YAML database using the
+/// `odr_signal_types` and `odr_object_types` schemas. The resulting definitions are used in
+/// tandem with XODR signal/object data to create maliput `TrafficLight`, `TrafficSign`,
+/// `RoadMarking`, and `RoadObject` representations.
 ///
 /// Design:
-/// - Each definition carries a `device_type` field that determines whether a `TrafficLight` or
-///   `TrafficSign` is created for a given XODR signal.
-/// - For traffic lights: `TrafficLight` is created with its bulbs and associated rule states.
-/// - For traffic signs: a `TrafficSign` is created with its type derived from the `device_semantics` field.
+/// - Each definition carries a `device_type` field that determines whether the entry is a
+///   traffic light, traffic sign, road marking, or road object.
+/// - For signals (`odr_signal_types`): `device_type` must be `traffic_light` or
+///   `traffic_sign`.
+/// - For objects (`odr_object_types`): `device_type` must be `road_marking` or
+///   `road_object`. Object entries' `odr_representation` only carries `type`, `subtype`,
+///   and `name`; `country`/`country_revision` are not permitted. Object entries'
+///   `properties` may not include `bulbs` or `rule_states`.
+///
+/// The two root keys are independently validated for equal-specificity conflicts: a signal
+/// and an object sharing a fingerprint do NOT conflict, because OpenDRIVE signals and
+/// objects live in disjoint namespaces. Both vectors are merged into a single flat result
+/// returned to the caller; downstream code discriminates entries by `device_type`.
 ///
 /// Workflow:
 /// 1. Load the device database: `TrafficControlDeviceParser::LoadFromFile()` or `LoadFromString()`.
@@ -222,6 +247,17 @@ class TrafficControlDeviceParser {
   /// @param fp The fingerprint to evaluate.
   /// @return Integer in [0, 5] representing the number of non-wildcard fields.
   static int Specificity(const TrafficControlDeviceFingerprint& fp);
+
+  /// Computes the specificity score of @p fp for an object entry.
+  ///
+  /// Object entries only carry `type`, `subtype`, and `name` in their `odr_representation`
+  /// (no `country` / `country_revision`), so only those three fields contribute. Counting
+  /// rules are identical to @ref Specificity: only the literal `"*"` is non-specific.
+  ///
+  /// @param fp The fingerprint to evaluate.
+  /// @return Integer in [0, 3] representing the number of non-wildcard fields among
+  ///         `type`, `subtype`, and `name`.
+  static int SpecificityForObject(const TrafficControlDeviceFingerprint& fp);
 
   /// Returns true if @p db_entry matches @p query for lookup purposes.
   ///

@@ -61,6 +61,15 @@ int TrafficControlDeviceParser::Specificity(const TrafficControlDeviceFingerprin
   return score;
 }
 
+int TrafficControlDeviceParser::SpecificityForObject(const TrafficControlDeviceFingerprint& fp) {
+  // Object entries only carry type, subtype and name.
+  int score = 0;
+  if (!IsWildcard(fp.type)) ++score;
+  if (!IsWildcard(fp.subtype)) ++score;
+  if (!IsWildcard(fp.name)) ++score;
+  return score;
+}
+
 bool TrafficControlDeviceParser::Matches(const TrafficControlDeviceFingerprint& db_entry,
                                          const TrafficControlDeviceFingerprint& query) {
   // For each field: db_entry matches if it is the wildcard OR equals the query field.
@@ -161,28 +170,73 @@ maliput::api::rules::BulbState StringToBulbState(const std::string& state_str) {
   MALIDRIVE_THROW_MESSAGE("Invalid bulb state: " + state_str, maliput::common::road_network_description_parser_error);
 }
 
-// Helper function to parse a bounding box from a YAML map.
+// Helper function to parse a bulb's axis-aligned bounding box from a YAML map.
 // @param node The YAML node containing p_min and p_max keys.
-// @return A Bulb::BoundingBox with the parsed values.
-maliput::api::rules::Bulb::BoundingBox ParseBoundingBox(const YAML::Node& node) {
-  auto bounding_box = maliput::api::rules::Bulb::BoundingBox();
+// @return A Bulb::BoundingBox with the parsed values, or the default Bulb::BoundingBox
+//         when @p node is not defined.
+maliput::api::rules::Bulb::BoundingBox ParseBulbBoundingBox(const YAML::Node& node) {
+  maliput::api::rules::Bulb::BoundingBox bounding_box;
   if (!node.IsDefined()) {
     // If not defined, return the default bounding box.
     return bounding_box;
   }
   MALIDRIVE_THROW_UNLESS(node.IsMap(), maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(node[BoundingBoxConstants::kPMin].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(node[BulbBoundingBoxConstants::kPMin].IsDefined(),
                          maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(node[BoundingBoxConstants::kPMax].IsDefined(),
+  MALIDRIVE_THROW_UNLESS(node[BulbBoundingBoxConstants::kPMax].IsDefined(),
                          maliput::common::road_network_description_parser_error);
 
-  const auto p_min = GetVector3(node[BoundingBoxConstants::kPMin], BoundingBoxConstants::kPMin);
-  const auto p_max = GetVector3(node[BoundingBoxConstants::kPMax], BoundingBoxConstants::kPMax);
+  const auto p_min = GetVector3(node[BulbBoundingBoxConstants::kPMin], BulbBoundingBoxConstants::kPMin);
+  const auto p_max = GetVector3(node[BulbBoundingBoxConstants::kPMax], BulbBoundingBoxConstants::kPMax);
 
   bounding_box.p_BMin = p_min;
   bounding_box.p_BMax = p_max;
 
   return bounding_box;
+}
+
+// Helper function to parse a device-level bounding box from a YAML map.
+//
+// Expected schema (all three fields required when the node is present):
+//   default_bounding_box:
+//     length: <number>  # >= 0, local u-axis
+//     width:  <number>  # >= 0, local v-axis
+//     height: <number>  # >= 0, local z-axis
+//
+// @return A BoundingBoxDimensions with the parsed values.
+// @throws maliput::common::assertion_error When required fields are missing, when unknown keys
+//         are present, or when any dimension is negative.
+BoundingBoxDimensions ParseDeviceBoundingBox(const YAML::Node& node) {
+  MALIDRIVE_THROW_UNLESS(node.IsDefined(), maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(node.IsMap(), maliput::common::road_network_description_parser_error);
+
+  // Reject unknown keys to surface typos early.
+  for (const auto& kv : node) {
+    const auto key = kv.first.as<std::string>();
+    if (key != DeviceBoundingBoxConstants::kLength && key != DeviceBoundingBoxConstants::kWidth &&
+        key != DeviceBoundingBoxConstants::kHeight) {
+      MALIDRIVE_THROW_MESSAGE("Unknown field in default_bounding_box: '" + key + "'",
+                              maliput::common::road_network_description_parser_error);
+    }
+  }
+
+  MALIDRIVE_THROW_UNLESS(node[DeviceBoundingBoxConstants::kLength].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(node[DeviceBoundingBoxConstants::kWidth].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(node[DeviceBoundingBoxConstants::kHeight].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+
+  const double length = node[DeviceBoundingBoxConstants::kLength].as<double>();
+  const double width = node[DeviceBoundingBoxConstants::kWidth].as<double>();
+  const double height = node[DeviceBoundingBoxConstants::kHeight].as<double>();
+
+  if (length < 0.0 || width < 0.0 || height < 0.0) {
+    MALIDRIVE_THROW_MESSAGE("default_bounding_box dimensions must be non-negative",
+                            maliput::common::road_network_description_parser_error);
+  }
+
+  return BoundingBoxDimensions{length, width, height};
 }
 
 // Helper function to parse a BulbDefinition from a YAML map.
@@ -233,7 +287,7 @@ BulbDefinition ParseBulb(const YAML::Node& bulb_node) {
   }
 
   // Parse bounding box (optional).
-  bulb.bounding_box = ParseBoundingBox(bulb_node[BulbConstants::kBoundingBox]);
+  bulb.bounding_box = ParseBulbBoundingBox(bulb_node[BulbConstants::kBoundingBox]);
 
   return bulb;
 }
@@ -338,8 +392,12 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   // --- Parse properties ---
   const std::string device_type_str = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
   tcd_definition.device_type = StringToTrafficControlDeviceType(device_type_str);
-  MALIDRIVE_VALIDATE(tcd_definition.device_type != TrafficControlDeviceType::kUnknown,
-                     maliput::common::road_network_description_parser_error, "Invalid device type: " + device_type_str);
+  MALIDRIVE_VALIDATE(tcd_definition.device_type == TrafficControlDeviceType::kTrafficLight ||
+                         tcd_definition.device_type == TrafficControlDeviceType::kTrafficSign,
+                     maliput::common::road_network_description_parser_error,
+                     "device_type '" + device_type_str +
+                         "' is not allowed for odr_signal_types entries; "
+                         "expected 'traffic_light' or 'traffic_sign'.");
 
   tcd_definition.device_semantics = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDeviceSemantics);
 
@@ -358,7 +416,7 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   if (props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsDefined() &&
       !props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsNull()) {
     tcd_definition.default_bounding_box =
-        ParseBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
+        ParseDeviceBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
   }
 
   // Parse bulbs (optional sequence).
@@ -381,40 +439,166 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   return tcd_definition;
 }
 
+// Helper function to parse a TrafficControlDeviceDefinition from a YAML map representing
+// an entry under `odr_object_types`. Object entries have a stricter schema than signal
+// entries:
+//   - `odr_representation` carries only `type`, `subtype`, and `name`. `country` and
+//     `country_revision` are not allowed.
+//   - `properties` does not allow `bulbs` or `rule_states`.
+//   - `device_type` must be `road_marking` or `road_object`.
+// @return A TrafficControlDeviceDefinition with the parsed values. country and
+//         country_revision in the fingerprint are left as std::nullopt; bulbs and
+//         rule_states are left empty.
+TrafficControlDeviceDefinition ParseObjectDefinition(const YAML::Node& entry_node) {
+  MALIDRIVE_THROW_UNLESS(entry_node.IsMap(), maliput::common::road_network_description_parser_error);
+
+  // Validate and extract the odr_representation sub-node.
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kOdrRepresentation].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kOdrRepresentation].IsMap(),
+                         maliput::common::road_network_description_parser_error);
+  const YAML::Node& repr_node = entry_node[TrafficControlDeviceConstants::kOdrRepresentation];
+
+  // Reject fields not allowed in odr_object_types entries.
+  MALIDRIVE_VALIDATE(!repr_node[TrafficControlDeviceConstants::kCountry].IsDefined(),
+                     maliput::common::road_network_description_parser_error,
+                     "Field 'country' is not allowed in odr_object_types entries.");
+  MALIDRIVE_VALIDATE(!repr_node[TrafficControlDeviceConstants::kCountryRevision].IsDefined(),
+                     maliput::common::road_network_description_parser_error,
+                     "Field 'country_revision' is not allowed in odr_object_types entries.");
+
+  // Validate and extract the properties sub-node.
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kProperties].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+  MALIDRIVE_THROW_UNLESS(entry_node[TrafficControlDeviceConstants::kProperties].IsMap(),
+                         maliput::common::road_network_description_parser_error);
+  const YAML::Node& props_node = entry_node[TrafficControlDeviceConstants::kProperties];
+
+  // Reject bulbs / rule_states in object entries.
+  MALIDRIVE_VALIDATE(!props_node[TrafficControlDeviceConstants::kBulbs].IsDefined(),
+                     maliput::common::road_network_description_parser_error,
+                     "Field 'bulbs' is not allowed in odr_object_types entries.");
+  MALIDRIVE_VALIDATE(!props_node[TrafficControlDeviceConstants::kRuleStates].IsDefined(),
+                     maliput::common::road_network_description_parser_error,
+                     "Field 'rule_states' is not allowed in odr_object_types entries.");
+
+  // device_type is required.
+  MALIDRIVE_THROW_UNLESS(props_node[TrafficControlDeviceConstants::kDeviceType].IsDefined(),
+                         maliput::common::road_network_description_parser_error);
+
+  TrafficControlDeviceDefinition tcd_definition;
+
+  // --- Parse fingerprint from odr_representation ---
+  tcd_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
+
+  if (const auto subtype = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kSubtype)) {
+    if (subtype.value() == "-1" || subtype.value() == "none") {
+      tcd_definition.fingerprint.subtype = std::nullopt;
+    } else {
+      tcd_definition.fingerprint.subtype = subtype;
+    }
+  }
+
+  if (const auto name = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kName)) {
+    tcd_definition.fingerprint.name = name;
+  }
+
+  // country and country_revision left as std::nullopt by construction.
+
+  // --- Parse properties ---
+  const std::string device_type_str = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
+  tcd_definition.device_type = StringToTrafficControlDeviceType(device_type_str);
+  MALIDRIVE_VALIDATE(tcd_definition.device_type == TrafficControlDeviceType::kRoadMarking ||
+                         tcd_definition.device_type == TrafficControlDeviceType::kRoadObject,
+                     maliput::common::road_network_description_parser_error,
+                     "device_type '" + device_type_str +
+                         "' is not allowed for odr_object_types entries; "
+                         "expected 'road_marking' or 'road_object'.");
+
+  tcd_definition.device_semantics = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDeviceSemantics);
+
+  // is_position_dynamic (optional bool, defaults to false).
+  if (props_node[TrafficControlDeviceConstants::kIsPositionDynamic].IsDefined() &&
+      !props_node[TrafficControlDeviceConstants::kIsPositionDynamic].IsNull()) {
+    tcd_definition.is_position_dynamic = props_node[TrafficControlDeviceConstants::kIsPositionDynamic].as<bool>();
+  }
+
+  // description (optional).
+  if (const auto desc = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDescription)) {
+    tcd_definition.description = desc.value();
+  }
+
+  // default_bounding_box at device level (optional).
+  if (props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsDefined() &&
+      !props_node[TrafficControlDeviceConstants::kDefaultBoundingBox].IsNull()) {
+    tcd_definition.default_bounding_box =
+        ParseDeviceBoundingBox(props_node[TrafficControlDeviceConstants::kDefaultBoundingBox]);
+  }
+
+  return tcd_definition;
+}
+
 }  // namespace
 
 std::vector<TrafficControlDeviceDefinition> TrafficControlDeviceParser::BuildFrom(const YAML::Node& root) {
   MALIDRIVE_THROW_UNLESS(root.IsMap(), maliput::common::road_network_description_parser_error);
 
-  // Get odr_signal_types array.
   const YAML::Node& signals_node = root[TrafficControlDeviceConstants::kOdrSignalTypes];
-  MALIDRIVE_THROW_UNLESS(signals_node.IsDefined(), maliput::common::road_network_description_parser_error);
-  MALIDRIVE_THROW_UNLESS(signals_node.IsSequence(), maliput::common::road_network_description_parser_error);
+  const YAML::Node& objects_node = root[TrafficControlDeviceConstants::kOdrObjectTypes];
 
-  std::vector<TrafficControlDeviceDefinition> result;
-  // Parse each signal definition.
-  for (const auto& signal_node : signals_node) {
-    result.push_back(ParseSignalDefinition(signal_node));
-  }
+  // At least one of the two root keys must be present.
+  MALIDRIVE_VALIDATE(signals_node.IsDefined() || objects_node.IsDefined(),
+                     maliput::common::road_network_description_parser_error,
+                     "Database must contain at least one of 'odr_signal_types' or 'odr_object_types'.");
 
-  // Pairwise conflict validation: two entries conflict when they can overlap AND have equal specificity.
-  for (std::size_t i = 0; i < result.size(); ++i) {
-    for (std::size_t j = i + 1; j < result.size(); ++j) {
-      const auto& fp_i = result[i].fingerprint;
-      const auto& fp_j = result[j].fingerprint;
-      if (CanOverlap(fp_i, fp_j) && Specificity(fp_i) == Specificity(fp_j)) {
-        MALIDRIVE_THROW_MESSAGE(
-            "Conflicting traffic control device database entries with equal specificity: "
-            "entry '" +
-                result[i].description + "' (type='" + fp_i.type +
-                "') conflicts with "
-                "entry '" +
-                result[j].description + "' (type='" + fp_j.type + "').",
-            maliput::common::road_network_description_parser_error);
-      }
+  std::vector<TrafficControlDeviceDefinition> signals;
+  if (signals_node.IsDefined()) {
+    MALIDRIVE_THROW_UNLESS(signals_node.IsSequence(), maliput::common::road_network_description_parser_error);
+    for (const auto& signal_node : signals_node) {
+      signals.push_back(ParseSignalDefinition(signal_node));
     }
   }
 
+  std::vector<TrafficControlDeviceDefinition> objects;
+  if (objects_node.IsDefined()) {
+    MALIDRIVE_THROW_UNLESS(objects_node.IsSequence(), maliput::common::road_network_description_parser_error);
+    for (const auto& object_node : objects_node) {
+      objects.push_back(ParseObjectDefinition(object_node));
+    }
+  }
+
+  // Per-root pairwise conflict validation: two entries conflict when they can overlap AND
+  // have equal specificity. Signals and objects live in disjoint namespaces in OpenDRIVE,
+  // so we never compare across roots.
+  auto validate_conflicts = [](const std::vector<TrafficControlDeviceDefinition>& entries,
+                               int (*specificity)(const TrafficControlDeviceFingerprint&),
+                               const std::string& root_key) {
+    for (std::size_t i = 0; i < entries.size(); ++i) {
+      for (std::size_t j = i + 1; j < entries.size(); ++j) {
+        const auto& fp_i = entries[i].fingerprint;
+        const auto& fp_j = entries[j].fingerprint;
+        if (CanOverlap(fp_i, fp_j) && specificity(fp_i) == specificity(fp_j)) {
+          MALIDRIVE_THROW_MESSAGE("Conflicting " + root_key +
+                                      " entries with equal specificity: "
+                                      "entry '" +
+                                      entries[i].description + "' (type='" + fp_i.type +
+                                      "') conflicts with "
+                                      "entry '" +
+                                      entries[j].description + "' (type='" + fp_j.type + "').",
+                                  maliput::common::road_network_description_parser_error);
+        }
+      }
+    }
+  };
+
+  validate_conflicts(signals, &TrafficControlDeviceParser::Specificity, "odr_signal_types");
+  validate_conflicts(objects, &TrafficControlDeviceParser::SpecificityForObject, "odr_object_types");
+
+  // Merge into a single flat vector. Downstream code discriminates entries by device_type.
+  std::vector<TrafficControlDeviceDefinition> result;
+  result.reserve(signals.size() + objects.size());
+  result.insert(result.end(), std::make_move_iterator(signals.begin()), std::make_move_iterator(signals.end()));
+  result.insert(result.end(), std::make_move_iterator(objects.begin()), std::make_move_iterator(objects.end()));
   return result;
 }
 
