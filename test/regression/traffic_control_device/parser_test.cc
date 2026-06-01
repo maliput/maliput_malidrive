@@ -1636,8 +1636,8 @@ odr_signal_types:
 // ============================================================================
 
 // Helper that filters `defs` by device_type for assertions on object/signal subsets.
-std::vector<TrafficControlDeviceDefinition> FilterByDeviceType(
-    const std::vector<TrafficControlDeviceDefinition>& defs, TrafficControlDeviceType type) {
+std::vector<TrafficControlDeviceDefinition> FilterByDeviceType(const std::vector<TrafficControlDeviceDefinition>& defs,
+                                                               TrafficControlDeviceType type) {
   std::vector<TrafficControlDeviceDefinition> out;
   std::copy_if(defs.begin(), defs.end(), std::back_inserter(out),
                [type](const TrafficControlDeviceDefinition& d) { return d.device_type == type; });
@@ -1737,8 +1737,7 @@ GTEST_TEST(OdrObjectTypesParserTest, MissingBothRootsIsRejected) {
   const char kDb[] = R"(
 some_unrelated_key: 42
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsCountryInObject) {
@@ -1751,8 +1750,7 @@ odr_object_types:
       device_type: road_marking
       description: "Should fail"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsCountryRevisionInObject) {
@@ -1765,8 +1763,7 @@ odr_object_types:
       device_type: road_marking
       description: "Should fail"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsBulbsInObject) {
@@ -1784,8 +1781,7 @@ odr_object_types:
           color: red
           type: round
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsRuleStatesInObject) {
@@ -1800,8 +1796,7 @@ odr_object_types:
         - conditions: []
           value: "Stop"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsSignalDeviceTypeInObject) {
@@ -1813,8 +1808,7 @@ odr_object_types:
       device_type: traffic_light
       description: "Should fail"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsTrafficSignDeviceTypeInObject) {
@@ -1826,8 +1820,7 @@ odr_object_types:
       device_type: traffic_sign
       description: "Should fail"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, RejectsObjectDeviceTypeInSignal) {
@@ -1869,8 +1862,7 @@ odr_object_types:
       device_type: road_marking
       description: "Second wildcard"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb),
-               maliput::common::road_network_description_parser_error);
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, SignalAndObjectWithSameFingerprintDoNotConflict) {

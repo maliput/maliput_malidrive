@@ -578,15 +578,14 @@ std::vector<TrafficControlDeviceDefinition> TrafficControlDeviceParser::BuildFro
         const auto& fp_i = entries[i].fingerprint;
         const auto& fp_j = entries[j].fingerprint;
         if (CanOverlap(fp_i, fp_j) && specificity(fp_i) == specificity(fp_j)) {
-          MALIDRIVE_THROW_MESSAGE(
-              "Conflicting " + root_key +
-                  " entries with equal specificity: "
-                  "entry '" +
-                  entries[i].description + "' (type='" + fp_i.type +
-                  "') conflicts with "
-                  "entry '" +
-                  entries[j].description + "' (type='" + fp_j.type + "').",
-              maliput::common::road_network_description_parser_error);
+          MALIDRIVE_THROW_MESSAGE("Conflicting " + root_key +
+                                      " entries with equal specificity: "
+                                      "entry '" +
+                                      entries[i].description + "' (type='" + fp_i.type +
+                                      "') conflicts with "
+                                      "entry '" +
+                                      entries[j].description + "' (type='" + fp_j.type + "').",
+                                  maliput::common::road_network_description_parser_error);
         }
       }
     }
