@@ -99,7 +99,7 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     case XodrType::kVan:
     case XodrType::kNone:
       return MaliputType::kUnknown;
-    // @}
+      // @}
   }
   return MaliputType::kUnknown;  // Fallback for any future additions.
 }
