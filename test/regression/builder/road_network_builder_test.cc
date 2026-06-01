@@ -1534,7 +1534,7 @@ TEST_F(RoadObjectBookBuilderTest, GetRoadObjectById) {
   using Id = maliput::api::objects::RoadObject::Id;
   EXPECT_NE(rob_->GetRoadObject(Id("obj_barrier")), nullptr);
   EXPECT_NE(rob_->GetRoadObject(Id("obj_building")), nullptr);
-  EXPECT_NE(rob_->GetRoadObject(Id("obj_crosswalk")), nullptr);
+  EXPECT_NE(rob_->GetRoadObject(Id("obj_obstacle")), nullptr);
   EXPECT_NE(rob_->GetRoadObject(Id("obj_vegetation")), nullptr);
   EXPECT_EQ(rob_->GetRoadObject(Id("nonexistent")), nullptr);
 }
@@ -1547,8 +1547,8 @@ TEST_F(RoadObjectBookBuilderTest, FindByType) {
   const auto buildings = rob_->FindByType(RoadObjectType::kBuilding);
   EXPECT_EQ(1u, buildings.size());
 
-  const auto crosswalks = rob_->FindByType(RoadObjectType::kCrosswalk);
-  EXPECT_EQ(1u, crosswalks.size());
+  const auto obstacles = rob_->FindByType(RoadObjectType::kObstacle);
+  EXPECT_EQ(1u, obstacles.size());
 
   const auto vegetation = rob_->FindByType(RoadObjectType::kVegetation);
   EXPECT_EQ(1u, vegetation.size());

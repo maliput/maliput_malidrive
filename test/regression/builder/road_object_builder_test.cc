@@ -68,13 +68,9 @@ TEST_F(RoadObjectTypeMapperTest, DirectMappings) {
 
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier));
   EXPECT_EQ(MaliputType::kBuilding, MapXodrObjectType(XodrType::kBuilding));
-  EXPECT_EQ(MaliputType::kCrosswalk, MapXodrObjectType(XodrType::kCrosswalk));
   EXPECT_EQ(MaliputType::kGantry, MapXodrObjectType(XodrType::kGantry));
   EXPECT_EQ(MaliputType::kObstacle, MapXodrObjectType(XodrType::kObstacle));
-  EXPECT_EQ(MaliputType::kParkingSpace, MapXodrObjectType(XodrType::kParkingSpace));
   EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kPole));
-  EXPECT_EQ(MaliputType::kRoadMark, MapXodrObjectType(XodrType::kRoadMark));
-  EXPECT_EQ(MaliputType::kRoadSurface, MapXodrObjectType(XodrType::kRoadSurface));
   EXPECT_EQ(MaliputType::kTrafficIsland, MapXodrObjectType(XodrType::kTrafficIsland));
   EXPECT_EQ(MaliputType::kTree, MapXodrObjectType(XodrType::kTree));
   EXPECT_EQ(MaliputType::kVegetation, MapXodrObjectType(XodrType::kVegetation));
@@ -88,32 +84,16 @@ TEST_F(RoadObjectTypeMapperTest, CloseMappings) {
   EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kWind));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kRailing));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kSoundBarrier));
-  EXPECT_EQ(MaliputType::kRoadSurface, MapXodrObjectType(XodrType::kPatch));
-}
-
-TEST_F(RoadObjectTypeMapperTest, StopLineMappings) {
-  using XodrType = xodr::object::Object::ObjectType;
-  using MaliputType = maliput::api::objects::RoadObjectType;
-
-  // roadMark with name "stopLine" → kStopLine.
-  EXPECT_EQ(MaliputType::kStopLine, MapXodrObjectType(XodrType::kRoadMark, std::string("stopLine"), std::nullopt));
-  // roadMark with subtype "stopLine" → kStopLine.
-  EXPECT_EQ(MaliputType::kStopLine, MapXodrObjectType(XodrType::kRoadMark, std::nullopt, std::string("stopLine")));
-  // roadMark with both name and subtype "stopLine" → kStopLine.
-  EXPECT_EQ(MaliputType::kStopLine,
-            MapXodrObjectType(XodrType::kRoadMark, std::string("stopLine"), std::string("stopLine")));
-  // roadMark without stop-line indicators → kRoadMark.
-  EXPECT_EQ(MaliputType::kRoadMark, MapXodrObjectType(XodrType::kRoadMark, std::nullopt, std::nullopt));
-  EXPECT_EQ(MaliputType::kRoadMark,
-            MapXodrObjectType(XodrType::kRoadMark, std::string("arrow"), std::string("turnLeft")));
-  // Non-roadMark type with "stopLine" name → still maps by type, not to kStopLine.
-  EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, std::string("stopLine"), std::nullopt));
 }
 
 TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
   using XodrType = xodr::object::Object::ObjectType;
   using MaliputType = maliput::api::objects::RoadObjectType;
 
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCrosswalk));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kPatch));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kParkingSpace));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kRoadMark));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kBike));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCar));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kVan));
@@ -217,15 +197,15 @@ TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {
   EXPECT_EQ(0, road_object->num_outlines());
 }
 
-TEST_F(RoadObjectBuilderTest, CrosswalkObjectWithOutline) {
-  // obj_crosswalk: crosswalk at s=100, t=0, with outlines.
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+TEST_F(RoadObjectBuilderTest, ObstacleObjectWithOutline) {
+  // obj_obstacle: obstacle at s=100, t=0, with outlines.
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
   ASSERT_NE(road_object, nullptr);
 
-  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_crosswalk"));
-  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kCrosswalk);
+  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_obstacle"));
+  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kObstacle);
 
-  // The crosswalk has one outline with 4 corners.
+  // The obstacle has one outline with 4 corners.
   ASSERT_EQ(1, road_object->num_outlines());
   const auto* outline = road_object->outline(0);
   ASSERT_NE(outline, nullptr);
@@ -341,12 +321,12 @@ TEST_F(RoadObjectBuilderTest, VegetationOrientation) {
 }
 
 TEST_F(RoadObjectBuilderTest, OutlinesVectorAccessor) {
-  // obj_crosswalk has 1 outline; obj_building has 0.
-  const auto* crosswalk = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
-  ASSERT_NE(crosswalk, nullptr);
-  const auto& crosswalk_outlines = crosswalk->outlines();
-  ASSERT_EQ(1u, crosswalk_outlines.size());
-  EXPECT_NE(crosswalk_outlines[0], nullptr);
+  // obj_obstacle has 1 outline; obj_building has 0.
+  const auto* obstacle = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
+  ASSERT_NE(obstacle, nullptr);
+  const auto& obstacle_outlines = obstacle->outlines();
+  ASSERT_EQ(1u, obstacle_outlines.size());
+  EXPECT_NE(obstacle_outlines[0], nullptr);
 
   const auto* building = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_building"));
   ASSERT_NE(building, nullptr);
@@ -369,8 +349,8 @@ TEST_F(RoadObjectBuilderTest, RoadObjectPositionHasLanePosition) {
 }
 
 TEST_F(RoadObjectBuilderTest, OutlineCornerHeight) {
-  // obj_crosswalk outline corners have height = 0.05.
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+  // obj_obstacle outline corners have height = 0.05.
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
   ASSERT_NE(road_object, nullptr);
   ASSERT_EQ(1, road_object->num_outlines());
 
@@ -397,14 +377,14 @@ TEST_F(RoadObjectBuilderTest, VegetationOutlineCornerHeight) {
 }
 
 TEST_F(RoadObjectBuilderTest, OutlineId) {
-  // obj_crosswalk outline has id "crosswalk_outline" from the XODR.
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_crosswalk"));
+  // obj_obstacle outline has id "obstacle_outline" from the XODR.
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
   ASSERT_NE(road_object, nullptr);
   ASSERT_EQ(1, road_object->num_outlines());
 
   const auto* outline = road_object->outline(0);
   ASSERT_NE(outline, nullptr);
-  EXPECT_EQ(outline->id(), maliput::api::objects::Outline::Id("crosswalk_outline"));
+  EXPECT_EQ(outline->id(), maliput::api::objects::Outline::Id("obstacle_outline"));
 }
 
 TEST_F(RoadObjectBuilderTest, VegetationOutlineId) {
@@ -430,15 +410,15 @@ TEST_F(RoadObjectBuilderTest, FindByLane) {
   }
   EXPECT_TRUE(found_barrier);
 
-  // obj_crosswalk spans both lanes (fromLane=-1 toLane=1).
+  // obj_obstacle spans both lanes (fromLane=-1 toLane=1).
   const auto objects_lane_1 = road_object_book_->FindByLane(maliput::api::LaneId("1_0_1"));
-  bool found_crosswalk = false;
+  bool found_obstacle = false;
   for (const auto* obj : objects_lane_1) {
-    if (obj->id() == maliput::api::objects::RoadObject::Id("obj_crosswalk")) {
-      found_crosswalk = true;
+    if (obj->id() == maliput::api::objects::RoadObject::Id("obj_obstacle")) {
+      found_obstacle = true;
     }
   }
-  EXPECT_TRUE(found_crosswalk);
+  EXPECT_TRUE(found_obstacle);
 
   // No objects on road 2's lanes.
   const auto objects_road2 = road_object_book_->FindByLane(maliput::api::LaneId("2_0_1"));
@@ -460,114 +440,6 @@ TEST_F(RoadObjectBuilderTest, FindInRadius) {
   // Search far from any object should return empty.
   const auto far_away = road_object_book_->FindInRadius(maliput::api::InertialPosition(500.0, 500.0, 0.0), 1.0);
   EXPECT_TRUE(far_away.empty());
-}
-
-// ---------------------------------------------------------------------------
-// StopLine integration tests.
-// Uses the RoadWithStopLine.xodr resource.
-// ---------------------------------------------------------------------------
-
-class StopLineBuilderTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    const std::string xodr_file_path = utility::FindResourceInPath("RoadWithStopLine.xodr", kMalidriveResourceFolder);
-
-    road_network_ = RoadNetworkBuilder(
-        RoadNetworkConfiguration::FromMap({
-                                              {params::kOpendriveFile, xodr_file_path},
-                                              {params::kOmitNonDrivableLanes, "false"},
-                                              {params::kLinearTolerance, std::to_string(kLinearTolerance)},
-                                          })
-            .ToStringMap())();
-    ASSERT_NE(road_network_, nullptr);
-    road_object_book_ = road_network_->road_object_book();
-    ASSERT_NE(road_object_book_, nullptr);
-  }
-
-  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
-  const maliput::api::objects::RoadObjectBook* road_object_book_{};
-  constexpr static double kLinearTolerance = 1e-5;
-};
-
-TEST_F(StopLineBuilderTest, RoadObjectBookIsPopulated) {
-  const auto all_objects = road_object_book_->RoadObjects();
-  EXPECT_EQ(3u, all_objects.size());
-}
-
-TEST_F(StopLineBuilderTest, StopLineObjectFromName) {
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
-  ASSERT_NE(road_object, nullptr);
-
-  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line_name"));
-  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kStopLine);
-  EXPECT_EQ(road_object->name(), "stopLine");
-  EXPECT_FALSE(road_object->is_dynamic());
-
-  // Position: straight road at hdg=0, s=50, t=0 → inertial x≈50, y≈0.
-  const auto& pos = road_object->position().inertial_position();
-  EXPECT_NEAR(pos.x(), 50.0, 0.5);
-  EXPECT_NEAR(pos.y(), 0.0, 0.5);
-
-  // Bounding box: length=7, width=0.3, height=0.01.
-  const auto& bb = road_object->bounding_box();
-  EXPECT_NEAR(bb.box_size().x(), 7.0, 1e-3);
-  EXPECT_NEAR(bb.box_size().y(), 0.3, 1e-3);
-  EXPECT_NEAR(bb.box_size().z(), 0.01, 1e-3);
-
-  // Related lanes: spans both lanes via validity.
-  EXPECT_GE(road_object->related_lanes().size(), 2u);
-}
-
-TEST_F(StopLineBuilderTest, StopLineObjectFromSubtype) {
-  const auto* road_object =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
-  ASSERT_NE(road_object, nullptr);
-
-  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_stop_line_subtype"));
-  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kStopLine);
-  EXPECT_EQ(road_object->subtype(), "stopLine");
-  EXPECT_FALSE(road_object->is_dynamic());
-
-  // Position: straight road at hdg=0, s=80, t=0 → inertial x≈80, y≈0.
-  const auto& pos = road_object->position().inertial_position();
-  EXPECT_NEAR(pos.x(), 80.0, 0.5);
-  EXPECT_NEAR(pos.y(), 0.0, 0.5);
-
-  // Bounding box: length=7, width=0.3, height=0.01.
-  const auto& bb = road_object->bounding_box();
-  EXPECT_NEAR(bb.box_size().x(), 7.0, 1e-3);
-  EXPECT_NEAR(bb.box_size().y(), 0.3, 1e-3);
-  EXPECT_NEAR(bb.box_size().z(), 0.01, 1e-3);
-
-  // Related lanes: spans both lanes via validity.
-  EXPECT_GE(road_object->related_lanes().size(), 2u);
-}
-
-TEST_F(StopLineBuilderTest, RegularRoadMarkObject) {
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_road_mark"));
-  ASSERT_NE(road_object, nullptr);
-
-  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_road_mark"));
-  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kRoadMark);
-  EXPECT_EQ(road_object->name(), "TurnArrow");
-}
-
-TEST_F(StopLineBuilderTest, FindByTypeStopLine) {
-  const auto stop_lines = road_object_book_->FindByType(maliput::api::objects::RoadObjectType::kStopLine);
-  ASSERT_EQ(2u, stop_lines.size());
-  const auto has_id = [&](const std::string& id) {
-    return std::any_of(stop_lines.begin(), stop_lines.end(),
-                       [&](const auto* obj) { return obj->id() == maliput::api::objects::RoadObject::Id(id); });
-  };
-  EXPECT_TRUE(has_id("obj_stop_line_name"));
-  EXPECT_TRUE(has_id("obj_stop_line_subtype"));
-}
-
-TEST_F(StopLineBuilderTest, FindByTypeRoadMark) {
-  const auto road_marks = road_object_book_->FindByType(maliput::api::objects::RoadObjectType::kRoadMark);
-  ASSERT_EQ(1u, road_marks.size());
-  EXPECT_EQ(road_marks[0]->id(), maliput::api::objects::RoadObject::Id("obj_road_mark"));
 }
 
 }  // namespace
