@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+ BSD 3-Clause License
+
+ Copyright (c) 2026, Woven by Toyota. All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ * Redistributions of source code must retain the above copyright notice, this
+   list of conditions and the following disclaimer.
+
+ * Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+ * Neither the name of the copyright holder nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+ CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ Test XODR file for TrafficControlDeviceBooksBuilder tests.
+ Road 1: 200 m straight road at x=[0,200], y=0, hdg=0.
+ Contains:
+   Signals:
+     - TL1: traffic light (type="1000001", subtype="-1", country="OpenDRIVE") at s=40
+     - TS1: traffic sign / stop sign (type="206", subtype="-1", country="OpenDRIVE") at s=80
+   Objects:
+     - RM1: road marking / crosswalk (type="crosswalk") at s=120
+     - RO1: road object / barrier (type="barrier") at s=160
+     - UNMATCHED1: unmatched object (type="tree") at s=180 — should be skipped
+-->
+<OpenDRIVE>
+    <header revMajor="1" revMinor="1" name="RoadWithAllDeviceTypes" version="1.00"
+            date="Mon Jun 02 12:00:00 2026"
+            north="0.0" south="0.0" east="0.0" west="0.0"
+            maxRoad="1" maxJunc="0" maxPrg="0">
+    </header>
+    <road name="TestRoad1" length="200.0" id="1" junction="-1">
+        <link>
+        </link>
+        <planView>
+            <geometry s="0.0" x="0.0" y="0.0" hdg="0.0" length="200.0">
+                <line/>
+            </geometry>
+        </planView>
+        <elevationProfile>
+        </elevationProfile>
+        <lateralProfile>
+        </lateralProfile>
+        <lanes>
+            <laneSection s="0.0">
+                <left>
+                    <lane id="1" type="driving" level="0">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </left>
+                <center>
+                    <lane id="0" type="driving" level="0">
+                    </lane>
+                </center>
+                <right>
+                    <lane id="-1" type="driving" level="0">
+                        <width sOffset="0.0" a="3.5" b="0.0" c="0.0" d="0.0"/>
+                    </lane>
+                </right>
+            </laneSection>
+        </lanes>
+        <signals>
+            <!-- Traffic light: standard 3-bulb -->
+            <signal id="TL1" name="TrafficLight1" s="40.0" t="2.0"
+                    zOffset="5.0" hOffset="0.0"
+                    roll="0.0" pitch="0.0"
+                    orientation="+" dynamic="yes" country="OpenDRIVE"
+                    type="1000001" subtype="-1" value="-1" text=""
+                    height="1.2" width="0.5">
+                <validity fromLane="-1" toLane="-1"/>
+            </signal>
+            <!-- Traffic sign: stop sign -->
+            <signal id="TS1" name="StopSign1" s="80.0" t="2.0"
+                    zOffset="1.5" hOffset="0.0"
+                    roll="0.0" pitch="0.0"
+                    orientation="+" dynamic="no" country="OpenDRIVE"
+                    type="206" subtype="-1" value="-1" text=""
+                    height="0.61" width="0.61">
+                <validity fromLane="-1" toLane="-1"/>
+            </signal>
+        </signals>
+        <objects>
+            <!-- Road marking: crosswalk -->
+            <object id="RM1" name="Crosswalk1" type="crosswalk"
+                    s="120.0" t="0.0" zOffset="0.0"
+                    length="4.0" width="7.0" height="0.0"
+                    hdg="0.0" orientation="+" dynamic="no">
+                <validity fromLane="-1" toLane="1"/>
+            </object>
+            <!-- Road object: barrier -->
+            <object id="RO1" name="Barrier1" type="barrier"
+                    s="160.0" t="4.0" zOffset="0.0"
+                    length="10.0" width="0.3" height="1.0"
+                    hdg="0.0" orientation="+" dynamic="no">
+            </object>
+            <!-- Unmatched object: tree (not in TCD database) -->
+            <object id="UNMATCHED1" name="Tree1" type="tree"
+                    s="180.0" t="5.0" zOffset="0.0"
+                    radius="0.3" height="4.0"
+                    dynamic="no">
+            </object>
+        </objects>
+    </road>
+</OpenDRIVE>

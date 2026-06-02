@@ -1,0 +1,122 @@
+# -*- yaml -*-
+#
+# BSD 3-Clause License
+#
+# Copyright (c) 2026, Woven by Toyota. All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+#
+# * Neither the name of the copyright holder nor the names of its
+#   contributors may be used to endorse or promote products derived from
+#   this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+# Traffic Control Device Database for TrafficControlDeviceBooksBuilder tests.
+# Contains one entry of each device_type: traffic_light, traffic_sign, road_marking, road_object.
+
+odr_signal_types:
+  # Traffic light: type "1000001", subtype "-1", country "OpenDRIVE"
+  - odr_representation:
+      type: "1000001"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: traffic_light
+      description: "Standard three-bulb vertical traffic light."
+
+      bulbs:
+        - id: "RedBulb"
+          position_traffic_light: [0.0, 0.0, 0.4]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Red"
+          type: "Round"
+          states: ["Off", "On"]
+
+        - id: "YellowBulb"
+          position_traffic_light: [0.0, 0.0, 0.0]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Yellow"
+          type: "Round"
+          states: ["Off", "On"]
+
+        - id: "GreenBulb"
+          position_traffic_light: [0.0, 0.0, -0.4]
+          orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
+          color: "Green"
+          type: "Round"
+          states: ["Off", "On"]
+
+      rule_states:
+        - conditions:
+            - bulb_id: "RedBulb"
+              state: "On"
+            - bulb_id: "YellowBulb"
+              state: "Off"
+            - bulb_id: "GreenBulb"
+              state: "Off"
+          value: "Stop"
+
+        - conditions:
+            - bulb_id: "RedBulb"
+              state: "Off"
+            - bulb_id: "YellowBulb"
+              state: "Off"
+            - bulb_id: "GreenBulb"
+              state: "On"
+          value: "Go"
+
+  # Traffic sign: stop sign type "206"
+  - odr_representation:
+      type: "206"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: traffic_sign
+      device_semantics: stop
+      description: "Stop sign."
+      bulbs: []
+      rule_states:
+        - conditions: []
+          value: "StopThenGo"
+
+odr_object_types:
+  # Road marking: crosswalk
+  - odr_representation:
+      type: crosswalk
+      subtype: "*"
+      name: "*"
+    properties:
+      device_type: road_marking
+      device_semantics: crosswalk
+      description: "Crosswalk road marking."
+
+  # Road object: barrier
+  - odr_representation:
+      type: barrier
+      subtype: "*"
+      name: "*"
+    properties:
+      device_type: road_object
+      description: "Barrier road object."
