@@ -161,7 +161,8 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, RoadMarkingFindByType) {
 TEST_F(TrafficControlDeviceBooksBuilderTest, RoadObjectBookPopulated) {
   const auto* rob = road_network_->road_object_book();
   const auto objects = rob->RoadObjects();
-  EXPECT_TRUE(objects.size() >= 1);  // May contain more due to unmatched objects, but must contain at least the one barrier.
+  EXPECT_TRUE(objects.size() >=
+              1);  // May contain more due to unmatched objects, but must contain at least the one barrier.
   const auto* ro = road_network_->road_object_book()->GetRoadObject(maliput::api::objects::RoadObject::Id("RO1"));
   EXPECT_NE(ro, nullptr);
   EXPECT_TRUE(ro->type() == maliput::api::objects::RoadObjectType::kBarrier);
