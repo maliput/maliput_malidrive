@@ -1513,12 +1513,13 @@ class RoadObjectBookBuilderTest : public ::testing::Test {
     const std::string tcd_db_path =
         utility::FindResourceInPath("traffic_control_device_db/road_object_test_db.yaml", kMalidriveResourceFolder);
 
-    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                             {params::kOpendriveFile, xodr_file_path},
-                                                                             {params::kTrafficControlDeviceDb, tcd_db_path},
-                                                                             {params::kOmitNonDrivableLanes, "false"},
-                                                                         })
-                                           .ToStringMap())();
+    road_network_ =
+        RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                 {params::kOpendriveFile, xodr_file_path},
+                                                                 {params::kTrafficControlDeviceDb, tcd_db_path},
+                                                                 {params::kOmitNonDrivableLanes, "false"},
+                                                             })
+                               .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     rob_ = road_network_->road_object_book();
     ASSERT_NE(rob_, nullptr);

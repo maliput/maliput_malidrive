@@ -37,8 +37,8 @@
 #include <maliput/api/objects/road_object.h>
 #include <maliput/api/objects/road_object_book.h>
 #include <maliput/api/road_network.h>
-#include <maliput/api/rules/traffic_lights.h>
 #include <maliput/api/rules/traffic_light_book.h>
+#include <maliput/api/rules/traffic_lights.h>
 #include <maliput/api/rules/traffic_sign.h>
 #include <maliput/api/rules/traffic_sign_book.h>
 #include <maliput/common/maliput_throw.h>
@@ -85,8 +85,7 @@ class TrafficControlDeviceBooksBuilderTest : public ::testing::Test {
 
 // Verifies that the builder rejects a nullptr RoadGeometry.
 TEST_F(TrafficControlDeviceBooksBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt),
-               maliput::common::assertion_error);
+  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt), maliput::common::assertion_error);
 }
 
 // Verifies that all four books are non-null.
@@ -107,8 +106,7 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, TrafficLightBookPopulated) {
 
 // Verifies that the traffic light has the expected bulb groups and bulbs from the YAML database.
 TEST_F(TrafficControlDeviceBooksBuilderTest, TrafficLightBulbStructure) {
-  const auto* tl = road_network_->traffic_light_book()->GetTrafficLight(
-      maliput::api::rules::TrafficLight::Id("TL1"));
+  const auto* tl = road_network_->traffic_light_book()->GetTrafficLight(maliput::api::rules::TrafficLight::Id("TL1"));
   ASSERT_NE(tl, nullptr);
 
   const auto& bulb_groups = tl->bulb_groups();
@@ -130,8 +128,7 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, TrafficSignBookPopulated) {
 
 // Verifies the traffic sign type is kStop.
 TEST_F(TrafficControlDeviceBooksBuilderTest, TrafficSignTypeIsStop) {
-  const auto* ts = road_network_->traffic_sign_book()->GetTrafficSign(
-      maliput::api::rules::TrafficSign::Id("TS1"));
+  const auto* ts = road_network_->traffic_sign_book()->GetTrafficSign(maliput::api::rules::TrafficSign::Id("TS1"));
   ASSERT_NE(ts, nullptr);
   EXPECT_EQ(maliput::api::rules::TrafficSignType::kStop, ts->type());
 }
@@ -146,8 +143,7 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, RoadMarkingBookPopulated) {
 
 // Verifies the road marking type is kCrosswalk.
 TEST_F(TrafficControlDeviceBooksBuilderTest, RoadMarkingTypeIsCrosswalk) {
-  const auto* rm = road_network_->road_marking_book()->GetRoadMarking(
-      maliput::api::objects::RoadMarking::Id("RM1"));
+  const auto* rm = road_network_->road_marking_book()->GetRoadMarking(maliput::api::objects::RoadMarking::Id("RM1"));
   ASSERT_NE(rm, nullptr);
   EXPECT_EQ(maliput::api::objects::RoadMarkingType::kCrosswalk, rm->type());
 }
@@ -171,8 +167,7 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, RoadObjectBookPopulated) {
 
 // Verifies the road object type is kBarrier.
 TEST_F(TrafficControlDeviceBooksBuilderTest, RoadObjectTypeIsBarrier) {
-  const auto* ro = road_network_->road_object_book()->GetRoadObject(
-      maliput::api::objects::RoadObject::Id("RO1"));
+  const auto* ro = road_network_->road_object_book()->GetRoadObject(maliput::api::objects::RoadObject::Id("RO1"));
   ASSERT_NE(ro, nullptr);
   EXPECT_EQ(maliput::api::objects::RoadObjectType::kBarrier, ro->type());
 }
