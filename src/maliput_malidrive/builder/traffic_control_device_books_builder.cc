@@ -159,9 +159,14 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
                               "' name='", object.name.value_or(""), "'. Defaulting in RoadObject creation.");
-        auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
-        if (ro) {
-          rob->AddRoadObject(std::move(ro));
+        try {
+          auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
+          if (ro) {
+            rob->AddRoadObject(std::move(ro));
+          }
+        } catch (const std::exception& e) {
+          maliput::log()->warn("TrafficControlDeviceBooksBuilder: failed to build default RoadObject id='",
+                               object.id.string(), "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
         }
         continue;
       }
@@ -169,14 +174,24 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       const auto& definition = definition_opt.value();
 
       if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadMarking) {
-        auto rm = RoadMarkingBuilder(object, road_id, loader, road_geometry_)();
-        if (rm) {
-          rmb->AddRoadMarking(std::move(rm));
+        try {
+          auto rm = RoadMarkingBuilder(object, road_id, loader, road_geometry_)();
+          if (rm) {
+            rmb->AddRoadMarking(std::move(rm));
+          }
+        } catch (const std::exception& e) {
+          maliput::log()->warn("TrafficControlDeviceBooksBuilder: failed to build RoadMarking from object id='",
+                               object.id.string(), "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
-        auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
-        if (ro) {
-          rob->AddRoadObject(std::move(ro));
+        try {
+          auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
+          if (ro) {
+            rob->AddRoadObject(std::move(ro));
+          }
+        } catch (const std::exception& e) {
+          maliput::log()->warn("TrafficControlDeviceBooksBuilder: failed to build RoadObject id='", object.id.string(),
+                               "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
         }
       } else {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: object id='", object.id.string(),
