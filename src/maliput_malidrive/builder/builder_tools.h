@@ -29,11 +29,13 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
+#include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
 #include <maliput/api/lane_data.h>
+#include <maliput/api/objects/road_object.h>
 #include <maliput/api/road_geometry.h>
 
 #include "maliput_malidrive/base/lane.h"
@@ -42,6 +44,7 @@
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/junction.h"
 #include "maliput_malidrive/xodr/lane.h"
+#include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/validity.h"
 
@@ -442,6 +445,24 @@ std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
     const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
     const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
     const maliput::api::RoadGeometry* road_geometry);
+
+/// Converts XODR outline corners to maliput Outlines.
+///
+/// Processes the outlines defined in an XODR object element and converts them
+/// to maliput @ref maliput::api::objects::Outline instances. Supports both
+/// `cornerRoad` (road-frame coordinates) and `cornerLocal` (object-local coordinates).
+///
+/// @param object The XODR object containing outline data.
+/// @param road_id The XODR road's ID the @p object belongs to.
+/// @param road_geometry Pointer to the road geometry (must be castable to malidrive::RoadGeometry).
+/// @param object_inertial_pos The inertial position of the object's origin.
+/// @param object_orientation The orientation of the object in the inertial frame.
+/// @returns A vector of Outline unique_ptrs. Empty if the object has no outlines or all outlines
+///          have fewer than 3 corners.
+std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
+    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+    const maliput::api::RoadGeometry* road_geometry, const maliput::api::InertialPosition& object_inertial_pos,
+    const maliput::api::Rotation& object_orientation);
 
 }  // namespace builder
 }  // namespace malidrive
