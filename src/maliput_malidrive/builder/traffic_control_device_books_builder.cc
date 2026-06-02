@@ -158,7 +158,11 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       if (!definition_opt.has_value()) {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
-                              "' name='", object.name.value_or(""), "'. Skipping.");
+                              "' name='", object.name.value_or(""), "'. Defaulting in RoadObject creation.");
+        auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
+        if (ro) {
+          rob->AddRoadObject(std::move(ro));
+        }
         continue;
       }
 

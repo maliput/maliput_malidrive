@@ -157,12 +157,14 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, RoadMarkingFindByType) {
   EXPECT_TRUE(stop_lines.empty());
 }
 
-// Verifies that the RoadObjectBook contains exactly one barrier road object.
+// Verifies that the RoadObjectBook contains one barrier road object.
 TEST_F(TrafficControlDeviceBooksBuilderTest, RoadObjectBookPopulated) {
   const auto* rob = road_network_->road_object_book();
   const auto objects = rob->RoadObjects();
-  ASSERT_EQ(1u, objects.size());
-  EXPECT_EQ(maliput::api::objects::RoadObject::Id("RO1"), objects[0]->id());
+  EXPECT_TRUE(objects.size() >= 1);  // May contain more due to unmatched objects, but must contain at least the one barrier.
+  const auto* ro = road_network_->road_object_book()->GetRoadObject(maliput::api::objects::RoadObject::Id("RO1"));
+  EXPECT_NE(ro, nullptr);
+  EXPECT_TRUE(ro->type() == maliput::api::objects::RoadObjectType::kBarrier);
 }
 
 // Verifies the road object type is kBarrier.
@@ -181,10 +183,10 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, RoadObjectFindByType) {
   EXPECT_TRUE(buildings.empty());
 }
 
-// Verifies that the unmatched object of type="tree" is NOT placed in any book.
-TEST_F(TrafficControlDeviceBooksBuilderTest, UnmatchedObjectIsSkipped) {
+// Verifies that the unmatched XODR object of type="tree" is placed in the RoadObjectBook.
+TEST_F(TrafficControlDeviceBooksBuilderTest, UnmatchedObjectIsPlacedInRoadObjectBook) {
   const auto* rob = road_network_->road_object_book();
-  EXPECT_EQ(nullptr, rob->GetRoadObject(maliput::api::objects::RoadObject::Id("UNMATCHED1")));
+  EXPECT_NE(rob->GetRoadObject(maliput::api::objects::RoadObject::Id("UNMATCHED1")), nullptr);
 
   const auto* rmb = road_network_->road_marking_book();
   EXPECT_EQ(nullptr, rmb->GetRoadMarking(maliput::api::objects::RoadMarking::Id("UNMATCHED1")));
@@ -214,12 +216,12 @@ class TrafficControlDeviceBooksBuilderNoDbTest : public ::testing::Test {
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
 };
 
-// Without a TCD database, all signal and object books are empty.
-TEST_F(TrafficControlDeviceBooksBuilderNoDbTest, AllBooksAreEmpty) {
+// Without a TCD database, only RoadObjectBook may be populated.
+TEST_F(TrafficControlDeviceBooksBuilderNoDbTest, OnlyRoadObjectBookPopulated) {
   EXPECT_TRUE(road_network_->traffic_light_book()->TrafficLights().empty());
   EXPECT_TRUE(road_network_->traffic_sign_book()->TrafficSigns().empty());
-  EXPECT_TRUE(road_network_->road_object_book()->RoadObjects().empty());
   EXPECT_TRUE(road_network_->road_marking_book()->RoadMarkings().empty());
+  EXPECT_TRUE(road_network_->road_object_book()->RoadObjects().size() >= 1);
 }
 
 }  // namespace
