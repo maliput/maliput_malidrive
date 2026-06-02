@@ -66,5 +66,29 @@ maliput::api::objects::RoadMarkingType MapRoadMarkingTypeString(const std::strin
   return it != kMapper.end() ? it->second : T::kUnknown;
 }
 
+maliput::api::objects::RoadMarkingType MapXodrObjectTypeToRoadMarkingType(
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type, const std::optional<std::string>& subtype) {
+  using XodrType = xodr::object::Object::ObjectType;
+  using MaliputType = maliput::api::objects::RoadMarkingType;
+
+  if (!xodr_type.has_value()) {
+    return MaliputType::kUnknown;
+  }
+
+  switch (xodr_type.value()) {
+    case XodrType::kRoadMark:
+      if (subtype.has_value() && subtype.value() == "stopLine") {
+        return MaliputType::kStopLine;
+      }
+      return MaliputType::kUnknown;
+    case XodrType::kCrosswalk:
+      return MaliputType::kCrosswalk;
+    case XodrType::kParkingSpace:
+      return MaliputType::kParkingSpace;
+    default:
+      return MaliputType::kUnknown;
+  }
+}
+
 }  // namespace builder
 }  // namespace malidrive

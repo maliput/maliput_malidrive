@@ -58,8 +58,8 @@
 #include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
-#include "maliput_malidrive/builder/road_object_book_builder.h"
 #include "maliput_malidrive/builder/rule_tools.h"
+#include "maliput_malidrive/builder/traffic_control_device_books_builder.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
 #include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
@@ -1558,7 +1558,7 @@ TEST_F(RoadObjectBookBuilderTest, FindByType) {
 }
 
 TEST_F(RoadObjectBookBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(RoadObjectBookBuilder(nullptr), maliput::common::assertion_error);
+  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt), maliput::common::assertion_error);
 }
 
 // Verifies that a RoadNetwork built from an XODR without objects results in
