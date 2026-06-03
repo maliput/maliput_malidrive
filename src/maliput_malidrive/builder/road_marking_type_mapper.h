@@ -32,6 +32,8 @@
 
 #include <maliput/api/objects/road_marking.h>
 
+#include "maliput_malidrive/xodr/object/object.h"
+
 namespace malidrive {
 namespace builder {
 
@@ -47,5 +49,17 @@ namespace builder {
 /// @returns The corresponding RoadMarkingType, or kUnknown if not recognized.
 maliput::api::objects::RoadMarkingType MapRoadMarkingTypeString(const std::string& device_semantics);
 
+/// Maps an optional XODR @ref xodr::object::Object::ObjectType to a
+/// @ref maliput::api::objects::RoadMarkingType.
+///
+/// When @p xodr_type is kRoadMark and @p name or @p subtype equals
+/// "stopLine", the result is kStopLine instead of kRoadMark.
+///
+/// @param xodr_type The optional XODR object type to map.
+/// @param subtype The optional object subtype.
+/// @returns The corresponding maliput RoadMarkingType.
+maliput::api::objects::RoadMarkingType MapXodrObjectTypeToRoadMarkingType(
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type,
+    const std::optional<std::string>& subtype = std::nullopt);
 }  // namespace builder
 }  // namespace malidrive

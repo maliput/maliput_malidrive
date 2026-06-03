@@ -112,10 +112,13 @@ class RoadObjectBuilderTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
+    const std::string tcd_db_path =
+        utility::FindResourceInPath("traffic_control_device_db/road_object_test_db.yaml", kMalidriveResourceFolder);
 
     road_network_ = RoadNetworkBuilder(
         RoadNetworkConfiguration::FromMap({
                                               {params::kOpendriveFile, xodr_file_path},
+                                              {params::kTrafficControlDeviceDb, tcd_db_path},
                                               {params::kOmitNonDrivableLanes, "false"},
                                               {params::kLinearTolerance, std::to_string(kLinearTolerance)},
                                           })

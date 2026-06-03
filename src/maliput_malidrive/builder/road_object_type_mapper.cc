@@ -32,8 +32,7 @@ namespace malidrive {
 namespace builder {
 
 maliput::api::objects::RoadObjectType MapXodrObjectType(
-    const std::optional<xodr::object::Object::ObjectType>& xodr_type, const std::optional<std::string>& name,
-    const std::optional<std::string>& subtype) {
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type) {
   using XodrType = xodr::object::Object::ObjectType;
   using MaliputType = maliput::api::objects::RoadObjectType;
 

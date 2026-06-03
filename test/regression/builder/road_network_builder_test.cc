@@ -58,8 +58,8 @@
 #include "maliput_malidrive/builder/params.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
-#include "maliput_malidrive/builder/road_object_book_builder.h"
 #include "maliput_malidrive/builder/rule_tools.h"
+#include "maliput_malidrive/builder/traffic_control_device_books_builder.h"
 #include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/loader/loader.h"
 #include "maliput_malidrive/test_utilities/road_geometry_configuration_for_xodrs.h"
@@ -1510,12 +1510,16 @@ class RoadObjectBookBuilderTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
+    const std::string tcd_db_path =
+        utility::FindResourceInPath("traffic_control_device_db/road_object_test_db.yaml", kMalidriveResourceFolder);
 
-    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                             {params::kOpendriveFile, xodr_file_path},
-                                                                             {params::kOmitNonDrivableLanes, "false"},
-                                                                         })
-                                           .ToStringMap())();
+    road_network_ =
+        RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                 {params::kOpendriveFile, xodr_file_path},
+                                                                 {params::kTrafficControlDeviceDb, tcd_db_path},
+                                                                 {params::kOmitNonDrivableLanes, "false"},
+                                                             })
+                               .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     rob_ = road_network_->road_object_book();
     ASSERT_NE(rob_, nullptr);
@@ -1558,7 +1562,8 @@ TEST_F(RoadObjectBookBuilderTest, FindByType) {
 }
 
 TEST_F(RoadObjectBookBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(RoadObjectBookBuilder(nullptr), maliput::common::assertion_error);
+  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt, true),
+               maliput::common::assertion_error);
 }
 
 // Verifies that a RoadNetwork built from an XODR without objects results in

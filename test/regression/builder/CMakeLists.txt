@@ -27,6 +27,7 @@ set(UNIT_BUILDER_TEST_SOURCES
   road_marking_builder_test.cc
   road_marking_type_mapper_test.cc
   simplify_geometries_test.cc
+  traffic_control_device_books_builder_test.cc
   traffic_light_builder_test.cc
   traffic_sign_builder_test.cc
   traffic_sign_type_mapper_test.cc

@@ -14,7 +14,6 @@ add_library(builder
   road_geometry_configuration.cc
   road_network_builder.cc
   road_network_configuration.cc
-  road_object_book_builder.cc
   road_object_builder.cc
   road_object_type_mapper.cc
   road_marking_builder.cc
@@ -25,10 +24,10 @@ add_library(builder
   rule_tools.cc
   simplify_geometries.cc
   speed_limit_builder.cc
+  traffic_control_device_books_builder.cc
   traffic_light_builder.cc
   traffic_sign_builder.cc
   traffic_sign_type_mapper.cc
-  traffic_signal_books_builder.cc
   xodr_parser_configuration.cc
 )
 add_library(maliput_malidrive::builder ALIAS builder)

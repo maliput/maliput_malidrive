@@ -44,19 +44,13 @@ namespace builder {
 /// XODR types that have a direct maliput counterpart are mapped 1:1.
 /// Vehicle-like types (kBike, kBus, kCar, kMotorbike, kPedestrian, kTrailer,
 /// kTrain, kTram, kVan), and kNone are mapped to kUnknown.
-/// kStreetLamp/kWind → kPole, kRailing/kSoundBarrier → kBarrier, kPatch → kRoadSurface.
+/// kStreetLamp/kWind → kPole, kRailing/kSoundBarrier → kBarrier.
 /// A std::nullopt input maps to kUnknown.
 ///
-/// When @p xodr_type is kRoadMark and @p name or @p subtype equals
-/// "stopLine", the result is kStopLine instead of kRoadMark.
-///
 /// @param xodr_type The optional XODR object type to map.
-/// @param name The optional object name.
-/// @param subtype The optional object subtype.
 /// @returns The corresponding maliput RoadObjectType.
 maliput::api::objects::RoadObjectType MapXodrObjectType(
-    const std::optional<xodr::object::Object::ObjectType>& xodr_type,
-    const std::optional<std::string>& name = std::nullopt, const std::optional<std::string>& subtype = std::nullopt);
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type);
 
 }  // namespace builder
 }  // namespace malidrive

@@ -56,12 +56,11 @@
 #include "maliput_malidrive/builder/range_value_rule_state_provider_builder.h"
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
-#include "maliput_malidrive/builder/road_object_book_builder.h"
 #include "maliput_malidrive/builder/road_rulebook_builder.h"
 #include "maliput_malidrive/builder/road_rulebook_builder_old_rules.h"
 #include "maliput_malidrive/builder/rule_registry_builder.h"
 #include "maliput_malidrive/builder/speed_limit_builder.h"
-#include "maliput_malidrive/builder/traffic_signal_books_builder.h"
+#include "maliput_malidrive/builder/traffic_control_device_books_builder.h"
 #include "maliput_malidrive/builder/xodr_parser_configuration.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/constants.h"
@@ -87,10 +86,11 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   auto speed_limits = SpeedLimitBuilder(rg.get())();
   maliput::common::unused(speed_limits);
 
-  maliput::log()->trace("Building TrafficLightBook and TrafficSignBook...");
-  auto [traffic_light_book, traffic_sign_book] =
-      TrafficSignalBooksBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_control_device_db)();
-  maliput::log()->trace("Built TrafficLightBook and TrafficSignBook.");
+  maliput::log()->trace("Building TrafficControlDevice books...");
+  auto [traffic_light_book, traffic_sign_book, road_object_book, road_marking_book] =
+      TrafficControlDeviceBooksBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_control_device_db,
+                                       !rn_config.road_geometry_configuration.omit_nondrivable_lanes)();
+  maliput::log()->trace("Built TrafficControlDevice books.");
 
   maliput::log()->trace("Building RuleRegistry...");
   auto rule_registry = RuleRegistryBuilder(rg.get(), rn_config.rule_registry)();
@@ -146,16 +146,11 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
 #pragma GCC diagnostic pop
   maliput::log()->trace("Built RuleStateProvider.");
 
-  maliput::log()->trace("Building RoadObjectBook...");
-  auto road_object_book = RoadObjectBookBuilder(rg.get())();
-  maliput::log()->trace("Built RoadObjectBook.");
-
   return std::make_unique<maliput::api::RoadNetwork>(
       std::move(rg), std::move(rule_book), std::move(traffic_light_book), std::move(intersection_book),
       std::move(phase_ring_book), std::move(state_provider), std::move(manual_phase_provider), std::move(rule_registry),
       std::move(discrete_value_rule_state_provider), std::move(range_value_rule_state_provider),
-      std::move(road_object_book), std::move(traffic_sign_book),
-      std::unique_ptr<maliput::api::objects::RoadMarkingBook>());
+      std::move(road_object_book), std::move(traffic_sign_book), std::move(road_marking_book));
 }
 
 }  // namespace builder

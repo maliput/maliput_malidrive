@@ -32,6 +32,8 @@
 #include <optional>
 #include <string>
 
+#include <maliput/api/objects/road_marking_book.h>
+#include <maliput/api/objects/road_object_book.h>
 #include <maliput/api/road_geometry.h>
 #include <maliput/api/rules/traffic_light_book.h>
 #include <maliput/api/rules/traffic_sign_book.h>
@@ -41,58 +43,62 @@
 namespace malidrive {
 namespace builder {
 
-/// Holds the pair of books produced by @ref TrafficSignalBooksBuilder.
-struct TrafficSignalBooks {
+/// Holds the four books produced by @ref TrafficControlDeviceBooksBuilder.
+struct TrafficControlDeviceBooks {
   std::unique_ptr<maliput::api::rules::TrafficLightBook> traffic_light_book;
   std::unique_ptr<maliput::api::rules::TrafficSignBook> traffic_sign_book;
+  std::unique_ptr<maliput::api::objects::RoadObjectBook> road_object_book;
+  std::unique_ptr<maliput::api::objects::RoadMarkingBook> road_marking_book;
 };
 
-/// Builds a @ref maliput::api::rules::TrafficLightBook and a
-/// @ref maliput::api::rules::TrafficSignBook in a single pass over the XODR
-/// signals and the traffic signal YAML database.
+/// Builds all four traffic control device books in a single pass over the XODR
+/// signals and objects, using a shared traffic control device YAML database.
 ///
-/// Compared to the alternative design (separate `TrafficLightBookBuilder` /
-/// `TrafficSignBookBuilder`), this builder:
-///  - Parses the YAML database exactly once.
-///  - Routes each XODR signal to the right book using the `device_type` field of
-///    the matching @ref traffic_control_device::TrafficControlDeviceDefinition:
-///      - `"traffic_light"` → @ref maliput::api::rules::TrafficLight
-///        added to the TrafficLightBook.
-///      - any other value → @ref maliput::api::rules::TrafficSign added to the
-///        TrafficSignBook.
-///  - Fetches cross-road signal references for all matched signals (both
-///    traffic lights and traffic signs may be referenced across roads).
-class TrafficSignalBooksBuilder {
+/// This unified builder ensures the database is loaded exactly once and each
+/// XODR element is routed to the appropriate book based on its `device_type`:
+///
+///   - XODR **signals**:
+///     - `"traffic_light"` → TrafficLightBook
+///     - `"traffic_sign"`  → TrafficSignBook
+///     - Other/no match    → skipped
+///
+///   - XODR **objects**:
+///     - `"road_marking"`  → RoadMarkingBook
+///     - `"road_object"`   → RoadObjectBook
+///     - No match          → skipped
+class TrafficControlDeviceBooksBuilder {
  public:
-  MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(TrafficSignalBooksBuilder)
+  MALIDRIVE_NO_COPY_NO_MOVE_NO_ASSIGN(TrafficControlDeviceBooksBuilder)
 
-  /// Constructs a TrafficSignalBooksBuilder.
+  /// Constructs a TrafficControlDeviceBooksBuilder.
   ///
   /// @param road_geometry Pointer to the built RoadGeometry. Must not be nullptr.
   /// @param traffic_light_book_path Optional path to a YAML file used to seed
   ///        the TrafficLightBook before processing XODR signals.
-  ///        When `std::nullopt`, an empty book is used as the base.
   /// @param traffic_control_device_db_path Optional path to the YAML database that maps
-  ///        XODR signals to traffic signal definitions.
-  ///        When `std::nullopt`, both books will be empty (or seeded only from
+  ///        XODR signals/objects to traffic control device definitions.
+  ///        When `std::nullopt`, all books will be empty (or seeded only from
   ///        @p traffic_light_book_path for the TrafficLightBook).
+  /// @param allow_non_driveable_lanes If false, any XODR road without driveable lanes will
+  ///        be skipped when building books.
   /// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
-  TrafficSignalBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
-                            std::optional<std::string> traffic_light_book_path,
-                            std::optional<std::string> traffic_control_device_db_path);
+  TrafficControlDeviceBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
+                                   std::optional<std::string> traffic_light_book_path,
+                                   std::optional<std::string> traffic_control_device_db_path,
+                                   bool allow_non_driveable_lanes);
 
-  TrafficSignalBooksBuilder() = delete;
+  TrafficControlDeviceBooksBuilder() = delete;
 
-  /// Builds and returns both books.
+  /// Builds and returns all four books.
   ///
-  /// @returns A @ref TrafficSignalBooks holding the populated TrafficLightBook
-  ///          and TrafficSignBook.
-  TrafficSignalBooks operator()() const;
+  /// @returns A @ref TrafficControlDeviceBooks holding the populated books.
+  TrafficControlDeviceBooks operator()() const;
 
  private:
   const maliput::api::RoadGeometry* road_geometry_;
   const std::optional<std::string> traffic_light_book_path_;
   const std::optional<std::string> traffic_control_device_db_path_;
+  const bool allow_non_driveable_lanes_;
 };
 
 }  // namespace builder
