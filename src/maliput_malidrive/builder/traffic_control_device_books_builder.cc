@@ -38,6 +38,7 @@
 #include <maliput/common/logger.h>
 
 #include "maliput_malidrive/base/road_geometry.h"
+#include "maliput_malidrive/builder/builder_tools.h"
 #include "maliput_malidrive/builder/road_marking_builder.h"
 #include "maliput_malidrive/builder/road_object_builder.h"
 #include "maliput_malidrive/builder/traffic_light_builder.h"
@@ -49,14 +50,6 @@
 
 namespace malidrive {
 namespace builder {
-
-namespace {
-
-bool road_has_driveable_lanes(const maliput::api::RoadGeometry* road_geometry, const xodr::RoadHeader& road_header) {
-  return false;
-}
-
-}  // namespace
 
 TrafficControlDeviceBooksBuilder::TrafficControlDeviceBooksBuilder(
     const maliput::api::RoadGeometry* road_geometry, std::optional<std::string> traffic_light_book_path,
@@ -97,7 +90,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       continue;
     }
     if (!allow_non_driveable_lanes_) {
-      if (!road_has_driveable_lanes(road_geometry_, road_header)) {
+      if (AreOnlyNonDrivableLanes(road_header)) {
         maliput::log()->debug("Skipping signals on road '", road_id.string(), "' since it has no driveable lanes.");
         continue;
       }
@@ -159,7 +152,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       continue;
     }
     if (!allow_non_driveable_lanes_) {
-      if (!road_has_driveable_lanes(road_geometry_, road_header)) {
+      if (AreOnlyNonDrivableLanes(road_header)) {
         maliput::log()->debug("Skipping objects on road '", road_id.string(), "' since it has no driveable lanes.");
         continue;
       }
