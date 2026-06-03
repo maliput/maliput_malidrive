@@ -361,10 +361,16 @@ void RoadGeometry::VerifyValidXodrLanePosition(const OpenScenarioLanePosition& x
                      std::string("s value ") + std::to_string(xodr_lane_position.s) + " is out of range for Road ID " +
                          road_header_id.string() + ". Valid range: [" + std::to_string(road_start_s) + ", " +
                          std::to_string(road_end_s) + "].");
-  // Clamp s to be strictly less than the road's end so that GetLaneSectionIndex (which uses strict < for the upper
-  // bound) can find the last lane section when s equals the road's length.
-  const double clamped_s = std::clamp(xodr_lane_position.s, road_start_s, road_end_s - kEpsilon);
-  const int lane_section_index = road_header.GetLaneSectionIndex(clamped_s);
+  // GetLaneSectionIndex uses a strict upper bound for section ranges. When s is at the road end (or numerically
+  // close above it), select the nearest representable value inside the road domain instead of subtracting a fixed
+  // epsilon, which could jump across very short terminal lane sections.
+  double lane_section_query_s = xodr_lane_position.s;
+  if (lane_section_query_s >= road_end_s) {
+    lane_section_query_s = std::nextafter(road_end_s, road_start_s);
+  } else if (lane_section_query_s < road_start_s) {
+    lane_section_query_s = road_start_s;
+  }
+  const int lane_section_index = road_header.GetLaneSectionIndex(lane_section_query_s);
   const xodr::LaneSection& lane_section = road_header.lanes.lanes_section.at(lane_section_index);
   bool lane_found = false;
   for (const auto& lane : lane_section.left_lanes) {
