@@ -353,15 +353,18 @@ void RoadGeometry::VerifyValidXodrLanePosition(const OpenScenarioLanePosition& x
   MALIDRIVE_VALIDATE(it != road_headers.end(), maliput::common::assertion_error,
                      std::string("Road ID ") + road_header_id.string() + " not found in the XODR map.");
   const xodr::RoadHeader& road_header = it->second;
+  const double road_start_s = road_header.s0();
+  const double road_end_s = road_header.s0() + road_header.length;
   MALIDRIVE_VALIDATE(
-      xodr_lane_position.s >= road_header.s0() && xodr_lane_position.s <= road_header.s0() + road_header.length,
+        is_greater_than_or_close(xodr_lane_position.s, road_start_s) &&
+        is_less_than_or_close(xodr_lane_position.s, road_end_s),
       maliput::common::assertion_error,
       std::string("s value ") + std::to_string(xodr_lane_position.s) + " is out of range for Road ID " +
-          road_header_id.string() + ". Valid range: [" + std::to_string(road_header.s0()) + ", " +
-          std::to_string(road_header.s0() + road_header.length) + "].");
+      road_header_id.string() + ". Valid range: [" + std::to_string(road_start_s) + ", " +
+      std::to_string(road_end_s) + "].");
   // Clamp s to be strictly less than the road's end so that GetLaneSectionIndex (which uses strict < for the upper
   // bound) can find the last lane section when s equals the road's length.
-  const double clamped_s = std::min(xodr_lane_position.s, road_header.s0() + road_header.length - kEpsilon);
+  const double clamped_s = std::clamp(xodr_lane_position.s, road_start_s, road_end_s - kEpsilon);
   const int lane_section_index = road_header.GetLaneSectionIndex(clamped_s);
   const xodr::LaneSection& lane_section = road_header.lanes.lanes_section.at(lane_section_index);
   bool lane_found = false;
