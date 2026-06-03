@@ -2,6 +2,22 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.23.0 (2026-06-03)
+-------------------
+* New TrafficControlDeviceBooks builder (`#469 <https://github.com/maliput/maliput_malidrive/issues/469>`_)
+  Co-authored-by: JCarosella <juancarosella96@ekumenlabs.com>
+* RoadMarkingBuilder (`#468 <https://github.com/maliput/maliput_malidrive/issues/468>`_)
+* Empty RoadMarkingBook and RoadObjectType deprecation (`#467 <https://github.com/maliput/maliput_malidrive/issues/467>`_)
+* Support odr_object_types entries in traffic_control_device database (`#464 <https://github.com/maliput/maliput_malidrive/issues/464>`_)
+* Implement TrafficSign::GetValue interface. (`#462 <https://github.com/maliput/maliput_malidrive/issues/462>`_)
+* Align signal's orientation with the s-direction traffic comes from. (`#463 <https://github.com/maliput/maliput_malidrive/issues/463>`_)
+* TrafficControlDevice supports new TrafficLights field values. (`#459 <https://github.com/maliput/maliput_malidrive/issues/459>`_)
+* TrafficControlDevice database wildcard matching (`#456 <https://github.com/maliput/maliput_malidrive/issues/456>`_)
+  Co-authored-by: Santiago Lopez <santiago.lopez@ekumenlabs.com>
+* Update traffic control device database structure. (`#452 <https://github.com/maliput/maliput_malidrive/issues/452>`_)
+* Rename traffic_signal module and elements to traffic_control_device. (`#450 <https://github.com/maliput/maliput_malidrive/issues/450>`_)
+* Contributors: Santiago Lopez
+
 0.22.0 (2026-04-21)
 -------------------
 * Refactor traffic sign mapper while adding new sign type no_overtaking. (`#441 <https://github.com/maliput/maliput_malidrive/issues/441>`_)
