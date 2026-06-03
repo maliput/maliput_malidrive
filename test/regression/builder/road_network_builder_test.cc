@@ -1562,7 +1562,8 @@ TEST_F(RoadObjectBookBuilderTest, FindByType) {
 }
 
 TEST_F(RoadObjectBookBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt), maliput::common::assertion_error);
+  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt, true),
+               maliput::common::assertion_error);
 }
 
 // Verifies that a RoadNetwork built from an XODR without objects results in

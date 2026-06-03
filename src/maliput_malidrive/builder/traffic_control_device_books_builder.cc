@@ -50,12 +50,21 @@
 namespace malidrive {
 namespace builder {
 
+namespace {
+
+bool road_has_driveable_lanes(const maliput::api::RoadGeometry* road_geometry, const xodr::RoadHeader& road_header) {
+  return false;
+}
+
+}  // namespace
+
 TrafficControlDeviceBooksBuilder::TrafficControlDeviceBooksBuilder(
     const maliput::api::RoadGeometry* road_geometry, std::optional<std::string> traffic_light_book_path,
-    std::optional<std::string> traffic_control_device_db_path)
+    std::optional<std::string> traffic_control_device_db_path, bool allow_non_driveable_lanes)
     : road_geometry_(road_geometry),
       traffic_light_book_path_(std::move(traffic_light_book_path)),
-      traffic_control_device_db_path_(std::move(traffic_control_device_db_path)) {
+      traffic_control_device_db_path_(std::move(traffic_control_device_db_path)),
+      allow_non_driveable_lanes_(allow_non_driveable_lanes) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, maliput::common::assertion_error, "road_geometry must not be nullptr.");
 }
 
@@ -86,6 +95,12 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
   for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
     if (!road_header.signals.has_value()) {
       continue;
+    }
+    if (!allow_non_driveable_lanes_) {
+      if (!road_has_driveable_lanes(road_geometry_, road_header)) {
+        maliput::log()->debug("Skipping signals on road '", road_id.string(), "' since it has no driveable lanes.");
+        continue;
+      }
     }
     for (const auto& signal : road_header.signals->signals) {
       const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
@@ -143,6 +158,12 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
     if (!road_header.objects.has_value()) {
       continue;
     }
+    if (!allow_non_driveable_lanes_) {
+      if (!road_has_driveable_lanes(road_geometry_, road_header)) {
+        maliput::log()->debug("Skipping objects on road '", road_id.string(), "' since it has no driveable lanes.");
+        continue;
+      }
+    }
     for (const auto& object : road_header.objects->objects) {
       const std::string type_str =
           object.type.has_value() ? xodr::object::Object::object_type_to_str(object.type.value()) : "";
@@ -158,15 +179,10 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       if (!definition_opt.has_value()) {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
-                              "' name='", object.name.value_or(""), "'. Defaulting in RoadObject creation.");
-        try {
-          auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
-          if (ro) {
-            rob->AddRoadObject(std::move(ro));
-          }
-        } catch (const std::exception& e) {
-          maliput::log()->warn("TrafficControlDeviceBooksBuilder: failed to build default RoadObject id='",
-                               object.id.string(), "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
+                              "' name='", object.name.value_or(""), "'.");
+        auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
+        if (ro) {
+          rob->AddRoadObject(std::move(ro));
         }
         continue;
       }
