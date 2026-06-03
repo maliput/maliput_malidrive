@@ -1420,6 +1420,38 @@ class RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad : public ::test
   std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
 };
 
+class RoadGeometryOpenScenarioConversionsRoad2_20 : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("Road2_20");
+    road_geometry_configuration_.opendrive_file =
+        utility::FindResourceInPath("Road2_20.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+  }
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+};
+
+TEST_F(RoadGeometryOpenScenarioConversionsRoad2_20,
+       OpenScenarioRelativeLanePositionWithDsToMaliputRoadPositionCrossesRoadBoundary) {
+  // Regression for boundary case where xodr_s + xodr_ds lands at/after Road 2's end and must continue on Road 20.
+  const RoadGeometry::OpenScenarioLanePosition input_xodr_lane_position{2, 360., -2, 0.};
+  const int d_lane = 0;
+  const double xodr_ds = 5.;
+  const double offset = 0.;
+
+  const maliput::api::LaneId expected_lane_id("20_0_-1");
+  const maliput::api::LanePosition expected_lane_position(1.980734, 0., 0.);
+
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+  const maliput::api::RoadPosition mali_road_pos = rg->OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(
+      input_xodr_lane_position, d_lane, xodr_ds, offset);
+  EXPECT_EQ(expected_lane_id, mali_road_pos.lane->id());
+  EXPECT_TRUE(
+      AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
+}
+
 TEST_F(RoadGeometryOpenScenarioConversionsSShapeSuperelevatedRoad, GetRoadOrientationAtOpenScenarioRoadPosition) {
   const RoadGeometry::OpenScenarioRoadPosition xodr_road_position{1, 60., 0.};
   auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
