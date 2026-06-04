@@ -268,6 +268,13 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS1Fields) {
   EXPECT_EQ("1_0_-1", lane_ids[0]);
   EXPECT_EQ("2_0_-1", lane_ids[1]);
   EXPECT_EQ("2_0_1", lane_ids[2]);
+
+  const auto& properties = ts->properties();
+  EXPECT_EQ(properties.at("type"), "206");
+  EXPECT_EQ(properties.at("country"), "OpenDRIVE");
+  EXPECT_EQ(properties.at("name"), "StopSign_SS1");
+  EXPECT_EQ(properties.count("subtype"), 0u);
+  EXPECT_EQ(properties.count("country_revision"), 0u);
 }
 
 // Verifies all fields of the TrafficSign created from signal SS2.
@@ -308,6 +315,13 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS2Fields) {
   EXPECT_EQ("1_0_1", lane_ids[1]);
   EXPECT_EQ("2_0_-1", lane_ids[2]);
   EXPECT_EQ("2_0_1", lane_ids[3]);
+
+  const auto& properties = ts->properties();
+  EXPECT_EQ(properties.at("type"), "206");
+  EXPECT_EQ(properties.at("country"), "OpenDRIVE");
+  EXPECT_EQ(properties.at("name"), "StopSign_SS2");
+  EXPECT_EQ(properties.count("subtype"), 0u);
+  EXPECT_EQ(properties.count("country_revision"), 0u);
 }
 
 // Verifies that FindByType correctly retrieves both stop signs.
@@ -385,6 +399,13 @@ TEST_F(TrafficSignBuilderSpeedLimitTest, GetValueReturnsExpectedValue) {
   ASSERT_TRUE(value.has_value());
   EXPECT_DOUBLE_EQ(60.0, value->value);
   EXPECT_EQ(maliput::api::rules::TrafficSignValueUnit::kKilometersPerHour, value->unit);
+
+  const auto& properties = ts->properties();
+  EXPECT_EQ(properties.at("type"), "274");
+  EXPECT_EQ(properties.at("country"), "OpenDRIVE");
+  EXPECT_EQ(properties.at("name"), "SpeedLimit60");
+  EXPECT_EQ(properties.count("subtype"), 0u);
+  EXPECT_EQ(properties.count("country_revision"), 0u);
 }
 
 // Verifies that the sign's position is correct.

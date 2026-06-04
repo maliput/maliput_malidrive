@@ -30,6 +30,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <unordered_map>
 #include <string>
 #include <utility>
 #include <vector>
@@ -163,6 +164,22 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
     traffic_sign_value = maliput::api::rules::TrafficSignValue{signal_.value->value, mapped_unit.value()};
   }
 
+  // Expose signal fingerprint metadata as backend-specific properties.
+  std::unordered_map<std::string, std::string> properties{{"type", signal_.type}};
+  const auto normalized_subtype = NormalizeSubtype(signal_.subtype);
+  if (normalized_subtype.has_value()) {
+    properties.emplace("subtype", normalized_subtype.value());
+  }
+  if (signal_.country.has_value()) {
+    properties.emplace("country", signal_.country.value());
+  }
+  if (signal_.country_revision.has_value()) {
+    properties.emplace("country_revision", signal_.country_revision.value());
+  }
+  if (signal_.name.has_value()) {
+    properties.emplace("name", signal_.name.value());
+  }
+
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
                         definition.device_semantics.value_or("Other"), "'. TrafficSign position: (x=", pos.x(),
@@ -172,7 +189,8 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
 
   return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
                                                             sign_meaning, pos, orientation_road_network, signal_.text,
-                                                            std::move(related_lanes), bounding_box, traffic_sign_value);
+                                                            std::move(related_lanes), bounding_box, traffic_sign_value,
+                                                            std::move(properties));
 }
 
 }  // namespace builder
