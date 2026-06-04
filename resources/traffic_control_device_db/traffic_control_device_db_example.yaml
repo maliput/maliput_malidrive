@@ -58,7 +58,6 @@ odr_signal_types:
       subtype: "-1"
       country: "OpenDRIVE"
       country_revision: null
-      name: "*"
     properties:
       device_type: traffic_light
       description: "Standard three-bulb vertical traffic light with red, yellow, and green bulbs."
@@ -156,7 +155,6 @@ odr_signal_types:
       subtype: "10"
       country: "OpenDRIVE"
       country_revision: null
-      name: "*"
     properties:
       device_type: traffic_light
       description: "Three-bulb traffic light with optional arrow support (left/straight/right)."
@@ -222,7 +220,6 @@ odr_signal_types:
       subtype: "-1"
       country: "OpenDRIVE"
       country_revision: null
-      name: "*"
     properties:
       device_type: traffic_light
       description: "Pedestrian walk/don't walk signal (red standing figure on black background / green walking figure on black background)."
@@ -272,7 +269,6 @@ odr_signal_types:
       subtype: "-1"
       country: "OpenDRIVE"
       country_revision: null
-      name: "*"
     properties:
       device_type: traffic_sign
       device_semantics: stop
@@ -291,7 +287,6 @@ odr_signal_types:
       subtype: "-1"
       country: "OpenDRIVE"
       country_revision: null
-      name: "*"
     properties:
       device_type: traffic_sign
       description: "Unknown sign. No specific behavior defined."
