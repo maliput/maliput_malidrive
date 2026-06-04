@@ -28,8 +28,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/traffic_sign_type_mapper.h"
 
-#include <algorithm>
-#include <cctype>
 #include <unordered_map>
 
 #include <maliput/common/maliput_hash.h>
@@ -40,26 +38,24 @@ namespace builder {
 maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& device_semantics) {
   using T = maliput::api::rules::TrafficSignType;
   static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"stop", T::kStop},
-      {"yield", T::kYield},
-      {"speed_limit", T::kSpeedLimit},
-      {"no_entry", T::kNoEntry},
-      {"one_way", T::kOneWay},
-      {"pedestrian_crossing", T::kPedestrianCrossing},
-      {"no_left_turn", T::kNoLeftTurn},
-      {"no_right_turn", T::kNoRightTurn},
-      {"no_u_turn", T::kNoUTurn},
-      {"school_zone", T::kSchoolZone},
-      {"construction", T::kConstruction},
-      {"railroad_crossing", T::kRailroadCrossing},
-      {"no_overtaking", T::kNoOvertaking},
-      {"give_way", T::kYield},
-      {"speed_limit_begin", T::kSpeedLimit},
-      {"crosswalk", T::kPedestrianCrossing},
+      {"Stop", T::kStop},
+      {"Yield", T::kYield},
+      {"SpeedLimit", T::kSpeedLimit},
+      {"NoEntry", T::kNoEntry},
+      {"OneWay", T::kOneWay},
+      {"PedestrianCrossing", T::kPedestrianCrossing},
+      {"NoLeftTurn", T::kNoLeftTurn},
+      {"NoRightTurn", T::kNoRightTurn},
+      {"NoUTurn", T::kNoUTurn},
+      {"SchoolZone", T::kSchoolZone},
+      {"Construction", T::kConstruction},
+      {"RailroadCrossing", T::kRailroadCrossing},
+      {"NoOvertaking", T::kNoOvertaking},
+      {"GiveWay", T::kYield},
+      {"SpeedLimitBegin", T::kSpeedLimit},
+      {"Crosswalk", T::kPedestrianCrossing},
   };
-  std::string lower = device_semantics;
-  std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
-  const auto it = kMapper.find(lower);
+  const auto it = kMapper.find(device_semantics);
   return it != kMapper.end() ? it->second : T::kUnknown;
 }
 

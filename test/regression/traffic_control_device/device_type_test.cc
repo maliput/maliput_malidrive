@@ -55,30 +55,25 @@ TEST_P(StringToTrafficControlDeviceTypeTest, MapsCorrectly) {
 
 INSTANTIATE_TEST_CASE_P(KnownValues, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
-                            // Canonical lower-case forms.
-                            StringToTypeTestCase{"traffic_light", TrafficControlDeviceType::kTrafficLight},
-                            StringToTypeTestCase{"traffic_sign", TrafficControlDeviceType::kTrafficSign},
-                            StringToTypeTestCase{"road_marking", TrafficControlDeviceType::kRoadMarking},
-                            StringToTypeTestCase{"road_object", TrafficControlDeviceType::kRoadObject}));
+                            // Canonical CamelCase forms.
+                            StringToTypeTestCase{"TrafficLight", TrafficControlDeviceType::kTrafficLight},
+                            StringToTypeTestCase{"TrafficSign", TrafficControlDeviceType::kTrafficSign},
+                            StringToTypeTestCase{"RoadMarking", TrafficControlDeviceType::kRoadMarking},
+                            StringToTypeTestCase{"RoadObject", TrafficControlDeviceType::kRoadObject}));
 
-INSTANTIATE_TEST_CASE_P(CaseInsensitive, StringToTrafficControlDeviceTypeTest,
+INSTANTIATE_TEST_CASE_P(StrictCamelCase, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
-                            // Upper-case variants.
-                            StringToTypeTestCase{"TRAFFIC_LIGHT", TrafficControlDeviceType::kTrafficLight},
-                            StringToTypeTestCase{"TRAFFIC_SIGN", TrafficControlDeviceType::kTrafficSign},
-                            StringToTypeTestCase{"ROAD_MARKING", TrafficControlDeviceType::kRoadMarking},
-                            StringToTypeTestCase{"ROAD_OBJECT", TrafficControlDeviceType::kRoadObject},
-                            // Mixed-case variants.
-                            StringToTypeTestCase{"Traffic_Light", TrafficControlDeviceType::kTrafficLight},
-                            StringToTypeTestCase{"Traffic_Sign", TrafficControlDeviceType::kTrafficSign},
-                            StringToTypeTestCase{"Road_Marking", TrafficControlDeviceType::kRoadMarking},
-                            StringToTypeTestCase{"Road_Object", TrafficControlDeviceType::kRoadObject}));
+                            // Non-CamelCase variants are rejected.
+                            StringToTypeTestCase{"TRAFFIC_LIGHT", TrafficControlDeviceType::kUnknown},
+                            StringToTypeTestCase{"traffic_light", TrafficControlDeviceType::kUnknown},
+                            StringToTypeTestCase{"Traffic_Light", TrafficControlDeviceType::kUnknown},
+                            StringToTypeTestCase{"Road_Marking", TrafficControlDeviceType::kUnknown}));
 
 INSTANTIATE_TEST_CASE_P(UnknownValues, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
                             // Unrecognized strings map to kUnknown.
                             StringToTypeTestCase{"", TrafficControlDeviceType::kUnknown},
-                            StringToTypeTestCase{"other", TrafficControlDeviceType::kUnknown},
+                            StringToTypeTestCase{"Other", TrafficControlDeviceType::kUnknown},
                             StringToTypeTestCase{"unknown_value", TrafficControlDeviceType::kUnknown}));
 
 // ---------------------------------------------------------------------------
@@ -97,12 +92,11 @@ TEST_P(TrafficControlDeviceTypeToStringTest, MapsCorrectly) {
 }
 
 INSTANTIATE_TEST_CASE_P(AllValues, TrafficControlDeviceTypeToStringTest,
-                        ::testing::Values(TypeToStringTestCase{TrafficControlDeviceType::kTrafficLight,
-                                                               "traffic_light"},
-                                          TypeToStringTestCase{TrafficControlDeviceType::kTrafficSign, "traffic_sign"},
-                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadMarking, "road_marking"},
-                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadObject, "road_object"},
-                                          TypeToStringTestCase{TrafficControlDeviceType::kUnknown, "unknown"}));
+                        ::testing::Values(TypeToStringTestCase{TrafficControlDeviceType::kTrafficLight, "TrafficLight"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kTrafficSign, "TrafficSign"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadMarking, "RoadMarking"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kRoadObject, "RoadObject"},
+                                          TypeToStringTestCase{TrafficControlDeviceType::kUnknown, "Unknown"}));
 
 // ---------------------------------------------------------------------------
 // Round-trip: StringToTrafficControlDeviceType ∘ TrafficControlDeviceTypeToString

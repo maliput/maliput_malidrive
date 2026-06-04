@@ -35,7 +35,7 @@
 # This YAML file defines reusable traffic control device type definitions that describe:
 # - The physical structure of traffic lights (bulbs, groups, dimensions).
 # - The rule logic mapping bulb state combinations to Right-Of-Way rule values.
-# - The semantic meaning of traffic signs (e.g., stop sign semantics).
+# - The semantic meaning of traffic signs (e.g., Stop sign semantics).
 #
 # Usage:
 # When parsing an OpenDRIVE (.xodr) file, traffic signals are defined with:
@@ -60,8 +60,8 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_light
-      description: "Standard three-bulb vertical traffic light with red, yellow, and green bulbs."
+      device_type: TrafficLight
+      description: "Standard three-bulb vertical traffic light with Red, Yellow, and Green bulbs."
 
       # List of bulbs
       bulbs:
@@ -109,7 +109,7 @@ odr_signal_types:
               state: "Off"
           value: "Stop"
 
-        # Red blinking: Stop and prepare to proceed.
+        # Red Blinking: Stop and prepare to proceed.
         - conditions:
             - bulb_id: "RedBulb"
               state: "Blinking"
@@ -129,7 +129,7 @@ odr_signal_types:
               state: "Off"
           value: "StopIfSafe"
 
-        # Yellow blinking: Proceed with caution.
+        # Yellow Blinking: Proceed with caution.
         - conditions:
             - bulb_id: "RedBulb"
               state: "Off"
@@ -149,8 +149,8 @@ odr_signal_types:
               state: "On"
           value: "Go"
 
-  # Three-bulb traffic light with arrow support.
-  # Can display turn arrows in green (left, straight, right).
+  # Three-bulb traffic light with Arrow support.
+  # Can display turn arrows in Green (left, straight, right).
   - odr_representation:
       type: "1000011"
       subtype: "10"
@@ -158,8 +158,8 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_light
-      description: "Three-bulb traffic light with optional arrow support (left/straight/right)."
+      device_type: TrafficLight
+      description: "Three-bulb traffic light with optional Arrow support (left/straight/right)."
 
       bulbs:
         - id: "RedBulb"
@@ -183,9 +183,9 @@ odr_signal_types:
           type: "Arrow"
           states: ["Off", "On"]
           # Arrow orientation in radians, measured along bulb +X axis relative to +Y axis.
-          # 0.0 rad = arrow points in +Y direction (right from approaching vehicle perspective).
-          # π/2 rad = arrow points in +Z direction (straight).
-          # π rad = arrow points in -Y direction (left).
+          # 0.0 rad = Arrow points in +Y direction (right from approaching vehicle perspective).
+          # π/2 rad = Arrow points in +Z direction (straight).
+          # π rad = Arrow points in -Y direction (left).
           arrow_orientation_rad: 1.5707963267948966  # π/2 rad (straight).
 
       rule_states:
@@ -224,11 +224,11 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_light
-      description: "Pedestrian walk/don't walk signal (red standing figure on black background / green walking figure on black background)."
+      device_type: TrafficLight
+      description: "Pedestrian walk/don't walk signal (Red standing figure On black background / Green walking figure On black background)."
 
       bulbs:
-        # Black background with red standing figure hand (Don't Walk).
+        # Black background with Red standing figure hand (Don't Walk).
         - id: "DontWalkBulb"
           position_traffic_light: [0.0, 0.0, 0.1]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
@@ -236,7 +236,7 @@ odr_signal_types:
           type: "Round"
           states: ["Off", "On"]
 
-        # Black background with green walking figure (Walk).
+        # Black background with Green walking figure (Walk).
         - id: "WalkBulb"
           position_traffic_light: [0.0, 0.0, -0.1]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
@@ -274,9 +274,9 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_sign
-      device_semantics: stop
-      description: "Stop sign. Requires a complete stop before entering the intersection."
+      device_type: TrafficSign
+      device_semantics: Stop
+      description: "Stop sign. Requires a complete Stop before entering the intersection."
 
       # Stop signs have no bulbs.
       bulbs: []
@@ -293,7 +293,7 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       description: "Unknown sign. No specific behavior defined."
 
       rule_states:

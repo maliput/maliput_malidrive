@@ -37,21 +37,21 @@ namespace traffic_control_device {
 ///
 /// Parsed from the `device_type` field of the YAML database `properties` section.
 enum class TrafficControlDeviceType {
-  kTrafficLight,  ///< Device is a traffic light ("traffic_light").
-  kTrafficSign,   ///< Device is a traffic sign ("traffic_sign").
-  kRoadMarking,   ///< Device is a road marking ("road_marking").
-  kRoadObject,    ///< Device is a road object ("road_object").
+  kTrafficLight,  ///< Device is a traffic light ("TrafficLight").
+  kTrafficSign,   ///< Device is a traffic sign ("TrafficSign").
+  kRoadMarking,   ///< Device is a road marking ("RoadMarking").
+  kRoadObject,    ///< Device is a road object ("RoadObject").
   kUnknown,       ///< Unrecognized or missing device_type value.
 };
 
 /// Converts a `device_type` string from the YAML database to a
 /// @ref TrafficControlDeviceType enum value.
 ///
-/// Recognized values (case-insensitive):
-///   - `"traffic_light"` → `kTrafficLight`
-///   - `"traffic_sign"`  → `kTrafficSign`
-///   - `"road_marking"`  → `kRoadMarking`
-///   - `"road_object"`   → `kRoadObject`
+/// Recognized values (strict CamelCase):
+///   - `"TrafficLight"` → `kTrafficLight`
+///   - `"TrafficSign"`  → `kTrafficSign`
+///   - `"RoadMarking"`  → `kRoadMarking`
+///   - `"RoadObject"`   → `kRoadObject`
 ///
 /// Any other string maps to `kUnknown`.
 ///
@@ -62,11 +62,11 @@ TrafficControlDeviceType StringToTrafficControlDeviceType(const std::string& dev
 /// Converts a @ref TrafficControlDeviceType enum value back to its canonical
 /// YAML string representation.
 ///
-///   - `kTrafficLight` → `"traffic_light"`
-///   - `kTrafficSign`  → `"traffic_sign"`
-///   - `kRoadMarking`  → `"road_marking"`
-///   - `kRoadObject`   → `"road_object"`
-///   - `kUnknown`      → `"unknown"`
+///   - `kTrafficLight` → `"TrafficLight"`
+///   - `kTrafficSign`  → `"TrafficSign"`
+///   - `kRoadMarking`  → `"RoadMarking"`
+///   - `kRoadObject`   → `"RoadObject"`
+///   - `kUnknown`      → `"Unknown"`
 ///
 /// @param device_type  The @ref TrafficControlDeviceType to convert.
 /// @returns The corresponding string.

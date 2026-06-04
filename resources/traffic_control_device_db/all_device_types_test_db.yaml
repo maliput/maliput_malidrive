@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Traffic Control Device Database for TrafficControlDeviceBooksBuilder tests.
-# Contains one entry of each device_type: traffic_light, traffic_sign, road_marking, road_object.
+# Contains one entry of each device_type: TrafficLight, TrafficSign, RoadMarking, RoadObject.
 
 odr_signal_types:
   # Traffic light: type "1000001", subtype "-1", country "OpenDRIVE"
@@ -41,7 +41,7 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_light
+      device_type: TrafficLight
       description: "Standard three-bulb vertical traffic light."
 
       bulbs:
@@ -85,7 +85,7 @@ odr_signal_types:
               state: "On"
           value: "Go"
 
-  # Traffic sign: stop sign type "206"
+  # Traffic sign: Stop sign type "206"
   - odr_representation:
       type: "206"
       subtype: "-1"
@@ -93,8 +93,8 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_sign
-      device_semantics: stop
+      device_type: TrafficSign
+      device_semantics: Stop
       description: "Stop sign."
       bulbs: []
       rule_states:
@@ -102,14 +102,14 @@ odr_signal_types:
           value: "StopThenGo"
 
 odr_object_types:
-  # Road marking: crosswalk
+  # Road marking: Crosswalk
   - odr_representation:
       type: crosswalk
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_marking
-      device_semantics: crosswalk
+      device_type: RoadMarking
+      device_semantics: Crosswalk
       description: "Crosswalk road marking."
 
   # Road object: barrier
@@ -118,5 +118,5 @@ odr_object_types:
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Barrier road object."

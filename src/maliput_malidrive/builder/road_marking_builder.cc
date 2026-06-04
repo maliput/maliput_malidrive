@@ -84,14 +84,14 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
   if (definition.device_type != traffic_control_device::TrafficControlDeviceType::kRoadMarking) {
     maliput::log()->debug("RoadMarkingBuilder: object id='", object_.id.string(), "' has device_type='",
                           traffic_control_device::TrafficControlDeviceTypeToString(definition.device_type),
-                          "', expected 'road_marking'. Skipping RoadMarking creation.");
+                          "', expected 'RoadMarking'. Skipping RoadMarking creation.");
     return nullptr;
   }
 
-  const auto marking_type = MapRoadMarkingTypeString(definition.device_semantics.value_or("other"));
+  const auto marking_type = MapRoadMarkingTypeString(definition.device_semantics.value_or("Other"));
   if (marking_type == maliput::api::objects::RoadMarkingType::kUnknown) {
     maliput::log()->debug("RoadMarkingBuilder: unrecognized device_semantics='",
-                          definition.device_semantics.value_or("other"), "' for object id='", object_.id.string(),
+                          definition.device_semantics.value_or("Other"), "' for object id='", object_.id.string(),
                           "'. Defaulting to RoadMarkingType::kUnknown.");
   }
 

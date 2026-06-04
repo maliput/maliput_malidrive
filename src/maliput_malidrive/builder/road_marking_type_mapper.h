@@ -40,10 +40,10 @@ namespace builder {
 /// Maps a device_semantics string from the YAML traffic control device database to a
 /// @ref maliput::api::objects::RoadMarkingType enum.
 ///
-/// The comparison is case-insensitive: "Stop_Line", "STOP_LINE", and "stop_line"
-/// all map to RoadMarkingType::kStopLine.
+/// The mapping is strict CamelCase. For example, "StopLine" maps to
+/// RoadMarkingType::kStopLine while "stop_line" and "STOP_LINE" map to kUnknown.
 ///
-/// Any unrecognized string (including "none" and "other") maps to kUnknown.
+/// Any unrecognized string (including "none" and "Other") maps to kUnknown.
 ///
 /// @param device_semantics The device_semantics value from the YAML database.
 /// @returns The corresponding RoadMarkingType, or kUnknown if not recognized.

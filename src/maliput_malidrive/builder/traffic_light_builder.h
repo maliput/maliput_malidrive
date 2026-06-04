@@ -76,7 +76,7 @@ class TrafficLightBuilder {
   ///
   /// @returns A unique_ptr to the constructed TrafficLight, or nullptr if no
   ///          matching definition was found in the YAML database for the signal
-  ///          or the definition's device_type is not "traffic_light".
+  ///          or the definition's device_type is not "TrafficLight".
   std::unique_ptr<const maliput::api::rules::TrafficLight> operator()() const;
 
  private:

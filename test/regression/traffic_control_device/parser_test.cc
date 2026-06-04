@@ -55,7 +55,7 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_light
+      device_type: TrafficLight
       description: "Standard three-bulb vertical traffic light"
       bulbs:
         - id: "RedBulb"
@@ -102,8 +102,8 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_light
-      description: "Traffic light with arrow"
+      device_type: TrafficLight
+      description: "Traffic light with Arrow"
       bulbs:
         - id: "GreenArrow"
           position_traffic_light: [0.0, 0.0, 0.0]
@@ -124,7 +124,7 @@ odr_signal_types:
       country: null
       country_revision: null
     properties:
-      device_type: traffic_light
+      device_type: TrafficLight
       description: "Signal with default bulb states and bounding box"
       bulbs:
         - id: "DefaultBulb"
@@ -139,8 +139,8 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_sign
-      device_semantics: no_overtaking
+      device_type: TrafficSign
+      device_semantics: NoOvertaking
       description: "No overtaking sign"
       bulbs: []
       rule_states:
@@ -156,8 +156,8 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_light
-      description: "Single red bulb traffic light"
+      device_type: TrafficLight
+      description: "Single Red bulb traffic light"
       bulbs:
         - id: "RedBulb"
           position_traffic_light: [0.0, 0.0, 0.4]
@@ -183,8 +183,8 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_light
-      description: "Single green bulb traffic light"
+      device_type: TrafficLight
+      description: "Single Green bulb traffic light"
       bulbs:
         - id: "GreenBulb"
           position_traffic_light: [0.0, 0.0, 0.4]
@@ -206,7 +206,7 @@ odr_signal_types:
           value: "Stop"
 )";
 
-const char kCaseInsensitiveBulbEnumsDb[] = R"(
+const char kStrictCamelCaseBulbEnumsDb[] = R"(
 odr_signal_types:
   - odr_representation:
       type: "case_insensitive_bulb_enums"
@@ -214,32 +214,32 @@ odr_signal_types:
       country: null
       country_revision: null
     properties:
-      device_type: traffic_light
-      description: "Traffic light with case-insensitive bulb enums"
+      device_type: TrafficLight
+      description: "Traffic light with strict CamelCase bulb enums"
       bulbs:
         - id: "ArrowLeftBulb"
           position_traffic_light: [0.0, 0.0, 0.2]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-          color: "red"
-          type: "arrow_left"
-          states: ["off", "On", "BLINKING"]
-          initial_state: "bLiNkInG"
+          color: "Red"
+          type: "ArrowLeft"
+          states: ["Off", "On", "Blinking"]
+          initial_state: "Blinking"
         - id: "UTurnBulb"
           position_traffic_light: [0.0, 0.0, -0.2]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-          color: "GrEeN"
-          type: "UtUrNlEfT"
-          states: ["OFF"]
+          color: "Green"
+          type: "UTurnLeft"
+          states: ["Off"]
       rule_states:
         - conditions:
             - bulb_id: "ArrowLeftBulb"
-              state: "blinking"
+              state: "Blinking"
             - bulb_id: "UTurnBulb"
-              state: "off"
+              state: "Off"
           value: "ProceedWithCaution"
 )";
 
-const char kBulbEnumVariantsDb[] = R"(
+const char kInvalidBulbEnumVariantsDb[] = R"(
 odr_signal_types:
   - odr_representation:
       type: "bulb_enum_variants"
@@ -247,15 +247,15 @@ odr_signal_types:
       country: null
       country_revision: null
     properties:
-      device_type: traffic_light
-      description: "Traffic light with bulb enum variants"
+      device_type: TrafficLight
+      description: "Traffic light with invalid bulb enum variants"
       bulbs:
-        - id: "SnakeCaseBulb"
+        - id: "InvalidBulb"
           position_traffic_light: [0.0, 0.0, 0.5]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-          color: "red"
+          color: "Red"
           type: "arrow_left"
-          states: ["off", "on", "blinking"]
+          states: ["Off", "On", "Blinking"]
         - id: "PascalCaseArrowBulb"
           position_traffic_light: [0.0, 0.0, 0.3]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
@@ -273,38 +273,28 @@ odr_signal_types:
         - id: "CaseInsensitiveBulb"
           position_traffic_light: [0.0, 0.0, -0.1]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-          color: "yellow"
+          color: "Yellow"
           type: "Arrow_Left"
           states: ["BLINKING"]
           initial_state: "OFF"
         - id: "SnakeCaseUTurnBulb"
           position_traffic_light: [0.0, 0.0, -0.3]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-          color: "green"
-          type: "u_turn_left"
-          states: ["off"]
-          initial_state: "on"
+          color: "Green"
+          type: "UTurnLeft"
+          states: ["Off"]
+          initial_state: "On"
         - id: "DontWalkBulb"
           position_traffic_light: [0.0, 0.0, -0.5]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
           color: "RED"
-          type: "dont_walk"
-          states: ["on"]
-          initial_state: "on"
+          type: "DontWalk"
+          states: ["On"]
+          initial_state: "On"
       rule_states:
         - conditions:
-            - bulb_id: "SnakeCaseBulb"
-              state: "blinking"
-            - bulb_id: "PascalCaseArrowBulb"
-              state: "Off"
-            - bulb_id: "PascalCaseUTurnBulb"
-              state: "On"
-            - bulb_id: "CaseInsensitiveBulb"
-              state: "off"
-            - bulb_id: "SnakeCaseUTurnBulb"
-              state: "on"
-            - bulb_id: "DontWalkBulb"
-              state: "ON"
+            - bulb_id: "InvalidBulb"
+              state: "Blinking"
           value: "VariantState"
 )";
 
@@ -361,7 +351,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
   EXPECT_EQ(dut.fingerprint.country, "OpenDRIVE");
   EXPECT_EQ(dut.description, "No overtaking sign");
   EXPECT_EQ(dut.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficSign);
-  EXPECT_EQ(dut.device_semantics, "no_overtaking");
+  EXPECT_EQ(dut.device_semantics, "NoOvertaking");
 
   EXPECT_EQ(dut.bulbs.size(), 0);
   EXPECT_EQ(dut.rule_states.size(), 1);
@@ -389,7 +379,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateSignalType1000001) {
 
   EXPECT_EQ(dut.bulbs.size(), 3);
 
-  // Check red bulb
+  // Check Red bulb
   const auto& red_bulb = dut.bulbs[0];
   EXPECT_EQ(red_bulb.id, "RedBulb");
   EXPECT_EQ(red_bulb.color, maliput::api::rules::BulbColor::kRed);
@@ -419,7 +409,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
 
   EXPECT_EQ(dut.fingerprint.type, "1000011");
   EXPECT_EQ(dut.fingerprint.subtype, "10");
-  EXPECT_EQ(dut.description, "Traffic light with arrow");
+  EXPECT_EQ(dut.description, "Traffic light with Arrow");
   EXPECT_EQ(dut.device_type, traffic_control_device::TrafficControlDeviceType::kTrafficLight);
   EXPECT_FALSE(dut.device_semantics.has_value());
 
@@ -433,8 +423,8 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
   EXPECT_EQ(arrow_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
 }
 
-GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadCaseInsensitiveBulbEnums) {
-  const auto definitions = TrafficControlDeviceParser::LoadFromString(kCaseInsensitiveBulbEnumsDb);
+GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadStrictCamelCaseBulbEnums) {
+  const auto definitions = TrafficControlDeviceParser::LoadFromString(kStrictCamelCaseBulbEnumsDb);
   ASSERT_EQ(definitions.size(), 1);
 
   const auto& dut = definitions.front();
@@ -463,63 +453,9 @@ GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadCaseInsensitiveBulbEnums
   EXPECT_EQ(rule_state.bulb_conditions[1].state, maliput::api::rules::BulbState::kOff);
 }
 
-GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadSnakeCasePascalCaseAndCaseInsensitiveBulbEnums) {
-  const auto definitions = TrafficControlDeviceParser::LoadFromString(kBulbEnumVariantsDb);
-  ASSERT_EQ(definitions.size(), 1);
-
-  const auto& dut = definitions.front();
-  ASSERT_EQ(dut.bulbs.size(), 6);
-  ASSERT_EQ(dut.rule_states.size(), 1);
-
-  const auto& snake_case_bulb = dut.bulbs[0];
-  EXPECT_EQ(snake_case_bulb.color, maliput::api::rules::BulbColor::kRed);
-  EXPECT_EQ(snake_case_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
-  ASSERT_EQ(snake_case_bulb.states.size(), 3);
-  EXPECT_EQ(snake_case_bulb.states[0], maliput::api::rules::BulbState::kOff);
-  EXPECT_EQ(snake_case_bulb.states[1], maliput::api::rules::BulbState::kOn);
-  EXPECT_EQ(snake_case_bulb.states[2], maliput::api::rules::BulbState::kBlinking);
-  EXPECT_FALSE(snake_case_bulb.initial_state.has_value());
-
-  const auto& pascal_case_arrow_bulb = dut.bulbs[1];
-  EXPECT_EQ(pascal_case_arrow_bulb.color, maliput::api::rules::BulbColor::kYellow);
-  EXPECT_EQ(pascal_case_arrow_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
-  ASSERT_TRUE(pascal_case_arrow_bulb.initial_state.has_value());
-  EXPECT_EQ(pascal_case_arrow_bulb.initial_state.value(), maliput::api::rules::BulbState::kOff);
-
-  const auto& pascal_case_u_turn_bulb = dut.bulbs[2];
-  EXPECT_EQ(pascal_case_u_turn_bulb.color, maliput::api::rules::BulbColor::kGreen);
-  EXPECT_EQ(pascal_case_u_turn_bulb.type, maliput::api::rules::BulbType::kUTurnLeft);
-  ASSERT_TRUE(pascal_case_u_turn_bulb.initial_state.has_value());
-  EXPECT_EQ(pascal_case_u_turn_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
-
-  const auto& case_insensitive_bulb = dut.bulbs[3];
-  EXPECT_EQ(case_insensitive_bulb.color, maliput::api::rules::BulbColor::kYellow);
-  EXPECT_EQ(case_insensitive_bulb.type, maliput::api::rules::BulbType::kArrowLeft);
-  ASSERT_EQ(case_insensitive_bulb.states.size(), 1);
-  EXPECT_EQ(case_insensitive_bulb.states[0], maliput::api::rules::BulbState::kBlinking);
-  ASSERT_TRUE(case_insensitive_bulb.initial_state.has_value());
-  EXPECT_EQ(case_insensitive_bulb.initial_state.value(), maliput::api::rules::BulbState::kOff);
-
-  const auto& snake_case_u_turn_bulb = dut.bulbs[4];
-  EXPECT_EQ(snake_case_u_turn_bulb.color, maliput::api::rules::BulbColor::kGreen);
-  EXPECT_EQ(snake_case_u_turn_bulb.type, maliput::api::rules::BulbType::kUTurnLeft);
-  ASSERT_TRUE(snake_case_u_turn_bulb.initial_state.has_value());
-  EXPECT_EQ(snake_case_u_turn_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
-
-  const auto& dont_walk_bulb = dut.bulbs[5];
-  EXPECT_EQ(dont_walk_bulb.color, maliput::api::rules::BulbColor::kRed);
-  EXPECT_EQ(dont_walk_bulb.type, maliput::api::rules::BulbType::kDontWalk);
-  ASSERT_TRUE(dont_walk_bulb.initial_state.has_value());
-  EXPECT_EQ(dont_walk_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
-
-  const auto& rule_state = dut.rule_states[0];
-  ASSERT_EQ(rule_state.bulb_conditions.size(), 6);
-  EXPECT_EQ(rule_state.bulb_conditions[0].state, maliput::api::rules::BulbState::kBlinking);
-  EXPECT_EQ(rule_state.bulb_conditions[1].state, maliput::api::rules::BulbState::kOff);
-  EXPECT_EQ(rule_state.bulb_conditions[2].state, maliput::api::rules::BulbState::kOn);
-  EXPECT_EQ(rule_state.bulb_conditions[3].state, maliput::api::rules::BulbState::kOff);
-  EXPECT_EQ(rule_state.bulb_conditions[4].state, maliput::api::rules::BulbState::kOn);
-  EXPECT_EQ(rule_state.bulb_conditions[5].state, maliput::api::rules::BulbState::kOn);
+GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, RejectLegacyBulbEnumVariants) {
+  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kInvalidBulbEnumVariantsDb),
+               maliput::common::road_network_description_parser_error);
 }
 
 TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
@@ -1049,7 +985,7 @@ GTEST_TEST(TrafficControlDeviceDefinitionEqualityOperatorTest, DifferentDescript
               .country = "OpenDRIVE",
               .country_revision = std::nullopt,
           },
-      .description = "Traffic light with arrow",
+      .description = "Traffic light with Arrow",
       .bulbs = {},
       .rule_states = {},
   };
@@ -1276,7 +1212,7 @@ odr_signal_types:
       country_revision: "*"
       name: "*"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: generic
       description: "All-wildcard entry"
       bulbs: []
@@ -1291,7 +1227,7 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: generic
       description: "Entry A"
       bulbs: []
@@ -1302,7 +1238,7 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: generic
       description: "Entry B"
       bulbs: []
@@ -1317,7 +1253,7 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: more_specific
       description: "More specific entry"
       bulbs: []
@@ -1328,7 +1264,7 @@ odr_signal_types:
       country: "*"
       country_revision: null
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: less_specific
       description: "Less specific entry"
       bulbs: []
@@ -1343,7 +1279,7 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: exact_match
       description: "Exact match entry"
       bulbs: []
@@ -1354,7 +1290,7 @@ odr_signal_types:
       country: "OpenDRIVE"
       country_revision: null
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: partial_wildcard
       description: "Partial wildcard entry"
       bulbs: []
@@ -1365,7 +1301,7 @@ odr_signal_types:
       country: "*"
       country_revision: "*"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: catch_all
       description: "Catch-all entry"
       bulbs: []
@@ -1609,7 +1545,7 @@ odr_signal_types:
       type: "1000001"
       name: "stop_sign"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: concrete_name
       description: "Concrete name entry"
       bulbs: []
@@ -1618,7 +1554,7 @@ odr_signal_types:
       type: "1000001"
       name: "*"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       device_semantics: wildcard_name
       description: "Wildcard name entry"
       bulbs: []
@@ -1635,7 +1571,7 @@ odr_signal_types:
 // odr_object_types parsing
 // ============================================================================
 
-// Helper that filters `defs` by device_type for assertions on object/signal subsets.
+// Helper that filters `defs` by device_type for assertions On object/signal subsets.
 std::vector<TrafficControlDeviceDefinition> FilterByDeviceType(const std::vector<TrafficControlDeviceDefinition>& defs,
                                                                TrafficControlDeviceType type) {
   std::vector<TrafficControlDeviceDefinition> out;
@@ -1651,13 +1587,13 @@ odr_object_types:
       type: roadMark
       name: "StopLine"
     properties:
-      device_type: road_marking
-      device_semantics: stop_line
+      device_type: RoadMarking
+      device_semantics: StopLine
       description: "Stop line road marking"
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Generic pole"
       is_position_dynamic: false
       default_bounding_box:
@@ -1676,7 +1612,7 @@ odr_object_types:
   EXPECT_FALSE(road_markings[0].fingerprint.country.has_value());
   EXPECT_FALSE(road_markings[0].fingerprint.country_revision.has_value());
   ASSERT_TRUE(road_markings[0].device_semantics.has_value());
-  EXPECT_EQ(road_markings[0].device_semantics.value(), "stop_line");
+  EXPECT_EQ(road_markings[0].device_semantics.value(), "StopLine");
   EXPECT_TRUE(road_markings[0].bulbs.empty());
   EXPECT_TRUE(road_markings[0].rule_states.empty());
 
@@ -1698,19 +1634,19 @@ odr_signal_types:
       type: "206"
       subtype: "-1"
     properties:
-      device_type: traffic_sign
-      device_semantics: give_way
+      device_type: TrafficSign
+      device_semantics: GiveWay
       description: "Give way sign"
       rule_states:
         - conditions: []
           value: "StopIfSafe"
 odr_object_types:
   - odr_representation:
-      type: crosswalk
+      type: Crosswalk
     properties:
-      device_type: road_marking
-      device_semantics: crosswalk
-      description: "Generic crosswalk"
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+      description: "Generic Crosswalk"
 )";
   const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
   ASSERT_EQ(defs.size(), 2);
@@ -1724,7 +1660,7 @@ odr_signal_types:
   - odr_representation:
       type: "206"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       description: "Sign"
 odr_object_types: []
 )";
@@ -1747,7 +1683,7 @@ odr_object_types:
       type: roadMark
       country: "DE"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Should fail"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
@@ -1760,7 +1696,7 @@ odr_object_types:
       type: roadMark
       country_revision: "2017"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Should fail"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
@@ -1772,14 +1708,14 @@ odr_object_types:
   - odr_representation:
       type: roadMark
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Should fail"
       bulbs:
         - id: "Bulb"
           position_traffic_light: [0.0, 0.0, 0.0]
           orientation_traffic_light: [1.0, 0.0, 0.0, 0.0]
-          color: red
-          type: round
+          color: Red
+          type: Round
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
@@ -1790,7 +1726,7 @@ odr_object_types:
   - odr_representation:
       type: roadMark
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Should fail"
       rule_states:
         - conditions: []
@@ -1805,7 +1741,7 @@ odr_object_types:
   - odr_representation:
       type: roadMark
     properties:
-      device_type: traffic_light
+      device_type: TrafficLight
       description: "Should fail"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
@@ -1817,7 +1753,7 @@ odr_object_types:
   - odr_representation:
       type: roadMark
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       description: "Should fail"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
@@ -1829,7 +1765,7 @@ odr_signal_types:
   - odr_representation:
       type: "1000001"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Should fail"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRoadMarkingInSignal),
@@ -1839,7 +1775,7 @@ odr_signal_types:
   - odr_representation:
       type: "1000001"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Should fail"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRoadObjectInSignal),
@@ -1853,13 +1789,13 @@ odr_object_types:
       type: roadMark
       name: "*"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "First wildcard"
   - odr_representation:
       type: roadMark
       name: "*"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Second wildcard"
 )";
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
@@ -1874,14 +1810,14 @@ odr_signal_types:
   - odr_representation:
       type: "roadMark"
     properties:
-      device_type: traffic_sign
+      device_type: TrafficSign
       description: "Signal entry"
       rule_states: []
 odr_object_types:
   - odr_representation:
       type: "roadMark"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Object entry"
 )";
   EXPECT_NO_THROW({
@@ -1897,15 +1833,15 @@ odr_object_types:
       type: roadMark
       name: "*"
     properties:
-      device_type: road_marking
+      device_type: RoadMarking
       description: "Wildcard name catch-all"
   - odr_representation:
       type: roadMark
       name: "StopLine"
     properties:
-      device_type: road_marking
-      device_semantics: stop_line
-      description: "Specific stop line"
+      device_type: RoadMarking
+      device_semantics: StopLine
+      description: "Specific Stop line"
 )";
   // Two roadMark entries, one with wildcard name and one with concrete name —
   // different specificities, so no conflict.
@@ -1919,7 +1855,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Minimal object entry"
 )";
   const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
@@ -1962,7 +1898,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         length: 0.5
         width: 0.6
@@ -1983,8 +1919,8 @@ odr_signal_types:
   - odr_representation:
       type: "206"
     properties:
-      device_type: traffic_sign
-      device_semantics: stop
+      device_type: TrafficSign
+      device_semantics: Stop
       default_bounding_box:
         length: 0.05
         width: 0.6
@@ -2004,7 +1940,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         width: 1.0
         height: 1.0
@@ -2018,7 +1954,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         length: 1.0
         height: 1.0
@@ -2032,7 +1968,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         length: 1.0
         width: 1.0
@@ -2046,7 +1982,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         length: 1.0
         width: -1.0
@@ -2061,7 +1997,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         length: 1.0
         width: 1.0
@@ -2077,7 +2013,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box: null
 )";
   const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
@@ -2091,7 +2027,7 @@ odr_object_types:
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       default_bounding_box:
         length: 0.0
         width: 0.0
