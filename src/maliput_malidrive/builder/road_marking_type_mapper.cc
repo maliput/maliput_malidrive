@@ -28,8 +28,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/road_marking_type_mapper.h"
 
-#include <algorithm>
-#include <cctype>
 #include <unordered_map>
 
 #include <maliput/common/maliput_hash.h>
@@ -40,29 +38,27 @@ namespace builder {
 maliput::api::objects::RoadMarkingType MapRoadMarkingTypeString(const std::string& device_semantics) {
   using T = maliput::api::objects::RoadMarkingType;
   static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"stop", T::kStop},
-      {"stop_line", T::kStopLine},
-      {"crosswalk", T::kCrosswalk},
-      {"zebra_crossing", T::kCrosswalk},
-      {"parking_space", T::kParkingSpace},
-      {"emergency_lane", T::kEmergencyLane},
-      {"speed_limit", T::kSpeedLimit},
-      {"no_stopping", T::kDoNotStop},
-      {"rail_road_crossing", T::kRailRoad},
-      {"give_way", T::kGiveWay},
-      {"arrow_turn_right", T::kArrowTurnRight},
-      {"arrow_turn_left", T::kArrowTurnLeft},
-      {"arrow_forward_turn_right", T::kArrowForwardTurnRight},
-      {"arrow_forward_turn_left", T::kArrowForwardTurnLeft},
-      {"arrow_forward", T::kArrowForward},
-      {"arrow_forward_turn_right_turn_left", T::kArrowForwardTurnRightTurnLeft},
-      {"arrow_turn_right_turn_left", T::kArrowTurnRightTurnLeft},
-      {"arrow_u_turn_right", T::kArrowUTurnRight},
-      {"arrow_u_turn_left", T::kArrowUTurnLeft},
+      {"Stop", T::kStop},
+      {"StopLine", T::kStopLine},
+      {"Crosswalk", T::kCrosswalk},
+      {"ZebraCrossing", T::kCrosswalk},
+      {"ParkingSpace", T::kParkingSpace},
+      {"EmergencyLane", T::kEmergencyLane},
+      {"SpeedLimit", T::kSpeedLimit},
+      {"NoStopping", T::kDoNotStop},
+      {"RailRoadCrossing", T::kRailRoad},
+      {"GiveWay", T::kGiveWay},
+      {"ArrowTurnRight", T::kArrowTurnRight},
+      {"ArrowTurnLeft", T::kArrowTurnLeft},
+      {"ArrowForwardTurnRight", T::kArrowForwardTurnRight},
+      {"ArrowForwardTurnLeft", T::kArrowForwardTurnLeft},
+      {"ArrowForward", T::kArrowForward},
+      {"ArrowForwardTurnRightTurnLeft", T::kArrowForwardTurnRightTurnLeft},
+      {"ArrowTurnRightTurnLeft", T::kArrowTurnRightTurnLeft},
+      {"ArrowUTurnRight", T::kArrowUTurnRight},
+      {"ArrowUTurnLeft", T::kArrowUTurnLeft},
   };
-  std::string lower = device_semantics;
-  std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
-  const auto it = kMapper.find(lower);
+  const auto it = kMapper.find(device_semantics);
   return it != kMapper.end() ? it->second : T::kUnknown;
 }
 

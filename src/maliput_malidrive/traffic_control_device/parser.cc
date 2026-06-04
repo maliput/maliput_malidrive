@@ -105,9 +105,15 @@ bool TrafficControlDeviceParser::CanOverlap(const TrafficControlDeviceFingerprin
 
 namespace {
 
-std::string ToLower(std::string value) {
-  std::transform(value.begin(), value.end(), value.begin(), [](unsigned char c) { return std::tolower(c); });
-  return value;
+bool IsStrictPascalCaseToken(const std::string& token) {
+  if (token.empty() || token.find('_') != std::string::npos) {
+    return false;
+  }
+  if (!std::isupper(static_cast<unsigned char>(token.front()))) {
+    return false;
+  }
+  return std::all_of(token.begin(), token.end(),
+                     [](unsigned char c) { return std::isalnum(static_cast<unsigned char>(c)); });
 }
 
 // Helper function to convert a color string to BulbColor enum.
@@ -119,11 +125,13 @@ maliput::api::rules::BulbColor StringToBulbColor(const std::string& color_str) {
   static const auto kMapper = []() {
     std::unordered_map<std::string, C, maliput::common::DefaultHash> result;
     for (const auto& [bulb_color, bulb_color_str] : maliput::api::rules::BulbColorMapper()) {
-      result.emplace(ToLower(bulb_color_str), bulb_color);
+      if (IsStrictPascalCaseToken(bulb_color_str)) {
+        result.emplace(bulb_color_str, bulb_color);
+      }
     }
     return result;
   }();
-  const auto it = kMapper.find(ToLower(color_str));
+  const auto it = kMapper.find(color_str);
   if (it != kMapper.end()) {
     return it->second;
   }
@@ -139,11 +147,13 @@ maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
   static const auto kMapper = []() {
     std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
     for (const auto& [bulb_type_str, bulb_type] : maliput::api::rules::BulbTypeStringToEnumMapper()) {
-      result.emplace(ToLower(bulb_type_str), bulb_type);
+      if (IsStrictPascalCaseToken(bulb_type_str)) {
+        result.emplace(bulb_type_str, bulb_type);
+      }
     }
     return result;
   }();
-  const auto it = kMapper.find(ToLower(type_str));
+  const auto it = kMapper.find(type_str);
   if (it != kMapper.end()) {
     return it->second;
   }
@@ -159,11 +169,13 @@ maliput::api::rules::BulbState StringToBulbState(const std::string& state_str) {
   static const auto kMapper = []() {
     std::unordered_map<std::string, S, maliput::common::DefaultHash> result;
     for (const auto& [bulb_state, bulb_state_str] : maliput::api::rules::BulbStateMapper()) {
-      result.emplace(ToLower(bulb_state_str), bulb_state);
+      if (IsStrictPascalCaseToken(bulb_state_str)) {
+        result.emplace(bulb_state_str, bulb_state);
+      }
     }
     return result;
   }();
-  const auto it = kMapper.find(ToLower(state_str));
+  const auto it = kMapper.find(state_str);
   if (it != kMapper.end()) {
     return it->second;
   }

@@ -38,8 +38,8 @@ odr_signal_types:
       country_revision: null
       name: "*"
     properties:
-      device_type: traffic_sign
-      device_semantics: speed_limit
+      device_type: TrafficSign
+      device_semantics: SpeedLimit
       description: "Speed limit sign. Indicates the maximum permitted speed."
 
       rule_states:

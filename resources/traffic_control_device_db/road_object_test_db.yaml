@@ -30,7 +30,7 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Traffic Control Device Database for RoadObjectBookBuilder tests.
-# Maps common XODR object types to road_object device_type.
+# Maps common XODR object types to RoadObject device_type.
 
 odr_object_types:
   - odr_representation:
@@ -38,7 +38,7 @@ odr_object_types:
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Barrier road object."
 
   - odr_representation:
@@ -46,7 +46,7 @@ odr_object_types:
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Building road object."
 
   - odr_representation:
@@ -54,7 +54,7 @@ odr_object_types:
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Obstacle road object."
 
   - odr_representation:
@@ -62,5 +62,5 @@ odr_object_types:
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Vegetation road object."

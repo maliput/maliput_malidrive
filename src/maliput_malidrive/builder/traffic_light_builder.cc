@@ -94,7 +94,7 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
   if (definition.device_type != traffic_control_device::TrafficControlDeviceType::kTrafficLight) {
     maliput::log()->debug("TrafficLightBuilder: signal id='", signal_.id.string(), "' has device_type='",
                           traffic_control_device::TrafficControlDeviceTypeToString(definition.device_type),
-                          "', expected 'traffic_light'. Skipping TrafficLight creation.");
+                          "', expected 'TrafficLight'. Skipping TrafficLight creation.");
     return nullptr;
   }
 

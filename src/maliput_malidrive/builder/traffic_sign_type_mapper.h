@@ -38,10 +38,10 @@ namespace builder {
 /// Maps a device_semantics string from the YAML traffic control device database to a
 /// @ref maliput::api::rules::TrafficSignType enum.
 ///
-/// The comparison is case-insensitive: "Stop", "STOP", and "stop" all
-/// map to TrafficSignType::kStop.
+/// The mapping is strict PascalCase. For example, "Stop" maps to
+/// TrafficSignType::kStop while "stop" and "STOP" map to kUnknown.
 ///
-/// Any unrecognized string (including "traffic_light") maps to kUnknown.
+/// Any unrecognized string (including "TrafficLight") maps to kUnknown.
 ///
 /// @param device_semantics The device_semantics value from the YAML database.
 /// @returns The corresponding TrafficSignType, or kUnknown if not recognized.

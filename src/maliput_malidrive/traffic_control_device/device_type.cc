@@ -28,8 +28,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_control_device/device_type.h"
 
-#include <algorithm>
-#include <cctype>
 #include <unordered_map>
 
 #include <maliput/common/maliput_hash.h>
@@ -40,29 +38,27 @@ namespace traffic_control_device {
 TrafficControlDeviceType StringToTrafficControlDeviceType(const std::string& device_type_str) {
   using T = TrafficControlDeviceType;
   static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"traffic_light", T::kTrafficLight},
-      {"traffic_sign", T::kTrafficSign},
-      {"road_marking", T::kRoadMarking},
-      {"road_object", T::kRoadObject},
+      {"TrafficLight", T::kTrafficLight},
+      {"TrafficSign", T::kTrafficSign},
+      {"RoadMarking", T::kRoadMarking},
+      {"RoadObject", T::kRoadObject},
   };
-  std::string lower = device_type_str;
-  std::transform(lower.begin(), lower.end(), lower.begin(), [](unsigned char c) { return std::tolower(c); });
-  const auto it = kMapper.find(lower);
+  const auto it = kMapper.find(device_type_str);
   return it != kMapper.end() ? it->second : T::kUnknown;
 }
 
 const char* TrafficControlDeviceTypeToString(TrafficControlDeviceType device_type) {
   switch (device_type) {
     case TrafficControlDeviceType::kTrafficLight:
-      return "traffic_light";
+      return "TrafficLight";
     case TrafficControlDeviceType::kTrafficSign:
-      return "traffic_sign";
+      return "TrafficSign";
     case TrafficControlDeviceType::kRoadMarking:
-      return "road_marking";
+      return "RoadMarking";
     case TrafficControlDeviceType::kRoadObject:
-      return "road_object";
+      return "RoadObject";
     default:
-      return "unknown";
+      return "Unknown";
   }
 }
 

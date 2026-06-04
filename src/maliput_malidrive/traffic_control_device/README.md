@@ -35,7 +35,7 @@ OpenDRIVE `object` elements carry their own attributes (`type`, `subtype`, `name
 A parser uses this database to:
 
 1. **Match the signal or object** against an `odr_representation` entry.
-2. **Determine the device category** from `device_type` — `traffic_light`, `traffic_sign`, `road_marking`, or `road_object`.
+2. **Determine the device category** from `device_type` — `TrafficLight`, `TrafficSign`, `RoadMarking`, or `RoadObject`.
 3. **Create the corresponding maliput object** — for traffic signs, `device_semantics` is mapped to a `TrafficSignType`.
 4. **Link to affected lanes** using the signal's validity information from the XODR file.
 
@@ -54,19 +54,19 @@ odr_signal_types:
       country_revision: null    # Optional: country standard revision
       name: null                # Optional: OpenDRIVE name attribute
     properties:
-      device_type: traffic_light  # Required: "traffic_light" or "traffic_sign"
-      device_semantics: stop      # Optional: semantic meaning for traffic signs
+      device_type: TrafficLight  # Required: "TrafficLight" or "TrafficSign"
+      device_semantics: Stop      # Optional: semantic meaning for traffic signs
       description: "..."          # Optional: Human-readable description
       is_position_dynamic: false  # Optional: whether position may change at runtime
       default_bounding_box:       # Optional: device-level bounding box
         length: length            # Required: defined in the local coordinate system u/v along the u-axis
         width: width              # Required: defined in the local coordinate system u/v along the v-axis
         height: height            # Required: defined in the local coordinate system u/v along the z-axis
-      bulbs: [...]                # Optional: only meaningful for traffic_light
-      rule_states: [...]          # Optional: only meaningful for traffic_light
+      bulbs: [...]                # Optional: only meaningful for TrafficLight
+      rule_states: [...]          # Optional: only meaningful for TrafficLight
 ```
 
-For signals, `device_type` MUST be `traffic_light` or `traffic_sign`. Using `road_marking` or `road_object` in a signal entry is rejected with a parser error.
+For signals, `device_type` MUST be `TrafficLight` or `TrafficSign`. Using `RoadMarking` or `RoadObject` in a signal entry is rejected with a parser error.
 
 ### `odr_object_types`
 
@@ -79,8 +79,8 @@ odr_object_types:
       subtype: null             # Optional: object subtype
       name: "StopLine"          # Optional: OpenDRIVE name attribute
     properties:
-      device_type: road_marking # Required: "road_marking" or "road_object"
-      device_semantics: stop_line  # Optional
+      device_type: RoadMarking # Required: "RoadMarking" or "RoadObject"
+      device_semantics: StopLine  # Optional
       description: "..."        # Optional
       is_position_dynamic: false   # Optional
       default_bounding_box:       # Optional: device-level bounding box
@@ -94,7 +94,7 @@ The following fields are **not allowed** in `odr_object_types` entries and are r
 - `country` and `country_revision` in `odr_representation` (objects don't use them in OpenDRIVE).
 - `bulbs` and `rule_states` in `properties` (objects don't carry bulbs or rule logic).
 
-For objects, `device_type` MUST be `road_marking` or `road_object`. Using `traffic_light` or `traffic_sign` in an object entry is rejected with a parser error.
+For objects, `device_type` MUST be `RoadMarking` or `RoadObject`. Using `TrafficLight` or `TrafficSign` in an object entry is rejected with a parser error.
 
 #### `odr_representation`
 
@@ -106,40 +106,40 @@ Required string that identifies the device category. Used to route entries to th
 
 | `device_type` value  | Valid root             | Result                                              |
 |----------------------|------------------------|-----------------------------------------------------|
-| `"traffic_light"`    | `odr_signal_types`     | Creates a `maliput::api::rules::TrafficLight`       |
-| `"traffic_sign"`     | `odr_signal_types`     | Creates a `maliput::api::rules::TrafficSign`        |
-| `"road_marking"`     | `odr_object_types`     | Creates a `maliput::api::object::RoadMarking`       |
-| `"road_object"`      | `odr_object_types`     | Creates a `maliput::api::object::RoadObject`        |
+| `"TrafficLight"`    | `odr_signal_types`     | Creates a `maliput::api::rules::TrafficLight`       |
+| `"TrafficSign"`     | `odr_signal_types`     | Creates a `maliput::api::rules::TrafficSign`        |
+| `"RoadMarking"`     | `odr_object_types`     | Creates a `maliput::api::object::RoadMarking`       |
+| `"RoadObject"`      | `odr_object_types`     | Creates a `maliput::api::object::RoadObject`        |
 
-The `device_type` matching is **case-insensitive**: `"Road_Marking"`, `"ROAD_MARKING"`, and `"road_marking"` are all equivalent.
+The `device_type` matching is **strict PascalCase**. Variants like `"Road_Marking"` and `"ROAD_MARKING"` are rejected.
 
 #### `device_semantics`
 
-Optional string for traffic signs that identifies the semantic meaning. Defaults to `"other"` when absent. The supported values and their mapping to `maliput::api::rules::TrafficSignType` are:
+Optional string for traffic signs that identifies the semantic meaning. Defaults to `"Other"` when absent. The supported values and their mapping to `maliput::api::rules::TrafficSignType` are:
 
 | `device_semantics` value | `TrafficSignType` enum      |
 |--------------------------|------------------------------|
-| `"stop"`                 | `kStop`                     |
-| `"yield"`                | `kYield`                    |
-| `"give_way"`             | `kYield`                    |
-| `"speed_limit"`          | `kSpeedLimit`               |
-| `"speed_limit_begin"`    | `kSpeedLimit`               |
-| `"no_entry"`             | `kNoEntry`                  |
-| `"one_way"`              | `kOneWay`                   |
-| `"pedestrian_crossing"`  | `kPedestrianCrossing`       |
-| `"crosswalk"`            | `kPedestrianCrossing`       |
-| `"no_left_turn"`         | `kNoLeftTurn`               |
-| `"no_right_turn"`        | `kNoRightTurn`              |
-| `"no_u_turn"`            | `kNoUTurn`                  |
-| `"school_zone"`          | `kSchoolZone`               |
-| `"construction"`         | `kConstruction`             |
-| `"railroad_crossing"`    | `kRailroadCrossing`         |
-| `"no_overtaking"`        | `kNoOvertaking`             |
-| *(any other value)*      | `kUnknown`                  |
+| `"Stop"`                 | `kStop`                     |
+| `"Yield"`                | `kYield`                    |
+| `"GiveWay"`             | `kYield`                    |
+| `"SpeedLimit"`          | `kSpeedLimit`               |
+| `"SpeedLimitBegin"`    | `kSpeedLimit`               |
+| `"NoEntry"`             | `kNoEntry`                  |
+| `"OneWay"`              | `kOneWay`                   |
+| `"PedestrianCrossing"`  | `kPedestrianCrossing`       |
+| `"Crosswalk"`            | `kPedestrianCrossing`       |
+| `"NoLeftTurn"`         | `kNoLeftTurn`               |
+| `"NoRightTurn"`        | `kNoRightTurn`              |
+| `"NoUTurn"`            | `kNoUTurn`                  |
+| `"SchoolZone"`          | `kSchoolZone`               |
+| `"Construction"`         | `kConstruction`             |
+| `"RailroadCrossing"`    | `kRailroadCrossing`         |
+| `"NoOvertaking"`        | `kNoOvertaking`             |
+| *(any Other value)*      | `kUnknown`                  |
 
 If `device_semantics` is set to a value not listed above, the builder will still create a `TrafficSign` with `TrafficSignType::kUnknown`. This allows the database to contain signal definitions for region-specific or non-standard sign types without requiring code changes.
 
-The `device_semantics` matching is **case-insensitive**: `"No_Entry"`, `"NO_ENTRY"`, and `"no_entry"` are all equivalent.
+The `device_semantics` matching is **strict PascalCase**. Variants like `"No_Entry"` and `"NO_ENTRY"` are rejected.
 
 #### Signal Fingerprint Matching
 
@@ -169,26 +169,26 @@ Object specificity counts only the three object fields (`type`, `subtype`, `name
 
 ### Bulbs
 
-Traffic light definitions may contain a `bulbs` list (only valid under `odr_signal_types` with `device_type: traffic_light`):
+Traffic light definitions may contain a `bulbs` list (only valid under `odr_signal_types` with `device_type: TrafficLight`):
 
 ```yaml
 bulbs:
   - id: "RedBulb"
     position_traffic_light: [x, y, z]
     orientation_traffic_light: [w, x, y, z]
-    color: red
-    type: round
-    states: [off, on, blinking]
-    initial_state: off
+    color: Red
+    type: Round
+    states: [Off, On, Blinking]
+    initial_state: Off
     bounding_box:
       p_min: [x, y, z]
       p_max: [x, y, z]
-    arrow_orientation_rad: 0.0  # Required only when type: arrow
+    arrow_orientation_rad: 0.0  # Required only when type: Arrow
 ```
 
-- `states` is optional; if omitted, the parser defaults to `[off, on]`.
-- `initial_state` is optional; if omitted, it defaults to `off`.
-- `arrow_orientation_rad` is only valid for `type: arrow`.
+- `states` is optional; if omitted, the parser defaults to `[Off, On]`.
+- `initial_state` is optional; if omitted, it defaults to `Off`.
+- `arrow_orientation_rad` is only valid for `type: Arrow`.
 
 ## Coordinate Frames
 
@@ -206,42 +206,40 @@ Frame hierarchy:
 
 ## Enum Mappings
 
-Enum parsing is case-insensitive. Preferred YAML values are lowercase / snake_case. Legacy PascalCase values are still accepted for backward compatibility.
+Enum parsing is strict PascalCase. Tokens must start with an uppercase letter and contain only alphanumeric characters (no underscores).
 
 ### BulbColor
 
-| Preferred value | Legacy alias | maliput enum |
-|-----------------|--------------|--------------|
-| `red`           | `Red`        | `BulbColor::kRed` |
-| `yellow`        | `Yellow`     | `BulbColor::kYellow` |
-| `green`         | `Green`      | `BulbColor::kGreen` |
+| YAML value | maliput enum |
+|------------|--------------|
+| `Red`      | `BulbColor::kRed` |
+| `Yellow`   | `BulbColor::kYellow` |
+| `Green`    | `BulbColor::kGreen` |
 
 ### BulbType
 
-The preferred snake_case values include the newer aliases `arrow_left`, `arrow_right`, `arrow_up`, `arrow_upper_left`, `arrow_upper_right`, `u_turn_left`, `u_turn_right`, and `dont_walk`.
-
-| Preferred value       | Legacy alias        | maliput enum |
-|-----------------------|---------------------|--------------|
-| `round`               | `Round`             | `BulbType::kRound` |
-| `arrow`               | `Arrow`             | `BulbType::kArrow` |
-| `arrow_left`          | `ArrowLeft`         | `BulbType::kArrowLeft` |
-| `arrow_right`         | `ArrowRight`        | `BulbType::kArrowRight` |
-| `arrow_up`            | `ArrowUp`           | `BulbType::kArrowUp` |
-| `arrow_upper_left`    | `ArrowUpperLeft`    | `BulbType::kArrowUpperLeft` |
-| `arrow_upper_right`   | `ArrowUpperRight`   | `BulbType::kArrowUpperRight` |
-| `u_turn_left`         | `UTurnLeft`         | `BulbType::kUTurnLeft` |
-| `u_turn_right`        | `UTurnRight`        | `BulbType::kUTurnRight` |
-| `walk`                | `Walk`              | `BulbType::kWalk` |
-| `dont_walk`           | `DontWalk`          | `BulbType::kDontWalk` |
+| YAML value | maliput enum |
+|------------|--------------|
+| `Round`            | `BulbType::kRound` |
+| `Arrow`            | `BulbType::kArrow` |
+| `ArrowLeft`        | `BulbType::kArrowLeft` |
+| `ArrowRight`       | `BulbType::kArrowRight` |
+| `ArrowUp`          | `BulbType::kArrowUp` |
+| `ArrowUpperLeft`   | `BulbType::kArrowUpperLeft` |
+| `ArrowUpperRight`  | `BulbType::kArrowUpperRight` |
+| `UTurnLeft`        | `BulbType::kUTurnLeft` |
+| `UTurnRight`       | `BulbType::kUTurnRight` |
+| `Walk`             | `BulbType::kWalk` |
+| `DontWalk`         | `BulbType::kDontWalk` |
 
 ### BulbState
 
-| Preferred value | Legacy alias | maliput enum |
-|-----------------|--------------|--------------|
-| `off`           | `Off`        | `BulbState::kOff` |
-| `on`            | `On`         | `BulbState::kOn` |
-| `blinking`      | `Blinking`   | `BulbState::kBlinking` |
-| `counting`      | `Counting`   | `BulbState::kCounting` |
+| YAML value | maliput enum |
+|------------|--------------|
+| `Off`      | `BulbState::kOff` |
+| `On`       | `BulbState::kOn` |
+| `Blinking` | `BulbState::kBlinking` |
+| `Counting` | `BulbState::kCounting` |
 
 ## Examples
 
@@ -253,8 +251,8 @@ odr_signal_types:
       type: "206"
       subtype: "-1"
     properties:
-      device_type: traffic_sign
-      device_semantics: give_way
+      device_type: TrafficSign
+      device_semantics: GiveWay
       description: "Give way sign"
       default_bounding_box:
         length: 0.001
@@ -270,23 +268,23 @@ odr_object_types:
       type: roadMark
       name: "StopLine"
     properties:
-      device_type: road_marking
-      device_semantics: stop_line
+      device_type: RoadMarking
+      device_semantics: StopLine
       description: "Stop line road marking"
 
-  # Generic crosswalk
+  # Generic Crosswalk
   - odr_representation:
       type: crosswalk
     properties:
-      device_type: road_marking
-      device_semantics: crosswalk
-      description: "Generic OpenDRIVE crosswalk object"
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+      description: "Generic OpenDRIVE Crosswalk object"
 
   # Generic pole
   - odr_representation:
       type: pole
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Generic OpenDRIVE pole object"
 ```
 

@@ -58,13 +58,13 @@ struct TrafficControlDeviceBooks {
 /// XODR element is routed to the appropriate book based on its `device_type`:
 ///
 ///   - XODR **signals**:
-///     - `"traffic_light"` → TrafficLightBook
-///     - `"traffic_sign"`  → TrafficSignBook
+///     - `"TrafficLight"` → TrafficLightBook
+///     - `"TrafficSign"`  → TrafficSignBook
 ///     - Other/no match    → skipped
 ///
 ///   - XODR **objects**:
-///     - `"road_marking"`  → RoadMarkingBook
-///     - `"road_object"`   → RoadObjectBook
+///     - `"RoadMarking"`  → RoadMarkingBook
+///     - `"RoadObject"`   → RoadObjectBook
 ///     - No match          → skipped
 class TrafficControlDeviceBooksBuilder {
  public:

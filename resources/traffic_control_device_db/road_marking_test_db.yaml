@@ -38,19 +38,19 @@ odr_object_types:
       subtype: "*"
       name: "StopLine"
     properties:
-      device_type: road_marking
-      device_semantics: stop_line
+      device_type: RoadMarking
+      device_semantics: StopLine
       description: "Stop line road marking"
 
-  # Crosswalk matched by type=crosswalk.
+    # Crosswalk matched by type=crosswalk.
   - odr_representation:
       type: crosswalk
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_marking
-      device_semantics: crosswalk
-      description: "Generic crosswalk road marking"
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+      description: "Generic Crosswalk road marking"
 
   # Arrow forward matched by type=roadMark, name=ArrowForward.
   - odr_representation:
@@ -58,9 +58,9 @@ odr_object_types:
       subtype: "*"
       name: "ArrowForward"
     properties:
-      device_type: road_marking
-      device_semantics: arrow_forward
-      description: "Forward arrow road marking"
+      device_type: RoadMarking
+      device_semantics: ArrowForward
+      description: "Forward Arrow road marking"
 
   # Generic roadMark (fallback with lower specificity).
   - odr_representation:
@@ -68,15 +68,15 @@ odr_object_types:
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_marking
-      device_semantics: other
+      device_type: RoadMarking
+      device_semantics: Other
       description: "Generic road marking"
 
-  # A pole entry (road_object device_type, NOT road_marking).
+  # A pole entry (RoadObject device_type, NOT RoadMarking).
   - odr_representation:
       type: pole
       subtype: "*"
       name: "*"
     properties:
-      device_type: road_object
+      device_type: RoadObject
       description: "Generic pole object"
