@@ -30,8 +30,8 @@
 
 #include <algorithm>
 #include <cmath>
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -187,10 +187,9 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(),
                         "), related_lanes=", related_lanes.size(), ".");
 
-  return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
-                                                            sign_meaning, pos, orientation_road_network, signal_.text,
-                                                            std::move(related_lanes), bounding_box, traffic_sign_value,
-                                                            std::move(properties));
+  return std::make_unique<maliput::api::rules::TrafficSign>(
+      maliput::api::rules::TrafficSign::Id(signal_.id.string()), sign_meaning, pos, orientation_road_network,
+      signal_.text, std::move(related_lanes), bounding_box, traffic_sign_value, std::move(properties));
 }
 
 }  // namespace builder
