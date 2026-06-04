@@ -34,6 +34,7 @@
 #include <maliput/common/maliput_throw.h>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/traffic_control_device/parser.h"
 
 namespace malidrive {
 namespace traffic_control_device {
@@ -57,6 +58,18 @@ std::string GetRequiredStringField(const YAML::Node& node, const std::string& fi
 
 std::optional<std::string> GetOptionalStringField(const YAML::Node& node, const std::string& field_name) {
   if (!node[field_name].IsDefined() || node[field_name].IsNull()) {
+    return std::nullopt;
+  }
+
+  return node[field_name].as<std::string>();
+}
+
+std::optional<std::string> GetOptionalStringFieldWildcardDefault(const YAML::Node& node,
+                                                                 const std::string& field_name) {
+  if (!node[field_name].IsDefined()) {
+    return std::make_optional<std::string>(TrafficControlDeviceParser::kWildcard);
+  }
+  if (node[field_name].IsNull()) {
     return std::nullopt;
   }
 

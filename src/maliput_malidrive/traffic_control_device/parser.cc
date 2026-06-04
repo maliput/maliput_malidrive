@@ -334,6 +334,7 @@ RuleState ParseRuleState(const YAML::Node& rule_state_node) {
 //            subtype: ...
 //            country: ...
 //            country_revision: ...
+//            name: ...
 //          properties:
 //            device_type: ...
 //            device_semantics: ...
@@ -369,7 +370,7 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   // --- Parse fingerprint from odr_representation ---
   tcd_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
 
-  if (const auto subtype = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kSubtype)) {
+  if (const auto subtype = GetOptionalStringFieldWildcardDefault(repr_node, TrafficControlDeviceConstants::kSubtype)) {
     if (subtype.value() == "-1" || subtype.value() == "none") {
       tcd_definition.fingerprint.subtype = std::nullopt;
     } else {
@@ -377,15 +378,16 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
     }
   }
 
-  if (const auto country = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountry)) {
+  if (const auto country = GetOptionalStringFieldWildcardDefault(repr_node, TrafficControlDeviceConstants::kCountry)) {
     tcd_definition.fingerprint.country = country;
   }
 
-  if (const auto revision = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kCountryRevision)) {
+  if (const auto revision =
+          GetOptionalStringFieldWildcardDefault(repr_node, TrafficControlDeviceConstants::kCountryRevision)) {
     tcd_definition.fingerprint.country_revision = revision;
   }
 
-  if (const auto name = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kName)) {
+  if (const auto name = GetOptionalStringFieldWildcardDefault(repr_node, TrafficControlDeviceConstants::kName)) {
     tcd_definition.fingerprint.name = name;
   }
 

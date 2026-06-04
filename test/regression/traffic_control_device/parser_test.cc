@@ -334,12 +334,14 @@ TEST_F(TrafficControlDeviceParserTest, LoadFromString) {
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
+      .name = TrafficControlDeviceParser::kWildcard,
   };
   const auto& arrow_fingerprint = TrafficControlDeviceFingerprint{
       .type = "1000011",
       .subtype = "10",
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
+      .name = TrafficControlDeviceParser::kWildcard,
   };
   EXPECT_NE(FindDefinition(signal_definitions_, standard_fingerprint), nullptr);
   EXPECT_NE(FindDefinition(signal_definitions_, arrow_fingerprint), nullptr);
@@ -351,6 +353,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateTrafficSign) {
       .subtype = "30",
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
+      .name = TrafficControlDeviceParser::kWildcard,
   };
   const auto* dut_ptr = FindDefinition(signal_definitions_, sign_fingerprint);
   ASSERT_NE(dut_ptr, nullptr);
@@ -375,6 +378,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateSignalType1000001) {
       .subtype = std::nullopt,
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
+      .name = TrafficControlDeviceParser::kWildcard,
   };
   const auto* dut_ptr = FindDefinition(signal_definitions_, fingerprint);
   ASSERT_NE(dut_ptr, nullptr);
@@ -412,6 +416,7 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
       .subtype = "10",
       .country = "OpenDRIVE",
       .country_revision = std::nullopt,
+      .name = TrafficControlDeviceParser::kWildcard,
   };
   const auto* dut_ptr = FindDefinition(signal_definitions_, arrow_fingerprint);
   ASSERT_NE(dut_ptr, nullptr);
@@ -528,6 +533,7 @@ TEST_F(TrafficControlDeviceParserTest, DefaultBulbStatesAndBoundingBox) {
       .subtype = std::nullopt,
       .country = std::nullopt,
       .country_revision = std::nullopt,
+      .name = TrafficControlDeviceParser::kWildcard,
   };
   const auto* dut_ptr = FindDefinition(signal_definitions_, default_fingerprint);
   ASSERT_NE(dut_ptr, nullptr);

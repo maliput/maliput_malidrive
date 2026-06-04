@@ -52,6 +52,7 @@ odr_signal_types:
       subtype: "-1"             # Optional: signal subtype ("-1" / "none" treated as absent)
       country: "OpenDRIVE"      # Optional: country code or standard
       country_revision: null    # Optional: country standard revision
+      name: null                # Optional: OpenDRIVE name attribute
     properties:
       device_type: traffic_light  # Required: "traffic_light" or "traffic_sign"
       device_semantics: stop      # Optional: semantic meaning for traffic signs
@@ -94,6 +95,10 @@ The following fields are **not allowed** in `odr_object_types` entries and are r
 - `bulbs` and `rule_states` in `properties` (objects don't carry bulbs or rule logic).
 
 For objects, `device_type` MUST be `road_marking` or `road_object`. Using `traffic_light` or `traffic_sign` in an object entry is rejected with a parser error.
+
+#### `odr_representation`
+
+If any of the optional fields are missing in the database defintion, those will be treated as a `"*"` wildcard field, matching any value, including nulled OpenDRIVE attributes.
 
 #### `device_type`
 

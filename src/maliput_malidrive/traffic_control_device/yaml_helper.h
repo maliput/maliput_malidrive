@@ -129,6 +129,14 @@ std::string GetRequiredStringField(const YAML::Node& node, const std::string& fi
 ///          std::nullopt otherwise.
 std::optional<std::string> GetOptionalStringField(const YAML::Node& node, const std::string& field_name);
 
+/// Retrieves an optional string field from a YAML node.
+///
+/// @param node The YAML node containing the field.
+/// @param field_name The name of the field to retrieve.
+/// @returns An optional containing the string value if defined and not null;
+///          if the node is not defined, returns a wildcard string; if the node is null, returns std::nullopt.
+std::optional<std::string> GetOptionalStringFieldWildcardDefault(const YAML::Node& node, const std::string& field_name);
+
 /// Retrieves an optional integer field from a YAML node.
 ///
 /// @param node The YAML node containing the field.
