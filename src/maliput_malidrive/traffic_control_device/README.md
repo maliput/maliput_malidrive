@@ -106,7 +106,7 @@ Required string that identifies the device category. Used to route entries to th
 | `"RoadMarking"`     | `odr_object_types`     | Creates a `maliput::api::object::RoadMarking`       |
 | `"RoadObject"`      | `odr_object_types`     | Creates a `maliput::api::object::RoadObject`        |
 
-The `device_type` matching is **case-insensitive**: `"Road_Marking"`, `"ROAD_MARKING"`, and `"RoadMarking"` are all equivalent.
+The `device_type` matching is **strict PascalCase**. Variants like `"Road_Marking"` and `"ROAD_MARKING"` are rejected.
 
 #### `device_semantics`
 
@@ -134,7 +134,7 @@ Optional string for traffic signs that identifies the semantic meaning. Defaults
 
 If `device_semantics` is set to a value not listed above, the builder will still create a `TrafficSign` with `TrafficSignType::kUnknown`. This allows the database to contain signal definitions for region-specific or non-standard sign types without requiring code changes.
 
-The `device_semantics` matching is **case-insensitive**: `"No_Entry"`, `"NO_ENTRY"`, and `"NoEntry"` are all equivalent.
+The `device_semantics` matching is **strict PascalCase**. Variants like `"No_Entry"` and `"NO_ENTRY"` are rejected.
 
 #### Signal Fingerprint Matching
 
@@ -201,42 +201,40 @@ Frame hierarchy:
 
 ## Enum Mappings
 
-Enum parsing is case-insensitive. Preferred YAML values are lowercase / snake_case. Legacy PascalCase values are still accepted for backward compatibility.
+Enum parsing is strict PascalCase. Tokens must start with an uppercase letter and contain only alphanumeric characters (no underscores).
 
 ### BulbColor
 
-| Preferred value | Legacy alias | maliput enum |
-|-----------------|--------------|--------------|
-| `Red`           | `Red`        | `BulbColor::kRed` |
-| `Yellow`        | `Yellow`     | `BulbColor::kYellow` |
-| `Green`         | `Green`      | `BulbColor::kGreen` |
+| YAML value | maliput enum |
+|------------|--------------|
+| `Red`      | `BulbColor::kRed` |
+| `Yellow`   | `BulbColor::kYellow` |
+| `Green`    | `BulbColor::kGreen` |
 
 ### BulbType
 
-The preferred snake_case values include the newer aliases `arrow_left`, `arrow_right`, `arrow_up`, `arrow_upper_left`, `arrow_upper_right`, `UTurnLeft`, `UTurnRight`, and `DontWalk`.
-
-| Preferred value       | Legacy alias        | maliput enum |
-|-----------------------|---------------------|--------------|
-| `Round`               | `Round`             | `BulbType::kRound` |
-| `Arrow`               | `Arrow`             | `BulbType::kArrow` |
-| `arrow_left`          | `ArrowLeft`         | `BulbType::kArrowLeft` |
-| `arrow_right`         | `ArrowRight`        | `BulbType::kArrowRight` |
-| `arrow_up`            | `ArrowUp`           | `BulbType::kArrowUp` |
-| `arrow_upper_left`    | `ArrowUpperLeft`    | `BulbType::kArrowUpperLeft` |
-| `arrow_upper_right`   | `ArrowUpperRight`   | `BulbType::kArrowUpperRight` |
-| `UTurnLeft`         | `UTurnLeft`         | `BulbType::kUTurnLeft` |
-| `UTurnRight`        | `UTurnRight`        | `BulbType::kUTurnRight` |
-| `walk`                | `Walk`              | `BulbType::kWalk` |
-| `DontWalk`           | `DontWalk`          | `BulbType::kDontWalk` |
+| YAML value | maliput enum |
+|------------|--------------|
+| `Round`            | `BulbType::kRound` |
+| `Arrow`            | `BulbType::kArrow` |
+| `ArrowLeft`        | `BulbType::kArrowLeft` |
+| `ArrowRight`       | `BulbType::kArrowRight` |
+| `ArrowUp`          | `BulbType::kArrowUp` |
+| `ArrowUpperLeft`   | `BulbType::kArrowUpperLeft` |
+| `ArrowUpperRight`  | `BulbType::kArrowUpperRight` |
+| `UTurnLeft`        | `BulbType::kUTurnLeft` |
+| `UTurnRight`       | `BulbType::kUTurnRight` |
+| `Walk`             | `BulbType::kWalk` |
+| `DontWalk`         | `BulbType::kDontWalk` |
 
 ### BulbState
 
-| Preferred value | Legacy alias | maliput enum |
-|-----------------|--------------|--------------|
-| `Off`           | `Off`        | `BulbState::kOff` |
-| `On`            | `On`         | `BulbState::kOn` |
-| `Blinking`      | `Blinking`   | `BulbState::kBlinking` |
-| `counting`      | `Counting`   | `BulbState::kCounting` |
+| YAML value | maliput enum |
+|------------|--------------|
+| `Off`      | `BulbState::kOff` |
+| `On`       | `BulbState::kOn` |
+| `Blinking` | `BulbState::kBlinking` |
+| `Counting` | `BulbState::kCounting` |
 
 ## Examples
 
@@ -271,7 +269,7 @@ odr_object_types:
 
   # Generic Crosswalk
   - odr_representation:
-      type: Crosswalk
+      type: crosswalk
     properties:
       device_type: RoadMarking
       device_semantics: Crosswalk

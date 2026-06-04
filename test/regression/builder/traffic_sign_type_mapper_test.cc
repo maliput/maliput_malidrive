@@ -82,9 +82,9 @@ INSTANTIATE_TEST_CASE_P(UnknownTypes, MapSignTypeStringTest,
                             MapSignTypeStringTestCase{"", TrafficSignType::kUnknown},
                             MapSignTypeStringTestCase{"unknown_value", TrafficSignType::kUnknown}));
 
-INSTANTIATE_TEST_CASE_P(StrictCamelCase, MapSignTypeStringTest,
+INSTANTIATE_TEST_CASE_P(StrictPascalCase, MapSignTypeStringTest,
                         ::testing::Values(
-                            // Non-CamelCase variants are rejected.
+                            // Non-PascalCase variants are rejected.
                             MapSignTypeStringTestCase{"Stop", TrafficSignType::kStop},
                             MapSignTypeStringTestCase{"STOP", TrafficSignType::kUnknown},
                             MapSignTypeStringTestCase{"Yield", TrafficSignType::kYield},

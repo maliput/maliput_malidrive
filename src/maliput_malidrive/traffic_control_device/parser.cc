@@ -105,7 +105,7 @@ bool TrafficControlDeviceParser::CanOverlap(const TrafficControlDeviceFingerprin
 
 namespace {
 
-bool IsStrictCamelCaseToken(const std::string& token) {
+bool IsStrictPascalCaseToken(const std::string& token) {
   if (token.empty() || token.find('_') != std::string::npos) {
     return false;
   }
@@ -125,7 +125,7 @@ maliput::api::rules::BulbColor StringToBulbColor(const std::string& color_str) {
   static const auto kMapper = []() {
     std::unordered_map<std::string, C, maliput::common::DefaultHash> result;
     for (const auto& [bulb_color, bulb_color_str] : maliput::api::rules::BulbColorMapper()) {
-      if (IsStrictCamelCaseToken(bulb_color_str)) {
+      if (IsStrictPascalCaseToken(bulb_color_str)) {
         result.emplace(bulb_color_str, bulb_color);
       }
     }
@@ -147,7 +147,7 @@ maliput::api::rules::BulbType StringToBulbType(const std::string& type_str) {
   static const auto kMapper = []() {
     std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
     for (const auto& [bulb_type_str, bulb_type] : maliput::api::rules::BulbTypeStringToEnumMapper()) {
-      if (IsStrictCamelCaseToken(bulb_type_str)) {
+      if (IsStrictPascalCaseToken(bulb_type_str)) {
         result.emplace(bulb_type_str, bulb_type);
       }
     }
@@ -169,7 +169,7 @@ maliput::api::rules::BulbState StringToBulbState(const std::string& state_str) {
   static const auto kMapper = []() {
     std::unordered_map<std::string, S, maliput::common::DefaultHash> result;
     for (const auto& [bulb_state, bulb_state_str] : maliput::api::rules::BulbStateMapper()) {
-      if (IsStrictCamelCaseToken(bulb_state_str)) {
+      if (IsStrictPascalCaseToken(bulb_state_str)) {
         result.emplace(bulb_state_str, bulb_state);
       }
     }

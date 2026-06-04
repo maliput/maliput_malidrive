@@ -206,7 +206,7 @@ odr_signal_types:
           value: "Stop"
 )";
 
-const char kStrictCamelCaseBulbEnumsDb[] = R"(
+const char kStrictPascalCaseBulbEnumsDb[] = R"(
 odr_signal_types:
   - odr_representation:
       type: "case_insensitive_bulb_enums"
@@ -215,7 +215,7 @@ odr_signal_types:
       country_revision: null
     properties:
       device_type: TrafficLight
-      description: "Traffic light with strict CamelCase bulb enums"
+      description: "Traffic light with strict PascalCase bulb enums"
       bulbs:
         - id: "ArrowLeftBulb"
           position_traffic_light: [0.0, 0.0, 0.2]
@@ -423,8 +423,8 @@ TEST_F(TrafficControlDeviceParserTest, ValidateArrowSignal) {
   EXPECT_EQ(arrow_bulb.initial_state.value(), maliput::api::rules::BulbState::kOn);
 }
 
-GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadStrictCamelCaseBulbEnums) {
-  const auto definitions = TrafficControlDeviceParser::LoadFromString(kStrictCamelCaseBulbEnumsDb);
+GTEST_TEST(TrafficControlDeviceParserBulbEnumsTest, LoadStrictPascalCaseBulbEnums) {
+  const auto definitions = TrafficControlDeviceParser::LoadFromString(kStrictPascalCaseBulbEnumsDb);
   ASSERT_EQ(definitions.size(), 1);
 
   const auto& dut = definitions.front();

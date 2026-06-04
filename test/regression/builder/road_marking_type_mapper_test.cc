@@ -64,7 +64,7 @@ TEST_F(RoadMarkingTypeMapperTest, ArrowMappings) {
   EXPECT_EQ(T::kArrowUTurnLeft, MapRoadMarkingTypeString("ArrowUTurnLeft"));
 }
 
-TEST_F(RoadMarkingTypeMapperTest, StrictCamelCase) {
+TEST_F(RoadMarkingTypeMapperTest, StrictPascalCase) {
   EXPECT_EQ(T::kStopLine, MapRoadMarkingTypeString("StopLine"));
   EXPECT_EQ(T::kUnknown, MapRoadMarkingTypeString("Stop_Line"));
   EXPECT_EQ(T::kUnknown, MapRoadMarkingTypeString("STOP_LINE"));

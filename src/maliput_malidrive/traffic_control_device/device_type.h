@@ -47,7 +47,7 @@ enum class TrafficControlDeviceType {
 /// Converts a `device_type` string from the YAML database to a
 /// @ref TrafficControlDeviceType enum value.
 ///
-/// Recognized values (strict CamelCase):
+/// Recognized values (strict PascalCase):
 ///   - `"TrafficLight"` → `kTrafficLight`
 ///   - `"TrafficSign"`  → `kTrafficSign`
 ///   - `"RoadMarking"`  → `kRoadMarking`

@@ -55,15 +55,15 @@ TEST_P(StringToTrafficControlDeviceTypeTest, MapsCorrectly) {
 
 INSTANTIATE_TEST_CASE_P(KnownValues, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
-                            // Canonical CamelCase forms.
+                            // Canonical PascalCase forms.
                             StringToTypeTestCase{"TrafficLight", TrafficControlDeviceType::kTrafficLight},
                             StringToTypeTestCase{"TrafficSign", TrafficControlDeviceType::kTrafficSign},
                             StringToTypeTestCase{"RoadMarking", TrafficControlDeviceType::kRoadMarking},
                             StringToTypeTestCase{"RoadObject", TrafficControlDeviceType::kRoadObject}));
 
-INSTANTIATE_TEST_CASE_P(StrictCamelCase, StringToTrafficControlDeviceTypeTest,
+INSTANTIATE_TEST_CASE_P(StrictPascalCase, StringToTrafficControlDeviceTypeTest,
                         ::testing::Values(
-                            // Non-CamelCase variants are rejected.
+                            // Non-PascalCase variants are rejected.
                             StringToTypeTestCase{"TRAFFIC_LIGHT", TrafficControlDeviceType::kUnknown},
                             StringToTypeTestCase{"traffic_light", TrafficControlDeviceType::kUnknown},
                             StringToTypeTestCase{"Traffic_Light", TrafficControlDeviceType::kUnknown},
