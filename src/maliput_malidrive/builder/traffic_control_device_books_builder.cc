@@ -173,7 +173,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
                               "' name='", object.name.value_or(""), "'.");
-        auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
+        auto ro = RoadObjectBuilder(object, road_id, loader, road_geometry_)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
@@ -194,7 +194,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         try {
-          auto ro = RoadObjectBuilder(object, road_id, road_geometry_, definition.is_position_dynamic)();
+          auto ro = RoadObjectBuilder(object, road_id, loader, road_geometry_)();
           if (ro) {
             rob->AddRoadObject(std::move(ro));
           }

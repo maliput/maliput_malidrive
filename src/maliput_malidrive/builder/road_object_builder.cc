@@ -79,8 +79,9 @@ class MalidriveRoadObject final : public maliput::api::objects::RoadObject {
 }  // namespace
 
 RoadObjectBuilder::RoadObjectBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
-                                     const maliput::api::RoadGeometry* road_geometry, bool is_movable)
-    : object_(object), road_id_(road_id), road_geometry_(road_geometry), is_movable_(is_movable) {
+                                     const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
+                                     const maliput::api::RoadGeometry* road_geometry)
+    : object_(object), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
 }
 
@@ -88,6 +89,24 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
   MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error,
                      "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+
+  // Look up the object definition to retrieve is_movable from the database.
+  const std::string type_str =
+      object_.type.has_value() ? xodr::object::Object::object_type_to_str(object_.type.value()) : "";
+  const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
+      type_str,
+      object_.subtype,
+      std::nullopt,  // country (not used for objects)
+      std::nullopt,  // country_revision (not used for objects)
+      object_.name,
+  };
+
+  bool is_movable = false;  // Default to false if definition not found or device_type is not kRoadObject.
+  const auto definition_opt = loader_.Lookup(fingerprint);
+  if (definition_opt.has_value() && definition_opt.value().device_type ==
+                                        traffic_control_device::TrafficControlDeviceType::kRoadObject) {
+    is_movable = definition_opt.value().is_position_dynamic;
+  }
 
   // --- Position ---
   double object_s = object_.s;
@@ -159,7 +178,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
 
   return std::make_unique<MalidriveRoadObject>(
       maliput::api::objects::RoadObject::Id(object_.id.string()), type, position, orientation, bounding_box, is_dynamic,
-      std::move(related_lanes), object_.name, object_.subtype, std::move(outlines), std::move(properties), is_movable_);
+      std::move(related_lanes), object_.name, object_.subtype, std::move(outlines), std::move(properties), is_movable);
 }
 
 }  // namespace builder
