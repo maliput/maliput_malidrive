@@ -39,6 +39,7 @@ odr_object_types:
       name: "*"
     properties:
       device_type: RoadObject
+      is_position_dynamic: true
       description: "Barrier road object."
 
   - odr_representation:
@@ -47,6 +48,7 @@ odr_object_types:
       name: "*"
     properties:
       device_type: RoadObject
+      is_position_dynamic: false
       description: "Building road object."
 
   - odr_representation:
@@ -55,6 +57,7 @@ odr_object_types:
       name: "*"
     properties:
       device_type: RoadObject
+      is_position_dynamic: true
       description: "Obstacle road object."
 
   - odr_representation:
@@ -63,4 +66,5 @@ odr_object_types:
       name: "*"
     properties:
       device_type: RoadObject
+      is_position_dynamic: false
       description: "Vegetation road object."

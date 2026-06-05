@@ -132,6 +132,10 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, TrafficSignTypeIsStop) {
   const auto* ts = road_network_->traffic_sign_book()->GetTrafficSign(maliput::api::rules::TrafficSign::Id("TS1"));
   ASSERT_NE(ts, nullptr);
   EXPECT_EQ(maliput::api::rules::TrafficSignType::kStop, ts->type());
+  // Sign dynamic comes from XODR signal.dynamic ("no").
+  EXPECT_FALSE(ts->is_dynamic());
+  // Sign movable comes from DB properties.is_position_dynamic (true in fixture).
+  EXPECT_TRUE(ts->is_movable());
 }
 
 // Verifies that the RoadMarkingBook contains exactly one crosswalk road marking.
@@ -174,6 +178,10 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, RoadObjectTypeIsBarrier) {
   const auto* ro = road_network_->road_object_book()->GetRoadObject(maliput::api::objects::RoadObject::Id("RO1"));
   ASSERT_NE(ro, nullptr);
   EXPECT_EQ(maliput::api::objects::RoadObjectType::kBarrier, ro->type());
+  // Object dynamic comes from XODR object.dynamic ("no").
+  EXPECT_FALSE(ro->is_dynamic());
+  // Object movable comes from DB properties.is_position_dynamic (true in fixture).
+  EXPECT_TRUE(ro->is_movable());
 }
 
 // Verifies that FindByType works for the road object book.

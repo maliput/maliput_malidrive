@@ -187,9 +187,15 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(),
                         "), related_lanes=", related_lanes.size(), ".");
 
-  return std::make_unique<maliput::api::rules::TrafficSign>(
-      maliput::api::rules::TrafficSign::Id(signal_.id.string()), sign_meaning, pos, orientation_road_network,
-      signal_.text, std::move(related_lanes), bounding_box, traffic_sign_value, std::move(properties));
+  // TrafficSign dynamic semantics are sourced from the XODR signal's `dynamic`.
+  const bool is_dynamic = signal_.dynamic;
+  // TrafficSign positional movability is sourced from DB `is_position_dynamic`.
+  const bool is_movable = definition.is_position_dynamic;
+
+  return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
+                                                            sign_meaning, pos, orientation_road_network, signal_.text,
+                                                            std::move(related_lanes), bounding_box, traffic_sign_value,
+                                                            std::move(properties), is_dynamic, is_movable);
 }
 
 }  // namespace builder

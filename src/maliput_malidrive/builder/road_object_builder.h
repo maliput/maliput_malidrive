@@ -33,6 +33,7 @@
 #include <maliput/api/objects/road_object.h>
 #include <maliput/api/road_geometry.h>
 
+#include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
 
@@ -50,9 +51,11 @@ class RoadObjectBuilder {
   ///
   /// @param object The XODR object to build a RoadObject from.
   /// @param road_id The XODR road's ID the @p object belongs to.
+  /// @param loader Database loader for looking up object device definitions.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
   /// @throws std::invalid_argument if @p road_geometry is nullptr.
   RoadObjectBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+                    const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                     const maliput::api::RoadGeometry* road_geometry);
 
   /// Builds and returns the @ref maliput::api::objects::RoadObject.
@@ -63,6 +66,7 @@ class RoadObjectBuilder {
  private:
   const xodr::object::Object& object_;
   const xodr::RoadHeader::Id& road_id_;
+  const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
 };
 

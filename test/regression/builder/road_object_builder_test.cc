@@ -152,6 +152,7 @@ TEST_F(RoadObjectBuilderTest, BarrierObject) {
   EXPECT_EQ(road_object->name(), "GuardRail");
   EXPECT_EQ(road_object->subtype(), "guardRail");
   EXPECT_FALSE(road_object->is_dynamic());
+  EXPECT_TRUE(road_object->is_movable());
 
   // Position: straight road at hdg=0, s=20, t=3 → inertial x≈20, y≈3.
   const auto& pos = road_object->position().inertial_position();
@@ -189,6 +190,7 @@ TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_building"));
   EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kBuilding);
   EXPECT_EQ(road_object->name(), "Warehouse");
+  EXPECT_FALSE(road_object->is_movable());
 
   // Bounding box from radius: length=width=2*4=8.
   const auto& bb = road_object->bounding_box();
@@ -207,6 +209,7 @@ TEST_F(RoadObjectBuilderTest, ObstacleObjectWithOutline) {
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_obstacle"));
   EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kObstacle);
+  EXPECT_TRUE(road_object->is_movable());
 
   // The obstacle has one outline with 4 corners.
   ASSERT_EQ(1, road_object->num_outlines());
@@ -240,6 +243,7 @@ TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
   EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kVegetation);
   EXPECT_EQ(road_object->name(), "StarBush");
   EXPECT_FALSE(road_object->is_dynamic());
+  EXPECT_FALSE(road_object->is_movable());
 
   // The vegetation has one outline with 6 corners (star shape).
   ASSERT_EQ(1, road_object->num_outlines());

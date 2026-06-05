@@ -140,6 +140,11 @@ TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSign) {
 
   // The type must be kStop as defined in the YAML database for type "206".
   EXPECT_EQ(maliput::api::rules::TrafficSignType::kStop, traffic_sign->type());
+
+  // Dynamic comes from XODR signal.dynamic.
+  EXPECT_TRUE(traffic_sign->is_dynamic());
+  // Movable comes from DB properties.is_position_dynamic.
+  EXPECT_TRUE(traffic_sign->is_movable());
 }
 
 // Verifies that the builder returns nullptr when no matching definition is
@@ -275,6 +280,10 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS1Fields) {
   EXPECT_EQ(properties.at("name"), "StopSign_SS1");
   EXPECT_EQ(properties.count("subtype"), 0u);
   EXPECT_EQ(properties.count("country_revision"), 0u);
+
+  // dynamic comes from XODR (dynamic="no"), movable from DB (is_position_dynamic=true).
+  EXPECT_FALSE(ts->is_dynamic());
+  EXPECT_TRUE(ts->is_movable());
 }
 
 // Verifies all fields of the TrafficSign created from signal SS2.
@@ -322,6 +331,10 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS2Fields) {
   EXPECT_EQ(properties.at("name"), "StopSign_SS2");
   EXPECT_EQ(properties.count("subtype"), 0u);
   EXPECT_EQ(properties.count("country_revision"), 0u);
+
+  // dynamic comes from XODR (dynamic="no"), movable from DB (is_position_dynamic=true).
+  EXPECT_FALSE(ts->is_dynamic());
+  EXPECT_TRUE(ts->is_movable());
 }
 
 // Verifies that FindByType correctly retrieves both stop signs.
