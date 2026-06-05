@@ -192,10 +192,10 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   // TrafficSign positional movability is sourced from DB `is_position_dynamic`.
   const bool is_movable = definition.is_position_dynamic;
 
-  return std::make_unique<maliput::api::rules::TrafficSign>(
-      maliput::api::rules::TrafficSign::Id(signal_.id.string()), sign_meaning, pos, orientation_road_network,
-      signal_.text, std::move(related_lanes), bounding_box, traffic_sign_value, std::move(properties),
-      std::unordered_map<std::string, std::string>{}, is_dynamic, is_movable);
+  return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
+                                                            sign_meaning, pos, orientation_road_network, signal_.text,
+                                                            std::move(related_lanes), bounding_box, traffic_sign_value,
+                                                            std::move(properties), is_dynamic, is_movable);
 }
 
 }  // namespace builder
