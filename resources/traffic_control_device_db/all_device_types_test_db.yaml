@@ -95,6 +95,7 @@ odr_signal_types:
     properties:
       device_type: TrafficSign
       device_semantics: Stop
+      is_position_dynamic: true
       description: "Stop sign."
       bulbs: []
       rule_states:
@@ -119,4 +120,5 @@ odr_object_types:
       name: "*"
     properties:
       device_type: RoadObject
+      is_position_dynamic: true
       description: "Barrier road object."

@@ -194,7 +194,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         try {
-          auto ro = RoadObjectBuilder(object, road_id, road_geometry_)();
+          auto ro = RoadObjectBuilder(object, road_id, road_geometry_, definition.is_position_dynamic)();
           if (ro) {
             rob->AddRoadObject(std::move(ro));
           }

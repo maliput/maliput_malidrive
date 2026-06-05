@@ -71,16 +71,16 @@ class MalidriveRoadObject final : public maliput::api::objects::RoadObject {
                       bool is_dynamic, std::vector<maliput::api::LaneId> related_lanes, std::optional<std::string> name,
                       std::optional<std::string> subtype,
                       std::vector<std::unique_ptr<maliput::api::objects::Outline>> outlines,
-                      std::unordered_map<std::string, std::string> properties)
+                      std::unordered_map<std::string, std::string> properties, bool is_movable)
       : RoadObject(id, type, position, orientation, bounding_box, is_dynamic, std::move(related_lanes), std::move(name),
-                   std::move(subtype), std::move(outlines), std::move(properties)) {}
+                   std::move(subtype), std::move(outlines), std::move(properties), is_movable) {}
 };
 
 }  // namespace
 
 RoadObjectBuilder::RoadObjectBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
-                                     const maliput::api::RoadGeometry* road_geometry)
-    : object_(object), road_id_(road_id), road_geometry_(road_geometry) {
+                                     const maliput::api::RoadGeometry* road_geometry, bool is_movable)
+    : object_(object), road_id_(road_id), road_geometry_(road_geometry), is_movable_(is_movable) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
 }
 
@@ -159,7 +159,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
 
   return std::make_unique<MalidriveRoadObject>(
       maliput::api::objects::RoadObject::Id(object_.id.string()), type, position, orientation, bounding_box, is_dynamic,
-      std::move(related_lanes), object_.name, object_.subtype, std::move(outlines), std::move(properties));
+      std::move(related_lanes), object_.name, object_.subtype, std::move(outlines), std::move(properties), is_movable_);
 }
 
 }  // namespace builder

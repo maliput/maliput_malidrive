@@ -51,9 +51,11 @@ class RoadObjectBuilder {
   /// @param object The XODR object to build a RoadObject from.
   /// @param road_id The XODR road's ID the @p object belongs to.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
+  /// @param is_movable Whether the resulting RoadObject position can change.
+  ///        This comes from the custom database field is_position_dynamic.
   /// @throws std::invalid_argument if @p road_geometry is nullptr.
   RoadObjectBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
-                    const maliput::api::RoadGeometry* road_geometry);
+                    const maliput::api::RoadGeometry* road_geometry, bool is_movable = false);
 
   /// Builds and returns the @ref maliput::api::objects::RoadObject.
   ///
@@ -64,6 +66,7 @@ class RoadObjectBuilder {
   const xodr::object::Object& object_;
   const xodr::RoadHeader::Id& road_id_;
   const maliput::api::RoadGeometry* road_geometry_;
+  const bool is_movable_;
 };
 
 }  // namespace builder
