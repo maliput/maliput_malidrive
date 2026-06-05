@@ -2,6 +2,16 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.24.0 (2026-06-05)
+-------------------
+* Implementing is_dynamic/movable API (`#482 <https://github.com/maliput/maliput_malidrive/issues/482>`_)
+* Adding signs properties from XODR (`#480 <https://github.com/maliput/maliput_malidrive/issues/480>`_)
+* Adding three new sign types (`#479 <https://github.com/maliput/maliput_malidrive/issues/479>`_)
+* Make comparison epsilon a bit less strict. (`#481 <https://github.com/maliput/maliput_malidrive/issues/481>`_)
+* Keeping a consistent format in DB naming (`#478 <https://github.com/maliput/maliput_malidrive/issues/478>`_)
+* Optional odr_representation fields are defaulted to wildcard string. (`#477 <https://github.com/maliput/maliput_malidrive/issues/477>`_)
+* Contributors: Juan Carosella, Santiago Lopez
+
 0.23.0 (2026-06-03)
 -------------------
 * New TrafficControlDeviceBooks builder (`#469 <https://github.com/maliput/maliput_malidrive/issues/469>`_)
