@@ -94,8 +94,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
   const std::string type_str =
       object_.type.has_value() ? xodr::object::Object::object_type_to_str(object_.type.value()) : "";
   const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
-      type_str,
-      object_.subtype,
+      type_str,     object_.subtype,
       std::nullopt,  // country (not used for objects)
       std::nullopt,  // country_revision (not used for objects)
       object_.name,
@@ -103,8 +102,8 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
 
   bool is_movable = false;  // Default to false if definition not found or device_type is not kRoadObject.
   const auto definition_opt = loader_.Lookup(fingerprint);
-  if (definition_opt.has_value() && definition_opt.value().device_type ==
-                                        traffic_control_device::TrafficControlDeviceType::kRoadObject) {
+  if (definition_opt.has_value() &&
+      definition_opt.value().device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
     is_movable = definition_opt.value().is_position_dynamic;
   }
 
