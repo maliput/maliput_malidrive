@@ -29,9 +29,8 @@
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 
 #include <filesystem>
-#include <string_view>
-
 #include <maliput/common/maliput_throw.h>
+#include <string_view>
 
 #include "maliput_malidrive/common/macros.h"
 
@@ -57,7 +56,8 @@ TrafficControlDeviceDatabaseLoader::TrafficControlDeviceDatabaseLoader(const std
     // If the value ends with ".yaml" or ".yml", it is considered a path. Otherwise, it is considered content.
     if (ends_with(database.value(), ".yaml") || ends_with(database.value(), ".yml")) {
       if (!std::filesystem::exists(database.value())) {
-        MALIDRIVE_THROW_MESSAGE(database.value() + " is expected to be a path to a YAML file, but the file does not exist.");
+        MALIDRIVE_THROW_MESSAGE(database.value() +
+                                " is expected to be a path to a YAML file, but the file does not exist.");
       }
       definitions_ = TrafficControlDeviceParser::LoadFromFile(database.value());
     } else {
