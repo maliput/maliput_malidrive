@@ -61,21 +61,18 @@ INSTANTIATE_TEST_CASE_P(AllKnownTypes, MapSignTypeStringTest,
                             MapSignTypeStringTestCase{"Yield", TrafficSignType::kYield},
                             MapSignTypeStringTestCase{"SpeedLimit", TrafficSignType::kSpeedLimit},
                             MapSignTypeStringTestCase{"NoEntry", TrafficSignType::kNoEntry},
-                            MapSignTypeStringTestCase{"OneWay", TrafficSignType::kOneWay},
-                            MapSignTypeStringTestCase{"PedestrianCrossing", TrafficSignType::kPedestrianCrossing},
-                            MapSignTypeStringTestCase{"NoLeftTurn", TrafficSignType::kNoLeftTurn},
-                            MapSignTypeStringTestCase{"NoRightTurn", TrafficSignType::kNoRightTurn},
-                            MapSignTypeStringTestCase{"NoUTurn", TrafficSignType::kNoUTurn},
-                            MapSignTypeStringTestCase{"SchoolZone", TrafficSignType::kSchoolZone},
-                            MapSignTypeStringTestCase{"Construction", TrafficSignType::kConstruction},
-                            MapSignTypeStringTestCase{"RailroadCrossing", TrafficSignType::kRailroadCrossing},
-                            MapSignTypeStringTestCase{"NoOvertaking", TrafficSignType::kNoOvertaking},
-                            MapSignTypeStringTestCase{"AllWay", TrafficSignType::kAllWay},
                             MapSignTypeStringTestCase{"NoUTurnLeft", TrafficSignType::kNoUTurnLeft},
                             MapSignTypeStringTestCase{"NoUTurnRight", TrafficSignType::kNoUTurnRight},
-                            MapSignTypeStringTestCase{"GiveWay", TrafficSignType::kYield},
-                            MapSignTypeStringTestCase{"SpeedLimitBegin", TrafficSignType::kSpeedLimit},
-                            MapSignTypeStringTestCase{"Crosswalk", TrafficSignType::kPedestrianCrossing}));
+                            MapSignTypeStringTestCase{"None", TrafficSignType::kNone},
+                            MapSignTypeStringTestCase{"Other", TrafficSignType::kOther},
+                            MapSignTypeStringTestCase{"Crosswalk", TrafficSignType::kCrosswalk},
+                            MapSignTypeStringTestCase{"RoadWorks", TrafficSignType::kRoadWorks},
+                            MapSignTypeStringTestCase{"GiveWay", TrafficSignType::kGiveWay},
+                            MapSignTypeStringTestCase{"DoNotEnter", TrafficSignType::kDoNotEnter},
+                            MapSignTypeStringTestCase{"SpeedLimitBegin", TrafficSignType::kSpeedLimitBegin},
+                            MapSignTypeStringTestCase{"TrafficCone", TrafficSignType::kTrafficCone},
+                            MapSignTypeStringTestCase{"Stop4Way", TrafficSignType::kStop4Way},
+                            MapSignTypeStringTestCase{"Car", TrafficSignType::kCar}));
 
 INSTANTIATE_TEST_CASE_P(UnknownTypes, MapSignTypeStringTest,
                         ::testing::Values(
@@ -90,9 +87,10 @@ INSTANTIATE_TEST_CASE_P(StrictPascalCase, MapSignTypeStringTest,
                             // Non-PascalCase variants are rejected.
                             MapSignTypeStringTestCase{"Stop", TrafficSignType::kStop},
                             MapSignTypeStringTestCase{"STOP", TrafficSignType::kUnknown},
-                            MapSignTypeStringTestCase{"Yield", TrafficSignType::kYield},
+                            MapSignTypeStringTestCase{"RoadWorks", TrafficSignType::kRoadWorks},
                             MapSignTypeStringTestCase{"speed_limit", TrafficSignType::kUnknown},
-                            MapSignTypeStringTestCase{"No_Overtaking", TrafficSignType::kUnknown}));
+                            MapSignTypeStringTestCase{"No_Overtaking", TrafficSignType::kUnknown},
+                            MapSignTypeStringTestCase{"roadworks", TrafficSignType::kUnknown}));
 
 }  // namespace
 }  // namespace test

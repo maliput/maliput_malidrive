@@ -37,27 +37,13 @@ namespace builder {
 
 maliput::api::rules::TrafficSignType MapSignTypeString(const std::string& device_semantics) {
   using T = maliput::api::rules::TrafficSignType;
-  static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"Stop", T::kStop},
-      {"Yield", T::kYield},
-      {"SpeedLimit", T::kSpeedLimit},
-      {"NoEntry", T::kNoEntry},
-      {"OneWay", T::kOneWay},
-      {"PedestrianCrossing", T::kPedestrianCrossing},
-      {"NoLeftTurn", T::kNoLeftTurn},
-      {"NoRightTurn", T::kNoRightTurn},
-      {"NoUTurn", T::kNoUTurn},
-      {"SchoolZone", T::kSchoolZone},
-      {"Construction", T::kConstruction},
-      {"RailroadCrossing", T::kRailroadCrossing},
-      {"NoOvertaking", T::kNoOvertaking},
-      {"AllWay", T::kAllWay},
-      {"NoUTurnLeft", T::kNoUTurnLeft},
-      {"NoUTurnRight", T::kNoUTurnRight},
-      {"GiveWay", T::kYield},
-      {"SpeedLimitBegin", T::kSpeedLimit},
-      {"Crosswalk", T::kPedestrianCrossing},
-  };
+  static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper = [] {
+    std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
+    for (const auto& [type, type_name] : maliput::api::rules::TrafficSignTypeMapper()) {
+      result.emplace(type_name, type);
+    }
+    return result;
+  }();
   const auto it = kMapper.find(device_semantics);
   return it != kMapper.end() ? it->second : T::kUnknown;
 }

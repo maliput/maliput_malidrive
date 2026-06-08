@@ -118,10 +118,10 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
     return nullptr;
   }
 
-  const auto sign_meaning = MapSignTypeString(definition.device_semantics.value_or("Other"));
+  const auto sign_meaning = MapSignTypeString(definition.device_semantics.value_or("Unknown"));
   if (sign_meaning == maliput::api::rules::TrafficSignType::kUnknown) {
     maliput::log()->debug("TrafficSignBuilder: unrecognized device_semantics='",
-                          definition.device_semantics.value_or("Other"), "' for signal id='", signal_.id.string(),
+                          definition.device_semantics.value_or("Unknown"), "' for signal id='", signal_.id.string(),
                           "'. Defaulting to TrafficSignType::kUnknown.");
   }
 
@@ -182,7 +182,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
 
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
-                        definition.device_semantics.value_or("Other"), "'. TrafficSign position: (x=", pos.x(),
+                        definition.device_semantics.value_or("Unknown"), "'. TrafficSign position: (x=", pos.x(),
                         ", y=", pos.y(), ", z=", pos.z(),
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(),
                         "), related_lanes=", related_lanes.size(), ".");

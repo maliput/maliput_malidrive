@@ -115,29 +115,25 @@ The `device_type` matching is **strict PascalCase**. Variants like `"Road_Markin
 
 #### `device_semantics`
 
-Optional string for traffic signs that identifies the semantic meaning. Defaults to `"Other"` when absent. The supported values and their mapping to `maliput::api::rules::TrafficSignType` are:
+Optional string for traffic signs that identifies the semantic meaning. Defaults to `"Other"` when absent.
 
-| `device_semantics` value | `TrafficSignType` enum      |
-|--------------------------|------------------------------|
-| `"Stop"`                 | `kStop`                     |
-| `"Yield"`                | `kYield`                    |
-| `"GiveWay"`             | `kYield`                    |
-| `"SpeedLimit"`          | `kSpeedLimit`               |
-| `"SpeedLimitBegin"`    | `kSpeedLimit`               |
-| `"NoEntry"`             | `kNoEntry`                  |
-| `"OneWay"`              | `kOneWay`                   |
-| `"PedestrianCrossing"`  | `kPedestrianCrossing`       |
-| `"Crosswalk"`            | `kPedestrianCrossing`       |
-| `"NoLeftTurn"`         | `kNoLeftTurn`               |
-| `"NoRightTurn"`        | `kNoRightTurn`              |
-| `"NoUTurn"`            | `kNoUTurn`                  |
-| `"SchoolZone"`          | `kSchoolZone`               |
-| `"Construction"`         | `kConstruction`             |
-| `"RailroadCrossing"`    | `kRailroadCrossing`         |
-| `"NoOvertaking"`        | `kNoOvertaking`             |
-| *(any Other value)*      | `kUnknown`                  |
+The mapping is one-to-one for supported PascalCase tokens:
 
-If `device_semantics` is set to a value not listed above, the builder will still create a `TrafficSign` with `TrafficSignType::kUnknown`. This allows the database to contain signal definitions for region-specific or non-standard sign types without requiring code changes.
+`"TokenName"` → `maliput::api::rules::TrafficSignType::kTokenName`
+
+Examples:
+
+| `device_semantics` value | `TrafficSignType` enum |
+|--------------------------|------------------------|
+| `"Stop"`                 | `kStop`                |
+| `"NoUTurnRight"`         | `kNoUTurnRight`        |
+| `"RoadWorks"`            | `kRoadWorks`           |
+| `"DoNotEnter"`           | `kDoNotEnter`          |
+| `"TrafficCone"`          | `kTrafficCone`         |
+| `"Stop4Way"`             | `kStop4Way`            |
+| `"Car"`                  | `kCar`                 |
+
+Any unrecognized value still maps to `kUnknown`.
 
 The `device_semantics` matching is **strict PascalCase**. Variants like `"No_Entry"` and `"NO_ENTRY"` are rejected.
 
