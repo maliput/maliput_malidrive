@@ -28,7 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/traffic_control_device_books_builder.h"
 
+#include <fstream>
 #include <memory>
+#include <sstream>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -55,6 +57,14 @@ namespace test {
 namespace {
 
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
+std::string ReadFile(const std::string& file_path) {
+  std::ifstream input(file_path);
+  EXPECT_TRUE(input.is_open());
+  std::stringstream buffer;
+  buffer << input.rdbuf();
+  return buffer.str();
+}
 
 // ---------------------------------------------------------------------------
 // TrafficControlDeviceBooksBuilder tests.
@@ -95,6 +105,27 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, AllBooksAreCreated) {
   ASSERT_NE(road_network_->traffic_sign_book(), nullptr);
   ASSERT_NE(road_network_->road_object_book(), nullptr);
   ASSERT_NE(road_network_->road_marking_book(), nullptr);
+}
+
+TEST_F(TrafficControlDeviceBooksBuilderTest, AllBooksAreCreatedFromStringDatabase) {
+  const std::string traffic_control_device_db_content = ReadFile(tcd_db_path_);
+  const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path_},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_content},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+  const auto road_network = RoadNetworkBuilder(rn_config.ToStringMap())();
+
+  ASSERT_NE(road_network, nullptr);
+  ASSERT_NE(road_network->traffic_light_book(), nullptr);
+  ASSERT_NE(road_network->traffic_sign_book(), nullptr);
+  ASSERT_NE(road_network->road_object_book(), nullptr);
+  ASSERT_NE(road_network->road_marking_book(), nullptr);
+
+  EXPECT_EQ(1u, road_network->traffic_light_book()->TrafficLights().size());
+  EXPECT_EQ(1u, road_network->traffic_sign_book()->TrafficSigns().size());
+  EXPECT_EQ(1u, road_network->road_marking_book()->RoadMarkings().size());
+  EXPECT_GE(road_network->road_object_book()->RoadObjects().size(), 1u);
 }
 
 // Verifies that the TrafficLightBook contains exactly one traffic light with the expected ID.

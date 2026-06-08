@@ -27,6 +27,8 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <memory>
+#include <fstream>
+#include <sstream>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -46,6 +48,14 @@ namespace {
 
 // Resource folder path defined via compile definition.
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+
+std::string ReadFile(const std::string& file_path) {
+  std::ifstream input(file_path);
+  EXPECT_TRUE(input.is_open());
+  std::stringstream buffer;
+  buffer << input.rdbuf();
+  return buffer.str();
+}
 
 class RoadNetworkBuilderTrafficLightsTest : public ::testing::Test {
  protected:
@@ -92,6 +102,30 @@ TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromYaml) {
     const auto bulbs = bulb_groups[0]->bulbs();
     EXPECT_EQ(3u, bulbs.size());
   }
+}
+
+// Builds a RoadNetwork with the traffic_control_device_db passed as YAML content.
+// Traffic lights should be created exactly as when passing the database file path.
+TEST_F(RoadNetworkBuilderTrafficLightsTest, BuildWithTrafficLightsFromYamlString) {
+  const std::string traffic_control_device_db_content = ReadFile(traffic_control_device_db_path_);
+  const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path_},
+      {params::kTrafficControlDeviceDb, traffic_control_device_db_content},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+  std::unique_ptr<maliput::api::RoadNetwork> dut;
+  dut = RoadNetworkBuilder(rn_config.ToStringMap())();
+  ASSERT_NE(dut, nullptr);
+
+  const auto* traffic_light_book = dut->traffic_light_book();
+  ASSERT_NE(traffic_light_book, nullptr);
+
+  const auto traffic_lights = traffic_light_book->TrafficLights();
+  EXPECT_EQ(4u, traffic_lights.size());
+  EXPECT_NE(traffic_light_book->GetTrafficLight(maliput::api::rules::TrafficLight::Id("109")), nullptr);
+  EXPECT_NE(traffic_light_book->GetTrafficLight(maliput::api::rules::TrafficLight::Id("110")), nullptr);
+  EXPECT_NE(traffic_light_book->GetTrafficLight(maliput::api::rules::TrafficLight::Id("111")), nullptr);
+  EXPECT_NE(traffic_light_book->GetTrafficLight(maliput::api::rules::TrafficLight::Id("112")), nullptr);
 }
 
 // Builds a RoadNetwork without the traffic_control_device_db parameter. The traffic
