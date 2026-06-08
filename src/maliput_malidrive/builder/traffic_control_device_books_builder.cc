@@ -53,10 +53,10 @@ namespace builder {
 
 TrafficControlDeviceBooksBuilder::TrafficControlDeviceBooksBuilder(
     const maliput::api::RoadGeometry* road_geometry, std::optional<std::string> traffic_light_book_path,
-    std::optional<std::string> traffic_control_device_db_path, bool allow_non_driveable_lanes)
+    std::optional<std::string> traffic_control_device_db, bool allow_non_driveable_lanes)
     : road_geometry_(road_geometry),
       traffic_light_book_path_(std::move(traffic_light_book_path)),
-      traffic_control_device_db_path_(std::move(traffic_control_device_db_path)),
+      traffic_control_device_db_(std::move(traffic_control_device_db)),
       allow_non_driveable_lanes_(allow_non_driveable_lanes) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, maliput::common::assertion_error, "road_geometry must not be nullptr.");
 }
@@ -65,7 +65,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
   maliput::log()->trace("Building all TrafficControlDevice books from XODR signals/objects and YAML database...");
 
   // Parse the YAML database exactly once.
-  const traffic_control_device::TrafficControlDeviceDatabaseLoader loader(traffic_control_device_db_path_);
+  const traffic_control_device::TrafficControlDeviceDatabaseLoader loader(traffic_control_device_db_);
 
   // Seed TrafficLightBook from file or start with an empty one.
   auto tlb = traffic_light_book_path_.has_value()

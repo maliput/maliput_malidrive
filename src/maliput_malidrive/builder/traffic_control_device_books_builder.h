@@ -75,7 +75,7 @@ class TrafficControlDeviceBooksBuilder {
   /// @param road_geometry Pointer to the built RoadGeometry. Must not be nullptr.
   /// @param traffic_light_book_path Optional path to a YAML file used to seed
   ///        the TrafficLightBook before processing XODR signals.
-  /// @param traffic_control_device_db_path Optional path to the YAML database that maps
+  /// @param traffic_control_device_db Optional YAML database that maps
   ///        XODR signals/objects to traffic control device definitions.
   ///        When `std::nullopt`, all books will be empty (or seeded only from
   ///        @p traffic_light_book_path for the TrafficLightBook).
@@ -84,7 +84,7 @@ class TrafficControlDeviceBooksBuilder {
   /// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
   TrafficControlDeviceBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
                                    std::optional<std::string> traffic_light_book_path,
-                                   std::optional<std::string> traffic_control_device_db_path,
+                                   std::optional<std::string> traffic_control_device_db,
                                    bool allow_non_driveable_lanes);
 
   TrafficControlDeviceBooksBuilder() = delete;
@@ -97,7 +97,7 @@ class TrafficControlDeviceBooksBuilder {
  private:
   const maliput::api::RoadGeometry* road_geometry_;
   const std::optional<std::string> traffic_light_book_path_;
-  const std::optional<std::string> traffic_control_device_db_path_;
+  const std::optional<std::string> traffic_control_device_db_;
   const bool allow_non_driveable_lanes_;
 };
 

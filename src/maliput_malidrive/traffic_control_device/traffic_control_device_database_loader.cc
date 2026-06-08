@@ -28,6 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 
+#include <filesystem>
+#include <string_view>
+
 #include <maliput/common/maliput_throw.h>
 
 #include "maliput_malidrive/common/macros.h"
@@ -35,16 +38,32 @@
 namespace malidrive {
 namespace traffic_control_device {
 
-TrafficControlDeviceDatabaseLoader::TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& file_path) {
-  if (file_path.has_value()) {
-    definitions_ = TrafficControlDeviceParser::LoadFromFile(file_path.value());
+namespace {
+
+bool ends_with(std::string_view str, std::string_view suffix) {
+  const auto str_size = str.size();
+  const auto suffix_size = suffix.size();
+  if (suffix_size > str_size) {
+    return false;
   }
+  return std::equal(suffix.rbegin(), suffix.rend(), str.rbegin());
 }
 
-TrafficControlDeviceDatabaseLoader TrafficControlDeviceDatabaseLoader::FromString(const std::string& yaml_content) {
-  TrafficControlDeviceDatabaseLoader loader;
-  loader.definitions_ = TrafficControlDeviceParser::LoadFromString(yaml_content);
-  return loader;
+}  // namespace
+
+TrafficControlDeviceDatabaseLoader::TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& database) {
+  if (database.has_value()) {
+    // Checks if value is a path to a file or the content of the YAML database.
+    // If the value ends with ".yaml" or ".yml", it is considered a path. Otherwise, it is considered content.
+    if (ends_with(database.value(), ".yaml") || ends_with(database.value(), ".yml")) {
+      if (!std::filesystem::exists(database.value())) {
+        MALIDRIVE_THROW_MESSAGE(database.value() + " is expected to be a path to a YAML file, but the file does not exist.");
+      }
+      definitions_ = TrafficControlDeviceParser::LoadFromFile(database.value());
+    } else {
+      definitions_ = TrafficControlDeviceParser::LoadFromString(database.value());
+    }
+  }
 }
 
 std::optional<TrafficControlDeviceDefinition> TrafficControlDeviceDatabaseLoader::Lookup(
