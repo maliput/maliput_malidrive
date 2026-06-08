@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.24.1 (2026-06-08)
+-------------------
+* Adding epsilon comparison to VerifyValidXodrLanePosition (`#473 <https://github.com/maliput/maliput_malidrive/issues/473>`_)
+* Contributors: Juan Carosella
+
 0.24.0 (2026-06-05)
 -------------------
 * Implementing is_dynamic/movable API (`#482 <https://github.com/maliput/maliput_malidrive/issues/482>`_)
