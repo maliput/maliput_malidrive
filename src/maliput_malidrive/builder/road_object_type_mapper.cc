@@ -32,7 +32,8 @@ namespace malidrive {
 namespace builder {
 
 // These subtype strings are based on OpenDRIVE 1.9.0 specification.
-// See https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/v1.9.0/specification/13_objects/13_14_object_examples.html#_barrier
+// See
+// https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/v1.9.0/specification/13_objects/13_14_object_examples.html#_barrier
 static const char* kGuardRailSubtype = "guardRail";
 static const char* kWallSubtype = "wall";
 static const char* kJerseySubtype = "jerseyBarrier";
@@ -51,10 +52,8 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
   switch (xodr_type.value()) {
     // @{
     case XodrType::kBarrier:
-      if (subtype == kGuardRailSubtype)
-        return MaliputType::kGuardRail;
-      if (subtype == kWallSubtype || subtype == kJerseySubtype)
-        return MaliputType::kGuardWall;
+      if (subtype == kGuardRailSubtype) return MaliputType::kGuardRail;
+      if (subtype == kWallSubtype || subtype == kJerseySubtype) return MaliputType::kGuardWall;
       // else, fall through to default barrier type.
     case XodrType::kSoundBarrier:
     case XodrType::kRailing:

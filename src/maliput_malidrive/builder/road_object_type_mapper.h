@@ -51,7 +51,8 @@ namespace builder {
 /// @param xodr_subtype The optional XODR object subtype to map.
 /// @returns The corresponding maliput RoadObjectType.
 maliput::api::objects::RoadObjectType MapXodrObjectType(
-    const std::optional<xodr::object::Object::ObjectType>& xodr_type, std::optional<std::string> xodr_subtype = std::nullopt);
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type,
+    std::optional<std::string> xodr_subtype = std::nullopt);
 
 }  // namespace builder
 }  // namespace malidrive
