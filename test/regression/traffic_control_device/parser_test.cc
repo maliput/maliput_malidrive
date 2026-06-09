@@ -1486,7 +1486,7 @@ GTEST_TEST(ConflictDetectionTest, DifferentSpecificityOverlapDoesNotThrow) {
 }
 
 GTEST_TEST(WildcardLookupTest, ExactMatchPreferredOverWildcard) {
-  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kWildcardLookupDb});
   const TrafficControlDeviceFingerprint query{.type = "1000001",
                                               .subtype = "10",
                                               .country = "OpenDRIVE",
@@ -1498,7 +1498,7 @@ GTEST_TEST(WildcardLookupTest, ExactMatchPreferredOverWildcard) {
 }
 
 GTEST_TEST(WildcardLookupTest, PartialWildcardPreferredOverCatchAll) {
-  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kWildcardLookupDb});
   const TrafficControlDeviceFingerprint query{.type = "1000001",
                                               .subtype = "99",
                                               .country = "OpenDRIVE",
@@ -1510,7 +1510,7 @@ GTEST_TEST(WildcardLookupTest, PartialWildcardPreferredOverCatchAll) {
 }
 
 GTEST_TEST(WildcardLookupTest, FallbackToCatchAll) {
-  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardLookupDb);
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kWildcardLookupDb});
   const TrafficControlDeviceFingerprint query{.type = "9999999",
                                               .subtype = std::nullopt,
                                               .country = std::nullopt,
@@ -1522,7 +1522,7 @@ GTEST_TEST(WildcardLookupTest, FallbackToCatchAll) {
 }
 
 GTEST_TEST(WildcardLookupTest, NoMatchReturnsNullopt) {
-  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kTrafficControlDeviceDb);
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kTrafficControlDeviceDb});
   const TrafficControlDeviceFingerprint query{.type = "9999999",
                                               .subtype = std::nullopt,
                                               .country = std::nullopt,
@@ -1533,7 +1533,7 @@ GTEST_TEST(WildcardLookupTest, NoMatchReturnsNullopt) {
 }
 
 GTEST_TEST(WildcardLookupTest, CatchAllMatchesAnyQuery) {
-  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kWildcardParsingDb);
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kWildcardParsingDb});
   const TrafficControlDeviceFingerprint query{.type = "any_type",
                                               .subtype = "any_subtype",
                                               .country = "any_country",
@@ -1566,7 +1566,7 @@ odr_signal_types:
       bulbs: []
       rule_states: []
 )";
-  const auto loader = TrafficControlDeviceDatabaseLoader::FromString(kNameLookupDb);
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kNameLookupDb});
   const TrafficControlDeviceFingerprint query{.type = "1000001", .name = "stop_sign"};
   const auto result = loader.Lookup(query);
   ASSERT_TRUE(result.has_value());

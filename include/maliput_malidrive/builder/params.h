@@ -77,8 +77,8 @@ static constexpr char const* kPhaseRingBook{"phase_ring_book"};
 ///   - Default: ""
 static constexpr char const* kIntersectionBook{"intersection_book"};
 
-/// Path to the YAML database file that maps XODR Signal IDs to bulb/group data
-/// for constructing maliput::api::rules::TrafficLight objects.
+/// YAML database that maps XODR Signals and XODR Objects to TrafficSigns, TrafficLights, RoadObjects and RoadMarkings.
+/// Database may come as a `.yaml` file, or as a string with YAML content.
 ///   - Default: ""
 static constexpr char const* kTrafficControlDeviceDb{"traffic_control_device_db"};
 

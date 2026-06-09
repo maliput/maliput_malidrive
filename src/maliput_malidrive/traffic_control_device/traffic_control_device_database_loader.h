@@ -37,33 +37,25 @@
 namespace malidrive {
 namespace traffic_control_device {
 
-/// Loads traffic control device definitions from a YAML database file and provides a
+/// Loads traffic control device definitions from a YAML database file or content and provides a
 /// lookup interface for querying definitions by @ref TrafficControlDeviceFingerprint.
 ///
-/// The loader is backed by the @ref TrafficControlDeviceParser. When a file path is
+/// The loader is backed by the @ref TrafficControlDeviceParser. When a database is
 /// provided at construction time the file is parsed immediately; subsequent
 /// @ref Lookup calls perform a linear scan with specificity ranking.
 ///
-/// If no file path is provided (std::nullopt) the loader starts empty and all
+/// If no database is provided (std::nullopt) the loader starts empty and all
 /// @ref Lookup calls will return std::nullopt.
 class TrafficControlDeviceDatabaseLoader {
  public:
   /// Constructs a TrafficControlDeviceDatabaseLoader.
   ///
-  /// @param file_path Optional path to the YAML traffic control device database file.
+  /// @param database Optional YAML traffic control device database file or content.
   ///        When nullopt, the loader contains no definitions and all lookups
   ///        return std::nullopt.
   /// @throws maliput::common::road_network_description_parser_error if the file
   ///         cannot be parsed or fails schema validation.
-  explicit TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& file_path);
-
-  /// Constructs a TrafficControlDeviceDatabaseLoader from a YAML string.
-  ///
-  /// @param yaml_content The YAML content as a string.
-  /// @return A TrafficControlDeviceDatabaseLoader instance initialized with the definitions from the YAML content.
-  /// @throws maliput::common::road_network_description_parser_error if the YAML
-  ///         cannot be parsed or fails schema validation.
-  static TrafficControlDeviceDatabaseLoader FromString(const std::string& yaml_content);
+  explicit TrafficControlDeviceDatabaseLoader(const std::optional<std::string>& database);
 
   /// Looks up a TrafficControlDeviceDefinition by fingerprint.
   ///
@@ -73,7 +65,7 @@ class TrafficControlDeviceDatabaseLoader {
   std::optional<TrafficControlDeviceDefinition> Lookup(const TrafficControlDeviceFingerprint& fingerprint) const;
 
  private:
-  TrafficControlDeviceDatabaseLoader() = default;
+  TrafficControlDeviceDatabaseLoader() = delete;
   std::vector<TrafficControlDeviceDefinition> definitions_;
 };
 
