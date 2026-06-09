@@ -102,6 +102,17 @@ TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(std::nullopt));
 }
 
+TEST_F(RoadObjectTypeMapperTest, SubtypeMappings) {
+  using XodrType = xodr::object::Object::ObjectType;
+  using MaliputType = maliput::api::objects::RoadObjectType;
+
+  EXPECT_EQ(MaliputType::kGuardRail, MapXodrObjectType(XodrType::kBarrier, "guardRail"));
+  EXPECT_EQ(MaliputType::kGuardWall, MapXodrObjectType(XodrType::kBarrier, "wall"));
+  EXPECT_EQ(MaliputType::kGuardWall, MapXodrObjectType(XodrType::kBarrier, "jerseyBarrier"));
+  EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, "otherSubtype"));
+  EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, std::nullopt));
+}
+
 // ---------------------------------------------------------------------------
 // RoadObjectBuilder tests.
 // Uses the TwoRoadsWithRoadObjects.xodr resource.
@@ -142,13 +153,13 @@ TEST_F(RoadObjectBuilderTest, GetRoadObjectByIdReturnsNullForUnknownId) {
   EXPECT_EQ(nullptr, road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("nonexistent")));
 }
 
-TEST_F(RoadObjectBuilderTest, BarrierObject) {
-  // obj_barrier: barrier at s=20, t=3
+TEST_F(RoadObjectBuilderTest, BarrierObjectMapsToGuardRailDueToSubtype) {
+  // obj_barrier: guard rail at s=20, t=3
   const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_barrier"));
   ASSERT_NE(road_object, nullptr);
 
   EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("obj_barrier"));
-  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kBarrier);
+  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kGuardRail);
   EXPECT_EQ(road_object->name(), "GuardRail");
   EXPECT_EQ(road_object->subtype(), "guardRail");
   EXPECT_FALSE(road_object->is_dynamic());
@@ -176,10 +187,10 @@ TEST_F(RoadObjectBuilderTest, BarrierObject) {
   EXPECT_EQ(it->second, "metal");
 }
 
-TEST_F(RoadObjectBuilderTest, FindByTypeBarrier) {
-  const auto barriers = road_object_book_->FindByType(maliput::api::objects::RoadObjectType::kBarrier);
-  ASSERT_EQ(1u, barriers.size());
-  EXPECT_EQ(barriers[0]->id(), maliput::api::objects::RoadObject::Id("obj_barrier"));
+TEST_F(RoadObjectBuilderTest, FindByTypeGuardRail) {
+  const auto guard_rails = road_object_book_->FindByType(maliput::api::objects::RoadObjectType::kGuardRail);
+  ASSERT_EQ(1u, guard_rails.size());
+  EXPECT_EQ(guard_rails[0]->id(), maliput::api::objects::RoadObject::Id("obj_barrier"));
 }
 
 TEST_F(RoadObjectBuilderTest, BuildingObjectWithRadius) {

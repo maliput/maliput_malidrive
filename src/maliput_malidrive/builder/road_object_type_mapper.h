@@ -48,9 +48,10 @@ namespace builder {
 /// A std::nullopt input maps to kUnknown.
 ///
 /// @param xodr_type The optional XODR object type to map.
+/// @param xodr_subtype The optional XODR object subtype to map.
 /// @returns The corresponding maliput RoadObjectType.
 maliput::api::objects::RoadObjectType MapXodrObjectType(
-    const std::optional<xodr::object::Object::ObjectType>& xodr_type);
+    const std::optional<xodr::object::Object::ObjectType>& xodr_type, std::optional<std::string> xodr_subtype = std::nullopt);
 
 }  // namespace builder
 }  // namespace malidrive
