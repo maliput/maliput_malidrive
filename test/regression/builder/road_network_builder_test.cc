@@ -1545,7 +1545,7 @@ TEST_F(RoadObjectBookBuilderTest, GetRoadObjectById) {
 
 TEST_F(RoadObjectBookBuilderTest, FindByType) {
   using RoadObjectType = maliput::api::objects::RoadObjectType;
-  const auto barriers = rob_->FindByType(RoadObjectType::kBarrier);
+  const auto barriers = rob_->FindByType(RoadObjectType::kGuardRail);
   EXPECT_EQ(1u, barriers.size());
 
   const auto buildings = rob_->FindByType(RoadObjectType::kBuilding);
