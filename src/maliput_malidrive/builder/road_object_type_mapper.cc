@@ -31,9 +31,9 @@
 namespace malidrive {
 namespace builder {
 
-// These subtype strings are based on OpenDRIVE 1.9.0 specification.
+// These subtype strings are based on OpenDRIVE 1.8.0 specification.
 // See
-// https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/v1.9.0/specification/13_objects/13_14_object_examples.html#_barrier
+// https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/1.8.0/specification/13_objects/13_14_object_examples.html
 static const char* kGuardRailSubtype = "guardRail";
 static const char* kWallSubtype = "wall";
 static const char* kJerseySubtype = "jerseyBarrier";
