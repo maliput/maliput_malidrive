@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.25.0 (2026-06-10)
+-------------------
+* Map XODR object barrier to kGuardRail, kGuardWall, kBarrier based on subtype. (`#487 <https://github.com/maliput/maliput_malidrive/issues/487>`_)
+* Add mapping for new TrafficSignTypes. (`#486 <https://github.com/maliput/maliput_malidrive/issues/486>`_)
+* Support traffic_control_device databases in string format. (`#485 <https://github.com/maliput/maliput_malidrive/issues/485>`_)
+* Contributors: Santiago Lopez
+
 0.24.1 (2026-06-08)
 -------------------
 * Adding epsilon comparison to VerifyValidXodrLanePosition (`#473 <https://github.com/maliput/maliput_malidrive/issues/473>`_)
