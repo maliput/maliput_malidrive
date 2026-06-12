@@ -106,8 +106,6 @@ odr_object_types:
   # Road marking: Crosswalk
   - odr_representation:
       type: crosswalk
-      subtype: "*"
-      name: "*"
     properties:
       device_type: RoadMarking
       device_semantics: Crosswalk
