@@ -44,6 +44,7 @@
 #include "maliput_malidrive/builder/road_network_builder.h"
 #include "maliput_malidrive/builder/road_network_configuration.h"
 #include "maliput_malidrive/builder/road_object_type_mapper.h"
+#include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
@@ -414,6 +415,66 @@ TEST_F(RoadObjectBuilderTest, VegetationOutlineId) {
   const auto* outline = road_object->outline(0);
   ASSERT_NE(outline, nullptr);
   EXPECT_EQ(outline->id(), maliput::api::objects::Outline::Id("vegetation_star_outline"));
+}
+
+class RoadObjectBuilderElevatedRoadTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("SingleRoadElevatedAllDeviceTypes.xodr", kMalidriveResourceFolder);
+    tcd_db_path_ = utility::FindResourceInPath("traffic_control_device_db/all_device_types_test_db.yaml",
+                                               kMalidriveResourceFolder);
+
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kTrafficControlDeviceDb, tcd_db_path_},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+
+    const auto manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+    const auto road_headers = manager->GetRoadHeaders();
+    const auto road_header_it = road_headers.find(xodr::RoadHeader::Id("1"));
+    ASSERT_NE(road_header_it, road_headers.end());
+    ASSERT_TRUE(road_header_it->second.objects.has_value());
+
+    bool found_object = false;
+    for (const auto& object : road_header_it->second.objects->objects) {
+      if (object.id.string() == "OBJ_BARRIER") {
+        object_ = object;
+        found_object = true;
+        break;
+      }
+    }
+    ASSERT_TRUE(found_object);
+
+    loader_ = std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(tcd_db_path_);
+  }
+
+  std::string tcd_db_path_;
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  xodr::object::Object object_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+};
+
+TEST_F(RoadObjectBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
+  RoadObjectBuilder builder(object_, xodr::RoadHeader::Id("1"), *loader_, road_geometry_);
+  const auto road_object = builder();
+  ASSERT_NE(road_object, nullptr);
+
+  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{1, object_.s, object_.t};
+  const maliput::api::RoadPosition rp =
+      road_geometry_->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+  const double road_surface_z = rp.ToInertialPosition().z();
+  const double road_object_z = road_object->position().inertial_position().z();
+
+  EXPECT_NEAR(road_surface_z + object_.z_offset, road_object_z, 1e-6);
+  EXPECT_GT(std::abs(road_object_z - object_.z_offset), 1.0);
 }
 
 TEST_F(RoadObjectBuilderTest, FindByLane) {

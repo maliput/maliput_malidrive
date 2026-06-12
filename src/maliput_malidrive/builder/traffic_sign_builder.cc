@@ -132,7 +132,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   // the road.
   maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
   maliput::api::InertialPosition pos = rp.ToInertialPosition();
-  pos.set_z(signal_.z_offset);
+  pos.set_z(pos.z() + signal_.z_offset);
   // The traffic sign's orientation is set based on the lane's orientation at the traffic sign's position.
   const double orientation =
       rp.lane->GetOrientation(rp.pos).yaw() + (signal_.h_offset.has_value() ? signal_.h_offset.value() : 0.);
