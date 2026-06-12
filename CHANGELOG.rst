@@ -4,6 +4,7 @@ Changelog for package maliput_malidrive
 
 0.25.1 (2026-06-12)
 -------------------
+* Setting author email and name (`#494 <https://github.com/maliput/maliput_malidrive/issues/494>`_)
 * Fix XODR signals and objects z position. (`#492 <https://github.com/maliput/maliput_malidrive/issues/492>`_)
 * Setting wildcard as default db value for objects (`#491 <https://github.com/maliput/maliput_malidrive/issues/491>`_)
 * Updating Bazel release process (`#490 <https://github.com/maliput/maliput_malidrive/issues/490>`_)
