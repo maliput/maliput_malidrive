@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.25.1 (2026-06-12)
+-------------------
+* Fix XODR signals and objects z position. (`#492 <https://github.com/maliput/maliput_malidrive/issues/492>`_)
+* Setting wildcard as default db value for objects (`#491 <https://github.com/maliput/maliput_malidrive/issues/491>`_)
+* Updating Bazel release process (`#490 <https://github.com/maliput/maliput_malidrive/issues/490>`_)
+* Contributors: Juan Carosella, Santiago Lopez
+
 0.25.0 (2026-06-10)
 -------------------
 * Map XODR object barrier to kGuardRail, kGuardWall, kBarrier based on subtype. (`#487 <https://github.com/maliput/maliput_malidrive/issues/487>`_)
