@@ -122,7 +122,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
                                                                             object_.t};
   const maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
   maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
-  inertial_pos.set_z(object_.z_offset);
+  inertial_pos.set_z(inertial_pos.z() + object_.z_offset);
 
   const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
 
