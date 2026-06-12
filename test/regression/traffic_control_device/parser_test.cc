@@ -1625,8 +1625,11 @@ odr_object_types:
   const auto road_objects = FilterByDeviceType(defs, TrafficControlDeviceType::kRoadObject);
   ASSERT_EQ(road_objects.size(), 1);
   EXPECT_EQ(road_objects[0].fingerprint.type, "pole");
-  EXPECT_FALSE(road_objects[0].fingerprint.subtype.has_value());
-  EXPECT_FALSE(road_objects[0].fingerprint.name.has_value());
+  // Missing optional fields should default to wildcard "*"
+  ASSERT_TRUE(road_objects[0].fingerprint.subtype.has_value());
+  EXPECT_EQ(road_objects[0].fingerprint.subtype.value(), TrafficControlDeviceParser::kWildcard);
+  ASSERT_TRUE(road_objects[0].fingerprint.name.has_value());
+  EXPECT_EQ(road_objects[0].fingerprint.name.value(), TrafficControlDeviceParser::kWildcard);
   ASSERT_TRUE(road_objects[0].default_bounding_box.has_value());
   EXPECT_NEAR(road_objects[0].default_bounding_box->length, 0.2, kTolerance);
   EXPECT_NEAR(road_objects[0].default_bounding_box->width, 0.2, kTolerance);
@@ -1867,8 +1870,11 @@ odr_object_types:
   const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
   ASSERT_EQ(defs.size(), 1);
   EXPECT_EQ(defs[0].fingerprint.type, "pole");
-  EXPECT_FALSE(defs[0].fingerprint.subtype.has_value());
-  EXPECT_FALSE(defs[0].fingerprint.name.has_value());
+  // Missing optional fields for object entries should default to wildcard "*"
+  ASSERT_TRUE(defs[0].fingerprint.subtype.has_value());
+  EXPECT_EQ(defs[0].fingerprint.subtype.value(), TrafficControlDeviceParser::kWildcard);
+  ASSERT_TRUE(defs[0].fingerprint.name.has_value());
+  EXPECT_EQ(defs[0].fingerprint.name.value(), TrafficControlDeviceParser::kWildcard);
   EXPECT_FALSE(defs[0].fingerprint.country.has_value());
   EXPECT_FALSE(defs[0].fingerprint.country_revision.has_value());
 }
@@ -2045,6 +2051,106 @@ odr_object_types:
   EXPECT_NEAR(defs[0].default_bounding_box->length, 0.0, kTolerance);
   EXPECT_NEAR(defs[0].default_bounding_box->width, 0.0, kTolerance);
   EXPECT_NEAR(defs[0].default_bounding_box->height, 0.0, kTolerance);
+}
+
+// Regression test for issue where object entries without explicit name/subtype
+// fields should default to wildcard ("*") instead of nullopt.
+// This was causing crosswalk objects to not match queries unless name was explicitly set.
+GTEST_TEST(ObjectWildcardDefaultRegressionTest, ObjectWithoutNameDefaultsToWildcard) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: "crosswalk"
+    properties:
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+
+  const auto& def = defs[0];
+  EXPECT_EQ(def.fingerprint.type, "crosswalk");
+  EXPECT_EQ(def.fingerprint.subtype, TrafficControlDeviceParser::kWildcard);
+  EXPECT_EQ(def.fingerprint.name, TrafficControlDeviceParser::kWildcard);
+  EXPECT_EQ(def.device_semantics, "Crosswalk");
+}
+
+GTEST_TEST(ObjectWildcardDefaultRegressionTest, ObjectWithoutSubtypeDefaultsToWildcard) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: "roadMark"
+      name: "Stencil_ArrowType4L"
+    properties:
+      device_type: RoadMarking
+      device_semantics: LeftArrow
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+
+  const auto& def = defs[0];
+  EXPECT_EQ(def.fingerprint.type, "roadMark");
+  EXPECT_EQ(def.fingerprint.subtype, TrafficControlDeviceParser::kWildcard);
+  EXPECT_EQ(def.fingerprint.name, "Stencil_ArrowType4L");
+}
+
+GTEST_TEST(ObjectWildcardDefaultRegressionTest, LookupWorksWithMissingNameField) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: "crosswalk"
+    properties:
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+
+  // Query with a specific name should still match the database entry
+  // because the database entry has name="*" (wildcard)
+  TrafficControlDeviceDatabaseLoader loader(kDb);
+  const auto query = TrafficControlDeviceFingerprint{
+      .type = "crosswalk",
+      .subtype = TrafficControlDeviceParser::kWildcard,
+      .country = std::nullopt,
+      .country_revision = std::nullopt,
+      .name = "LadderCrosswalk",  // Specific name, but should match wildcard in DB
+  };
+
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->fingerprint.type, "crosswalk");
+  EXPECT_EQ(result->device_semantics, "Crosswalk");
+}
+
+GTEST_TEST(ObjectWildcardDefaultRegressionTest, LookupWithWildcardNameMatches) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: "crosswalk"
+      name: "LadderCrosswalk"
+    properties:
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+)";
+  const auto defs = TrafficControlDeviceParser::LoadFromString(kDb);
+  ASSERT_EQ(defs.size(), 1);
+
+  // Query with specific name should match database entry that has this exact name.
+  TrafficControlDeviceDatabaseLoader loader(kDb);
+  const auto query = TrafficControlDeviceFingerprint{
+      .type = "crosswalk",
+      .subtype = TrafficControlDeviceParser::kWildcard,
+      .country = std::nullopt,
+      .country_revision = std::nullopt,
+      .name = "LadderCrosswalk",  // Specific name query
+  };
+
+  const auto result = loader.Lookup(query);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->fingerprint.type, "crosswalk");
+  EXPECT_EQ(result->fingerprint.name, "LadderCrosswalk");
+  EXPECT_EQ(result->device_semantics, "Crosswalk");
 }
 
 }  // namespace

@@ -505,7 +505,7 @@ TrafficControlDeviceDefinition ParseObjectDefinition(const YAML::Node& entry_nod
   // --- Parse fingerprint from odr_representation ---
   tcd_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
 
-  if (const auto subtype = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kSubtype)) {
+  if (const auto subtype = GetOptionalStringFieldWildcardDefault(repr_node, TrafficControlDeviceConstants::kSubtype)) {
     if (subtype.value() == "-1" || subtype.value() == "none") {
       tcd_definition.fingerprint.subtype = std::nullopt;
     } else {
@@ -513,11 +513,9 @@ TrafficControlDeviceDefinition ParseObjectDefinition(const YAML::Node& entry_nod
     }
   }
 
-  if (const auto name = GetOptionalStringField(repr_node, TrafficControlDeviceConstants::kName)) {
+  if (const auto name = GetOptionalStringFieldWildcardDefault(repr_node, TrafficControlDeviceConstants::kName)) {
     tcd_definition.fingerprint.name = name;
   }
-
-  // country and country_revision left as std::nullopt by construction.
 
   // --- Parse properties ---
   const std::string device_type_str = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
