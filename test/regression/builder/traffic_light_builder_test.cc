@@ -189,6 +189,68 @@ TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
   EXPECT_NEAR(position.y(), -2.8325, 1e-3);
 }
 
+class TrafficLightBuilderElevatedRoadTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("SingleRoadElevatedAllDeviceTypes.xodr", kMalidriveResourceFolder);
+    traffic_control_device_db_path_ = utility::FindResourceInPath(
+        "traffic_control_device_db/all_device_types_test_db.yaml", kMalidriveResourceFolder);
+
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+    const auto manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+
+    const auto road_headers = manager->GetRoadHeaders();
+    ASSERT_FALSE(road_headers.empty());
+    const auto road_header = road_headers.find(xodr::RoadHeader::Id("1"));
+    ASSERT_FALSE(road_header == road_headers.end());
+    ASSERT_TRUE(road_header->second.signals.has_value());
+    ASSERT_FALSE(road_header->second.signals->signals.empty());
+
+    bool found_signal = false;
+    for (const auto& signal : road_header->second.signals->signals) {
+      if (signal.id.string() == "TL1") {
+        signal_ = signal;
+        found_signal = true;
+        break;
+      }
+    }
+    ASSERT_TRUE(found_signal);
+    loader_ =
+        std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(traffic_control_device_db_path_);
+  }
+
+  std::string traffic_control_device_db_path_;
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  xodr::signal::Signal signal_{0.0, 0.0, xodr::signal::Signal::Id("none")};
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+};
+
+TEST_F(TrafficLightBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
+  TrafficLightBuilder builder(signal_, xodr::RoadHeader::Id("1"), *loader_, road_geometry_);
+  const auto traffic_light = builder();
+  ASSERT_NE(traffic_light, nullptr);
+
+  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{1, signal_.s, signal_.t};
+  const maliput::api::RoadPosition rp =
+      road_geometry_->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+  const double road_surface_z = rp.ToInertialPosition().z();
+  const double traffic_light_z = traffic_light->position_road_network().z();
+
+  EXPECT_NEAR(road_surface_z + signal_.z_offset, traffic_light_z, 1e-6);
+  EXPECT_GT(std::abs(traffic_light_z - signal_.z_offset), 1.0);
+}
+
 // ---------------------------------------------------------------------------
 // Tests using TwoRoadsWithTrafficLights.xodr / traffic_control_device_db/traffic_control_device_db_example.yaml.
 //

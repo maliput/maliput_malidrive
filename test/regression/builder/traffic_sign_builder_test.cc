@@ -184,6 +184,70 @@ TEST_F(TrafficSignBuilderFigure8Test, BuildTrafficSignThrowsOnUnrecognizedUnit) 
 }
 
 // ---------------------------------------------------------------------------
+// Tests using SingleRoadElevatedAllDeviceTypes.xodr.
+//
+// This map encodes extracted characteristics needed for the regression: a
+// non-zero road elevation profile (z around 15 m at s=0) and a sign with
+// zOffset=5 m. It verifies TrafficSign z is road-relative (road_z + zOffset),
+// not world-relative.
+// ---------------------------------------------------------------------------
+
+class TrafficSignBuilderElevatedRoadTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("SingleRoadElevatedAllDeviceTypes.xodr", kMalidriveResourceFolder);
+    traffic_control_device_db_path_ = utility::FindResourceInPath(
+        "traffic_control_device_db/all_device_types_test_db.yaml", kMalidriveResourceFolder);
+
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kTrafficControlDeviceDb, traffic_control_device_db_path_},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+    const auto manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+
+    // Road 1 has a stop sign with non-zero zOffset on top of non-zero road elevation.
+    const auto road_headers = manager->GetRoadHeaders();
+    ASSERT_FALSE(road_headers.empty());
+    const auto road_header = road_headers.find(xodr::RoadHeader::Id("1"));
+    ASSERT_FALSE(road_header == road_headers.end());
+    ASSERT_TRUE(road_header->second.signals.has_value());
+    ASSERT_FALSE(road_header->second.signals->signals.empty());
+    signal_ = road_header->second.signals->signals[0];
+    loader_ =
+        std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(traffic_control_device_db_path_);
+  }
+
+  std::string traffic_control_device_db_path_;
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  xodr::signal::Signal signal_{0.0, 0.0, xodr::signal::Signal::Id("none")};
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+};
+
+TEST_F(TrafficSignBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
+  const xodr::signal::Signal& stop_signal = signal_;
+  TrafficSignBuilder builder(stop_signal, xodr::RoadHeader::Id("1"), *loader_, road_geometry_);
+  const auto traffic_sign = builder();
+  ASSERT_NE(traffic_sign, nullptr);
+
+  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{1, stop_signal.s, stop_signal.t};
+  const maliput::api::RoadPosition rp =
+      road_geometry_->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+  const double road_surface_z = rp.ToInertialPosition().z();
+  const double traffic_sign_z = traffic_sign->position_road_network().z();
+
+  EXPECT_NEAR(road_surface_z + stop_signal.z_offset, traffic_sign_z, 1e-6);
+  EXPECT_GT(std::abs(traffic_sign_z - stop_signal.z_offset), 1.0);
+}
+
+// ---------------------------------------------------------------------------
 // Tests using TwoRoadsWithTrafficSigns.xodr / traffic_control_device_db/traffic_control_device_db_example.yaml.
 //
 // This lightweight map defines two straight roads (Road 1 and Road 2), each
