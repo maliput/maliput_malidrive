@@ -30,6 +30,38 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 odr_signal_types:
+  # Stop sign (static traffic sign).
+  - odr_representation:
+      type: "206"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: TrafficSign
+      device_semantics: Stop
+      description: "Stop sign. Requires a complete stop before proceeding."
+
+      rule_states:
+        - conditions: []
+          value: "StopThenGo"
+
+  # Auxiliary all-way plaque modeled as a TrafficSign.
+  - odr_representation:
+      type: "1022"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: TrafficSign
+      device_semantics: AllWay
+      description: "All-way supplementary sign."
+
+      rule_states:
+        - conditions: []
+          value: ""
+
   # Speed limit sign (static traffic sign).
   - odr_representation:
       type: "274"
