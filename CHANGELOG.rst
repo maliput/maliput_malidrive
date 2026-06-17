@@ -2,6 +2,12 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.0 (2026-06-17)
+-------------------
+* Reworking road marking types to be more generic (`#497 <https://github.com/maliput/maliput_malidrive/issues/497>`_)
+* Implement dependent_signs API. (`#496 <https://github.com/maliput/maliput_malidrive/issues/496>`_)
+* Contributors: Juan Carosella, Santiago Lopez
+
 0.25.1 (2026-06-12)
 -------------------
 * Setting author email and name (`#494 <https://github.com/maliput/maliput_malidrive/issues/494>`_)
