@@ -160,7 +160,7 @@ TEST_F(RoadMarkingBuilderTest, BuildArrowForward) {
   ASSERT_NE(road_marking, nullptr);
 
   EXPECT_EQ(road_marking->id(), maliput::api::objects::RoadMarking::Id("rm_arrow"));
-  EXPECT_EQ(road_marking->type(), maliput::api::objects::RoadMarkingType::kArrowForward);
+  EXPECT_EQ(road_marking->type(), maliput::api::objects::RoadMarkingType::kPrescribedStraight);
 
   const auto& pos = road_marking->position().inertial_position();
   EXPECT_NEAR(pos.x(), 70.0, 0.5);

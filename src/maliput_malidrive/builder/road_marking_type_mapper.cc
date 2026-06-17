@@ -42,21 +42,21 @@ maliput::api::objects::RoadMarkingType MapRoadMarkingTypeString(const std::strin
       {"StopLine", T::kStopLine},
       {"Crosswalk", T::kCrosswalk},
       {"ZebraCrossing", T::kCrosswalk},
-      {"ParkingSpace", T::kParkingSpace},
+      {"ParkingSpace", T::kCarParking},
       {"EmergencyLane", T::kEmergencyLane},
       {"SpeedLimit", T::kSpeedLimit},
-      {"NoStopping", T::kDoNotStop},
-      {"RailRoadCrossing", T::kRailRoad},
+      {"NoStopping", T::kNoStopping},
+      {"RailRoadCrossing", T::kRailroadCrossing},
       {"GiveWay", T::kGiveWay},
-      {"ArrowTurnRight", T::kArrowTurnRight},
-      {"ArrowTurnLeft", T::kArrowTurnLeft},
-      {"ArrowForwardTurnRight", T::kArrowForwardTurnRight},
-      {"ArrowForwardTurnLeft", T::kArrowForwardTurnLeft},
-      {"ArrowForward", T::kArrowForward},
-      {"ArrowForwardTurnRightTurnLeft", T::kArrowForwardTurnRightTurnLeft},
-      {"ArrowTurnRightTurnLeft", T::kArrowTurnRightTurnLeft},
-      {"ArrowUTurnRight", T::kArrowUTurnRight},
-      {"ArrowUTurnLeft", T::kArrowUTurnLeft},
+      {"ArrowTurnRight", T::kPrescribedRightTurn},
+      {"ArrowTurnLeft", T::kPrescribedLeftTurn},
+      {"ArrowForwardTurnRight", T::kPrescribedRightTurnAndStraight},
+      {"ArrowForwardTurnLeft", T::kPrescribedLeftTurnAndStraight},
+      {"ArrowForward", T::kPrescribedStraight},
+      {"ArrowForwardTurnRightTurnLeft", T::kPrescribedLeftTurnRightTurnAndStraight},
+      {"ArrowTurnRightTurnLeft", T::kPrescribedLeftTurnAndRightTurn},
+      {"ArrowUTurnRight", T::kPrescribedUTurnRight},
+      {"ArrowUTurnLeft", T::kPrescribedUTurnLeft},
   };
   const auto it = kMapper.find(device_semantics);
   return it != kMapper.end() ? it->second : T::kUnknown;
@@ -80,7 +80,7 @@ maliput::api::objects::RoadMarkingType MapXodrObjectTypeToRoadMarkingType(
     case XodrType::kCrosswalk:
       return MaliputType::kCrosswalk;
     case XodrType::kParkingSpace:
-      return MaliputType::kParkingSpace;
+      return MaliputType::kCarParking;
     default:
       return MaliputType::kUnknown;
   }
