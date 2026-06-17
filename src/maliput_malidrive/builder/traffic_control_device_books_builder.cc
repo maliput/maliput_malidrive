@@ -28,7 +28,9 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/traffic_control_device_books_builder.h"
 
+#include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include <maliput/base/road_marking_book.h>
 #include <maliput/base/road_object_book.h>
@@ -47,9 +49,37 @@
 #include "maliput_malidrive/traffic_control_device/parser.h"
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/object/object.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 namespace malidrive {
 namespace builder {
+
+namespace {
+
+std::unordered_map<std::string, std::vector<xodr::signal::Signal::Id>> BuildDependentSignalIndex(
+    const malidrive::RoadGeometry* mali_rg, bool allow_non_driveable_lanes) {
+  std::unordered_map<std::string, std::vector<xodr::signal::Signal::Id>> dependent_signals_by_signal_id;
+  for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
+    if (!road_header.signals.has_value()) {
+      continue;
+    }
+    if (!allow_non_driveable_lanes) {
+      if (AreOnlyNonDrivableLanes(road_header)) {
+        maliput::log()->debug("Skipping dependency pre-processing on road '", road_id.string(),
+                              "' since it has no driveable lanes.");
+        continue;
+      }
+    }
+    for (const auto& signal : road_header.signals->signals) {
+      for (const auto& dependency : signal.dependencies) {
+        dependent_signals_by_signal_id[dependency.signal_id.string()].push_back(signal.id);
+      }
+    }
+  }
+  return dependent_signals_by_signal_id;
+}
+
+}  // namespace
 
 TrafficControlDeviceBooksBuilder::TrafficControlDeviceBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
                                                                    std::optional<std::string> traffic_light_book_path,
@@ -84,6 +114,9 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
 
   // Pre-build the signal-reference index once.
   const auto signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();
+
+  // Pre-build reverse signal dependencies: controlling-signal-id -> dependent signal IDs.
+  const auto dependent_signals_by_signal_id = BuildDependentSignalIndex(mali_rg, allow_non_driveable_lanes_);
 
   // --- Signals pass: route to TrafficLightBook or TrafficSignBook ---
   for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
@@ -134,7 +167,14 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
           tlb_impl->AddTrafficLight(std::move(tl));
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kTrafficSign) {
-        auto ts = TrafficSignBuilder(signal, road_id, loader, road_geometry_, std::move(refs))();
+        std::vector<xodr::signal::Signal::Id> dependent_sign_ids;
+        const auto dependent_it = dependent_signals_by_signal_id.find(signal.id.string());
+        if (dependent_it != dependent_signals_by_signal_id.end()) {
+          dependent_sign_ids = dependent_it->second;
+        }
+
+        auto ts = TrafficSignBuilder(signal, road_id, loader, road_geometry_, std::move(refs),
+                                     std::move(dependent_sign_ids))();
         if (ts) {
           tsb->AddTrafficSign(std::move(ts));
         }

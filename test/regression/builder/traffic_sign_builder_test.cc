@@ -32,6 +32,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <gtest/gtest.h>
@@ -493,6 +494,62 @@ TEST_F(TrafficSignBuilderSpeedLimitTest, SpeedLimitSignPosition) {
   EXPECT_NEAR(100., pos.x(), 1e-1);
   EXPECT_NEAR(3., pos.y(), 1e-1);
   EXPECT_NEAR(2.5, pos.z(), 1e-1);
+}
+
+// ---------------------------------------------------------------------------
+// Tests using XCrossStopAllWay.xodr / testing_database.yaml.
+//
+// This map has four incoming approaches (one lane per road). Each approach has
+// two signals: a stop sign and an all-way sign. The all-way sign declares a
+// dependency on its paired stop sign via <dependency id="STx"/>.
+//
+// Expected behavior: each stop sign reports its corresponding all-way sign in
+// dependent_signs().
+// ---------------------------------------------------------------------------
+
+class TrafficSignBuilderDependencyTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file = utility::FindResourceInPath("XCrossStopAllWay.xodr", kMalidriveResourceFolder);
+    const std::string yaml_db =
+        utility::FindResourceInPath("traffic_control_device_db/testing_database.yaml", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    traffic_sign_book_ = road_network_->traffic_sign_book();
+    ASSERT_NE(traffic_sign_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::rules::TrafficSignBook* traffic_sign_book_{};
+};
+
+TEST_F(TrafficSignBuilderDependencyTest, StopSignsExposeAllWayAsDependentSigns) {
+  const std::vector<std::pair<std::string, std::string>> expected_dependencies{
+      {"ST1", "AW1"},
+      {"ST2", "AW2"},
+      {"ST3", "AW3"},
+      {"ST4", "AW4"},
+  };
+
+  for (const auto& [stop_id, all_way_id] : expected_dependencies) {
+    const auto* stop_sign = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id(stop_id));
+    ASSERT_NE(stop_sign, nullptr);
+    EXPECT_EQ(maliput::api::rules::TrafficSignType::kStop, stop_sign->type());
+
+    const auto& dependent_signs = stop_sign->dependent_signs();
+    ASSERT_EQ(1u, dependent_signs.size());
+    EXPECT_EQ(all_way_id, dependent_signs.at(0).string());
+
+    const auto* all_way_sign = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id(all_way_id));
+    ASSERT_NE(all_way_sign, nullptr);
+    EXPECT_EQ(maliput::api::rules::TrafficSignType::kAllWay, all_way_sign->type());
+  }
 }
 
 }  // namespace

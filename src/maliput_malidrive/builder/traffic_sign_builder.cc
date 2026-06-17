@@ -85,12 +85,14 @@ std::optional<maliput::api::rules::TrafficSignValueUnit> StringToValueUnit(const
 TrafficSignBuilder::TrafficSignBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                                        const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                        const maliput::api::RoadGeometry* road_geometry,
-                                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
+                                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references,
+                                       std::vector<xodr::signal::Signal::Id> dependent_signs)
     : signal_(signal),
       road_id_(road_id),
       loader_(loader),
       road_geometry_(road_geometry),
-      signal_references_(std::move(signal_references)) {
+      signal_references_(std::move(signal_references)),
+      dependent_signs_(std::move(dependent_signs)) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
 }
 
@@ -180,6 +182,18 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
     properties.emplace("name", signal_.name.value());
   }
 
+  // TrafficSign dynamic semantics are sourced from the XODR signal's `dynamic`.
+  const bool is_dynamic = signal_.dynamic;
+  // TrafficSign positional movability is sourced from DB `is_position_dynamic`.
+  const bool is_movable = definition.is_position_dynamic;
+
+  // Converts dependent XODR signal IDs to TrafficSign::Id for the TrafficSign constructor.
+  std::vector<maliput::api::rules::TrafficSign::Id> dependent_signs;
+  dependent_signs.reserve(dependent_signs_.size());
+  for (const auto& dependent_sign_id : dependent_signs_) {
+    dependent_signs.emplace_back(dependent_sign_id.string());
+  }
+
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
                         definition.device_semantics.value_or("Unknown"), "'. TrafficSign position: (x=", pos.x(),
@@ -187,15 +201,10 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
                         ") with orientation (roll=0, pitch=0, yaw=", orientation_road_network.yaw(),
                         "), related_lanes=", related_lanes.size(), ".");
 
-  // TrafficSign dynamic semantics are sourced from the XODR signal's `dynamic`.
-  const bool is_dynamic = signal_.dynamic;
-  // TrafficSign positional movability is sourced from DB `is_position_dynamic`.
-  const bool is_movable = definition.is_position_dynamic;
-
-  return std::make_unique<maliput::api::rules::TrafficSign>(maliput::api::rules::TrafficSign::Id(signal_.id.string()),
-                                                            sign_meaning, pos, orientation_road_network, signal_.text,
-                                                            std::move(related_lanes), bounding_box, traffic_sign_value,
-                                                            std::move(properties), is_dynamic, is_movable);
+  return std::make_unique<maliput::api::rules::TrafficSign>(
+      maliput::api::rules::TrafficSign::Id(signal_.id.string()), sign_meaning, pos, orientation_road_network,
+      signal_.text, std::move(related_lanes), std::move(dependent_signs), bounding_box, traffic_sign_value,
+      std::move(properties), is_dynamic, is_movable);
 }
 
 }  // namespace builder

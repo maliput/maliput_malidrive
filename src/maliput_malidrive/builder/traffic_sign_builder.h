@@ -63,11 +63,13 @@ class TrafficSignBuilder {
   /// @param signal_references Signal references from other roads that point to @p signal.
   ///        Each entry carries the referencing road's ID and the reference itself, whose
   ///        validity/s-coordinate is used to resolve related lanes on the referencing road.
+  /// @param dependent_signs IDs of signs that depend on @p signal.
   /// @throws std::invalid_argument if @p road_geometry is nullptr.
   TrafficSignBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                      const maliput::api::RoadGeometry* road_geometry,
-                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {});
+                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {},
+                     std::vector<xodr::signal::Signal::Id> dependent_sign_ids = {});
 
   /// Builds and returns the @ref maliput::api::rules::TrafficSign.
   ///
@@ -80,6 +82,7 @@ class TrafficSignBuilder {
   const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
   const std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references_;
+  const std::vector<xodr::signal::Signal::Id> dependent_signs_;
 };
 
 }  // namespace builder
