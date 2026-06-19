@@ -407,11 +407,13 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
   const std::string device_type_str = GetRequiredStringField(props_node, TrafficControlDeviceConstants::kDeviceType);
   tcd_definition.device_type = StringToTrafficControlDeviceType(device_type_str);
   MALIDRIVE_VALIDATE(tcd_definition.device_type == TrafficControlDeviceType::kTrafficLight ||
-                         tcd_definition.device_type == TrafficControlDeviceType::kTrafficSign,
+                         tcd_definition.device_type == TrafficControlDeviceType::kTrafficSign ||
+                         tcd_definition.device_type == TrafficControlDeviceType::kRoadMarking ||
+                         tcd_definition.device_type == TrafficControlDeviceType::kRoadObject,
                      maliput::common::road_network_description_parser_error,
                      "device_type '" + device_type_str +
                          "' is not allowed for odr_signal_types entries; "
-                         "expected 'traffic_light' or 'traffic_sign'.");
+                         "expected 'traffic_light', 'traffic_sign', 'road_marking', or 'road_object'.");
 
   tcd_definition.device_semantics = GetOptionalStringField(props_node, TrafficControlDeviceConstants::kDeviceSemantics);
 

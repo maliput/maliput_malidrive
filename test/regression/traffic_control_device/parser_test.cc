@@ -1768,27 +1768,32 @@ odr_object_types:
   EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kDb), maliput::common::road_network_description_parser_error);
 }
 
-GTEST_TEST(OdrObjectTypesParserTest, RejectsObjectDeviceTypeInSignal) {
+GTEST_TEST(OdrObjectTypesParserTest, AcceptsRoadDeviceTypesInSignal) {
   const char kRoadMarkingInSignal[] = R"(
 odr_signal_types:
   - odr_representation:
       type: "1000001"
     properties:
       device_type: RoadMarking
-      description: "Should fail"
+      device_semantics: Crosswalk
+      description: "Road marking from signal"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRoadMarkingInSignal),
-               maliput::common::road_network_description_parser_error);
+  const auto road_marking_defs = TrafficControlDeviceParser::LoadFromString(kRoadMarkingInSignal);
+  ASSERT_EQ(road_marking_defs.size(), 1u);
+  EXPECT_EQ(road_marking_defs[0].device_type, TrafficControlDeviceType::kRoadMarking);
+
   const char kRoadObjectInSignal[] = R"(
 odr_signal_types:
   - odr_representation:
       type: "1000001"
     properties:
       device_type: RoadObject
-      description: "Should fail"
+      device_semantics: Barrier
+      description: "Road object from signal"
 )";
-  EXPECT_THROW(TrafficControlDeviceParser::LoadFromString(kRoadObjectInSignal),
-               maliput::common::road_network_description_parser_error);
+  const auto road_object_defs = TrafficControlDeviceParser::LoadFromString(kRoadObjectInSignal);
+  ASSERT_EQ(road_object_defs.size(), 1u);
+  EXPECT_EQ(road_object_defs[0].device_type, TrafficControlDeviceType::kRoadObject);
 }
 
 GTEST_TEST(OdrObjectTypesParserTest, EqualSpecificityObjectConflictIsRejected) {
