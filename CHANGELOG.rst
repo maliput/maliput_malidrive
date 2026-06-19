@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.26.1 (2026-06-19)
+-------------------
+* Using correct db mapper for RoadMarkings (`#499 <https://github.com/maliput/maliput_malidrive/issues/499>`_)
+* Contributors: Juan Carosella
+
 0.26.0 (2026-06-17)
 -------------------
 * Reworking road marking types to be more generic (`#497 <https://github.com/maliput/maliput_malidrive/issues/497>`_)
