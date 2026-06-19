@@ -43,25 +43,27 @@ TEST_F(RoadMarkingTypeMapperTest, DirectMappings) {
   EXPECT_EQ(T::kStop, MapRoadMarkingTypeString("Stop"));
   EXPECT_EQ(T::kStopLine, MapRoadMarkingTypeString("StopLine"));
   EXPECT_EQ(T::kCrosswalk, MapRoadMarkingTypeString("Crosswalk"));
-  EXPECT_EQ(T::kCrosswalk, MapRoadMarkingTypeString("ZebraCrossing"));
-  EXPECT_EQ(T::kCarParking, MapRoadMarkingTypeString("ParkingSpace"));
+  EXPECT_EQ(T::kZebraCrossing, MapRoadMarkingTypeString("ZebraCrossing"));
+  EXPECT_EQ(T::kCarParking, MapRoadMarkingTypeString("CarParking"));
   EXPECT_EQ(T::kEmergencyLane, MapRoadMarkingTypeString("EmergencyLane"));
   EXPECT_EQ(T::kSpeedLimit, MapRoadMarkingTypeString("SpeedLimit"));
   EXPECT_EQ(T::kNoStopping, MapRoadMarkingTypeString("NoStopping"));
-  EXPECT_EQ(T::kRailroadCrossing, MapRoadMarkingTypeString("RailRoadCrossing"));
+  EXPECT_EQ(T::kRailroadCrossing, MapRoadMarkingTypeString("RailroadCrossing"));
   EXPECT_EQ(T::kGiveWay, MapRoadMarkingTypeString("GiveWay"));
+  EXPECT_EQ(T::kOther, MapRoadMarkingTypeString("Other"));
 }
 
 TEST_F(RoadMarkingTypeMapperTest, ArrowMappings) {
-  EXPECT_EQ(T::kPrescribedRightTurn, MapRoadMarkingTypeString("ArrowTurnRight"));
-  EXPECT_EQ(T::kPrescribedLeftTurn, MapRoadMarkingTypeString("ArrowTurnLeft"));
-  EXPECT_EQ(T::kPrescribedRightTurnAndStraight, MapRoadMarkingTypeString("ArrowForwardTurnRight"));
-  EXPECT_EQ(T::kPrescribedLeftTurnAndStraight, MapRoadMarkingTypeString("ArrowForwardTurnLeft"));
-  EXPECT_EQ(T::kPrescribedStraight, MapRoadMarkingTypeString("ArrowForward"));
-  EXPECT_EQ(T::kPrescribedLeftTurnRightTurnAndStraight, MapRoadMarkingTypeString("ArrowForwardTurnRightTurnLeft"));
-  EXPECT_EQ(T::kPrescribedLeftTurnAndRightTurn, MapRoadMarkingTypeString("ArrowTurnRightTurnLeft"));
-  EXPECT_EQ(T::kPrescribedUTurnRight, MapRoadMarkingTypeString("ArrowUTurnRight"));
-  EXPECT_EQ(T::kPrescribedUTurnLeft, MapRoadMarkingTypeString("ArrowUTurnLeft"));
+  EXPECT_EQ(T::kPrescribedRightTurn, MapRoadMarkingTypeString("PrescribedRightTurn"));
+  EXPECT_EQ(T::kPrescribedLeftTurn, MapRoadMarkingTypeString("PrescribedLeftTurn"));
+  EXPECT_EQ(T::kPrescribedRightTurnAndStraight, MapRoadMarkingTypeString("PrescribedRightTurnAndStraight"));
+  EXPECT_EQ(T::kPrescribedLeftTurnAndStraight, MapRoadMarkingTypeString("PrescribedLeftTurnAndStraight"));
+  EXPECT_EQ(T::kPrescribedStraight, MapRoadMarkingTypeString("PrescribedStraight"));
+  EXPECT_EQ(T::kPrescribedLeftTurnRightTurnAndStraight,
+            MapRoadMarkingTypeString("PrescribedLeftTurnRightTurnAndStraight"));
+  EXPECT_EQ(T::kPrescribedLeftTurnAndRightTurn, MapRoadMarkingTypeString("PrescribedLeftTurnAndRightTurn"));
+  EXPECT_EQ(T::kPrescribedUTurnRight, MapRoadMarkingTypeString("PrescribedUTurnRight"));
+  EXPECT_EQ(T::kPrescribedUTurnLeft, MapRoadMarkingTypeString("PrescribedUTurnLeft"));
 }
 
 TEST_F(RoadMarkingTypeMapperTest, StrictPascalCase) {
@@ -74,7 +76,6 @@ TEST_F(RoadMarkingTypeMapperTest, StrictPascalCase) {
 }
 
 TEST_F(RoadMarkingTypeMapperTest, UnknownMappings) {
-  EXPECT_EQ(T::kUnknown, MapRoadMarkingTypeString("Other"));
   EXPECT_EQ(T::kUnknown, MapRoadMarkingTypeString("other"));
   EXPECT_EQ(T::kUnknown, MapRoadMarkingTypeString("none"));
   EXPECT_EQ(T::kUnknown, MapRoadMarkingTypeString(""));

@@ -59,8 +59,8 @@ odr_object_types:
       name: "ArrowForward"
     properties:
       device_type: RoadMarking
-      device_semantics: ArrowForward
-      description: "Forward Arrow road marking"
+      device_semantics: PrescribedStraight
+      description: "Prescribed straight road marking"
 
   # Generic roadMark (fallback with lower specificity).
   - odr_representation:

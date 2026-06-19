@@ -37,27 +37,13 @@ namespace builder {
 
 maliput::api::objects::RoadMarkingType MapRoadMarkingTypeString(const std::string& device_semantics) {
   using T = maliput::api::objects::RoadMarkingType;
-  static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper{
-      {"Stop", T::kStop},
-      {"StopLine", T::kStopLine},
-      {"Crosswalk", T::kCrosswalk},
-      {"ZebraCrossing", T::kCrosswalk},
-      {"ParkingSpace", T::kCarParking},
-      {"EmergencyLane", T::kEmergencyLane},
-      {"SpeedLimit", T::kSpeedLimit},
-      {"NoStopping", T::kNoStopping},
-      {"RailRoadCrossing", T::kRailroadCrossing},
-      {"GiveWay", T::kGiveWay},
-      {"ArrowTurnRight", T::kPrescribedRightTurn},
-      {"ArrowTurnLeft", T::kPrescribedLeftTurn},
-      {"ArrowForwardTurnRight", T::kPrescribedRightTurnAndStraight},
-      {"ArrowForwardTurnLeft", T::kPrescribedLeftTurnAndStraight},
-      {"ArrowForward", T::kPrescribedStraight},
-      {"ArrowForwardTurnRightTurnLeft", T::kPrescribedLeftTurnRightTurnAndStraight},
-      {"ArrowTurnRightTurnLeft", T::kPrescribedLeftTurnAndRightTurn},
-      {"ArrowUTurnRight", T::kPrescribedUTurnRight},
-      {"ArrowUTurnLeft", T::kPrescribedUTurnLeft},
-  };
+  static const std::unordered_map<std::string, T, maliput::common::DefaultHash> kMapper = [] {
+    std::unordered_map<std::string, T, maliput::common::DefaultHash> result;
+    for (const auto& [type, type_name] : maliput::api::objects::RoadMarkingTypeMapper()) {
+      result.emplace(type_name, type);
+    }
+    return result;
+  }();
   const auto it = kMapper.find(device_semantics);
   return it != kMapper.end() ? it->second : T::kUnknown;
 }
