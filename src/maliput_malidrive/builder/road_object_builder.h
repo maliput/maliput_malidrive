@@ -36,25 +36,45 @@
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 namespace malidrive {
 namespace builder {
 
-/// Builds a single @ref maliput::api::objects::RoadObject from an XODR
-/// @ref xodr::object::Object.
+/// Builds a single @ref maliput::api::objects::RoadObject from either an XODR
+/// @ref xodr::object::Object or an XODR @ref xodr::signal::Signal.
 ///
 /// The builder follows the functor pattern: construct it with all required
-/// inputs and call @ref operator()() to produce the result.
+/// inputs and an explicit source selector, then call @ref operator()() to
+/// produce the result.
 class RoadObjectBuilder {
  public:
+  enum class SourceType {
+    kObject,
+    kSignal,
+  };
+
   /// Constructs a RoadObjectBuilder.
   ///
+  /// @param source_type The XODR element type this builder will read from.
   /// @param object The XODR object to build a RoadObject from.
   /// @param road_id The XODR road's ID the @p object belongs to.
   /// @param loader Database loader for looking up object device definitions.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
-  /// @throws std::invalid_argument if @p road_geometry is nullptr.
-  RoadObjectBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+  /// @throws std::invalid_argument if @p source_type is not kObject or @p road_geometry is nullptr.
+  RoadObjectBuilder(SourceType source_type, const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+                    const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
+                    const maliput::api::RoadGeometry* road_geometry);
+
+  /// Constructs a RoadObjectBuilder.
+  ///
+  /// @param source_type The XODR element type this builder will read from.
+  /// @param signal The XODR signal to build a RoadObject from.
+  /// @param road_id The XODR road's ID the @p signal belongs to.
+  /// @param loader Database loader for looking up signal device definitions.
+  /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
+  /// @throws std::invalid_argument if @p source_type is not kSignal or @p road_geometry is nullptr.
+  RoadObjectBuilder(SourceType source_type, const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                     const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                     const maliput::api::RoadGeometry* road_geometry);
 
@@ -64,7 +84,9 @@ class RoadObjectBuilder {
   std::unique_ptr<maliput::api::objects::RoadObject> operator()() const;
 
  private:
-  const xodr::object::Object& object_;
+  SourceType source_type_;
+  const xodr::object::Object* object_{nullptr};
+  const xodr::signal::Signal* signal_{nullptr};
   const xodr::RoadHeader::Id& road_id_;
   const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
