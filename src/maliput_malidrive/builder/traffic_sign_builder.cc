@@ -85,14 +85,12 @@ std::optional<maliput::api::rules::TrafficSignValueUnit> StringToValueUnit(const
 TrafficSignBuilder::TrafficSignBuilder(const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                                        const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                        const maliput::api::RoadGeometry* road_geometry,
-                                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references,
-                                       std::vector<xodr::signal::Signal::Id> dependent_signs)
+                                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
     : signal_(signal),
       road_id_(road_id),
       loader_(loader),
       road_geometry_(road_geometry),
-      signal_references_(std::move(signal_references)),
-      dependent_signs_(std::move(dependent_signs)) {
+      signal_references_(std::move(signal_references)) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
 }
 
@@ -189,11 +187,8 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
 
   // Converts dependent XODR signal IDs to TrafficSign::Id for the TrafficSign constructor.
   std::vector<maliput::api::rules::TrafficSign::Id> dependent_signs;
-  dependent_signs.reserve(dependent_signs_.size());
-  for (const auto& dependent_sign_id : dependent_signs_) {
-    dependent_signs.emplace_back(dependent_sign_id.string());
-  }
-
+  for (const auto& dependent_sign : signal_.dependencies) {
+    dependent_signs.emplace_back(dependent_sign.signal_id.string());
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
                         definition.device_semantics.value_or("Unknown"), "'. TrafficSign position: (x=", pos.x(),

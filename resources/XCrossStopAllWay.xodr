@@ -31,12 +31,12 @@
 
  Four straight roads arranged as an X-cross intersection approach. Each road has
  one incoming lane and two signals on that approach:
-   - Stop sign (type="206")
-   - All-way supplementary sign (type="1022") with dependency on the stop sign
+   - Stop sign (type="206") with dependency on the all-way sign
+   - All-way supplementary sign (type="1022")
 
- Dependencies are encoded on the all-way sign via:
-   <dependency id="STx"/>
- and should produce reverse relationships where stop signs expose all-way signs
+ Dependencies are encoded on the stop sign via:
+   <dependency id="AWx"/>
+ and should produce relationships where stop signs expose all-way signs
  in TrafficSign::dependent_signs().
 -->
 <OpenDRIVE>
@@ -66,15 +66,15 @@
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="206" subtype="-1" value="-1" text=""
-                    height="6.1000000000000000e-1" width="6.1000000000000000e-1"/>
+                    height="6.1000000000000000e-1" width="6.1000000000000000e-1">
+                <dependency id="AW1"/>
+            </signal>
             <signal id="AW1" name="AllWay_AW1" s="5.8000000000000000e+1" t="-1.5000000000000000e+0"
                     zOffset="1.2000000000000000e+0" hOffset="0.0000000000000000e+0"
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="1022" subtype="-1" value="-1" text="ALL WAY"
-                    height="3.0000000000000000e-1" width="5.0000000000000000e-1">
-                <dependency id="ST1"/>
-            </signal>
+                    height="3.0000000000000000e-1" width="5.0000000000000000e-1"/>
         </signals>
     </road>
 
@@ -102,15 +102,15 @@
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="206" subtype="-1" value="-1" text=""
-                    height="6.1000000000000000e-1" width="6.1000000000000000e-1"/>
+                    height="6.1000000000000000e-1" width="6.1000000000000000e-1">
+                <dependency id="AW2"/>
+            </signal>
             <signal id="AW2" name="AllWay_AW2" s="5.8000000000000000e+1" t="-1.5000000000000000e+0"
                     zOffset="1.2000000000000000e+0" hOffset="0.0000000000000000e+0"
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="1022" subtype="-1" value="-1" text="ALL WAY"
-                    height="3.0000000000000000e-1" width="5.0000000000000000e-1">
-                <dependency id="ST2"/>
-            </signal>
+                    height="3.0000000000000000e-1" width="5.0000000000000000e-1"/>
         </signals>
     </road>
 
@@ -138,15 +138,15 @@
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="206" subtype="-1" value="-1" text=""
-                    height="6.1000000000000000e-1" width="6.1000000000000000e-1"/>
+                    height="6.1000000000000000e-1" width="6.1000000000000000e-1">
+                <dependency id="AW3"/>
+            </signal>
             <signal id="AW3" name="AllWay_AW3" s="5.8000000000000000e+1" t="-1.5000000000000000e+0"
                     zOffset="1.2000000000000000e+0" hOffset="0.0000000000000000e+0"
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="1022" subtype="-1" value="-1" text="ALL WAY"
-                    height="3.0000000000000000e-1" width="5.0000000000000000e-1">
-                <dependency id="ST3"/>
-            </signal>
+                    height="3.0000000000000000e-1" width="5.0000000000000000e-1"/>
         </signals>
     </road>
 
@@ -174,15 +174,15 @@
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="206" subtype="-1" value="-1" text=""
-                    height="6.1000000000000000e-1" width="6.1000000000000000e-1"/>
+                    height="6.1000000000000000e-1" width="6.1000000000000000e-1">
+                <dependency id="AW4"/>
+            </signal>
             <signal id="AW4" name="AllWay_AW4" s="5.8000000000000000e+1" t="-1.5000000000000000e+0"
                     zOffset="1.2000000000000000e+0" hOffset="0.0000000000000000e+0"
                     roll="0.0000000000000000e+0" pitch="0.0000000000000000e+0"
                     orientation="+" dynamic="no" country="OpenDRIVE"
                     type="1022" subtype="-1" value="-1" text="ALL WAY"
-                    height="3.0000000000000000e-1" width="5.0000000000000000e-1">
-                <dependency id="ST4"/>
-            </signal>
+                    height="3.0000000000000000e-1" width="5.0000000000000000e-1"/>
         </signals>
     </road>
 </OpenDRIVE>
