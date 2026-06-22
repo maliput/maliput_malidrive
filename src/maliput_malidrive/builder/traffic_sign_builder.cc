@@ -189,6 +189,8 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   std::vector<maliput::api::rules::TrafficSign::Id> dependent_signs;
   for (const auto& dependent_sign : signal_.dependencies) {
     dependent_signs.emplace_back(dependent_sign.signal_id.string());
+  }
+
   maliput::log()->debug("TrafficSignBuilder: creating TrafficSign for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "' device_semantics='",
                         definition.device_semantics.value_or("Unknown"), "'. TrafficSign position: (x=", pos.x(),
