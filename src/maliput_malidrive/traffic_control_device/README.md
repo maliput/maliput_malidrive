@@ -11,8 +11,8 @@ A traffic control device type definition describes the physical structure, seman
 
 The database has **two root keys**:
 
-- **`odr_signal_types`** — devices represented by OpenDRIVE `signal` elements (traffic lights, traffic signs, road markings, and road objects).
-- **`odr_object_types`** — devices represented by OpenDRIVE `object` elements (road markings, road objects).
+- **`odr_signal_types`** — devices represented by XODR `signal` elements (traffic lights, traffic signs, road markings, and road objects).
+- **`odr_object_types`** — devices represented by XODR `object` elements (road markings, road objects).
 
 At least one of the two root keys must be present. The parser returns a single flat `std::vector<TrafficControlDeviceDefinition>` that mixes signal and object entries; downstream code discriminates them via the `device_type` field.
 
@@ -66,7 +66,7 @@ odr_signal_types:
       rule_states: [...]          # Optional: only meaningful for TrafficLight
 ```
 
-For signals, `device_type` MUST be `TrafficLight`, `TrafficSign`, `RoadMarking`, or `RoadObject`.
+For signals, `device_type` MUST be `TrafficLight`, `TrafficSign`, `RoadMarking` or `RoadObject`.
 
 ### `odr_object_types`
 
