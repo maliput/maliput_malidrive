@@ -2,6 +2,14 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.27.0 (2026-06-22)
+-------------------
+* RoadMarkingBuilder accepts XODR signals as input. (`#507 <https://github.com/maliput/maliput_malidrive/issues/507>`_)
+* RoadObjectBuilder accepts XODR signals. (`#506 <https://github.com/maliput/maliput_malidrive/issues/506>`_)
+* odr_signal_types now allows RoadMarkings and RoadObjects. (`#503 <https://github.com/maliput/maliput_malidrive/issues/503>`_)
+* Fix: build signal dependencies from parent to child sign. (`#505 <https://github.com/maliput/maliput_malidrive/issues/505>`_)
+* Contributors: Santiago Lopez
+
 0.26.1 (2026-06-19)
 -------------------
 * Using correct db mapper for RoadMarkings (`#499 <https://github.com/maliput/maliput_malidrive/issues/499>`_)
