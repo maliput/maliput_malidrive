@@ -140,6 +140,11 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         if (ts) {
           tsb->AddTrafficSign(std::move(ts));
         }
+      } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
+        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_)();
+        if (ro) {
+          rob->AddRoadObject(std::move(ro));
+        }
       } else {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: signal id='", signal.id.string(),
                               "' has device_type='",
@@ -176,7 +181,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
                               "' name='", object.name.value_or(""), "'.");
-        auto ro = RoadObjectBuilder(object, road_id, loader, road_geometry_)();
+        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
@@ -196,14 +201,9 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
                                object.id.string(), "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
-        try {
-          auto ro = RoadObjectBuilder(object, road_id, loader, road_geometry_)();
-          if (ro) {
-            rob->AddRoadObject(std::move(ro));
-          }
-        } catch (const std::exception& e) {
-          maliput::log()->warn("TrafficControlDeviceBooksBuilder: failed to build RoadObject id='", object.id.string(),
-                               "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
+        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();
+        if (ro) {
+          rob->AddRoadObject(std::move(ro));
         }
       } else {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: object id='", object.id.string(),

@@ -56,6 +56,22 @@ namespace test {
 namespace {
 
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+const char kSignalRoadObjectDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      name: "*"
+    properties:
+      device_type: RoadObject
+      device_semantics: Barrier
+      is_position_dynamic: true
+      default_bounding_box:
+        length: 1.0
+        width: 0.5
+        height: 1.2
+)";
 
 // ---------------------------------------------------------------------------
 // Type mapper tests.
@@ -463,7 +479,8 @@ class RoadObjectBuilderElevatedRoadTest : public ::testing::Test {
 };
 
 TEST_F(RoadObjectBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
-  RoadObjectBuilder builder(object_, xodr::RoadHeader::Id("1"), *loader_, road_geometry_);
+  RoadObjectBuilder builder(RoadObjectBuilder::SourceType::kObject, object_, xodr::RoadHeader::Id("1"), *loader_,
+                            road_geometry_);
   const auto road_object = builder();
   ASSERT_NE(road_object, nullptr);
 
@@ -475,6 +492,60 @@ TEST_F(RoadObjectBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
 
   EXPECT_NEAR(road_surface_z + object_.z_offset, road_object_z, 1e-6);
   EXPECT_GT(std::abs(road_object_z - object_.z_offset), 1.0);
+}
+
+class RoadObjectBuilderSignalTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("RoadWithAllDeviceTypes.xodr", kMalidriveResourceFolder);
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+
+    const auto* manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+    const auto road_headers = manager->GetRoadHeaders();
+    const auto road_header_it = road_headers.find(xodr::RoadHeader::Id("1"));
+    ASSERT_NE(road_header_it, road_headers.end());
+    ASSERT_TRUE(road_header_it->second.signals.has_value());
+    signals_ = road_header_it->second.signals->signals;
+    loader_ = std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(kSignalRoadObjectDb);
+  }
+
+  const xodr::signal::Signal& FindSignal(const std::string& id) const {
+    for (const auto& signal : signals_) {
+      if (signal.id.string() == id) return signal;
+    }
+    MALIPUT_THROW_MESSAGE("Signal " + id + " not found");
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  std::vector<xodr::signal::Signal> signals_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+};
+
+TEST_F(RoadObjectBuilderSignalTest, BuildRoadObjectFromSignal) {
+  const auto& signal = FindSignal("TL1");
+  RoadObjectBuilder builder(RoadObjectBuilder::SourceType::kSignal, signal, xodr::RoadHeader::Id("1"), *loader_,
+                            road_geometry_);
+  auto road_object = builder();
+  ASSERT_NE(road_object, nullptr);
+
+  EXPECT_EQ(road_object->id(), maliput::api::objects::RoadObject::Id("TL1"));
+  EXPECT_EQ(road_object->type(), maliput::api::objects::RoadObjectType::kBarrier);
+  EXPECT_TRUE(road_object->is_dynamic());
+  EXPECT_TRUE(road_object->is_movable());
+  EXPECT_EQ(road_object->num_outlines(), 0);
+  EXPECT_EQ(road_object->related_lanes().size(), 1u);
+  EXPECT_NEAR(road_object->bounding_box().box_size().x(), 1.0, 1e-6);
+  EXPECT_NEAR(road_object->bounding_box().box_size().y(), 0.5, 1e-6);
 }
 
 TEST_F(RoadObjectBuilderTest, FindByLane) {

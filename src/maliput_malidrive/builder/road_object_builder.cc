@@ -76,12 +76,42 @@ class MalidriveRoadObject final : public maliput::api::objects::RoadObject {
                    std::move(subtype), std::move(outlines), std::move(properties), is_movable) {}
 };
 
+std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
+  if (subtype.empty() || subtype == "-1" || subtype == "none") {
+    return std::nullopt;
+  }
+  return subtype;
+}
+
+std::optional<maliput::api::objects::RoadObjectType> StringToRoadObjectType(const std::string& device_semantics) {
+  const auto mapper = maliput::api::objects::RoadObjectTypeMapper();
+  for (const auto& [type, name] : mapper) {
+    if (device_semantics == name) {
+      return type;
+    }
+  }
+  return std::nullopt;
+}
+
 }  // namespace
 
-RoadObjectBuilder::RoadObjectBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::object::Object& object,
+                                     const xodr::RoadHeader::Id& road_id,
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                      const maliput::api::RoadGeometry* road_geometry)
-    : object_(object), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+    : source_type_(source_type), object_(&object), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+  MALIDRIVE_VALIDATE(source_type_ == SourceType::kObject, std::invalid_argument,
+                     "RoadObjectBuilder object constructor requires SourceType::kObject.");
+  MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
+}
+
+RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::signal::Signal& signal,
+                                     const xodr::RoadHeader::Id& road_id,
+                                     const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
+                                     const maliput::api::RoadGeometry* road_geometry)
+    : source_type_(source_type), signal_(&signal), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+  MALIDRIVE_VALIDATE(source_type_ == SourceType::kSignal, std::invalid_argument,
+                     "RoadObjectBuilder signal constructor requires SourceType::kSignal.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
 }
 
@@ -90,94 +120,168 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
   MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error,
                      "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
 
-  // Look up the object definition to retrieve is_movable from the database.
-  const std::string type_str =
-      object_.type.has_value() ? xodr::object::Object::object_type_to_str(object_.type.value()) : "";
-  const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
-      type_str,     object_.subtype,
-      std::nullopt,  // country (not used for objects)
-      std::nullopt,  // country_revision (not used for objects)
-      object_.name,
-  };
+  switch (source_type_) {
+    case SourceType::kObject: {
+      MALIDRIVE_VALIDATE(object_ != nullptr, maliput::common::assertion_error,
+                         "RoadObjectBuilder object source is not set.");
+      const auto& object = *object_;
+      const std::string type_str =
+          object.type.has_value() ? xodr::object::Object::object_type_to_str(object.type.value()) : "";
+      const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
+          type_str, object.subtype, std::nullopt, std::nullopt, object.name,
+      };
+      bool is_movable = false;
+      const auto definition_opt = loader_.Lookup(fingerprint);
+      if (definition_opt.has_value() &&
+          definition_opt.value().device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
+        is_movable = definition_opt.value().is_position_dynamic;
+      }
 
-  bool is_movable = false;  // Default to false if definition not found or device_type is not kRoadObject.
-  const auto definition_opt = loader_.Lookup(fingerprint);
-  if (definition_opt.has_value() &&
-      definition_opt.value().device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
-    is_movable = definition_opt.value().is_position_dynamic;
+      // --- Position ---
+      double object_s = object.s;
+      if (is_almost_equal(object.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
+        std::ostringstream s_str, adjusted_s_str;
+        s_str << std::fixed << std::setprecision(10) << object.s;
+        adjusted_s_str << std::fixed << std::setprecision(10) << (object.s - kEpsilon);
+        maliput::log()->warn("RoadObjectBuilder: Object ", object.id.string(), " has s coordinate ", s_str.str(),
+                             " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
+                             " to avoid potential issues with lane association and orientation.");
+        object_s -= kEpsilon;
+      }
+
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_s,
+                                                                                object.t};
+      const maliput::api::RoadPosition rp =
+          mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+      maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
+      inertial_pos.set_z(inertial_pos.z() + object.z_offset);
+      const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
+
+      // --- Orientation ---
+      const bool perp_to_road = object.perp_to_road.value_or(false);
+      const maliput::math::RollPitchYaw road_orientation =
+          mali_rg->GetRoadOrientationAtOpenScenarioRoadPosition(osc_road_position);
+      const double hdg = object.hdg.value_or(0.);
+      const double pitch = perp_to_road ? 0. : object.pitch.value_or(0.);
+      const double roll = perp_to_road ? 0. : object.roll.value_or(0.);
+      const double orientation_offset =
+          (object.orientation.has_value() && object.orientation.value() == xodr::object::Orientation::kNegative) ? M_PI
+                                                                                                                 : 0.;
+      const maliput::api::Rotation orientation =
+          maliput::api::Rotation::FromRpy(road_orientation.roll_angle() + roll, road_orientation.pitch_angle() + pitch,
+                                          road_orientation.yaw_angle() + hdg + orientation_offset);
+
+      // --- Bounding box ---
+      double bb_length = object.length.value_or(0.);
+      double bb_width = object.width.value_or(0.);
+      const double bb_height = object.height.value_or(0.);
+      if (object.radius.has_value()) {
+        bb_length = 2.0 * object.radius.value();
+        bb_width = 2.0 * object.radius.value();
+      }
+      const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., 0.),
+                                                    maliput::math::Vector3(bb_length, bb_width, bb_height),
+                                                    maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
+
+      // --- Type ---
+      const maliput::api::objects::RoadObjectType type = MapXodrObjectType(object.type, object.subtype);
+      // --- Related lanes ---
+      auto related_lanes = ResolveLaneIds(road_id_, object_s, object.validities, road_geometry_);
+      // --- Outlines ---
+      auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
+
+      std::unordered_map<std::string, std::string> properties;
+      if (!object.materials.empty()) {
+        properties["material"] = object.materials[0].surface.value_or("");
+        properties["subtype"] = object.subtype.value_or("");
+      }
+
+      maliput::log()->debug("RoadObjectBuilder: creating RoadObject id='", object.id.string(),
+                            "' type=", static_cast<int>(type), " position=(", inertial_pos.x(), ", ", inertial_pos.y(),
+                            ", ", inertial_pos.z(), ") related_lanes=", related_lanes.size(), ".");
+
+      return std::make_unique<MalidriveRoadObject>(maliput::api::objects::RoadObject::Id(object.id.string()), type,
+                                                   position, orientation, bounding_box, object.dynamic.value_or(false),
+                                                   std::move(related_lanes), object.name, object.subtype,
+                                                   std::move(outlines), std::move(properties), is_movable);
+    }
+    case SourceType::kSignal: {
+      MALIDRIVE_VALIDATE(signal_ != nullptr, maliput::common::assertion_error,
+                         "RoadObjectBuilder signal source is not set.");
+      const auto& signal = *signal_;
+      const traffic_control_device::TrafficControlDeviceFingerprint fingerprint{
+          signal.type, NormalizeSubtype(signal.subtype), signal.country, signal.country_revision, signal.name,
+      };
+      bool is_movable = false;
+      std::optional<maliput::api::objects::RoadObjectType> type_from_db;
+      const auto definition_opt = loader_.Lookup(fingerprint);
+      if (definition_opt.has_value() &&
+          definition_opt.value().device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
+        is_movable = definition_opt.value().is_position_dynamic;
+        if (definition_opt.value().device_semantics.has_value()) {
+          type_from_db = StringToRoadObjectType(definition_opt.value().device_semantics.value());
+        }
+      }
+
+      // --- Position ---
+      double signal_s = signal.s;
+      if (is_almost_equal(signal.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
+        std::ostringstream s_str, adjusted_s_str;
+        s_str << std::fixed << std::setprecision(10) << signal.s;
+        adjusted_s_str << std::fixed << std::setprecision(10) << (signal.s - kEpsilon);
+        maliput::log()->warn("RoadObjectBuilder: Signal ", signal.id.string(), " has s coordinate ", s_str.str(),
+                             " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
+                             " to avoid potential issues with lane association and orientation.");
+        signal_s -= kEpsilon;
+      }
+
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_s,
+                                                                                signal.t};
+      const maliput::api::RoadPosition rp =
+          mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
+      maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
+      inertial_pos.set_z(inertial_pos.z() + signal.z_offset);
+      const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
+
+      // --- Orientation ---
+      const maliput::math::RollPitchYaw road_orientation =
+          mali_rg->GetRoadOrientationAtOpenScenarioRoadPosition(osc_road_position);
+      const double orientation_offset = signal.orientation == xodr::signal::Orientation::kAgainstS ? 0. : M_PI;
+      const maliput::api::Rotation orientation = maliput::api::Rotation::FromRpy(
+          road_orientation.roll_angle() + signal.roll.value_or(0.),
+          road_orientation.pitch_angle() + signal.pitch.value_or(0.),
+          road_orientation.yaw_angle() + signal.h_offset.value_or(0.) + orientation_offset);
+
+      // --- Bounding box ---
+      const auto default_bounding_box =
+          definition_opt.has_value()
+              ? definition_opt->default_bounding_box.value_or(traffic_control_device::BoundingBoxDimensions{})
+              : traffic_control_device::BoundingBoxDimensions{};
+      const double bb_length = signal.length.value_or(default_bounding_box.length);
+      const double bb_width = signal.width.value_or(default_bounding_box.width);
+      const double bb_height = signal.height.value_or(default_bounding_box.height);
+      const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., 0.),
+                                                    maliput::math::Vector3(bb_length, bb_width, bb_height),
+                                                    maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
+
+      // --- Related lanes ---
+      auto related_lanes = ResolveLaneIds(road_id_, signal_s, signal.validities, road_geometry_);
+      // --- Type ---
+      const auto type = type_from_db.value_or(maliput::api::objects::RoadObjectType::kUnknown);
+
+      maliput::log()->debug("RoadObjectBuilder: creating RoadObject id='", signal.id.string(),
+                            "' type=", static_cast<int>(type), " position=(", inertial_pos.x(), ", ", inertial_pos.y(),
+                            ", ", inertial_pos.z(), ") related_lanes=", related_lanes.size(), ".");
+
+      return std::make_unique<MalidriveRoadObject>(
+          maliput::api::objects::RoadObject::Id(signal.id.string()), type, position, orientation, bounding_box,
+          signal.dynamic, std::move(related_lanes), signal.name, NormalizeSubtype(signal.subtype),
+          std::vector<std::unique_ptr<maliput::api::objects::Outline>>{},
+          std::unordered_map<std::string, std::string>{}, is_movable);
+    }
   }
 
-  // --- Position ---
-  double object_s = object_.s;
-  if (is_almost_equal(object_.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
-    std::ostringstream s_str, adjusted_s_str;
-    s_str << std::fixed << std::setprecision(10) << object_.s;
-    adjusted_s_str << std::fixed << std::setprecision(10) << (object_.s - kEpsilon);
-    maliput::log()->warn("RoadObjectBuilder: Object ", object_.id.string(), " has s coordinate ", s_str.str(),
-                         " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
-                         " to avoid potential issues with lane association and orientation.");
-    object_s -= kEpsilon;
-  }
-  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_s,
-                                                                            object_.t};
-  const maliput::api::RoadPosition rp = mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
-  maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
-  inertial_pos.set_z(inertial_pos.z() + object_.z_offset);
-
-  const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
-
-  // --- Orientation ---
-  const bool perp_to_road = object_.perp_to_road.value_or(false);
-  const maliput::math::RollPitchYaw road_orientation =
-      mali_rg->GetRoadOrientationAtOpenScenarioRoadPosition(osc_road_position);
-  const double hdg = object_.hdg.value_or(0.);
-  const double pitch = perp_to_road ? 0. : object_.pitch.value_or(0.);
-  const double roll = perp_to_road ? 0. : object_.roll.value_or(0.);
-  const double orientation_offset =
-      (object_.orientation.has_value() && object_.orientation.value() == xodr::object::Orientation::kNegative) ? M_PI
-                                                                                                               : 0.;
-  const maliput::api::Rotation orientation =
-      maliput::api::Rotation::FromRpy(road_orientation.roll_angle() + roll, road_orientation.pitch_angle() + pitch,
-                                      road_orientation.yaw_angle() + hdg + orientation_offset);
-
-  // --- Bounding box ---
-  double bb_length = object_.length.value_or(0.);
-  double bb_width = object_.width.value_or(0.);
-  const double bb_height = object_.height.value_or(0.);
-  if (object_.radius.has_value()) {
-    bb_length = 2.0 * object_.radius.value();
-    bb_width = 2.0 * object_.radius.value();
-  }
-  const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., 0.),
-                                                maliput::math::Vector3(bb_length, bb_width, bb_height),
-                                                maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
-
-  // --- Type ---
-  const maliput::api::objects::RoadObjectType type = MapXodrObjectType(object_.type, object_.subtype);
-
-  // --- Related lanes ---
-  auto related_lanes = ResolveLaneIds(road_id_, object_s, object_.validities, road_geometry_);
-
-  // --- Outlines ---
-  auto outlines = BuildOutlines(object_, road_id_, road_geometry_, inertial_pos, orientation);
-
-  // --- Properties ---
-  std::unordered_map<std::string, std::string> properties;
-  if (!object_.materials.empty()) {
-    properties["material"] = object_.materials[0].surface.value_or("");
-    properties["subtype"] = object_.subtype.value_or("");
-  }
-
-  // --- is_dynamic ---
-  const bool is_dynamic = object_.dynamic.value_or(false);
-
-  maliput::log()->debug("RoadObjectBuilder: creating RoadObject id='", object_.id.string(),
-                        "' type=", static_cast<int>(type), " position=(", inertial_pos.x(), ", ", inertial_pos.y(),
-                        ", ", inertial_pos.z(), ") related_lanes=", related_lanes.size(), ".");
-
-  return std::make_unique<MalidriveRoadObject>(
-      maliput::api::objects::RoadObject::Id(object_.id.string()), type, position, orientation, bounding_box, is_dynamic,
-      std::move(related_lanes), object_.name, object_.subtype, std::move(outlines), std::move(properties), is_movable);
+  MALIDRIVE_THROW_MESSAGE("RoadObjectBuilder received an unsupported source type.", maliput::common::assertion_error);
 }
 
 }  // namespace builder

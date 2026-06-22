@@ -57,6 +57,36 @@ namespace test {
 namespace {
 
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+const char kSignalRoadDevicesDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: RoadObject
+      device_semantics: Barrier
+      is_position_dynamic: true
+      default_bounding_box:
+        length: 1.0
+        width: 0.5
+        height: 1.2
+odr_object_types:
+  - odr_representation:
+      type: crosswalk
+    properties:
+      device_type: RoadMarking
+      device_semantics: Crosswalk
+  - odr_representation:
+      type: barrier
+      subtype: "*"
+      name: "*"
+    properties:
+      device_type: RoadObject
+      is_position_dynamic: true
+)";
 
 std::string ReadFile(const std::string& file_path) {
   std::ifstream input(file_path);
