@@ -500,8 +500,8 @@ TEST_F(TrafficSignBuilderSpeedLimitTest, SpeedLimitSignPosition) {
 // Tests using XCrossStopAllWay.xodr / testing_database.yaml.
 //
 // This map has four incoming approaches (one lane per road). Each approach has
-// two signals: a stop sign and an all-way sign. The all-way sign declares a
-// dependency on its paired stop sign via <dependency id="STx"/>.
+// two signals: a stop sign and an all-way sign. The stop sign declares a
+// dependency on its paired all-way sign via <dependency id="AWx"/>.
 //
 // Expected behavior: each stop sign reports its corresponding all-way sign in
 // dependent_signs().
