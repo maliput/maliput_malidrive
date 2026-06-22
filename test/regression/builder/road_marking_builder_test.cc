@@ -53,6 +53,21 @@ namespace test {
 namespace {
 
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+const char kSignalRoadMarkingDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "206"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      name: "*"
+    properties:
+      device_type: RoadMarking
+      device_semantics: StopLine
+      default_bounding_box:
+        length: 3.0
+        width: 0.61
+        height: 0.0
+)";
 
 // ---------------------------------------------------------------------------
 // RoadMarkingBuilder tests.
@@ -106,17 +121,19 @@ class RoadMarkingBuilderTest : public ::testing::Test {
 
 TEST_F(RoadMarkingBuilderTest, Constructor) {
   const auto& object = FindObject("rm_stop_line");
-  EXPECT_NO_THROW(RoadMarkingBuilder(object, road_id_, *loader_, road_geometry_));
+  EXPECT_NO_THROW(
+      RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object, road_id_, *loader_, road_geometry_));
 }
 
 TEST_F(RoadMarkingBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
   const auto& object = FindObject("rm_stop_line");
-  EXPECT_THROW(RoadMarkingBuilder(object, road_id_, *loader_, nullptr), std::invalid_argument);
+  EXPECT_THROW(RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object, road_id_, *loader_, nullptr),
+               std::invalid_argument);
 }
 
 TEST_F(RoadMarkingBuilderTest, BuildStopLine) {
   const auto& object = FindObject("rm_stop_line");
-  RoadMarkingBuilder builder(object, road_id_, *loader_, road_geometry_);
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kObject, object, road_id_, *loader_, road_geometry_);
   auto road_marking = builder();
   ASSERT_NE(road_marking, nullptr);
 
@@ -141,7 +158,7 @@ TEST_F(RoadMarkingBuilderTest, BuildStopLine) {
 
 TEST_F(RoadMarkingBuilderTest, BuildCrosswalk) {
   const auto& object = FindObject("rm_crosswalk");
-  RoadMarkingBuilder builder(object, road_id_, *loader_, road_geometry_);
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kObject, object, road_id_, *loader_, road_geometry_);
   auto road_marking = builder();
   ASSERT_NE(road_marking, nullptr);
 
@@ -155,7 +172,7 @@ TEST_F(RoadMarkingBuilderTest, BuildCrosswalk) {
 
 TEST_F(RoadMarkingBuilderTest, BuildArrowForward) {
   const auto& object = FindObject("rm_arrow");
-  RoadMarkingBuilder builder(object, road_id_, *loader_, road_geometry_);
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kObject, object, road_id_, *loader_, road_geometry_);
   auto road_marking = builder();
   ASSERT_NE(road_marking, nullptr);
 
@@ -173,7 +190,7 @@ TEST_F(RoadMarkingBuilderTest, BuildArrowForward) {
 TEST_F(RoadMarkingBuilderTest, ReturnsNullptrForNonRoadMarkingDeviceType) {
   // The pole object maps to device_type: road_object, so should return nullptr.
   const auto& object = FindObject("rm_pole");
-  RoadMarkingBuilder builder(object, road_id_, *loader_, road_geometry_);
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kObject, object, road_id_, *loader_, road_geometry_);
   auto road_marking = builder();
   EXPECT_EQ(road_marking, nullptr);
 }
@@ -187,7 +204,7 @@ TEST_F(RoadMarkingBuilderTest, ReturnsNullptrForNoMatchingDefinition) {
   fake_object.z_offset = 0.0;
   fake_object.type = xodr::object::Object::str_to_object_type("building");
 
-  RoadMarkingBuilder builder(fake_object, road_id_, *loader_, road_geometry_);
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kObject, fake_object, road_id_, *loader_, road_geometry_);
   auto road_marking = builder();
   EXPECT_EQ(road_marking, nullptr);
 }
@@ -239,7 +256,7 @@ class RoadMarkingBuilderElevatedRoadTest : public ::testing::Test {
 };
 
 TEST_F(RoadMarkingBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
-  RoadMarkingBuilder builder(object_, road_id_, *loader_, road_geometry_);
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kObject, object_, road_id_, *loader_, road_geometry_);
   const auto road_marking = builder();
   ASSERT_NE(road_marking, nullptr);
 
@@ -251,6 +268,59 @@ TEST_F(RoadMarkingBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
 
   EXPECT_NEAR(road_surface_z + object_.z_offset, road_marking_z, 1e-6);
   EXPECT_GT(std::abs(road_marking_z - object_.z_offset), 1.0);
+}
+
+class RoadMarkingBuilderSignalTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("RoadWithAllDeviceTypes.xodr", kMalidriveResourceFolder);
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+
+    const auto* manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+    const auto road_headers = manager->GetRoadHeaders();
+    const auto road_header_it = road_headers.find(xodr::RoadHeader::Id("1"));
+    ASSERT_NE(road_header_it, road_headers.end());
+    ASSERT_TRUE(road_header_it->second.signals.has_value());
+    signals_ = road_header_it->second.signals->signals;
+    loader_ = std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(kSignalRoadMarkingDb);
+  }
+
+  const xodr::signal::Signal& FindSignal(const std::string& id) const {
+    for (const auto& signal : signals_) {
+      if (signal.id.string() == id) return signal;
+    }
+    MALIPUT_THROW_MESSAGE("Signal " + id + " not found");
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  std::vector<xodr::signal::Signal> signals_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+};
+
+TEST_F(RoadMarkingBuilderSignalTest, BuildRoadMarkingFromSignal) {
+  const auto& signal = FindSignal("TS1");
+  RoadMarkingBuilder builder(RoadMarkingBuilder::SourceType::kSignal, signal, xodr::RoadHeader::Id("1"), *loader_,
+                             road_geometry_);
+  auto road_marking = builder();
+  ASSERT_NE(road_marking, nullptr);
+
+  EXPECT_EQ(road_marking->id(), maliput::api::objects::RoadMarking::Id("TS1"));
+  EXPECT_EQ(road_marking->type(), maliput::api::objects::RoadMarkingType::kStopLine);
+  EXPECT_EQ(road_marking->name(), "StopSign1");
+  EXPECT_EQ(road_marking->num_outlines(), 0);
+  EXPECT_EQ(road_marking->related_lanes().size(), 1u);
+  EXPECT_NEAR(road_marking->bounding_box().box_size().x(), 3.0, 1e-6);
+  EXPECT_NEAR(road_marking->bounding_box().box_size().y(), 0.61, 1e-6);
 }
 
 }  // namespace

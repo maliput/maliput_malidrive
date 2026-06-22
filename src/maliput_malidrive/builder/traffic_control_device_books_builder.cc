@@ -145,6 +145,12 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
+      } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadMarking) {
+        auto rm =
+            RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_)();
+        if (rm) {
+          rmb->AddRoadMarking(std::move(rm));
+        }
       } else {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: signal id='", signal.id.string(),
                               "' has device_type='",
@@ -191,14 +197,10 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       const auto& definition = definition_opt.value();
 
       if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadMarking) {
-        try {
-          auto rm = RoadMarkingBuilder(object, road_id, loader, road_geometry_)();
-          if (rm) {
-            rmb->AddRoadMarking(std::move(rm));
-          }
-        } catch (const std::exception& e) {
-          maliput::log()->warn("TrafficControlDeviceBooksBuilder: failed to build RoadMarking from object id='",
-                               object.id.string(), "' on road '", road_id.string(), "': ", e.what(), ". Skipping.");
+        auto rm =
+            RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();
+        if (rm) {
+          rmb->AddRoadMarking(std::move(rm));
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();

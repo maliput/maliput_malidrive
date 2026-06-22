@@ -73,6 +73,19 @@ odr_signal_types:
         length: 1.0
         width: 0.5
         height: 1.2
+  - odr_representation:
+      type: "206"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      country_revision: null
+      name: "*"
+    properties:
+      device_type: RoadMarking
+      device_semantics: StopLine
+      default_bounding_box:
+        length: 3.0
+        width: 0.61
+        height: 0.0
 odr_object_types:
   - odr_representation:
       type: crosswalk
@@ -261,6 +274,33 @@ TEST_F(TrafficControlDeviceBooksBuilderTest, UnmatchedObjectIsPlacedInRoadObject
 
   const auto* rmb = road_network_->road_marking_book();
   EXPECT_EQ(nullptr, rmb->GetRoadMarking(maliput::api::objects::RoadMarking::Id("UNMATCHED1")));
+}
+
+TEST_F(TrafficControlDeviceBooksBuilderTest, SignalDerivedRoadDevicesAreRoutedToBooks) {
+  const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+      {params::kOpendriveFile, xodr_file_path_},
+      {params::kTrafficControlDeviceDb, kSignalRoadDevicesDb},
+      {params::kOmitNonDrivableLanes, "false"},
+  })};
+  const auto road_network = RoadNetworkBuilder(rn_config.ToStringMap())();
+  ASSERT_NE(road_network, nullptr);
+
+  EXPECT_TRUE(road_network->traffic_light_book()->TrafficLights().empty());
+  EXPECT_TRUE(road_network->traffic_sign_book()->TrafficSigns().empty());
+
+  const auto* rmb = road_network->road_marking_book();
+  ASSERT_NE(rmb, nullptr);
+  EXPECT_NE(nullptr, rmb->GetRoadMarking(maliput::api::objects::RoadMarking::Id("RM1")));
+  const auto* signal_road_marking = rmb->GetRoadMarking(maliput::api::objects::RoadMarking::Id("TS1"));
+  ASSERT_NE(signal_road_marking, nullptr);
+  EXPECT_EQ(signal_road_marking->type(), maliput::api::objects::RoadMarkingType::kStopLine);
+
+  const auto* rob = road_network->road_object_book();
+  ASSERT_NE(rob, nullptr);
+  EXPECT_NE(nullptr, rob->GetRoadObject(maliput::api::objects::RoadObject::Id("RO1")));
+  const auto* signal_road_object = rob->GetRoadObject(maliput::api::objects::RoadObject::Id("TL1"));
+  ASSERT_NE(signal_road_object, nullptr);
+  EXPECT_EQ(signal_road_object->type(), maliput::api::objects::RoadObjectType::kBarrier);
 }
 
 // ---------------------------------------------------------------------------

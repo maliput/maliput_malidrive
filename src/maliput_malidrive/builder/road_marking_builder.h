@@ -36,31 +36,54 @@
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 
 namespace malidrive {
 namespace builder {
 
-/// Builds a single @ref maliput::api::objects::RoadMarking from an XODR
-/// @ref xodr::object::Object and its matching definition in the traffic
-/// control device YAML database.
+/// Builds a single @ref maliput::api::objects::RoadMarking from either an XODR
+/// @ref xodr::object::Object or an XODR @ref xodr::signal::Signal together
+/// with its matching definition in the traffic control device YAML database.
 ///
 /// The builder follows the functor pattern: construct it with all required
 /// inputs and call @ref operator()() to produce the result.
 ///
+/// The source type must be selected explicitly at construction time, and only
+/// the matching source payload is accepted.
+///
 /// When no matching @ref traffic_control_device::TrafficControlDeviceDefinition is found in
-/// the loader for the given object's type/subtype/name fingerprint, or the device_type is not
+/// the loader for the selected source fingerprint, or the device_type is not
 /// @ref traffic_control_device::TrafficControlDeviceType::kRoadMarking, the builder returns nullptr.
 class RoadMarkingBuilder {
  public:
+  enum class SourceType {
+    kObject,
+    kSignal,
+  };
+
   /// Constructs a RoadMarkingBuilder.
   ///
+  /// @param source_type The XODR element type this builder will read from.
   /// @param object The XODR object to build a @ref maliput::api::objects::RoadMarking from.
   /// @param road_id The XODR road's ID the @p object belongs to.
   /// @param loader The @ref traffic_control_device::TrafficControlDeviceDatabaseLoader providing access
   ///        to the traffic control device YAML database.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
-  /// @throws std::invalid_argument if @p road_geometry is nullptr.
-  RoadMarkingBuilder(const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+  /// @throws std::invalid_argument if @p source_type is not kObject or @p road_geometry is nullptr.
+  RoadMarkingBuilder(SourceType source_type, const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+                     const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
+                     const maliput::api::RoadGeometry* road_geometry);
+
+  /// Constructs a RoadMarkingBuilder.
+  ///
+  /// @param source_type The XODR element type this builder will read from.
+  /// @param signal The XODR signal to build a @ref maliput::api::objects::RoadMarking from.
+  /// @param road_id The XODR road's ID the @p object belongs to.
+  /// @param loader The @ref traffic_control_device::TrafficControlDeviceDatabaseLoader providing access
+  ///        to the traffic control device YAML database.
+  /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
+  /// @throws std::invalid_argument if @p source_type is not kSignal or @p road_geometry is nullptr.
+  RoadMarkingBuilder(SourceType source_type, const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                      const maliput::api::RoadGeometry* road_geometry);
 
@@ -71,7 +94,9 @@ class RoadMarkingBuilder {
   std::unique_ptr<maliput::api::objects::RoadMarking> operator()() const;
 
  private:
-  const xodr::object::Object& object_;
+  SourceType source_type_;
+  const xodr::object::Object* object_{nullptr};
+  const xodr::signal::Signal* signal_{nullptr};
   const xodr::RoadHeader::Id& road_id_;
   const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
