@@ -181,8 +181,8 @@ struct TrafficControlDeviceDefinition {
 /// Design:
 /// - Each definition carries a `device_type` field that determines whether the entry is a
 ///   traffic light, traffic sign, road marking, or road object.
-/// - For signals (`odr_signal_types`): `device_type` must be `traffic_light` or
-///   `traffic_sign`.
+/// - For signals (`odr_signal_types`): `device_type` must be `traffic_light`,
+///   `traffic_sign`, `road_marking`, or `road_object`.
 /// - For objects (`odr_object_types`): `device_type` must be `road_marking` or
 ///   `road_object`. Object entries' `odr_representation` only carries `type`, `subtype`,
 ///   and `name`; `country`/`country_revision` are not permitted. Object entries'
@@ -200,6 +200,8 @@ struct TrafficControlDeviceDefinition {
 /// 3. Inspect `device_type` to route the signal to the appropriate builder:
 ///    - `"traffic_light"` → build a `TrafficLight`.
 ///    - `"traffic_sign"`  → build a `TrafficSign` whose type is mapped from `device_semantics`.
+///    - `"road_marking"`  → build a `RoadMarking`.
+///    - `"road_object"`   → build a `RoadObject`.
 /// 4. Link the resulting objects to their affected lanes using signal validity data from the XODR file.
 class TrafficControlDeviceParser {
  public:

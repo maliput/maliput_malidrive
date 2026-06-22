@@ -11,8 +11,8 @@ A traffic control device type definition describes the physical structure, seman
 
 The database has **two root keys**:
 
-- **`odr_signal_types`** — devices represented by OpenDRIVE `signal` elements (traffic lights, traffic signs).
-- **`odr_object_types`** — devices represented by OpenDRIVE `object` elements (road markings, road objects).
+- **`odr_signal_types`** — devices represented by XODR `signal` elements (traffic lights, traffic signs, road markings, and road objects).
+- **`odr_object_types`** — devices represented by XODR `object` elements (road markings, road objects).
 
 At least one of the two root keys must be present. The parser returns a single flat `std::vector<TrafficControlDeviceDefinition>` that mixes signal and object entries; downstream code discriminates them via the `device_type` field.
 
@@ -66,7 +66,7 @@ odr_signal_types:
       rule_states: [...]          # Optional: only meaningful for TrafficLight
 ```
 
-For signals, `device_type` MUST be `TrafficLight` or `TrafficSign`. Using `RoadMarking` or `RoadObject` in a signal entry is rejected with a parser error.
+For signals, `device_type` MUST be `TrafficLight`, `TrafficSign`, `RoadMarking` or `RoadObject`.
 
 ### `odr_object_types`
 
@@ -108,8 +108,8 @@ Required string that identifies the device category. Used to route entries to th
 |----------------------|------------------------|-----------------------------------------------------|
 | `"TrafficLight"`    | `odr_signal_types`     | Creates a `maliput::api::rules::TrafficLight`       |
 | `"TrafficSign"`     | `odr_signal_types`     | Creates a `maliput::api::rules::TrafficSign`        |
-| `"RoadMarking"`     | `odr_object_types`     | Creates a `maliput::api::object::RoadMarking`       |
-| `"RoadObject"`      | `odr_object_types`     | Creates a `maliput::api::object::RoadObject`        |
+| `"RoadMarking"`     | `odr_signal_types`, `odr_object_types` | Creates a `maliput::api::objects::RoadMarking` |
+| `"RoadObject"`      | `odr_signal_types`, `odr_object_types` | Creates a `maliput::api::objects::RoadObject` |
 
 The `device_type` matching is **strict PascalCase**. Variants like `"Road_Marking"` and `"ROAD_MARKING"` are rejected.
 
