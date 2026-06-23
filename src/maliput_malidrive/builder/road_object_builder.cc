@@ -179,7 +179,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
         bb_length = 2.0 * object.radius.value();
         bb_width = 2.0 * object.radius.value();
       }
-      const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., 0.),
+      const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., bb_height / 2.),
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 

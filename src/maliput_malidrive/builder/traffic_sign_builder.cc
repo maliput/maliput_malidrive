@@ -147,7 +147,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   const double depth = signal_.length.value_or(0.);
   const double width = signal_.width.value_or(0.);
   const double height = signal_.height.value_or(0.);
-  const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., 0.),
+  const maliput::math::BoundingBox bounding_box{maliput::math::Vector3(0., 0., height / 2.),
                                                 maliput::math::Vector3(depth, width, height),
                                                 maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
