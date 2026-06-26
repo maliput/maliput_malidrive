@@ -184,6 +184,7 @@ struct RoadGeometryConfiguration {
   bool omit_nondrivable_lanes{true};
   double integrator_accuracy_multiplier{1.0};
   bool use_userdata_traffic_direction{false};
+  bool use_userdata_intersections{false};
   /// @}
 };
 

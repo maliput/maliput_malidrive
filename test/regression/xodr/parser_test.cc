@@ -1982,12 +1982,16 @@ TEST_F(ParsingTests, NodeParserConnection) {
 // @param junction_id The junction_id value.
 // @param junction_name The junction_name value.
 // @param junction_type The junction_type value.
+// @param user_data Vector of user_data entries to be added to the junction.
 // @returns A string that contains a XML description of a XODR Junction.
 std::string GetJunction(const std::string& junction_id, const std::string& junction_name,
-                        const std::string& junction_type) {
+                        const std::string& junction_type, const std::vector<std::string>& user_data = {}) {
   std::stringstream ss;
   ss << "<root>";
   ss << "<junction id='" << junction_id << "' name='" << junction_name << "' type='" << junction_type << "'>";
+  for (const auto& user_data_entry : user_data) {
+    ss << user_data_entry;
+  }
   ss << R"R(
     <connection id="10" incomingRoad="1" connectingRoad="2" contactPoint="start" connectionMaster="50" type="default">
         <laneLink from="1" to="1"/>
@@ -2022,11 +2026,11 @@ TEST_F(ParsingTests, NodeParserJunction) {
                                 {{Connection::LaneLink::Id("2"), Connection::LaneLink::Id("4")},
                                  {Connection::LaneLink::Id("1"), Connection::LaneLink::Id("3")}} /* lane_links */};
 
-  const Junction kExpectedJunction{
-      Junction::Id("358") /* id */,
-      "junctionTest" /* name */,
-      Junction::Type::kDefault /* type */,
-      {{kConnectionA.id, kConnectionA}, {kConnectionB.id, kConnectionB}} /* connections */};
+  const Junction kExpectedJunction{Junction::Id("358") /* id */,
+                                   "junctionTest" /* name */,
+                                   Junction::Type::kDefault /* type */,
+                                   {{kConnectionA.id, kConnectionA}, {kConnectionB.id, kConnectionB}} /* connections */,
+                                   {} /* user_data */};
 
   const std::string xml_description = GetJunction(kExpectedJunction.id.string(), kExpectedJunction.name.value(),
                                                   Junction::type_to_str(kExpectedJunction.type.value()));
@@ -2036,6 +2040,34 @@ TEST_F(ParsingTests, NodeParserJunction) {
   EXPECT_EQ(Junction::kJunctionTag, dut.GetName());
   const Junction junction = dut.As<Junction>();
   EXPECT_EQ(kExpectedJunction, junction);
+}
+
+TEST_F(ParsingTests, NodeParserJunctionWithUserDataEnabled) {
+  constexpr const char* kJunctionUserData = R"R(<userData code="junctionType" value="intersection"/>)R";
+  const std::string xml_description = GetJunction("358", "junctionTest", "default", {kJunctionUserData});
+
+  const NodeParser dut(
+      LoadXMLAndGetNodeByName(xml_description, Junction::kJunctionTag),
+      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kDontSupportUserData, true});
+  const Junction junction = dut.As<Junction>();
+  EXPECT_EQ(std::vector<std::string>({std::string(kJunctionUserData) + "\n"}), junction.user_data);
+}
+
+TEST_F(ParsingTests, NodeParserJunctionWithMultipleUserDataEnabled) {
+  constexpr const char* kVectorJunctionUserData =
+      R"R(<userData code="vectorJunction"><vectorJunction junctionId="123"/></userData>)R";
+  constexpr const char* kJunctionTypeUserData = R"R(<userData code="junctionType" value="nonIntersection"/>)R";
+  const std::string xml_description =
+      GetJunction("358", "junctionTest", "default", {kVectorJunctionUserData, kJunctionTypeUserData});
+
+  const NodeParser dut(
+      LoadXMLAndGetNodeByName(xml_description, Junction::kJunctionTag),
+      {kStrictParserSTolerance, kDontAllowSchemaErrors, kDontAllowSemanticErrors, kDontSupportUserData, true});
+  const Junction junction = dut.As<Junction>();
+  ASSERT_EQ(2u, junction.user_data.size());
+  EXPECT_NE(junction.user_data.at(0).find("code=\"vectorJunction\""), std::string::npos);
+  EXPECT_NE(junction.user_data.at(0).find("junctionId=\"123\""), std::string::npos);
+  EXPECT_EQ(std::string(kJunctionTypeUserData) + "\n", junction.user_data.at(1));
 }
 
 // Template of a XML description that contains a XODR Junction with no connections.

@@ -30,6 +30,7 @@
 #include "maliput_malidrive/builder/builder_tools.h"
 
 #include <algorithm>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
@@ -914,6 +915,113 @@ TEST_F(ResolveLaneIdsOmitNonDrivableTest, ExplicitValidityFilteredByBuiltLanes) 
 
   EXPECT_EQ(1u, result.size());
   EXPECT_NE(std::find(result.begin(), result.end(), maliput::api::LaneId("1_0_-1")), result.end());
+}
+
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, UserDataOverrideHasPriority) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("10");
+  junction.user_data = {"<userData code=\"junctionType\" value=\"intersection\"/>"};
+  junction.connections = {
+      {xodr::Connection::Id("0"),
+       {xodr::Connection::Id("0"), "1", "2", xodr::Connection::ContactPoint::kStart, std::nullopt, std::nullopt, {}}}};
+
+  xodr::RoadHeader incoming_road{};
+  incoming_road.id = xodr::RoadHeader::Id("1");
+  incoming_road.road_types = {{0., xodr::RoadType::Type::kMotorway, std::nullopt, {}}};
+  xodr::RoadHeader connecting_road{};
+  connecting_road.id = xodr::RoadHeader::Id("2");
+  connecting_road.road_types = {{0., xodr::RoadType::Type::kMotorway, std::nullopt, {}}};
+
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{incoming_road.id, incoming_road},
+                                                                      {connecting_road.id, connecting_road}};
+  EXPECT_EQ(std::make_optional(true), DetermineJunctionIntersectionFromXodr(junction, road_headers));
+}
+
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, SecondUserDataEntrySetsOverride) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("10b");
+  junction.user_data = {
+      "<userData code=\"vectorJunction\"><vectorJunction "
+      "junctionId=\"123\"/></userData>",
+      "<userData code=\"junctionType\" value=\"nonIntersection\"/>"};
+  junction.connections = {
+      {xodr::Connection::Id("0"),
+       {xodr::Connection::Id("0"), "1", "2", xodr::Connection::ContactPoint::kStart, std::nullopt, std::nullopt, {}}}};
+
+  xodr::RoadHeader incoming_road{};
+  incoming_road.id = xodr::RoadHeader::Id("1");
+  incoming_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  xodr::RoadHeader connecting_road{};
+  connecting_road.id = xodr::RoadHeader::Id("2");
+  connecting_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{incoming_road.id, incoming_road},
+                                                                      {connecting_road.id, connecting_road}};
+  EXPECT_EQ(std::make_optional(false), DetermineJunctionIntersectionFromXodr(junction, road_headers));
+}
+
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, ConflictingUserDataEntriesYieldNoOverride) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("10c");
+  junction.user_data = {"<userData code=\"junctionType\" value=\"intersection\"/>",
+                        "<userData code=\"junctionType\" value=\"nonIntersection\"/>"};
+  junction.connections = {
+      {xodr::Connection::Id("0"),
+       {xodr::Connection::Id("0"), "1", "2", xodr::Connection::ContactPoint::kStart, std::nullopt, std::nullopt, {}}}};
+
+  xodr::RoadHeader incoming_road{};
+  incoming_road.id = xodr::RoadHeader::Id("1");
+  incoming_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  xodr::RoadHeader connecting_road{};
+  connecting_road.id = xodr::RoadHeader::Id("2");
+  connecting_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{incoming_road.id, incoming_road},
+                                                                      {connecting_road.id, connecting_road}};
+  EXPECT_EQ(std::nullopt, DetermineJunctionIntersectionFromXodr(junction, road_headers));
+}
+
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, MotorwayRoadTypeDisablesIntersection) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("11");
+  junction.connections = {
+      {xodr::Connection::Id("0"),
+       {xodr::Connection::Id("0"), "3", "4", xodr::Connection::ContactPoint::kStart, std::nullopt, std::nullopt, {}}}};
+
+  xodr::RoadHeader motorway_road{};
+  motorway_road.id = xodr::RoadHeader::Id("3");
+  motorway_road.road_types = {{0., xodr::RoadType::Type::kMotorway, std::nullopt, {}}};
+  xodr::RoadHeader town_road{};
+  town_road.id = xodr::RoadHeader::Id("4");
+  town_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{motorway_road.id, motorway_road},
+                                                                      {town_road.id, town_road}};
+  EXPECT_EQ(std::make_optional(false), DetermineJunctionIntersectionFromXodr(junction, road_headers));
+}
+
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, ConnectionCountFallback) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("12");
+  for (int i = 0; i < 5; ++i) {
+    const std::string id = std::to_string(i);
+    junction.connections.emplace(xodr::Connection::Id(id), xodr::Connection{xodr::Connection::Id(id),
+                                                                            "5",
+                                                                            "6",
+                                                                            xodr::Connection::ContactPoint::kStart,
+                                                                            std::nullopt,
+                                                                            std::nullopt,
+                                                                            {}});
+  }
+  xodr::RoadHeader incoming_road{};
+  incoming_road.id = xodr::RoadHeader::Id("5");
+  incoming_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  xodr::RoadHeader connecting_road{};
+  connecting_road.id = xodr::RoadHeader::Id("6");
+  connecting_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{incoming_road.id, incoming_road},
+                                                                      {connecting_road.id, connecting_road}};
+
+  EXPECT_EQ(std::make_optional(true), DetermineJunctionIntersectionFromXodr(junction, road_headers));
 }
 
 }  // namespace

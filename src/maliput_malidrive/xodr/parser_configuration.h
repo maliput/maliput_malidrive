@@ -55,6 +55,9 @@ struct ParserConfiguration {
 
   /// When active, the parser will support userData XODR nodes.
   bool use_userdata_traffic_direction{false};
+
+  /// When active, the parser will support intersection-related userData XODR nodes.
+  bool use_userdata_intersections{false};
 };
 
 }  // namespace xodr

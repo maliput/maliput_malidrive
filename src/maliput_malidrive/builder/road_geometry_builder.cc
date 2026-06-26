@@ -29,6 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/road_geometry_builder.h"
 
+#include <algorithm>
 #include <array>
 #include <future>
 #include <iterator>
@@ -814,14 +815,25 @@ std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunc
   const int xodr_track = std::stoi(xodr_track_id);
   MALIDRIVE_THROW_UNLESS(xodr_track >= 0, maliput::common::road_geometry_construction_error);
   MALIDRIVE_THROW_UNLESS(lane_section_index >= 0, maliput::common::road_geometry_construction_error);
-  return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_track, lane_section_index));
+  const std::optional<bool> is_intersection =
+      rg_config_.use_userdata_intersections ? std::make_optional(false) : std::nullopt;
+  return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_track, lane_section_index),
+                                                            is_intersection);
 }
 
 std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunction(
     const std::string& xodr_junction_id) {
   const int xodr_junction = std::stoi(xodr_junction_id);
   MALIDRIVE_THROW_UNLESS(xodr_junction >= 0, maliput::common::road_geometry_construction_error);
-  return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_junction));
+  std::optional<bool> is_intersection = std::nullopt;
+  if (rg_config_.use_userdata_intersections) {
+    maliput::log()->debug("Determining if junction id ", xodr_junction_id, " is an intersection.");
+    const auto junction_it = manager_->GetJunctions().find(xodr::Junction::Id(xodr_junction_id));
+    MALIDRIVE_THROW_UNLESS(junction_it != manager_->GetJunctions().end(),
+                           maliput::common::road_geometry_construction_error);
+    is_intersection = DetermineJunctionIntersectionFromXodr(junction_it->second, manager_->GetRoadHeaders());
+  }
+  return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_junction), is_intersection);
 }
 
 std::unique_ptr<malidrive::road_curve::GroundCurve> RoadGeometryBuilder::MakeGroundCurve(

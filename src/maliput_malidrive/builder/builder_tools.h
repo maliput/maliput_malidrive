@@ -142,6 +142,20 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
     const maliput::api::RoadGeometry* rg, const MalidriveXodrLaneProperties& xodr_lane_properties,
     const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers, XodrConnectionType connection_type);
 
+/// Determines whether a Junction should be classified as intersection using
+/// OpenDRIVE-derived data and first-match-wins priority:
+/// 1. junction userData override (`code="junctionType"` with value
+///    `intersection` / `nonIntersection`).
+/// 2. motorway road type participation (if any participating road is motorway,
+///    classify as non-intersection).
+/// 3. connection-count fallback (`connections.size() > 4`).
+///
+/// @param junction Junction data from the XODR map.
+/// @param road_headers Road headers from the XODR map.
+/// @returns Intersection classification according to the priority rules.
+std::optional<bool> DetermineJunctionIntersectionFromXodr(
+    const xodr::Junction& junction, const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers);
+
 /// Searches which LaneEnds connect to `lane_end` considering it
 /// belongs to an inner interface.
 ///

@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <cmath>
 #include <map>
+#include <set>
 
 #include <maliput/api/lane.h>
 #include <maliput/api/objects/road_object.h>
@@ -235,6 +236,99 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
                             maliput::common::road_geometry_construction_error);
   }
   return SolveLaneEndsForConnectingRoad(rg, xodr_lane_properties, road_headers, connection_type);
+}
+
+std::optional<bool> DetermineJunctionIntersectionFromXodr(
+    const xodr::Junction& junction, const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers) {
+  struct IntersectionOverrideResult {
+    std::optional<bool> value{std::nullopt};
+    bool has_conflict{false};
+  };
+  // Returns true if the junction is an intersection, false if it is not, and nullopt if it cannot be determined.
+  // Also checks if the junction has conflicting userData that cannot be resolved.
+  auto parse_intersection_override = [](const std::vector<std::string>& user_data) -> IntersectionOverrideResult {
+    if (user_data.empty()) {
+      return {};
+    }
+    bool has_intersection{false};
+    bool has_non_intersection{false};
+    for (const auto& user_data_element_xml : user_data) {
+      tinyxml2::XMLDocument xml_document;
+      if (xml_document.Parse(user_data_element_xml.c_str()) != tinyxml2::XML_SUCCESS) {
+        maliput::log()->debug("Unable to parse junction userData for intersection override.");
+        continue;
+      }
+      tinyxml2::XMLElement* root = xml_document.FirstChildElement();
+      if (root == nullptr) {
+        continue;
+      }
+      std::vector<tinyxml2::XMLElement*> nodes{root};
+      while (!nodes.empty()) {
+        tinyxml2::XMLElement* node = nodes.back();
+        nodes.pop_back();
+        const char* code = node->Attribute("code");
+        if (code != nullptr && std::string(code) == "junctionType") {
+          const char* value = node->Attribute("value");
+          if (value != nullptr) {
+            const std::string junction_type_value(value);
+            if (junction_type_value == "intersection") {
+              has_intersection = true;
+            } else if (junction_type_value == "nonIntersection") {
+              has_non_intersection = true;
+            }
+          }
+        }
+        for (tinyxml2::XMLElement* child = node->FirstChildElement(); child != nullptr;
+             child = child->NextSiblingElement()) {
+          nodes.push_back(child);
+        }
+      }
+    }
+    if (has_intersection && has_non_intersection) {
+      maliput::log()->warn("Junction userData contains conflicting junctionType overrides.");
+      return {std::nullopt, true};
+    }
+    if (has_intersection) {
+      return {true, false};
+    }
+    if (has_non_intersection) {
+      return {false, false};
+    }
+    return {};
+  };
+
+  auto has_any_motorway_participating_road = [&road_headers](const xodr::Junction& xodr_junction) -> bool {
+    std::set<std::string> participating_road_ids{};
+    for (const auto& connection : xodr_junction.connections) {
+      participating_road_ids.insert(connection.second.incoming_road);
+      participating_road_ids.insert(connection.second.connecting_road);
+    }
+    for (const std::string& road_id : participating_road_ids) {
+      const auto road_header_it = road_headers.find(xodr::RoadHeader::Id(road_id));
+      if (road_header_it == road_headers.end()) {
+        continue;
+      }
+      const auto& road_types = road_header_it->second.road_types;
+      if (std::any_of(road_types.begin(), road_types.end(), [](const xodr::RoadType& road_type) {
+            return road_type.type == xodr::RoadType::Type::kMotorway;
+          })) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const auto user_data_override = parse_intersection_override(junction.user_data);
+  if (user_data_override.has_conflict) {
+    return std::nullopt;
+  }
+  if (user_data_override.value.has_value()) {
+    return user_data_override.value.value();
+  }
+  if (has_any_motorway_participating_road(junction)) {
+    return false;
+  }
+  return junction.connections.size() > 4;
 }
 
 std::vector<maliput::api::LaneEnd> SolveLaneEndsForInnerLaneSection(
