@@ -1,6 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2022, Woven Planet. All rights reserved.
+// Copyright (c) 2022-2026, Woven Planet. All rights reserved.
 // Copyright (c) 2020-2022, Toyota Research Institute. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -57,6 +57,7 @@ struct ParserConfiguration {
   bool use_userdata_traffic_direction{false};
 
   /// When active, the parser will support intersection-related userData XODR nodes.
+  /// See @ref builder::DetermineJunctionIntersectionFromXodr() for more information.
   bool use_userdata_intersections{false};
 };
 

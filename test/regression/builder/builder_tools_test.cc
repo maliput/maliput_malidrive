@@ -1050,6 +1050,32 @@ GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, ConnectionCountFallback) {
   EXPECT_EQ(std::make_optional(true), DetermineJunctionIntersectionFromXodr(junction, road_headers));
 }
 
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, FewConnectionsFallbackToNonIntersection) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("13");
+  for (int i = 0; i < 4; ++i) {
+    const std::string id = std::to_string(i);
+    junction.connections.emplace(xodr::Connection::Id(id), xodr::Connection{xodr::Connection::Id(id),
+                                                                            "9",
+                                                                            "10",
+                                                                            xodr::Connection::ContactPoint::kStart,
+                                                                            std::nullopt,
+                                                                            std::nullopt,
+                                                                            {}});
+  }
+
+  xodr::RoadHeader incoming_road{};
+  incoming_road.id = xodr::RoadHeader::Id("9");
+  incoming_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  xodr::RoadHeader connecting_road{};
+  connecting_road.id = xodr::RoadHeader::Id("10");
+  connecting_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{incoming_road.id, incoming_road},
+                                                                      {connecting_road.id, connecting_road}};
+
+  EXPECT_EQ(std::make_optional(false), DetermineJunctionIntersectionFromXodr(junction, road_headers));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
