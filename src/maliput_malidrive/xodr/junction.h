@@ -63,6 +63,7 @@ struct Junction {
   static constexpr const char* kId = "id";
   static constexpr const char* kName = "name";
   static constexpr const char* kType = "type";
+  static constexpr const char* kUserData = "userData";
 
   /// Enum junction types.
   enum Type { kDefault = 0, kVirtual };
@@ -91,6 +92,8 @@ struct Junction {
   std::optional<Type> type{Type::kDefault};
   /// Connections within the junction.
   std::map<Connection::Id, Connection> connections{};
+  /// Contains ancillary data in XML format. Each item holds one complete userData node.
+  std::vector<std::string> user_data{};
 };
 
 /// Streams a string representation of @p junction into @p out. Returns

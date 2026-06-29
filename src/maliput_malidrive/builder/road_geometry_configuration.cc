@@ -176,6 +176,10 @@ RoadGeometryConfiguration RoadGeometryConfiguration::FromMap(
   if (it != road_geometry_configuration.end()) {
     rg_config.use_userdata_traffic_direction = ParseBoolean(it->second);
   }
+  it = road_geometry_configuration.find(params::kUseUserDataIntersections);
+  if (it != road_geometry_configuration.end()) {
+    rg_config.use_userdata_intersections = ParseBoolean(it->second);
+  }
   return rg_config;
 }
 
@@ -201,6 +205,7 @@ std::map<std::string, std::string> RoadGeometryConfiguration::ToStringMap() cons
   }
   config_map.emplace(params::kIntegratorAccuracyMultiplier, std::to_string(integrator_accuracy_multiplier));
   config_map.emplace(params::kUseUserDataTrafficDirection, use_userdata_traffic_direction ? "true" : "false");
+  config_map.emplace(params::kUseUserDataIntersections, use_userdata_intersections ? "true" : "false");
   return config_map;
 }
 

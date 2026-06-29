@@ -53,13 +53,22 @@ Junction::Type Junction::str_to_type(const std::string& type) {
 std::string Junction::type_to_str(Type type) { return type_to_str_map.at(type); }
 
 bool Junction::operator==(const Junction& other) const {
-  return id == other.id && name == other.name && type == other.type && connections == other.connections;
+  return id == other.id && name == other.name && type == other.type && connections == other.connections &&
+         user_data == other.user_data;
 }
 
 std::ostream& operator<<(std::ostream& out, const Junction& junction) {
   out << "{\"id\": " << junction.id.string();
   out << ", \"name\": " << (junction.name.has_value() ? junction.name.value() : "");
   out << ", \"type\": {" << (junction.type.has_value() ? Junction::type_to_str(junction.type.value()) : "") << "}";
+  out << ", \"user_data\": [";
+  for (size_t i = 0; i < junction.user_data.size(); ++i) {
+    out << junction.user_data.at(i);
+    if (i + 1 < junction.user_data.size()) {
+      out << ", ";
+    }
+  }
+  out << "]";
   out << "}";
   // TODO(malidrive#574): Once other entities acquire serialization overloads, we should include them.
   return out;

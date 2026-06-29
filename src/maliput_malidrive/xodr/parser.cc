@@ -1685,7 +1685,15 @@ Junction NodeParser::As() const {
     connections.insert({connection.id, std::move(connection)});
     connection_element = connection_element->NextSiblingElement(Connection::kConnectionTag);
   }
-  return {Junction::Id(*id), name, type, connections};
+
+  std::vector<std::string> user_data{};
+  if (parser_configuration_.use_userdata_intersections) {
+    for (tinyxml2::XMLElement* user_data_element = element_->FirstChildElement(Junction::kUserData);
+         user_data_element != nullptr; user_data_element = user_data_element->NextSiblingElement(Junction::kUserData)) {
+      user_data.emplace_back(ConvertXMLNodeToText(user_data_element));
+    }
+  }
+  return {Junction::Id(*id), name, type, connections, user_data};
 }
 
 std::string ConvertXMLNodeToText(tinyxml2::XMLElement* element) {

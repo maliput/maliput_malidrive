@@ -203,6 +203,15 @@ static constexpr char const* kIntegratorAccuracyMultiplier{"integrator_accuracy_
 ///   - Default: @e "false"
 static constexpr char const* kUseUserDataTrafficDirection{"use_userdata_traffic_direction"};
 
+/// True for supporting userData XODR nodes within Junction XODR nodes. If false, they will be ignored.
+/// userData are used for intersection classification based on OpenDRIVE data.
+/// When enabled, junction userData parsing and intersection detection logic are applied.
+///   - Options:
+///     - 1. <em> "true", "True", "TRUE", "on", "On", "ON" </em>
+///     - 2. <em> "false", "False",  "FALSE", "off", "Off", "OFF" </em>
+///   - Default: @e "false"
+static constexpr char const* kUseUserDataIntersections{"use_userdata_intersections"};
+
 /// @}
 
 }  // namespace params
