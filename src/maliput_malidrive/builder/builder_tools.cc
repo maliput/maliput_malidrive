@@ -244,8 +244,9 @@ std::optional<bool> DetermineJunctionIntersectionFromXodr(
     std::optional<bool> value{std::nullopt};
     bool has_conflict{false};
   };
-  // Returns true if the junction is an intersection, false if it is not, and nullopt if it cannot be determined.
-  // Also checks if the junction has conflicting userData that cannot be resolved.
+  // Returns true if the junction has a userData with code "junctionType" and value "intersection", false if the value
+  // is "nonIntersection", and nullopt if it cannot be determined. Also checks if the junction has conflicting userData
+  // that cannot be resolved.
   auto parse_intersection_override = [](const std::vector<std::string>& user_data) -> IntersectionOverrideResult {
     if (user_data.empty()) {
       return {};
@@ -272,8 +273,16 @@ std::optional<bool> DetermineJunctionIntersectionFromXodr(
           if (value != nullptr) {
             const std::string junction_type_value(value);
             if (junction_type_value == "intersection") {
+              if (has_non_intersection) {
+                maliput::log()->warn("Junction userData contains conflicting junctionType overrides.");
+                return {std::nullopt, true};
+              }
               has_intersection = true;
             } else if (junction_type_value == "nonIntersection") {
+              if (has_intersection) {
+                maliput::log()->warn("Junction userData contains conflicting junctionType overrides.");
+                return {std::nullopt, true};
+              }
               has_non_intersection = true;
             }
           }
@@ -283,10 +292,6 @@ std::optional<bool> DetermineJunctionIntersectionFromXodr(
           nodes.push_back(child);
         }
       }
-    }
-    if (has_intersection && has_non_intersection) {
-      maliput::log()->warn("Junction userData contains conflicting junctionType overrides.");
-      return {std::nullopt, true};
     }
     if (has_intersection) {
       return {true, false};

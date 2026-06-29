@@ -999,6 +999,32 @@ GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, MotorwayRoadTypeDisablesIn
   EXPECT_EQ(std::make_optional(false), DetermineJunctionIntersectionFromXodr(junction, road_headers));
 }
 
+GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, MixedRoadTypesIncludingMotorwayDisableIntersection) {
+  xodr::Junction junction{};
+  junction.id = xodr::Junction::Id("11b");
+  for (int i = 0; i < 5; ++i) {
+    const std::string id = std::to_string(i);
+    junction.connections.emplace(xodr::Connection::Id(id), xodr::Connection{xodr::Connection::Id(id),
+                                                                            "7",
+                                                                            "8",
+                                                                            xodr::Connection::ContactPoint::kStart,
+                                                                            std::nullopt,
+                                                                            std::nullopt,
+                                                                            {}});
+  }
+  xodr::RoadHeader mixed_road{};
+  mixed_road.id = xodr::RoadHeader::Id("7");
+  mixed_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}},
+                           {10., xodr::RoadType::Type::kMotorway, std::nullopt, {}}};
+  xodr::RoadHeader town_road{};
+  town_road.id = xodr::RoadHeader::Id("8");
+  town_road.road_types = {{0., xodr::RoadType::Type::kTown, std::nullopt, {}}};
+
+  const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers{{mixed_road.id, mixed_road},
+                                                                      {town_road.id, town_road}};
+  EXPECT_EQ(std::make_optional(false), DetermineJunctionIntersectionFromXodr(junction, road_headers));
+}
+
 GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, ConnectionCountFallback) {
   xodr::Junction junction{};
   junction.id = xodr::Junction::Id("12");

@@ -152,7 +152,10 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsWithinJunction(
 ///
 /// @param junction Junction data from the XODR map.
 /// @param road_headers Road headers from the XODR map.
-/// @returns Intersection classification according to the priority rules.
+/// @returns `true` when the junction is classified as intersection;
+///          `false` when it is classified as non-intersection;
+///          `std::nullopt` when no classification can be determined from
+///          available XODR data.
 std::optional<bool> DetermineJunctionIntersectionFromXodr(
     const xodr::Junction& junction, const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers);
 
