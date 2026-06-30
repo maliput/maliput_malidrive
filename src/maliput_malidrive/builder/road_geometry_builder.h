@@ -336,10 +336,13 @@ class RoadGeometryBuilder {
   // Returns a maliput::geometry_base::Junction whose ID will be `xodr_junction_id`.
   //
   // `xodr_junction_id` must be non-negative number.
+  // Uses `road_headers` info to know whether the junction is part of an intersection or not.
   //
   // @throws maliput::common::assertion_error When `xodr_junction_id` is
   //         negative.
-  std::unique_ptr<maliput::geometry_base::Junction> BuildJunction(const std::string& xodr_junction_id);
+  std::unique_ptr<maliput::geometry_base::Junction> BuildJunction(
+      const std::string& xodr_junction_id, const std::map<xodr::Junction::Id, xodr::Junction>& xodr_junctions,
+      const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers);
 
   // Returns a ground curve built from `geometry`.
   //
