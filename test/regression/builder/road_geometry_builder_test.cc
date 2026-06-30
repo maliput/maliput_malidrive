@@ -2416,18 +2416,17 @@ TEST_F(TwoWayRoadWithDoubleYellowCurveTest, CompleteMarkingTransitionSequence) {
 std::unique_ptr<const maliput::api::RoadGeometry> BuildRoadGeometryWithJunctionUserDataIntersections(
     bool use_userdata_intersections) {
   builder::RoadGeometryConfiguration rg_config = GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value();
-  rg_config.id = maliput::api::RoadGeometryId(use_userdata_intersections ? "TShapeUserDataEnabled"
-                                                                          : "TShapeUserDataDisabled");
+  rg_config.id =
+      maliput::api::RoadGeometryId(use_userdata_intersections ? "TShapeUserDataEnabled" : "TShapeUserDataDisabled");
   rg_config.opendrive_file = "TShapeRoadWithJunctionUserData.xodr";
   rg_config.use_userdata_intersections = use_userdata_intersections;
-  auto manager = xodr::LoadDataBaseFromFile(
-      utility::FindResourceInPath(rg_config.opendrive_file, kMalidriveResourceFolder),
-      {rg_config.tolerances.linear_tolerance.value()});
+  auto manager =
+      xodr::LoadDataBaseFromFile(utility::FindResourceInPath(rg_config.opendrive_file, kMalidriveResourceFolder),
+                                 {rg_config.tolerances.linear_tolerance.value()});
   return builder::RoadGeometryBuilder(std::move(manager), rg_config)();
 }
 
-GTEST_TEST(JunctionUserDataIntersectionFromXodrTest,
-           DisabledUseUserDataIntersectionsLeavesClassificationUnavailable) {
+GTEST_TEST(JunctionUserDataIntersectionFromXodrTest, DisabledUseUserDataIntersectionsLeavesClassificationUnavailable) {
   const auto road_geometry = BuildRoadGeometryWithJunctionUserDataIntersections(false);
   ASSERT_NE(road_geometry, nullptr);
 
