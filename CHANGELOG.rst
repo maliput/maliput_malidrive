@@ -2,6 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.28.0 (2026-06-30)
+-------------------
+* Map XODR object subtypes to specific RoadObjectTypes. (`#513 <https://github.com/maliput/maliput_malidrive/issues/513>`_)
+* Implement Junction::is_intersection API  (`#511 <https://github.com/maliput/maliput_malidrive/issues/511>`_)
+* Align bounding box's bottom-center with device's s-t-z_offset position. (`#509 <https://github.com/maliput/maliput_malidrive/issues/509>`_)
+* Contributors: Santiago Lopez
+
 0.27.0 (2026-06-22)
 -------------------
 * RoadMarkingBuilder accepts XODR signals as input. (`#507 <https://github.com/maliput/maliput_malidrive/issues/507>`_)
