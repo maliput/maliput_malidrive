@@ -180,6 +180,7 @@ install (FILES resources/ArcLane.xodr
                resources/Town06.xodr
                resources/Town07.xodr
                resources/TShapeRoad.xodr
+               resources/TShapeRoadWithJunctionUserData.xodr
                resources/TShapeRoad.yaml
                resources/TwoRoadsWithTrafficLights.xodr
                resources/TwoRoadsWithTrafficSigns.xodr

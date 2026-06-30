@@ -34,6 +34,7 @@
 
 #include <gtest/gtest.h>
 #include <maliput/api/compare.h>
+#include <maliput/api/junction.h>
 #include <maliput/api/lane_boundary.h>
 #include <maliput/api/lane_data.h>
 #include <maliput/api/lane_marking.h>
@@ -2410,6 +2411,38 @@ TEST_F(TwoWayRoadWithDoubleYellowCurveTest, CompleteMarkingTransitionSequence) {
     EXPECT_EQ(marking.color, exp.color) << "Color mismatch in segment " << exp.segment_id;
     EXPECT_EQ(marking.lane_change, exp.lane_change) << "LaneChange mismatch in segment " << exp.segment_id;
   }
+}
+
+std::unique_ptr<const maliput::api::RoadGeometry> BuildRoadGeometryWithJunctionUserDataIntersections(
+    bool use_userdata_intersections) {
+  builder::RoadGeometryConfiguration rg_config = GetRoadGeometryConfigurationFor("TShapeRoad.xodr").value();
+  rg_config.id = maliput::api::RoadGeometryId(use_userdata_intersections ? "TShapeUserDataEnabled"
+                                                                          : "TShapeUserDataDisabled");
+  rg_config.opendrive_file = "TShapeRoadWithJunctionUserData.xodr";
+  rg_config.use_userdata_intersections = use_userdata_intersections;
+  auto manager = xodr::LoadDataBaseFromFile(
+      utility::FindResourceInPath(rg_config.opendrive_file, kMalidriveResourceFolder),
+      {rg_config.tolerances.linear_tolerance.value()});
+  return builder::RoadGeometryBuilder(std::move(manager), rg_config)();
+}
+
+GTEST_TEST(JunctionUserDataIntersectionFromXodrTest,
+           DisabledUseUserDataIntersectionsLeavesClassificationUnavailable) {
+  const auto road_geometry = BuildRoadGeometryWithJunctionUserDataIntersections(false);
+  ASSERT_NE(road_geometry, nullptr);
+
+  const maliput::api::Junction* junction = road_geometry->ById().GetJunction(JunctionId("3"));
+  ASSERT_NE(junction, nullptr);
+  EXPECT_EQ(std::nullopt, junction->is_intersection());
+}
+
+GTEST_TEST(JunctionUserDataIntersectionFromXodrTest, EnabledUseUserDataIntersectionsUsesJunctionUserData) {
+  const auto road_geometry = BuildRoadGeometryWithJunctionUserDataIntersections(true);
+  ASSERT_NE(road_geometry, nullptr);
+
+  const maliput::api::Junction* junction = road_geometry->ById().GetJunction(JunctionId("3"));
+  ASSERT_NE(junction, nullptr);
+  EXPECT_EQ(std::make_optional(true), junction->is_intersection());
 }
 
 }  // namespace
