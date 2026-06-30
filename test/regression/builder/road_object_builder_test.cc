@@ -128,6 +128,14 @@ TEST_F(RoadObjectTypeMapperTest, SubtypeMappings) {
   EXPECT_EQ(MaliputType::kGuardWall, MapXodrObjectType(XodrType::kBarrier, "jerseyBarrier"));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, "otherSubtype"));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, std::nullopt));
+
+  EXPECT_EQ(MaliputType::kPylon, MapXodrObjectType(XodrType::kObstacle, "roadBlockage"));
+  EXPECT_EQ(MaliputType::kObstacle, MapXodrObjectType(XodrType::kObstacle, "otherSubtype"));
+  EXPECT_EQ(MaliputType::kObstacle, MapXodrObjectType(XodrType::kObstacle, std::nullopt));
+
+  EXPECT_EQ(MaliputType::kDelineator, MapXodrObjectType(XodrType::kPole, "permanentDelineator"));
+  EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kPole, "otherSubtype"));
+  EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kPole, std::nullopt));
 }
 
 // ---------------------------------------------------------------------------

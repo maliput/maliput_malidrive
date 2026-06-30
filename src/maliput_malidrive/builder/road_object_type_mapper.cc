@@ -37,6 +37,8 @@ namespace builder {
 static const char* kGuardRailSubtype = "guardRail";
 static const char* kWallSubtype = "wall";
 static const char* kJerseySubtype = "jerseyBarrier";
+static const char* kRoadBlockageSubtype = "roadBlockage";
+static const char* kPermanentDelineatorSubtype = "permanentDelineator";
 
 maliput::api::objects::RoadObjectType MapXodrObjectType(
     const std::optional<xodr::object::Object::ObjectType>& xodr_type, std::optional<std::string> xodr_subtype) {
@@ -68,10 +70,12 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // @}
     // @{
     case XodrType::kObstacle:
+      if (subtype == kRoadBlockageSubtype) return MaliputType::kPylon;
       return MaliputType::kObstacle;
     // @}
     // @{
     case XodrType::kPole:
+      if (subtype == kPermanentDelineatorSubtype) return MaliputType::kDelineator;
     case XodrType::kWind:
     case XodrType::kStreetLamp:
       return MaliputType::kPole;
