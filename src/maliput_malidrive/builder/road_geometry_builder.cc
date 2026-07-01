@@ -645,6 +645,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
   maliput::log()->trace("Using: scale_length: ", rg_config_.scale_length);
 
   const std::map<xodr::RoadHeader::Id, xodr::RoadHeader> road_headers = manager_->GetRoadHeaders();
+  const std::map<xodr::Junction::Id, xodr::Junction> xodr_junctions = manager_->GetJunctions();
 
   const std::vector<xodr::DBManager::XodrGeometriesToSimplify> geometries_to_simplify =
       rg_config_.simplification_policy ==
@@ -682,7 +683,7 @@ std::unique_ptr<const maliput::api::RoadGeometry> RoadGeometryBuilder::DoBuild()
       if (road_header.second.junction != "-1") {
         const maliput::api::JunctionId junction_id{road_header.second.junction};
         if (junctions_.find(junction_id) == junctions_.end()) {
-          junction = rg->AddJunction(BuildJunction(road_header.second.junction));
+          junction = rg->AddJunction(BuildJunction(road_header.second.junction, xodr_junctions, road_headers));
           maliput::log()->trace("Built Junction ID: ", junction->id().string(), ".");
           junctions_[junction->id()] = junction;
         } else {
@@ -822,16 +823,16 @@ std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunc
 }
 
 std::unique_ptr<maliput::geometry_base::Junction> RoadGeometryBuilder::BuildJunction(
-    const std::string& xodr_junction_id) {
+    const std::string& xodr_junction_id, const std::map<xodr::Junction::Id, xodr::Junction>& xodr_junctions,
+    const std::map<xodr::RoadHeader::Id, xodr::RoadHeader>& road_headers) {
   const int xodr_junction = std::stoi(xodr_junction_id);
   MALIDRIVE_THROW_UNLESS(xodr_junction >= 0, maliput::common::road_geometry_construction_error);
   std::optional<bool> is_intersection = std::nullopt;
   if (rg_config_.use_userdata_intersections) {
     maliput::log()->debug("Determining if junction id ", xodr_junction_id, " is an intersection.");
-    const auto junction_it = manager_->GetJunctions().find(xodr::Junction::Id(xodr_junction_id));
-    MALIDRIVE_THROW_UNLESS(junction_it != manager_->GetJunctions().end(),
-                           maliput::common::road_geometry_construction_error);
-    is_intersection = DetermineJunctionIntersectionFromXodr(junction_it->second, manager_->GetRoadHeaders());
+    const auto junction_it = xodr_junctions.find(xodr::Junction::Id(xodr_junction_id));
+    MALIDRIVE_THROW_UNLESS(junction_it != xodr_junctions.end(), maliput::common::road_geometry_construction_error);
+    is_intersection = DetermineJunctionIntersectionFromXodr(junction_it->second, road_headers);
   }
   return std::make_unique<maliput::geometry_base::Junction>(GetJunctionId(xodr_junction), is_intersection);
 }
