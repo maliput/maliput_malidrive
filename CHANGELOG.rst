@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.28.1 (2026-07-01)
+-------------------
+* Avoid using not-owned db_manager. (`#515 <https://github.com/maliput/maliput_malidrive/issues/515>`_)
+* Contributors: Santiago Lopez
+
 0.28.0 (2026-06-30)
 -------------------
 * Map XODR object subtypes to specific RoadObjectTypes. (`#513 <https://github.com/maliput/maliput_malidrive/issues/513>`_)
