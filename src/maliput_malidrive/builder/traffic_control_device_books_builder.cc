@@ -112,7 +112,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
           signal.name,
       };
 
-      const auto definition_opt = loader.Lookup(fingerprint);
+      const auto definition_opt = loader.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kSignal);
       if (!definition_opt.has_value()) {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for signal id='",
                               signal.id.string(), "' type='", signal.type, "' subtype='", signal.subtype,
@@ -182,7 +182,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
           object.name,
       };
 
-      const auto definition_opt = loader.Lookup(fingerprint);
+      const auto definition_opt = loader.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kObject);
       if (!definition_opt.has_value()) {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),

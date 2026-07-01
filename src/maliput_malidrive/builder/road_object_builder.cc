@@ -131,7 +131,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
           type_str, object.subtype, std::nullopt, std::nullopt, object.name,
       };
       bool is_movable = false;
-      const auto definition_opt = loader_.Lookup(fingerprint);
+      const auto definition_opt = loader_.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kObject);
       if (definition_opt.has_value() &&
           definition_opt.value().device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         is_movable = definition_opt.value().is_position_dynamic;
@@ -214,7 +214,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       };
       bool is_movable = false;
       std::optional<maliput::api::objects::RoadObjectType> type_from_db;
-      const auto definition_opt = loader_.Lookup(fingerprint);
+      const auto definition_opt = loader_.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kSignal);
       if (definition_opt.has_value() &&
           definition_opt.value().device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         is_movable = definition_opt.value().is_position_dynamic;
