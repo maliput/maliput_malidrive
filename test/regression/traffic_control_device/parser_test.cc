@@ -1573,6 +1573,36 @@ odr_signal_types:
   EXPECT_EQ(result->device_semantics, "concrete_name");
 }
 
+GTEST_TEST(SourceAwareLookupTest, DistinguishEntriesByOdrElementType) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: "roadMark"
+    properties:
+      device_type: RoadMarking
+      device_semantics: None
+
+odr_signal_types:
+  - odr_representation:
+      type: "roadMark"
+      name: "StopLine"
+    properties:
+      device_type: RoadMarking
+      device_semantics: StopLine
+)";
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kDb});
+  const TrafficControlDeviceFingerprint query{.type = "roadMark",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = "StopLine"};
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->odr_element_type, OpenDriveElementType::kSignal);
+  EXPECT_EQ(result->device_semantics, "StopLine");
+  EXPECT_EQ(result->device_type, TrafficControlDeviceType::kRoadMarking);
+}
+
 GTEST_TEST(SourceAwareLookupTest, SignalLookupIgnoresObjectEntries) {
   const char kDb[] = R"(
 odr_signal_types:
