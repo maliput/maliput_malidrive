@@ -1603,8 +1603,7 @@ odr_signal_types:
   EXPECT_EQ(result->device_type, TrafficControlDeviceType::kRoadMarking);
 }
 
-GTEST_TEST(SourceAwareLookupTest, SignalLookupIgnoresObjectEntries) {
-  const char kDb[] = R"(
+const char kSourceAwareLookupTestDb[] = R"(
 odr_signal_types:
   - odr_representation:
       type: "roadMark"
@@ -1624,7 +1623,9 @@ odr_object_types:
       device_semantics: ObjectStopLine
       description: "Object stop line"
 )";
-  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kDb});
+
+GTEST_TEST(SourceAwareLookupTest, SignalLookupIgnoresObjectEntries) {
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kSourceAwareLookupTestDb});
   const TrafficControlDeviceFingerprint query{.type = "roadMark",
                                               .subtype = std::nullopt,
                                               .country = std::nullopt,
@@ -1637,25 +1638,7 @@ odr_object_types:
 }
 
 GTEST_TEST(SourceAwareLookupTest, ObjectLookupIgnoresSignalEntries) {
-  const char kDb[] = R"(
-odr_signal_types:
-  - odr_representation:
-      type: "roadMark"
-      name: "StopLine"
-    properties:
-      device_type: RoadMarking
-      device_semantics: SignalStopLine
-      description: "Signal stop line"
-odr_object_types:
-  - odr_representation:
-      type: "roadMark"
-      name: "StopLine"
-    properties:
-      device_type: RoadMarking
-      device_semantics: ObjectStopLine
-      description: "Object stop line"
-)";
-  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kDb});
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kSourceAwareLookupTestDb});
   const TrafficControlDeviceFingerprint query{.type = "roadMark",
                                               .subtype = std::nullopt,
                                               .country = std::nullopt,
@@ -1665,6 +1648,17 @@ odr_object_types:
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->odr_element_type, OpenDriveElementType::kObject);
   EXPECT_EQ(result->device_semantics, "ObjectStopLine");
+}
+
+GTEST_TEST(SourceAwareLookupTest, UnknownQuerySourceThrows) {
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kSourceAwareLookupTestDb});
+  const TrafficControlDeviceFingerprint query{.type = "roadMark",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = "StopLine"};
+  EXPECT_THROW(loader.Lookup(query, OpenDriveElementType::kUnknown),
+               maliput::common::road_network_description_parser_error);
 }
 
 // ============================================================================

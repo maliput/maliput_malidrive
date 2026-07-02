@@ -73,6 +73,9 @@ std::optional<TrafficControlDeviceDefinition> TrafficControlDeviceDatabaseLoader
 
   for (const auto& def : definitions_) {
     if (def.odr_element_type != query_source) {
+      MALIDRIVE_VALIDATE(query_source != OpenDriveElementType::kUnknown,
+                         maliput::common::road_network_description_parser_error,
+                         "Invalid OpenDriveElementType for lookup: " + std::to_string(static_cast<int>(query_source)));
       continue;
     }
     if (TrafficControlDeviceParser::Matches(def.fingerprint, fingerprint)) {
