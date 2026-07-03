@@ -502,7 +502,7 @@ TEST_F(RoadObjectBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
   EXPECT_GT(std::abs(road_object_z - object_.z_offset), 1.0);
 }
 
-TEST_F(RoadObjectBuilderElevatedRoadTest, ObjectOrientationMinusDoesNotAffectYaw) {
+TEST_F(RoadObjectBuilderElevatedRoadTest, ObjectOrientationDoesNotAffectYaw) {
   xodr::object::Object object_with_positive_orientation = object_;
   object_with_positive_orientation.orientation = xodr::object::Orientation::kPositive;
   object_with_positive_orientation.hdg = 0.;
@@ -579,7 +579,7 @@ TEST_F(RoadObjectBuilderSignalTest, BuildRoadObjectFromSignal) {
   EXPECT_NEAR(road_object->bounding_box().box_size().y(), 0.5, 1e-6);
 }
 
-TEST_F(RoadObjectBuilderSignalTest, SignalOrientationMinusAppliesYawOffset) {
+TEST_F(RoadObjectBuilderSignalTest, SignalOrientationAppliesYawOffset) {
   xodr::signal::Signal signal_with_positive_orientation = FindSignal("TL1");
   signal_with_positive_orientation.orientation = xodr::signal::Orientation::kWithS;
   signal_with_positive_orientation.h_offset = 0.;
