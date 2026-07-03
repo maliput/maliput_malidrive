@@ -502,6 +502,29 @@ TEST_F(RoadObjectBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
   EXPECT_GT(std::abs(road_object_z - object_.z_offset), 1.0);
 }
 
+TEST_F(RoadObjectBuilderElevatedRoadTest, ObjectOrientationDoesNotAffectYaw) {
+  xodr::object::Object object_with_positive_orientation = object_;
+  object_with_positive_orientation.orientation = xodr::object::Orientation::kPositive;
+  object_with_positive_orientation.hdg = 0.;
+
+  xodr::object::Object object_with_negative_orientation = object_;
+  object_with_negative_orientation.orientation = xodr::object::Orientation::kNegative;
+  object_with_negative_orientation.hdg = 0.;
+
+  const auto positive_orientation_road_object =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object_with_positive_orientation,
+                        xodr::RoadHeader::Id("1"), *loader_, road_geometry_)();
+  ASSERT_NE(positive_orientation_road_object, nullptr);
+
+  const auto negative_orientation_road_object =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object_with_negative_orientation,
+                        xodr::RoadHeader::Id("1"), *loader_, road_geometry_)();
+  ASSERT_NE(negative_orientation_road_object, nullptr);
+
+  EXPECT_NEAR(positive_orientation_road_object->orientation().yaw(), 0., 1e-5);
+  EXPECT_NEAR(negative_orientation_road_object->orientation().yaw(), 0., 1e-5);
+}
+
 class RoadObjectBuilderSignalTest : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -554,6 +577,29 @@ TEST_F(RoadObjectBuilderSignalTest, BuildRoadObjectFromSignal) {
   EXPECT_EQ(road_object->related_lanes().size(), 1u);
   EXPECT_NEAR(road_object->bounding_box().box_size().x(), 1.0, 1e-6);
   EXPECT_NEAR(road_object->bounding_box().box_size().y(), 0.5, 1e-6);
+}
+
+TEST_F(RoadObjectBuilderSignalTest, SignalOrientationAppliesYawOffset) {
+  xodr::signal::Signal signal_with_positive_orientation = FindSignal("TL1");
+  signal_with_positive_orientation.orientation = xodr::signal::Orientation::kWithS;
+  signal_with_positive_orientation.h_offset = 0.;
+
+  xodr::signal::Signal signal_with_negative_orientation = FindSignal("TL1");
+  signal_with_negative_orientation.orientation = xodr::signal::Orientation::kAgainstS;
+  signal_with_negative_orientation.h_offset = 0.;
+
+  const auto positive_orientation_road_object =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal_with_positive_orientation,
+                        xodr::RoadHeader::Id("1"), *loader_, road_geometry_)();
+  ASSERT_NE(positive_orientation_road_object, nullptr);
+
+  const auto negative_orientation_road_object =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal_with_negative_orientation,
+                        xodr::RoadHeader::Id("1"), *loader_, road_geometry_)();
+  ASSERT_NE(negative_orientation_road_object, nullptr);
+
+  EXPECT_NEAR(positive_orientation_road_object->orientation().yaw(), M_PI, 1e-5);
+  EXPECT_NEAR(negative_orientation_road_object->orientation().yaw(), 0., 1e-5);
 }
 
 TEST_F(RoadObjectBuilderTest, FindByLane) {
