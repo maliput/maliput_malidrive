@@ -60,9 +60,13 @@ class TrafficControlDeviceDatabaseLoader {
   /// Looks up a TrafficControlDeviceDefinition by fingerprint.
   ///
   /// @param fingerprint The @ref TrafficControlDeviceFingerprint to look up.
+  /// @param query_source Whether the lookup is for an OpenDRIVE `signal` or `object`.
   /// @returns An optional containing the matching @ref TrafficControlDeviceDefinition
   ///          if found, std::nullopt otherwise.
-  std::optional<TrafficControlDeviceDefinition> Lookup(const TrafficControlDeviceFingerprint& fingerprint) const;
+  /// @throws maliput::common::road_network_description_parser_error if @p query_source is
+  ///         OpenDriveElementType::kUnknown.
+  std::optional<TrafficControlDeviceDefinition> Lookup(const TrafficControlDeviceFingerprint& fingerprint,
+                                                       OpenDriveElementType query_source) const;
 
  private:
   TrafficControlDeviceDatabaseLoader() = delete;

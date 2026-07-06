@@ -43,6 +43,13 @@
 namespace malidrive {
 namespace traffic_control_device {
 
+/// OpenDRIVE element category that originated a DB entry or lookup query.
+enum class OpenDriveElementType {
+  kUnknown = 0,
+  kSignal,
+  kObject,
+};
+
 /// Represents a bulb state condition in a rule definition.
 /// Specifies that a particular bulb must be in a particular state.
 struct BulbStateCondition {
@@ -143,6 +150,8 @@ struct TrafficControlDeviceFingerprint {
 /// Represents a traffic signal definition loaded from the database.
 /// Describes the complete structure and rule logic for a particular signal.
 struct TrafficControlDeviceDefinition {
+  /// OpenDRIVE element category this DB entry belongs to (`odr_signal_types` or `odr_object_types`).
+  OpenDriveElementType odr_element_type{OpenDriveElementType::kUnknown};
   /// Unique identifier for this signal definition.
   TrafficControlDeviceFingerprint fingerprint;
   /// Human-readable description of this signal definition.
@@ -165,7 +174,8 @@ struct TrafficControlDeviceDefinition {
   std::vector<RuleState> rule_states;
 
   bool operator==(const TrafficControlDeviceDefinition& other) const {
-    return fingerprint == other.fingerprint && description == other.description && device_type == other.device_type &&
+    return odr_element_type == other.odr_element_type && fingerprint == other.fingerprint &&
+           description == other.description && device_type == other.device_type &&
            device_semantics == other.device_semantics && is_position_dynamic == other.is_position_dynamic &&
            default_bounding_box == other.default_bounding_box && bulbs == other.bulbs &&
            rule_states == other.rule_states;

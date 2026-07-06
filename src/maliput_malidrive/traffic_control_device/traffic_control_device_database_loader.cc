@@ -62,13 +62,24 @@ TrafficControlDeviceDatabaseLoader::TrafficControlDeviceDatabaseLoader(const std
 }
 
 std::optional<TrafficControlDeviceDefinition> TrafficControlDeviceDatabaseLoader::Lookup(
-    const TrafficControlDeviceFingerprint& fingerprint) const {
+    const TrafficControlDeviceFingerprint& fingerprint, OpenDriveElementType query_source) const {
+  const auto specificity_for = [query_source](const TrafficControlDeviceFingerprint& fp) {
+    return query_source == OpenDriveElementType::kSignal ? TrafficControlDeviceParser::Specificity(fp)
+                                                         : TrafficControlDeviceParser::SpecificityForObject(fp);
+  };
+
   const TrafficControlDeviceDefinition* best = nullptr;
   int best_specificity = -1;
 
   for (const auto& def : definitions_) {
+    if (def.odr_element_type != query_source) {
+      MALIDRIVE_VALIDATE(query_source != OpenDriveElementType::kUnknown,
+                         maliput::common::road_network_description_parser_error,
+                         "Invalid OpenDriveElementType for lookup: " + std::to_string(static_cast<int>(query_source)));
+      continue;
+    }
     if (TrafficControlDeviceParser::Matches(def.fingerprint, fingerprint)) {
-      const int specificity = TrafficControlDeviceParser::Specificity(def.fingerprint);
+      const int specificity = specificity_for(def.fingerprint);
       if (specificity > best_specificity) {
         best_specificity = specificity;
         best = &def;

@@ -378,6 +378,7 @@ TrafficControlDeviceDefinition ParseSignalDefinition(const YAML::Node& entry_nod
                          maliput::common::road_network_description_parser_error);
 
   TrafficControlDeviceDefinition tcd_definition;
+  tcd_definition.odr_element_type = OpenDriveElementType::kSignal;
 
   // --- Parse fingerprint from odr_representation ---
   tcd_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);
@@ -503,6 +504,7 @@ TrafficControlDeviceDefinition ParseObjectDefinition(const YAML::Node& entry_nod
                          maliput::common::road_network_description_parser_error);
 
   TrafficControlDeviceDefinition tcd_definition;
+  tcd_definition.odr_element_type = OpenDriveElementType::kObject;
 
   // --- Parse fingerprint from odr_representation ---
   tcd_definition.fingerprint.type = GetRequiredStringField(repr_node, TrafficControlDeviceConstants::kType);

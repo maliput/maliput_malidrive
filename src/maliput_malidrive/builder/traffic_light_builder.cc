@@ -82,7 +82,7 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
       signal_.country_revision,
   };
 
-  const auto definition_opt = loader_.Lookup(fingerprint);
+  const auto definition_opt = loader_.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kSignal);
   if (!definition_opt.has_value()) {
     maliput::log()->debug("TrafficLightBuilder: no definition found for signal id='", signal_.id.string(), "' type='",
                           signal_.type, "' subtype='", signal_.subtype, "'. Skipping TrafficLight creation.");

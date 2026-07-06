@@ -102,7 +102,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
           type_str, object.subtype, std::nullopt, std::nullopt, object.name,
       };
 
-      const auto definition_opt = loader_.Lookup(fingerprint);
+      const auto definition_opt = loader_.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kObject);
       if (!definition_opt.has_value()) {
         maliput::log()->debug("RoadMarkingBuilder: no definition found for object id='", object.id.string(), "' type='",
                               type_str, "' subtype='", object.subtype.value_or(""), "' name='",
@@ -187,7 +187,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
           signal.type, NormalizeSubtype(signal.subtype), signal.country, signal.country_revision, signal.name,
       };
 
-      const auto definition_opt = loader_.Lookup(fingerprint);
+      const auto definition_opt = loader_.Lookup(fingerprint, traffic_control_device::OpenDriveElementType::kSignal);
       if (!definition_opt.has_value()) {
         maliput::log()->debug("RoadMarkingBuilder: no definition found for signal id='", signal.id.string(), "' type='",
                               signal.type, "' subtype='", signal.subtype, "' name='", signal.name.value_or(""),

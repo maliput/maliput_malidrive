@@ -1492,7 +1492,7 @@ GTEST_TEST(WildcardLookupTest, ExactMatchPreferredOverWildcard) {
                                               .country = "OpenDRIVE",
                                               .country_revision = std::nullopt,
                                               .name = std::nullopt};
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "exact_match");
 }
@@ -1504,7 +1504,7 @@ GTEST_TEST(WildcardLookupTest, PartialWildcardPreferredOverCatchAll) {
                                               .country = "OpenDRIVE",
                                               .country_revision = std::nullopt,
                                               .name = std::nullopt};
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "partial_wildcard");
 }
@@ -1516,7 +1516,7 @@ GTEST_TEST(WildcardLookupTest, FallbackToCatchAll) {
                                               .country = std::nullopt,
                                               .country_revision = std::nullopt,
                                               .name = std::nullopt};
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "catch_all");
 }
@@ -1528,7 +1528,7 @@ GTEST_TEST(WildcardLookupTest, NoMatchReturnsNullopt) {
                                               .country = std::nullopt,
                                               .country_revision = std::nullopt,
                                               .name = std::nullopt};
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
   EXPECT_FALSE(result.has_value());
 }
 
@@ -1539,7 +1539,7 @@ GTEST_TEST(WildcardLookupTest, CatchAllMatchesAnyQuery) {
                                               .country = "any_country",
                                               .country_revision = "rev1",
                                               .name = "any_name"};
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "generic");
 }
@@ -1568,9 +1568,97 @@ odr_signal_types:
 )";
   const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kNameLookupDb});
   const TrafficControlDeviceFingerprint query{.type = "1000001", .name = "stop_sign"};
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->device_semantics, "concrete_name");
+}
+
+GTEST_TEST(SourceAwareLookupTest, DistinguishEntriesByOdrElementType) {
+  const char kDb[] = R"(
+odr_object_types:
+  - odr_representation:
+      type: "roadMark"
+    properties:
+      device_type: RoadMarking
+      device_semantics: None
+
+odr_signal_types:
+  - odr_representation:
+      type: "roadMark"
+      name: "StopLine"
+    properties:
+      device_type: RoadMarking
+      device_semantics: StopLine
+)";
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kDb});
+  const TrafficControlDeviceFingerprint query{.type = "roadMark",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = "StopLine"};
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->odr_element_type, OpenDriveElementType::kSignal);
+  EXPECT_EQ(result->device_semantics, "StopLine");
+  EXPECT_EQ(result->device_type, TrafficControlDeviceType::kRoadMarking);
+}
+
+const char kSourceAwareLookupTestDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "roadMark"
+      name: "StopLine"
+      country: null
+      country_revision: null
+    properties:
+      device_type: RoadMarking
+      device_semantics: SignalStopLine
+      description: "Signal stop line"
+odr_object_types:
+  - odr_representation:
+      type: "roadMark"
+      name: "StopLine"
+    properties:
+      device_type: RoadMarking
+      device_semantics: ObjectStopLine
+      description: "Object stop line"
+)";
+
+GTEST_TEST(SourceAwareLookupTest, SignalLookupIgnoresObjectEntries) {
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kSourceAwareLookupTestDb});
+  const TrafficControlDeviceFingerprint query{.type = "roadMark",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = "StopLine"};
+  const auto result = loader.Lookup(query, OpenDriveElementType::kSignal);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->odr_element_type, OpenDriveElementType::kSignal);
+  EXPECT_EQ(result->device_semantics, "SignalStopLine");
+}
+
+GTEST_TEST(SourceAwareLookupTest, ObjectLookupIgnoresSignalEntries) {
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kSourceAwareLookupTestDb});
+  const TrafficControlDeviceFingerprint query{.type = "roadMark",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = "StopLine"};
+  const auto result = loader.Lookup(query, OpenDriveElementType::kObject);
+  ASSERT_TRUE(result.has_value());
+  EXPECT_EQ(result->odr_element_type, OpenDriveElementType::kObject);
+  EXPECT_EQ(result->device_semantics, "ObjectStopLine");
+}
+
+GTEST_TEST(SourceAwareLookupTest, UnknownQuerySourceThrows) {
+  const TrafficControlDeviceDatabaseLoader loader(std::optional<std::string>{kSourceAwareLookupTestDb});
+  const TrafficControlDeviceFingerprint query{.type = "roadMark",
+                                              .subtype = std::nullopt,
+                                              .country = std::nullopt,
+                                              .country_revision = std::nullopt,
+                                              .name = "StopLine"};
+  EXPECT_THROW(loader.Lookup(query, OpenDriveElementType::kUnknown),
+               maliput::common::road_network_description_parser_error);
 }
 
 // ============================================================================
@@ -2122,7 +2210,7 @@ odr_object_types:
       .name = "LadderCrosswalk",  // Specific name, but should match wildcard in DB
   };
 
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kObject);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->fingerprint.type, "crosswalk");
   EXPECT_EQ(result->device_semantics, "Crosswalk");
@@ -2151,7 +2239,7 @@ odr_object_types:
       .name = "LadderCrosswalk",  // Specific name query
   };
 
-  const auto result = loader.Lookup(query);
+  const auto result = loader.Lookup(query, OpenDriveElementType::kObject);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(result->fingerprint.type, "crosswalk");
   EXPECT_EQ(result->fingerprint.name, "LadderCrosswalk");
