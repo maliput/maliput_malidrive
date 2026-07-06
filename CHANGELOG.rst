@@ -2,6 +2,12 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.29.0 (2026-07-06)
+-------------------
+* Improve TrafficControlDevice::Lookup by passing XODR element type (`#517 <https://github.com/maliput/maliput_malidrive/issues/517>`_)
+* Ignore heading offset when creating RoadObject from an XODR object. (`#520 <https://github.com/maliput/maliput_malidrive/issues/520>`_)
+* Contributors: Santiago Lopez
+
 0.28.1 (2026-07-01)
 -------------------
 * Avoid using not-owned db_manager. (`#515 <https://github.com/maliput/maliput_malidrive/issues/515>`_)
