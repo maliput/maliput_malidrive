@@ -232,6 +232,8 @@ odr_signal_types:
           color: "Red"
           type: "Round"
           states: ["Off", "On"]
+          # Pedestrian signals default to "Don't Walk" (Red On) at startup.
+          initial_state: "On"
 
         # Black background with Green walking figure (Walk).
         - id: "WalkBulb"
@@ -240,6 +242,7 @@ odr_signal_types:
           color: "Green"
           type: "Round"
           states: ["Off", "On", "Blinking"]
+          initial_state: "Off"
 
       rule_states:
         - conditions:
