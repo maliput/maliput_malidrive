@@ -435,6 +435,61 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS2Fields) {
   EXPECT_EQ("2_0_1", lane_ids[3]);
 }
 
+// ---------------------------------------------------------------------------
+// Tests using SingleRoadOrientationAttributes.xodr /
+// traffic_control_device_db/traffic_control_device_db_example.yaml.
+//
+// This map defines a single straight road (Road 1, hdg=0) with a traffic-light
+// signal that carries non-default hOffset, roll, and pitch attributes:
+//
+//   Signal TL_OA: type="1000001", orientation="+", s=50, t=2, zOffset=5,
+//                 hOffset=0.5, roll=0.1, pitch=0.2
+//
+// Because the road is straight (hdg=0) the lane yaw at any s is 0.  The
+// builder computes:
+//   orientation_yaw = lane_yaw(0) + hOffset(0.5) + pi  (orientation="+" adds pi)
+//                   = pi + 0.5
+//   rotation = FromRpy(roll=0.1, pitch=0.2, yaw=pi+0.5)
+// ---------------------------------------------------------------------------
+
+class TrafficLightBuilderOrientationAttributesTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadOrientationAttributes.xodr", kMalidriveResourceFolder);
+    const std::string yaml_db = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    traffic_light_book_ = road_network_->traffic_light_book();
+    ASSERT_NE(traffic_light_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::rules::TrafficLightBook* traffic_light_book_{};
+};
+
+// Verifies that hOffset, roll, and pitch from the XODR signal are correctly
+// propagated to the TrafficLight orientation.
+TEST_F(TrafficLightBuilderOrientationAttributesTest, OrientationAttributesAreApplied) {
+  const auto* tl = traffic_light_book_->GetTrafficLight(maliput::api::rules::TrafficLight::Id("TL_OA"));
+  ASSERT_NE(tl, nullptr);
+
+  // Road hdg=0 → lane_yaw = 0.  Builder adds hOffset then pi (orientation="+").
+  const maliput::api::Rotation kExpectedRotation = maliput::api::Rotation::FromRpy(0.1, 0.2, M_PI + 0.5);
+
+  const auto& rot = tl->orientation_road_network();
+  EXPECT_NEAR(kExpectedRotation.roll(), rot.roll(), 1e-6);
+  EXPECT_NEAR(kExpectedRotation.pitch(), rot.pitch(), 1e-6);
+  EXPECT_NEAR(kExpectedRotation.yaw(), rot.yaw(), 1e-6);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
