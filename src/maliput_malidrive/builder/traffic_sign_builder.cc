@@ -137,7 +137,8 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   const double orientation =
       rp.lane->GetOrientation(rp.pos).yaw() + (signal_.h_offset.has_value() ? signal_.h_offset.value() : 0.);
   const maliput::api::Rotation orientation_road_network = maliput::api::Rotation::FromRpy(
-      0., 0., orientation + (signal_.orientation != xodr::signal::Orientation::kAgainstS ? M_PI : 0.));
+      signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
+      orientation + (signal_.orientation != xodr::signal::Orientation::kAgainstS ? M_PI : 0.));
 
   auto related_lanes =
       ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);
