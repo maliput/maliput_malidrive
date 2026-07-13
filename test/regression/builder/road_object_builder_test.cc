@@ -93,14 +93,16 @@ TEST_F(RoadObjectTypeMapperTest, DirectMappings) {
   EXPECT_EQ(MaliputType::kVegetation, MapXodrObjectType(XodrType::kVegetation));
 }
 
-TEST_F(RoadObjectTypeMapperTest, CloseMappings) {
+TEST_F(RoadObjectTypeMapperTest, SpecificTypeMappings) {
   using XodrType = xodr::object::Object::ObjectType;
   using MaliputType = maliput::api::objects::RoadObjectType;
 
-  EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kStreetLamp));
-  EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kWind));
-  EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kRailing));
-  EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kSoundBarrier));
+  // Types with specific maliput mappings instead of generic types
+  EXPECT_EQ(MaliputType::kStreetLamp, MapXodrObjectType(XodrType::kStreetLamp));
+  EXPECT_EQ(MaliputType::kWind, MapXodrObjectType(XodrType::kWind));
+  EXPECT_EQ(MaliputType::kRailing, MapXodrObjectType(XodrType::kRailing));
+  EXPECT_EQ(MaliputType::kSoundBarrier, MapXodrObjectType(XodrType::kSoundBarrier));
+  EXPECT_EQ(MaliputType::kPatch, MapXodrObjectType(XodrType::kPatch));
 }
 
 TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
@@ -108,15 +110,26 @@ TEST_F(RoadObjectTypeMapperTest, UnknownMappings) {
   using MaliputType = maliput::api::objects::RoadObjectType;
 
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCrosswalk));
-  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kPatch));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kParkingSpace));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kRoadMark));
-  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kBike));
-  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCar));
-  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kVan));
-  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kTrain));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kNone));
   EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(std::nullopt));
+}
+
+TEST_F(RoadObjectTypeMapperTest, StaticVehicleTypeMappings) {
+  using XodrType = xodr::object::Object::ObjectType;
+  using MaliputType = maliput::api::objects::RoadObjectType;
+
+  // Vehicle types now map to specific static vehicle types
+  EXPECT_EQ(MaliputType::kBikeStatic, MapXodrObjectType(XodrType::kBike));
+  EXPECT_EQ(MaliputType::kBusStatic, MapXodrObjectType(XodrType::kBus));
+  EXPECT_EQ(MaliputType::kCarStatic, MapXodrObjectType(XodrType::kCar));
+  EXPECT_EQ(MaliputType::kMotorbikeStatic, MapXodrObjectType(XodrType::kMotorbike));
+  EXPECT_EQ(MaliputType::kPedestrianStatic, MapXodrObjectType(XodrType::kPedestrian));
+  EXPECT_EQ(MaliputType::kTrailerStatic, MapXodrObjectType(XodrType::kTrailer));
+  EXPECT_EQ(MaliputType::kTrainStatic, MapXodrObjectType(XodrType::kTrain));
+  EXPECT_EQ(MaliputType::kTramStatic, MapXodrObjectType(XodrType::kTram));
+  EXPECT_EQ(MaliputType::kVanStatic, MapXodrObjectType(XodrType::kVan));
 }
 
 TEST_F(RoadObjectTypeMapperTest, SubtypeMappings) {

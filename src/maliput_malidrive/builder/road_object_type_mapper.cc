@@ -57,9 +57,11 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
       if (subtype == kGuardRailSubtype) return MaliputType::kGuardRail;
       if (subtype == kWallSubtype || subtype == kJerseySubtype) return MaliputType::kGuardWall;
       // else, fall through to default barrier type.
-    case XodrType::kSoundBarrier:
-    case XodrType::kRailing:
       return MaliputType::kBarrier;
+    case XodrType::kSoundBarrier:
+      return MaliputType::kSoundBarrier;
+    case XodrType::kRailing:
+      return MaliputType::kRailing;
     // @}
     // @{
     case XodrType::kBuilding:
@@ -76,9 +78,11 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // @{
     case XodrType::kPole:
       if (subtype == kPermanentDelineatorSubtype) return MaliputType::kDelineator;
-    case XodrType::kWind:
-    case XodrType::kStreetLamp:
       return MaliputType::kPole;
+    case XodrType::kWind:
+      return MaliputType::kWind;
+    case XodrType::kStreetLamp:
+      return MaliputType::kStreetLamp;
     // @}
     // @{
     case XodrType::kRoadSurface:
@@ -96,22 +100,38 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // These types are now covered by RoadMarkingTypes, so we map them to kUnknown to avoid misclassification.
     // @{
     case XodrType::kCrosswalk:
-    case XodrType::kPatch:
     case XodrType::kParkingSpace:
     case XodrType::kRoadMark:
       return MaliputType::kUnknown;
     // @}
-    // Deprecated types map to kUnknown.
+    // These types are now covered by specific vehicle static types.
     // @{
     case XodrType::kBike:
+      return MaliputType::kBikeStatic;
     case XodrType::kBus:
+      return MaliputType::kBusStatic;
     case XodrType::kCar:
+      return MaliputType::kCarStatic;
     case XodrType::kMotorbike:
+      return MaliputType::kMotorbikeStatic;
     case XodrType::kPedestrian:
+      return MaliputType::kPedestrianStatic;
     case XodrType::kTrailer:
+      return MaliputType::kTrailerStatic;
     case XodrType::kTrain:
+      return MaliputType::kTrainStatic;
     case XodrType::kTram:
+      return MaliputType::kTramStatic;
     case XodrType::kVan:
+      return MaliputType::kVanStatic;
+    // @}
+    // Patch maps to kPatch.
+    // @{
+    case XodrType::kPatch:
+      return MaliputType::kPatch;
+    // @}
+    // None maps to kUnknown.
+    // @{
     case XodrType::kNone:
       return MaliputType::kUnknown;
       // @}
