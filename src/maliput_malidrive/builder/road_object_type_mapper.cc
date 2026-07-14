@@ -99,6 +99,7 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // @{
     case XodrType::kRoadSurface:
       if (subtype == kPatchSubtype) return MaliputType::kPatch;
+      return MaliputType::kRoadSurface;
     case XodrType::kTrafficIsland:
       return MaliputType::kTrafficIsland;
     // @}
