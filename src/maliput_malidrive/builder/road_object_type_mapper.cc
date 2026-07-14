@@ -81,11 +81,11 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // @}
     // @{
     case XodrType::kObstacle:
-    if (subtype == kRoadBlockageSubtype) return MaliputType::kPylon;
-    return MaliputType::kObstacle;
-    // @}
-    // @{
-      case XodrType::kPole:
+      if (subtype == kRoadBlockageSubtype) return MaliputType::kPylon;
+      return MaliputType::kObstacle;
+      // @}
+      // @{
+    case XodrType::kPole:
       if (subtype == kStreetLampSubtype) return MaliputType::kStreetLamp;
       if (subtype == kWindSubtype) return MaliputType::kWind;
       if (subtype == kPermanentDelineatorSubtype) return MaliputType::kDelineator;
