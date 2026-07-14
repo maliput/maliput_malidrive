@@ -189,6 +189,32 @@ TEST_F(TrafficLightBuilderFigure8Test, PositionOfTrafficLight) {
   EXPECT_NEAR(position.y(), -2.8325, 1e-3);
 }
 
+// Verifies that GetInitialState() on each bulb reflects the initial_state field
+// from the YAML database rather than always being kOff.
+//
+// Uses the pedestrian-signal type "1000002" whose database entry sets:
+//   DontWalkBulb → initial_state: "On"
+//   WalkBulb     → initial_state: "Off"
+TEST_F(TrafficLightBuilderFigure8Test, BulbInitialStateFromDatabase) {
+  xodr::signal::Signal pedestrian_signal = signal_;
+  pedestrian_signal.type = "1000002";
+
+  TrafficLightBuilder builder(pedestrian_signal, xodr::RoadHeader::Id("44"), *loader_, road_geometry_);
+  const auto traffic_light = builder();
+  ASSERT_NE(traffic_light, nullptr);
+
+  const auto bulb_groups = traffic_light->bulb_groups();
+  ASSERT_EQ(1u, bulb_groups.size());
+
+  const auto* dont_walk = bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("DontWalkBulb"));
+  ASSERT_NE(dont_walk, nullptr);
+  EXPECT_EQ(maliput::api::rules::BulbState::kOn, dont_walk->GetInitialState());
+
+  const auto* walk = bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("WalkBulb"));
+  ASSERT_NE(walk, nullptr);
+  EXPECT_EQ(maliput::api::rules::BulbState::kOff, walk->GetInitialState());
+}
+
 class TrafficLightBuilderElevatedRoadTest : public ::testing::Test {
  protected:
   void SetUp() override {

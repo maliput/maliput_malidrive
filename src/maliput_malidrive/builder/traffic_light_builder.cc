@@ -113,7 +113,7 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
         maliput::api::rules::Bulb::Id(bulb_def.id),
         maliput::api::InertialPosition::FromXyz(bulb_def.position_traffic_light),
         maliput::api::Rotation::FromQuat(bulb_def.orientation_traffic_light), bulb_def.color, bulb_def.type,
-        bulb_def.arrow_orientation_rad, states_opt, bulb_def.bounding_box));
+        bulb_def.arrow_orientation_rad, states_opt, bulb_def.bounding_box, bulb_def.initial_state));
   }
 
   maliput::api::rules::TrafficLight::Id traffic_light_id =
