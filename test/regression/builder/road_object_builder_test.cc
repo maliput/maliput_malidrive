@@ -159,8 +159,8 @@ TEST_F(RoadObjectTypeMapperTest, SubtypeMappings) {
 
   // RoadSurface subtype mappings
   EXPECT_EQ(MaliputType::kPatch, MapXodrObjectType(XodrType::kRoadSurface, "patch"));
-  EXPECT_EQ(MaliputType::kTrafficIsland, MapXodrObjectType(XodrType::kRoadSurface, "otherSubtype"));
-  EXPECT_EQ(MaliputType::kTrafficIsland, MapXodrObjectType(XodrType::kRoadSurface, std::nullopt));
+  EXPECT_EQ(MaliputType::kRoadSurface, MapXodrObjectType(XodrType::kRoadSurface, "otherSubtype"));
+  EXPECT_EQ(MaliputType::kRoadSurface, MapXodrObjectType(XodrType::kRoadSurface, std::nullopt));
 
   // Crosswalk subtype mappings
   EXPECT_EQ(MaliputType::kPedestrianStatic, MapXodrObjectType(XodrType::kCrosswalk, "pedestrian"));
