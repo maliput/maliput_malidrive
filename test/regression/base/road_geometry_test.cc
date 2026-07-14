@@ -223,6 +223,40 @@ class RoadGeometryFindRoadPositions : public ::testing::Test {
   std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
 };
 
+class RoadGeometryFindRoadPositionsSamplingThreshold : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    road_geometry_configuration_.id = maliput::api::RoadGeometryId("SingleLane");
+    road_geometry_configuration_.opendrive_file = utility::FindResourceInPath("SingleLane.xodr", kMalidriveResourceFolder);
+    road_network_ =
+        ::malidrive::loader::Load<::malidrive::builder::RoadNetworkBuilder>(road_geometry_configuration_.ToStringMap());
+    road_geometry_ = road_network_->road_geometry();
+    MALIDRIVE_THROW_UNLESS(road_geometry_ != nullptr);
+  }
+
+  double ComputeKdTreeSamplingStepHeuristic() const {
+    static constexpr double kFactor = 0.1;
+    const auto lanes = road_geometry_->ById().GetLanes();
+    MALIDRIVE_THROW_UNLESS(!lanes.empty());
+
+    double total_length = 0.;
+    for (const auto& lane : lanes) {
+      total_length += lane.second->length();
+    }
+    return (total_length / static_cast<double>(lanes.size())) * kFactor;
+  }
+
+  const maliput::api::Lane* GetLane(const maliput::api::LaneId& lane_id) const {
+    const maliput::api::Lane* lane = road_geometry_->ById().GetLane(lane_id);
+    MALIDRIVE_THROW_UNLESS(lane != nullptr);
+    return lane;
+  }
+
+  builder::RoadGeometryConfiguration road_geometry_configuration_{};
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_{nullptr};
+  const maliput::api::RoadGeometry* road_geometry_{nullptr};
+};
+
 TEST_F(RoadGeometryFindRoadPositions, FindSingleRoadPosition) {
   const maliput::api::LaneId lane_id("0_0_1");
   auto lane = road_network_->road_geometry()->ById().GetLane(lane_id);
@@ -282,6 +316,51 @@ TEST_F(RoadGeometryFindRoadPositions, FindAllRoadPosition) {
   maliput::geometry_base::KDTreeStrategy strategy(road_network_->road_geometry(), .05);
   std::vector<maliput::api::RoadPositionResult> results = strategy.FindRoadPositions(inertial_position, radius);
   EXPECT_EQ(static_cast<int>(results.size()), road_network_->road_geometry()->ById().GetLanes().size());
+}
+
+TEST_F(RoadGeometryFindRoadPositionsSamplingThreshold, FindsRoadPositionWithSparseSamplingCandidates) {
+  const maliput::api::LaneId lane_id("1_0_1");
+  const maliput::api::Lane* lane = GetLane(lane_id);
+
+  const double sampling_step = ComputeKdTreeSamplingStepHeuristic();
+  const double radius = 0.5;
+
+  // Choose a point halfway between two longitudinal samples (s = 0 and s = sampling_step).
+  // This is sensitive to candidate expansion when the KD-tree sampling is sparse.
+  const maliput::api::LanePosition query_lane_position(sampling_step / 2., 0., 0.);
+  const maliput::api::InertialPosition query = lane->ToInertialPosition(query_lane_position);
+
+  EXPECT_LT(radius, sampling_step);
+  EXPECT_LT(radius, 2. * sampling_step);
+
+  const auto results = road_geometry_->FindRoadPositions(query, radius);
+  ASSERT_EQ(results.size(), 1u);
+  EXPECT_EQ(results[0].road_position.lane->id(), lane_id);
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(query_lane_position, results[0].road_position.pos,
+                                                constants::kLinearTolerance)));
+  EXPECT_NEAR(results[0].distance, 0., constants::kLinearTolerance);
+}
+
+TEST_F(RoadGeometryFindRoadPositionsSamplingThreshold, FindsRoadPositionWithVerySmallRadiusUnderSparseSampling) {
+  const maliput::api::LaneId lane_id("1_0_1");
+  const maliput::api::Lane* lane = GetLane(lane_id);
+
+  const double sampling_step = ComputeKdTreeSamplingStepHeuristic();
+  const double radius = constants::kStrictLinearTolerance;
+
+  // Keep query away from sampled longitudinal points and from lane-boundary samples.
+  const maliput::api::LanePosition query_lane_position(sampling_step / 2., 0., 0.);
+  const maliput::api::InertialPosition query = lane->ToInertialPosition(query_lane_position);
+
+  EXPECT_LT(radius, sampling_step);
+  EXPECT_LT(radius, 2. * sampling_step);
+
+  const auto results = road_geometry_->FindRoadPositions(query, radius);
+  ASSERT_EQ(results.size(), 1u);
+  EXPECT_EQ(results[0].road_position.lane->id(), lane_id);
+  EXPECT_TRUE(AssertCompare(IsLanePositionClose(query_lane_position, results[0].road_position.pos,
+                                                constants::kLinearTolerance)));
+  EXPECT_NEAR(results[0].distance, 0., constants::kStrictLinearTolerance);
 }
 
 struct OpenScenarioLanePositionMaliputLane {
