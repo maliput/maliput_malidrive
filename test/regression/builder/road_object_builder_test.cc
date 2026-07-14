@@ -136,19 +136,37 @@ TEST_F(RoadObjectTypeMapperTest, SubtypeMappings) {
   using XodrType = xodr::object::Object::ObjectType;
   using MaliputType = maliput::api::objects::RoadObjectType;
 
+  // Barrier subtype mappings
   EXPECT_EQ(MaliputType::kGuardRail, MapXodrObjectType(XodrType::kBarrier, "guardRail"));
   EXPECT_EQ(MaliputType::kGuardWall, MapXodrObjectType(XodrType::kBarrier, "wall"));
   EXPECT_EQ(MaliputType::kGuardWall, MapXodrObjectType(XodrType::kBarrier, "jerseyBarrier"));
+  EXPECT_EQ(MaliputType::kSoundBarrier, MapXodrObjectType(XodrType::kBarrier, "noiseProtections"));
+  EXPECT_EQ(MaliputType::kRailing, MapXodrObjectType(XodrType::kBarrier, "railing"));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, "otherSubtype"));
   EXPECT_EQ(MaliputType::kBarrier, MapXodrObjectType(XodrType::kBarrier, std::nullopt));
 
+  // Obstacle subtype mappings
   EXPECT_EQ(MaliputType::kPylon, MapXodrObjectType(XodrType::kObstacle, "roadBlockage"));
   EXPECT_EQ(MaliputType::kObstacle, MapXodrObjectType(XodrType::kObstacle, "otherSubtype"));
   EXPECT_EQ(MaliputType::kObstacle, MapXodrObjectType(XodrType::kObstacle, std::nullopt));
 
+  // Pole subtype mappings
+  EXPECT_EQ(MaliputType::kStreetLamp, MapXodrObjectType(XodrType::kPole, "streetLamp"));
+  EXPECT_EQ(MaliputType::kWind, MapXodrObjectType(XodrType::kPole, "wind"));
   EXPECT_EQ(MaliputType::kDelineator, MapXodrObjectType(XodrType::kPole, "permanentDelineator"));
   EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kPole, "otherSubtype"));
   EXPECT_EQ(MaliputType::kPole, MapXodrObjectType(XodrType::kPole, std::nullopt));
+
+  // RoadSurface subtype mappings
+  EXPECT_EQ(MaliputType::kPatch, MapXodrObjectType(XodrType::kRoadSurface, "patch"));
+  EXPECT_EQ(MaliputType::kTrafficIsland, MapXodrObjectType(XodrType::kRoadSurface, "otherSubtype"));
+  EXPECT_EQ(MaliputType::kTrafficIsland, MapXodrObjectType(XodrType::kRoadSurface, std::nullopt));
+
+  // Crosswalk subtype mappings
+  EXPECT_EQ(MaliputType::kPedestrianStatic, MapXodrObjectType(XodrType::kCrosswalk, "pedestrian"));
+  EXPECT_EQ(MaliputType::kBikeStatic, MapXodrObjectType(XodrType::kCrosswalk, "bicycle"));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCrosswalk, "otherSubtype"));
+  EXPECT_EQ(MaliputType::kUnknown, MapXodrObjectType(XodrType::kCrosswalk, std::nullopt));
 }
 
 // ---------------------------------------------------------------------------

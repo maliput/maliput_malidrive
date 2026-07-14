@@ -45,8 +45,15 @@ namespace builder {
 /// Subtype-specific mappings:
 ///   - kBarrier + "guardRail" → kGuardRail
 ///   - kBarrier + "wall" or "jerseyBarrier" → kGuardWall
+///   - kBarrier + "noiseProtections" → kSoundBarrier
+///   - kBarrier + "railing" → kRailing
 ///   - kObstacle + "roadBlockage" → kPylon
+///   - kPole + "streetLamp" → kStreetLamp
+///   - kPole + "wind" → kWind
 ///   - kPole + "permanentDelineator" → kDelineator
+///   - kRoadSurface + "patch" → kPatch
+///   - kCrosswalk + "pedestrian" → kPedestrianStatic
+///   - kCrosswalk + "bicycle" → kBikeStatic
 /// Vehicle-like types (kBike, kBus, kCar, kMotorbike, kPedestrian, kTrailer,
 /// kTrain, kTram, kVan) map to their corresponding static vehicle types
 /// (kBikeStatic, kBusStatic, etc.).
