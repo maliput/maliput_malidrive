@@ -34,10 +34,10 @@
 
 #include <maliput/api/type_specific_identifier.h>
 
+#include "maliput_malidrive/xodr/common.h"
 #include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
-#include "maliput_malidrive/xodr/signal/orientation.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
 #include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"

@@ -243,7 +243,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       // --- Orientation ---
       const maliput::math::RollPitchYaw road_orientation =
           mali_rg->GetRoadOrientationAtOpenScenarioRoadPosition(osc_road_position);
-      const double orientation_offset = signal.orientation == xodr::signal::Orientation::kAgainstS ? 0. : M_PI;
+      const double orientation_offset = signal.orientation == xodr::Orientation::kAgainstS ? 0. : M_PI;
       const maliput::api::Rotation orientation = maliput::api::Rotation::FromRpy(
           road_orientation.roll_angle() + signal.roll.value_or(0.),
           road_orientation.pitch_angle() + signal.pitch.value_or(0.),

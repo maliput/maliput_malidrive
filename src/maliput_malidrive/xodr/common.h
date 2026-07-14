@@ -1,7 +1,6 @@
 // BSD 3-Clause License
 //
-// Copyright (c) 2025, Woven Planet. All rights reserved.
-// Copyright (c) 2025, Toyota Research Institute. All rights reserved.
+// Copyright (c) 2026, Woven by Toyota. All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
 // modification, are permitted provided that the following conditions are met:
@@ -29,32 +28,31 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 
-#include <map>
 #include <string>
 
 #include "maliput_malidrive/common/macros.h"
 
 namespace malidrive {
 namespace xodr {
-namespace object {
 
+/// Orientation of an XODR element relative to the road's s-direction.
+/// Maps to the XODR "orientation" attribute values "+", "-", and "none".
 enum class Orientation {
-  kPositive,
-  kNegative,
-  kNone,
+  kWithS,          ///< "+" - element faces the positive s-direction.
+  kAgainstS,       ///< "-" - element faces the negative s-direction.
+  kBidirectional,  ///< "none" - element is valid for both directions.
 };
 
-/// Matches string with a Orientation.
-/// @param orientation Is a Orientation.
+/// Matches string with an Orientation.
+/// @param orientation Is an Orientation.
 /// @returns A string that matches with `orientation`.
 std::string orientation_to_str(Orientation orientation);
 
 /// Matches Orientation with a string.
 /// @param orientation Is a string.
-/// @returns A Orientation that matches with `orientation`.
-/// @throw maliput::common::assertion_error When `orientation` doesn't match with a Orientation.
+/// @returns An Orientation that matches with `orientation`.
+/// @throw maliput::common::assertion_error When `orientation` doesn't match with an Orientation.
 Orientation str_to_orientation(const std::string& orientation);
 
-}  // namespace object
 }  // namespace xodr
 }  // namespace malidrive

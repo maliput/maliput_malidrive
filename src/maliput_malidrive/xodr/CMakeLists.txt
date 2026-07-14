@@ -3,6 +3,7 @@
 ##############################################################################
 add_library(xodr
   colors.cc
+  common.cc
   connection.cc
   db_manager.cc
   elevation_profile.cc
@@ -19,7 +20,6 @@ add_library(xodr
   lateral_profile.cc
   object/borders.cc
   object/bridge.cc
-  object/common.cc
   object/markings.cc
   object/material.cc
   object/object_parser.cc

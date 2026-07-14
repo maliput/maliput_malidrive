@@ -149,8 +149,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
       const double pitch = perp_to_road ? 0. : object.pitch.value_or(0.);
       const double roll = perp_to_road ? 0. : object.roll.value_or(0.);
       const double orientation_offset =
-          (object.orientation.has_value() && object.orientation.value() == xodr::object::Orientation::kNegative) ? M_PI
-                                                                                                                 : 0.;
+          (object.orientation.has_value() && object.orientation.value() == xodr::Orientation::kAgainstS) ? M_PI : 0.;
       const maliput::api::Rotation orientation =
           maliput::api::Rotation::FromRpy(road_orientation.roll_angle() + roll, road_orientation.pitch_angle() + pitch,
                                           road_orientation.yaw_angle() + hdg + orientation_offset);
@@ -229,7 +228,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
       const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
       const maliput::math::RollPitchYaw road_orientation =
           mali_rg->GetRoadOrientationAtOpenScenarioRoadPosition(osc_road_position);
-      const double orientation_offset = signal.orientation == xodr::signal::Orientation::kAgainstS ? 0. : M_PI;
+      const double orientation_offset = signal.orientation == xodr::Orientation::kAgainstS ? 0. : M_PI;
       const maliput::api::Rotation orientation = maliput::api::Rotation::FromRpy(
           road_orientation.roll_angle() + signal.roll.value_or(0.),
           road_orientation.pitch_angle() + signal.pitch.value_or(0.),
