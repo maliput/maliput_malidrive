@@ -42,9 +42,23 @@ namespace builder {
 /// @ref maliput::api::objects::RoadObjectType.
 ///
 /// XODR types that have a direct maliput counterpart are mapped 1:1.
+/// Subtype-specific mappings:
+///   - kBarrier + "guardRail" → kGuardRail
+///   - kBarrier + "wall" or "jerseyBarrier" → kGuardWall
+///   - kBarrier + "noiseProtections" → kSoundBarrier
+///   - kBarrier + "railing" → kRailing
+///   - kObstacle + "roadBlockage" → kPylon
+///   - kPole + "streetLamp" → kStreetLamp
+///   - kPole + "wind" → kWind
+///   - kPole + "permanentDelineator" → kDelineator
+///   - kRoadSurface + "patch" → kPatch
+///   - kCrosswalk + "pedestrian" → kPedestrianStatic
+///   - kCrosswalk + "bicycle" → kBikeStatic
 /// Vehicle-like types (kBike, kBus, kCar, kMotorbike, kPedestrian, kTrailer,
-/// kTrain, kTram, kVan), and kNone are mapped to kUnknown.
-/// kStreetLamp/kWind → kPole, kRailing/kSoundBarrier → kBarrier.
+/// kTrain, kTram, kVan) map to their corresponding static vehicle types
+/// (kBikeStatic, kBusStatic, etc.).
+/// kCrosswalk, kParkingSpace, kRoadMark → kUnknown (covered by RoadMarkingTypes).
+/// kPatch → kPatch, kNone → kUnknown.
 /// A std::nullopt input maps to kUnknown.
 ///
 /// @param xodr_type The optional XODR object type to map.

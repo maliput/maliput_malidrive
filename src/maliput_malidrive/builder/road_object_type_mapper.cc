@@ -35,9 +35,16 @@ namespace builder {
 // See
 // https://publications.pages.asam.net/standards/ASAM_OpenDRIVE/ASAM_OpenDRIVE_Specification/1.8.0/specification/13_objects/13_14_object_examples.html
 static const char* kGuardRailSubtype = "guardRail";
+static const char* kRailingSubtype = "railing";
+static const char* kPedestrianSubtype = "pedestrian";
+static const char* kBicycleSubtype = "bicycle";
+static const char* kWindSubtype = "wind";
+static const char* kNoiseProtectionsSubtype = "noiseProtections";
+static const char* kPatchSubtype = "patch";
 static const char* kWallSubtype = "wall";
 static const char* kJerseySubtype = "jerseyBarrier";
 static const char* kRoadBlockageSubtype = "roadBlockage";
+static const char* kStreetLampSubtype = "streetLamp";
 static const char* kPermanentDelineatorSubtype = "permanentDelineator";
 
 maliput::api::objects::RoadObjectType MapXodrObjectType(
@@ -55,11 +62,15 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // @{
     case XodrType::kBarrier:
       if (subtype == kGuardRailSubtype) return MaliputType::kGuardRail;
+      if (subtype == kNoiseProtectionsSubtype) return MaliputType::kSoundBarrier;
       if (subtype == kWallSubtype || subtype == kJerseySubtype) return MaliputType::kGuardWall;
+      if (subtype == kRailingSubtype) return MaliputType::kRailing;
       // else, fall through to default barrier type.
-    case XodrType::kSoundBarrier:
-    case XodrType::kRailing:
       return MaliputType::kBarrier;
+    case XodrType::kSoundBarrier:
+      return MaliputType::kSoundBarrier;
+    case XodrType::kRailing:
+      return MaliputType::kRailing;
     // @}
     // @{
     case XodrType::kBuilding:
@@ -72,16 +83,23 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     case XodrType::kObstacle:
       if (subtype == kRoadBlockageSubtype) return MaliputType::kPylon;
       return MaliputType::kObstacle;
-    // @}
-    // @{
+      // @}
+      // @{
     case XodrType::kPole:
+      if (subtype == kStreetLampSubtype) return MaliputType::kStreetLamp;
+      if (subtype == kWindSubtype) return MaliputType::kWind;
       if (subtype == kPermanentDelineatorSubtype) return MaliputType::kDelineator;
-    case XodrType::kWind:
-    case XodrType::kStreetLamp:
       return MaliputType::kPole;
+    case XodrType::kWind:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kWind;
+    case XodrType::kStreetLamp:
+      return MaliputType::kStreetLamp;
     // @}
     // @{
     case XodrType::kRoadSurface:
+      if (subtype == kPatchSubtype) return MaliputType::kPatch;
+      return MaliputType::kRoadSurface;
     case XodrType::kTrafficIsland:
       return MaliputType::kTrafficIsland;
     // @}
@@ -96,22 +114,48 @@ maliput::api::objects::RoadObjectType MapXodrObjectType(
     // These types are now covered by RoadMarkingTypes, so we map them to kUnknown to avoid misclassification.
     // @{
     case XodrType::kCrosswalk:
-    case XodrType::kPatch:
+      if (subtype == kPedestrianSubtype) return MaliputType::kPedestrianStatic;
+      if (subtype == kBicycleSubtype) return MaliputType::kBikeStatic;
     case XodrType::kParkingSpace:
     case XodrType::kRoadMark:
       return MaliputType::kUnknown;
     // @}
-    // Deprecated types map to kUnknown.
+    // These types are now covered by specific vehicle static types.
     // @{
     case XodrType::kBike:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kBikeStatic;
     case XodrType::kBus:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kBusStatic;
     case XodrType::kCar:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kCarStatic;
     case XodrType::kMotorbike:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kMotorbikeStatic;
     case XodrType::kPedestrian:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kPedestrianStatic;
     case XodrType::kTrailer:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kTrailerStatic;
     case XodrType::kTrain:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kTrainStatic;
     case XodrType::kTram:
+      // Valid for OpenDRIVE version < 1.5.0
+      return MaliputType::kTramStatic;
     case XodrType::kVan:
+      return MaliputType::kVanStatic;
+    // @}
+    // Patch maps to kPatch.
+    // @{
+    case XodrType::kPatch:
+      return MaliputType::kPatch;
+    // @}
+    // None maps to kUnknown.
+    // @{
     case XodrType::kNone:
       return MaliputType::kUnknown;
       // @}
