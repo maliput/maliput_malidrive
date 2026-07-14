@@ -26,14 +26,37 @@
 // CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-#pragma once
+#include "maliput_malidrive/xodr/common.h"
+
+#include <map>
 
 namespace malidrive {
 namespace xodr {
-namespace signal {
 
-enum class Orientation { kWithS, kAgainstS, kBidirectional };
+namespace {
 
-}  // namespace signal
+const std::map<Orientation, std::string> orientation_to_str_map{
+    {Orientation::kWithS, "+"},
+    {Orientation::kAgainstS, "-"},
+    {Orientation::kBidirectional, "none"},
+};
+
+const std::map<std::string, Orientation> str_to_orientation_map{
+    {"+", Orientation::kWithS},
+    {"-", Orientation::kAgainstS},
+    {"none", Orientation::kBidirectional},
+};
+
+}  // namespace
+
+std::string orientation_to_str(Orientation orientation) { return orientation_to_str_map.at(orientation); }
+
+Orientation str_to_orientation(const std::string& orientation) {
+  if (str_to_orientation_map.find(orientation) == str_to_orientation_map.end()) {
+    MALIDRIVE_THROW_MESSAGE(orientation + " orientation is not available.");
+  }
+  return str_to_orientation_map.at(orientation);
+}
+
 }  // namespace xodr
 }  // namespace malidrive

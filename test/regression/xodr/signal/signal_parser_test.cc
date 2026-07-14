@@ -852,7 +852,7 @@ TEST_F(SignalParsingTests, NodeParserSign) {
                            Signal::Id("12345"),
                            std::make_optional("Test Signal"),
                            false,
-                           signal::Orientation::kWithS,
+                           Orientation::kWithS,
                            2.22,
                            std::make_optional("DE"),
                            std::make_optional("2017"),

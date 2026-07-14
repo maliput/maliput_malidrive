@@ -250,7 +250,7 @@ TEST_F(ObjectParsingTests, NodeParserObject) {
       object::Object::Id("0"),                // id
       4.,                                     // length
       "house",                                // name
-      object::Orientation::kNone,             // orientation
+      xodr::Orientation::kBidirectional,      // orientation
       std::nullopt,                           // perp_to_road
       8.,                                     // pitch
       std::nullopt,                           // radius
@@ -310,7 +310,7 @@ TEST_F(ObjectParsingTests, NodeParserComplexObject) {
       object::Object::Id("10"),                  // id
       40.,                                       // length
       "complex_house",                           // name
-      object::Orientation::kNone,                // orientation
+      xodr::Orientation::kBidirectional,         // orientation
       std::nullopt,                              // perp_to_road
       80.,                                       // pitch
       std::nullopt,                              // radius
@@ -581,7 +581,7 @@ TEST_F(ObjectParsingTests, NodeParserBorders) {
 // Tests `object::ObjectReference` parsing.
 TEST_F(ObjectParsingTests, NodeParserObjectReference) {
   const object::ObjectReference kExpectedObjectReference{
-      object::ObjectReference::Id("1"),        object::Orientation::kPositive, 10., 2., 5., 0.1,
+      object::ObjectReference::Id("1"),        xodr::Orientation::kWithS, 10., 2., 5., 0.1,
       {{Validity::Id("1"), Validity::Id("1")}}};
 
   const std::string xml_description = GetObjectReference();

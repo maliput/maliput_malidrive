@@ -37,12 +37,12 @@
 namespace malidrive {
 namespace xodr {
 
-// Specialization to parse as `object::Orientation` the attribute's value.
+// Specialization to parse as `Orientation` the attribute's value.
 template <>
-std::optional<object::Orientation> AttributeParser::As(const std::string& attribute_name) const {
+std::optional<Orientation> AttributeParser::As(const std::string& attribute_name) const {
   const std::optional<std::string> orientation = As<std::string>(attribute_name);
   if (orientation.has_value()) {
-    return object::str_to_orientation(orientation.value());
+    return str_to_orientation(orientation.value());
   } else {
     return std::nullopt;
   }
@@ -546,7 +546,7 @@ object::ObjectReference NodeParser::As() const {
   // @{
   const auto id = attribute_parser.As<std::string>(object::ObjectReference::kId);
   MALIDRIVE_THROW_UNLESS(id != std::nullopt, maliput::common::road_network_description_parser_error);
-  const auto orientation = attribute_parser.As<object::Orientation>(object::ObjectReference::kOrientation);
+  const auto orientation = attribute_parser.As<Orientation>(object::ObjectReference::kOrientation);
   MALIDRIVE_THROW_UNLESS(orientation != std::nullopt, maliput::common::road_network_description_parser_error);
   const auto s = attribute_parser.As<double>(object::ObjectReference::kS);
   MALIDRIVE_THROW_UNLESS(s != std::nullopt, maliput::common::road_network_description_parser_error);
@@ -709,7 +709,7 @@ object::Object NodeParser::As() const {
   const auto height = attribute_parser.As<double>(object::Object::kHeight);
   const auto length = attribute_parser.As<double>(object::Object::kLength);
   const auto name = attribute_parser.As<std::string>(object::Object::kName);
-  const auto orientation = attribute_parser.As<object::Orientation>(object::Object::kOrientation);
+  const auto orientation = attribute_parser.As<Orientation>(object::Object::kOrientation);
   const auto perp_to_road = attribute_parser.As<bool>(object::Object::kPerpToRoad);
   const auto pitch = attribute_parser.As<double>(object::Object::kPitch);
   const auto radius = attribute_parser.As<double>(object::Object::kRadius);

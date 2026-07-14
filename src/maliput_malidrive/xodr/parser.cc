@@ -59,7 +59,6 @@
 #include "maliput_malidrive/xodr/signal/board.h"
 #include "maliput_malidrive/xodr/signal/controller.h"
 #include "maliput_malidrive/xodr/signal/dependency.h"
-#include "maliput_malidrive/xodr/signal/orientation.h"
 #include "maliput_malidrive/xodr/signal/reference.h"
 #include "maliput_malidrive/xodr/signal/semantics.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
@@ -1294,18 +1293,7 @@ signal::Signal NodeParser::As() const {
   MALIDRIVE_THROW_UNLESS(dynamic != std::nullopt, maliput::common::road_network_description_parser_error);
   const auto orientation_str = attribute_parser.As<std::string>(signal::Signal::kOrientation);
   MALIDRIVE_THROW_UNLESS(orientation_str != std::nullopt, maliput::common::road_network_description_parser_error);
-  signal::Orientation orientation;
-  if (orientation_str.value() == "+") {
-    orientation = signal::Orientation::kWithS;
-  } else if (orientation_str.value() == "-") {
-    orientation = signal::Orientation::kAgainstS;
-  } else if (orientation_str.value() == "none") {
-    orientation = signal::Orientation::kBidirectional;
-  } else {
-    MALIDRIVE_THROW_MESSAGE("Signal with id '" + id.value() + "' has an invalid 'orientation' attribute: '" +
-                                orientation_str.value() + "'. Valid values are '+', '-' and 'none'.",
-                            maliput::common::road_network_description_parser_error);
-  }
+  const Orientation orientation = str_to_orientation(orientation_str.value());
   const double z_offset = ValidateDouble(attribute_parser.As<double>(signal::Signal::kZOffset), kDontAllowNan);
   const auto type = attribute_parser.As<std::string>(signal::Signal::kType);
   MALIDRIVE_THROW_UNLESS(type != std::nullopt, maliput::common::road_network_description_parser_error);

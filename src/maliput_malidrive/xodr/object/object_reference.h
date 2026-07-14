@@ -36,7 +36,7 @@
 #include <maliput/api/type_specific_identifier.h>
 
 #include "maliput_malidrive/common/macros.h"
-#include "maliput_malidrive/xodr/object/common.h"
+#include "maliput_malidrive/xodr/common.h"
 #include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {

@@ -47,7 +47,7 @@
 #include "maliput_malidrive/builder/traffic_sign_type_mapper.h"
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/traffic_control_device/parser.h"
-#include "maliput_malidrive/xodr/signal/orientation.h"
+#include "maliput_malidrive/xodr/common.h"
 
 namespace malidrive {
 namespace builder {
@@ -136,9 +136,9 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   // The traffic sign's orientation is set based on the lane's orientation at the traffic sign's position.
   const double orientation =
       rp.lane->GetOrientation(rp.pos).yaw() + (signal_.h_offset.has_value() ? signal_.h_offset.value() : 0.);
-  const maliput::api::Rotation orientation_road_network = maliput::api::Rotation::FromRpy(
-      signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
-      orientation + (signal_.orientation != xodr::signal::Orientation::kAgainstS ? M_PI : 0.));
+  const maliput::api::Rotation orientation_road_network =
+      maliput::api::Rotation::FromRpy(signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
+                                      orientation + (signal_.orientation != xodr::Orientation::kAgainstS ? M_PI : 0.));
 
   auto related_lanes =
       ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);

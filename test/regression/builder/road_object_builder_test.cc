@@ -504,11 +504,11 @@ TEST_F(RoadObjectBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
 
 TEST_F(RoadObjectBuilderElevatedRoadTest, ObjectOrientationDoesNotAffectYaw) {
   xodr::object::Object object_with_positive_orientation = object_;
-  object_with_positive_orientation.orientation = xodr::object::Orientation::kPositive;
+  object_with_positive_orientation.orientation = xodr::Orientation::kWithS;
   object_with_positive_orientation.hdg = 0.;
 
   xodr::object::Object object_with_negative_orientation = object_;
-  object_with_negative_orientation.orientation = xodr::object::Orientation::kNegative;
+  object_with_negative_orientation.orientation = xodr::Orientation::kAgainstS;
   object_with_negative_orientation.hdg = 0.;
 
   const auto positive_orientation_road_object =
@@ -581,11 +581,11 @@ TEST_F(RoadObjectBuilderSignalTest, BuildRoadObjectFromSignal) {
 
 TEST_F(RoadObjectBuilderSignalTest, SignalOrientationAppliesYawOffset) {
   xodr::signal::Signal signal_with_positive_orientation = FindSignal("TL1");
-  signal_with_positive_orientation.orientation = xodr::signal::Orientation::kWithS;
+  signal_with_positive_orientation.orientation = xodr::Orientation::kWithS;
   signal_with_positive_orientation.h_offset = 0.;
 
   xodr::signal::Signal signal_with_negative_orientation = FindSignal("TL1");
-  signal_with_negative_orientation.orientation = xodr::signal::Orientation::kAgainstS;
+  signal_with_negative_orientation.orientation = xodr::Orientation::kAgainstS;
   signal_with_negative_orientation.h_offset = 0.;
 
   const auto positive_orientation_road_object =
