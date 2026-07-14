@@ -552,6 +552,61 @@ TEST_F(TrafficSignBuilderDependencyTest, StopSignsExposeAllWayAsDependentSigns) 
   }
 }
 
+// ---------------------------------------------------------------------------
+// Tests using SingleRoadOrientationAttributes.xodr /
+// traffic_control_device_db/traffic_control_device_db_example.yaml.
+//
+// This map defines a single straight road (Road 1, hdg=0) with a traffic-sign
+// signal that carries non-default hOffset, roll, and pitch attributes:
+//
+//   Signal SS_OA: type="206", orientation="-", s=70, t=-2, zOffset=1,
+//                 hOffset=0.3, roll=0.15, pitch=0.25
+//
+// Because the road is straight (hdg=0) the lane yaw at any s is 0.  The
+// builder computes:
+//   orientation_yaw = lane_yaw(0) + hOffset(0.3)  (orientation="-" does not add pi)
+//                   = 0.3
+//   rotation = FromRpy(roll=0.15, pitch=0.25, yaw=0.3)
+// ---------------------------------------------------------------------------
+
+class TrafficSignBuilderOrientationAttributesTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadOrientationAttributes.xodr", kMalidriveResourceFolder);
+    const std::string yaml_db = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    traffic_sign_book_ = road_network_->traffic_sign_book();
+    ASSERT_NE(traffic_sign_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::rules::TrafficSignBook* traffic_sign_book_{};
+};
+
+// Verifies that hOffset, roll, and pitch from the XODR signal are correctly
+// propagated to the TrafficSign orientation.
+TEST_F(TrafficSignBuilderOrientationAttributesTest, OrientationAttributesAreApplied) {
+  const auto* ts = traffic_sign_book_->GetTrafficSign(maliput::api::rules::TrafficSign::Id("SS_OA"));
+  ASSERT_NE(ts, nullptr);
+
+  // Road hdg=0 → lane_yaw = 0.  Builder adds hOffset only (orientation="-" does not add pi).
+  const maliput::api::Rotation kExpectedRotation = maliput::api::Rotation::FromRpy(0.15, 0.25, 0.3);
+
+  const auto& rot = ts->orientation_road_network();
+  EXPECT_NEAR(kExpectedRotation.roll(), rot.roll(), 1e-6);
+  EXPECT_NEAR(kExpectedRotation.pitch(), rot.pitch(), 1e-6);
+  EXPECT_NEAR(kExpectedRotation.yaw(), rot.yaw(), 1e-6);
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder
