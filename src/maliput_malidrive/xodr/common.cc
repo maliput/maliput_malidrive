@@ -53,7 +53,8 @@ std::string orientation_to_str(Orientation orientation) { return orientation_to_
 
 Orientation str_to_orientation(const std::string& orientation) {
   if (str_to_orientation_map.find(orientation) == str_to_orientation_map.end()) {
-    MALIDRIVE_THROW_MESSAGE(orientation + " orientation is not available.");
+    MALIDRIVE_THROW_MESSAGE(orientation + " orientation is not available.",
+                            maliput::common::road_network_description_parser_error);
   }
   return str_to_orientation_map.at(orientation);
 }
