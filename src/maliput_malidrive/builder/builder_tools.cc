@@ -368,6 +368,10 @@ std::vector<maliput::api::LaneEnd> SolveLaneEndsForInnerLaneSection(
 
 namespace {
 
+static const char* kLaneDirectionBidirectional = "Bidirectional";
+static const char* kLaneDirectionWithS = "WithS";
+static const char* kLaneDirectionAgainstS = "AgainstS";
+
 const std::map<std::string, LaneTravelDirection::Direction> str_to_direction_map{
     {"undirected", LaneTravelDirection::Direction::kUndirected},
     {"forward", LaneTravelDirection::Direction::kForward},
@@ -375,10 +379,10 @@ const std::map<std::string, LaneTravelDirection::Direction> str_to_direction_map
     {"bidirectional", LaneTravelDirection::Direction::kBidirectional}};
 
 const std::map<LaneTravelDirection::Direction, std::string> xodr_to_maliput_direction{
-    {LaneTravelDirection::Direction::kUndirected, "Bidirectional"},
-    {LaneTravelDirection::Direction::kForward, "WithS"},
-    {LaneTravelDirection::Direction::kBackward, "AgainstS"},
-    {LaneTravelDirection::Direction::kBidirectional, "Bidirectional"}};
+    {LaneTravelDirection::Direction::kUndirected, kLaneDirectionBidirectional},
+    {LaneTravelDirection::Direction::kForward, kLaneDirectionWithS},
+    {LaneTravelDirection::Direction::kBackward, kLaneDirectionAgainstS},
+    {LaneTravelDirection::Direction::kBidirectional, kLaneDirectionBidirectional}};
 
 }  // namespace
 
@@ -640,6 +644,94 @@ std::optional<double> FindLocalMinFromCubicPol(double a, double b, double c, dou
   return p_local_min;
 }
 
+namespace {
+
+struct LaneIdStringLess {
+  bool operator()(const maliput::api::LaneId& lhs, const maliput::api::LaneId& rhs) const {
+    return lhs.string() < rhs.string();
+  }
+};
+
+bool LaneDirectionMatchesOrientation(const std::string& lane_direction, xodr::Orientation orientation) {
+  if (lane_direction == kLaneDirectionBidirectional || orientation == xodr::Orientation::kBidirectional) {
+    return true;
+  }
+  if (orientation == xodr::Orientation::kWithS) {
+    return lane_direction == kLaneDirectionWithS;
+  }
+  if (orientation == xodr::Orientation::kAgainstS) {
+    return lane_direction == kLaneDirectionAgainstS;
+  }
+  return false;
+}
+
+std::vector<maliput::api::LaneId> LaneIdsFromSet(const std::set<maliput::api::LaneId, LaneIdStringLess>& lane_ids) {
+  return {lane_ids.begin(), lane_ids.end()};
+}
+
+void AppendResolvedLaneIdsToSet(const xodr::RoadHeader::Id& road_id, double s_coordinate,
+                                const std::vector<xodr::Validity>& validities, xodr::Orientation orientation,
+                                const maliput::api::RoadGeometry* road_geometry,
+                                std::set<maliput::api::LaneId, LaneIdStringLess>* lane_ids) {
+  MALIDRIVE_THROW_UNLESS(lane_ids != nullptr);
+
+  const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry);
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::road_geometry_construction_error,
+                     "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+
+  const auto& road_headers = mali_rg->get_manager()->GetRoadHeaders();
+  const auto it = road_headers.find(road_id);
+  MALIDRIVE_VALIDATE(it != road_headers.end(), maliput::common::road_geometry_construction_error,
+                     "Road header not found for road_id: " + road_id.string());
+
+  const auto& road_header = it->second;
+  const int xodr_track_id = std::stoi(road_id.string());
+  const int lane_section_index = road_header.GetLaneSectionIndex(s_coordinate);
+  const auto& lane_section = road_header.lanes.lanes_section.at(lane_section_index);
+
+  std::vector<int> xodr_lane_ids;
+  if (validities.empty()) {
+    for (const auto& lane : lane_section.left_lanes) {
+      xodr_lane_ids.push_back(std::stoi(lane.id.string()));
+    }
+    for (const auto& lane : lane_section.right_lanes) {
+      xodr_lane_ids.push_back(std::stoi(lane.id.string()));
+    }
+  } else {
+    for (const auto& validity : validities) {
+      const int from = std::stoi(validity.from_lane.string());
+      const int to = std::stoi(validity.to_lane.string());
+      for (int lane_id = from; lane_id <= to; ++lane_id) {
+        if (lane_id != 0) {
+          xodr_lane_ids.push_back(lane_id);
+        }
+      }
+    }
+  }
+
+  for (int xodr_lane_id : xodr_lane_ids) {
+    const auto lane_id = GetLaneId(xodr_track_id, lane_section_index, xodr_lane_id);
+    const maliput::api::Lane* lane = road_geometry->ById().GetLane(lane_id);
+    if (lane == nullptr) {
+      continue;
+    }
+
+    const auto* mali_lane = dynamic_cast<const malidrive::Lane*>(lane);
+    MALIDRIVE_THROW_UNLESS(mali_lane != nullptr);
+
+    const xodr::RoadHeader& xodr_road = GetXodrRoadFromMalidriveLane(mali_lane);
+    const xodr::Lane& xodr_lane = GetXodrLaneFromMalidriveLane(mali_lane);
+    const std::string lane_direction = GetDirectionUsageRuleStateType(xodr_road, xodr_lane);
+    if (!LaneDirectionMatchesOrientation(lane_direction, orientation)) {
+      continue;
+    }
+
+    lane_ids->insert(lane_id);
+  }
+}
+
+}  // namespace
+
 std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
                                                  const std::vector<xodr::Validity>& validities,
                                                  const maliput::api::RoadGeometry* road_geometry) {
@@ -692,6 +784,15 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
   return result;
 }
 
+std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
+                                                 const std::vector<xodr::Validity>& validities,
+                                                 xodr::Orientation orientation,
+                                                 const maliput::api::RoadGeometry* road_geometry) {
+  std::set<maliput::api::LaneId, LaneIdStringLess> lane_ids;
+  AppendResolvedLaneIdsToSet(road_id, s_coordinate, validities, orientation, road_geometry, &lane_ids);
+  return LaneIdsFromSet(lane_ids);
+}
+
 std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
     const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
     const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
@@ -712,6 +813,60 @@ std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
                       related_lanes.end());
 
   return related_lanes;
+}
+
+std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
+    const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
+    const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
+    const maliput::api::RoadGeometry* road_geometry) {
+  std::set<maliput::api::LaneId, LaneIdStringLess> related_lanes;
+
+  AppendResolvedLaneIdsToSet(road_id, signal.s, signal.validities, signal.orientation, road_geometry, &related_lanes);
+
+  for (const auto& ref_ctx : signal_references) {
+    AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities,
+                               ref_ctx.signal_reference.orientation, road_geometry, &related_lanes);
+  }
+
+  return LaneIdsFromSet(related_lanes);
+}
+
+std::vector<maliput::api::LaneId> FilterLaneIdsBySignalOrientation(const std::vector<maliput::api::LaneId>& lane_ids,
+                                                                   xodr::Orientation signal_orientation,
+                                                                   const maliput::api::RoadGeometry* road_geometry) {
+  MALIDRIVE_THROW_UNLESS(road_geometry != nullptr);
+
+  // kBidirectional signal_orientation means no filtering: accept all lanes.
+  if (signal_orientation == xodr::Orientation::kBidirectional) {
+    return lane_ids;
+  }
+
+  std::vector<maliput::api::LaneId> filtered_lanes;
+  for (const auto& lane_id : lane_ids) {
+    const maliput::api::Lane* lane = road_geometry->ById().GetLane(lane_id);
+    const malidrive::Lane* mali_lane = dynamic_cast<const malidrive::Lane*>(lane);
+    MALIDRIVE_THROW_UNLESS(mali_lane != nullptr);
+
+    const xodr::RoadHeader& xodr_road = GetXodrRoadFromMalidriveLane(mali_lane);
+    const xodr::Lane& xodr_lane = GetXodrLaneFromMalidriveLane(mali_lane);
+
+    const std::string lane_direction = GetDirectionUsageRuleStateType(xodr_road, xodr_lane);
+
+    // Bidirectional lanes always match.
+    if (lane_direction == kLaneDirectionBidirectional) {
+      filtered_lanes.push_back(lane_id);
+      continue;
+    }
+
+    // Filter based on signal_orientation.
+    if (signal_orientation == xodr::Orientation::kWithS && lane_direction == kLaneDirectionWithS) {
+      filtered_lanes.push_back(lane_id);
+    } else if (signal_orientation == xodr::Orientation::kAgainstS && lane_direction == kLaneDirectionAgainstS) {
+      filtered_lanes.push_back(lane_id);
+    }
+  }
+
+  return filtered_lanes;
 }
 
 std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(

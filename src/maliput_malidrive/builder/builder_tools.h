@@ -41,11 +41,13 @@
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/common.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/junction.h"
 #include "maliput_malidrive/xodr/lane.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 #include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
@@ -443,6 +445,25 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
                                                  const std::vector<xodr::Validity>& validities,
                                                  const maliput::api::RoadGeometry* road_geometry);
 
+/// Resolves lane IDs for a single signal-related source, applying both
+/// orientation-based lane selection and validity filtering in one pass.
+///
+/// The selected lanes are those that exist in the RoadGeometry, lie in the
+/// requested road section, and are compatible with @p orientation according to
+/// the road's traffic-direction rule. The validity ranges then prune that set
+/// further, but cannot introduce lanes that were not already candidates.
+///
+/// @param road_id The XODR road ID whose lane section should be inspected.
+/// @param s_coordinate The s-coordinate along the road, used to identify the target lane section.
+/// @param validities The XODR validity ranges. Empty means all lanes in the section.
+/// @param orientation The signal orientation used to filter lanes by travel direction.
+/// @param road_geometry Pointer to the built road geometry (must be castable to malidrive::RoadGeometry).
+/// @returns A vector of maliput LaneIds that satisfy orientation, validity, and built-lane constraints.
+std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
+                                                 const std::vector<xodr::Validity>& validities,
+                                                 xodr::Orientation orientation,
+                                                 const maliput::api::RoadGeometry* road_geometry);
+
 /// Resolves the related lane IDs for a signal from its own road and from any
 /// signal references on other roads, then deduplicates the result.
 ///
@@ -462,6 +483,38 @@ std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
     const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
     const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
     const maliput::api::RoadGeometry* road_geometry);
+
+/// Resolves and deduplicates the lane IDs related to a signal and its signal
+/// references in one pass per source.
+///
+/// Each source road is processed independently with its own orientation and
+/// validity. The resulting lane IDs are merged into a deduplicated set before
+/// being returned.
+///
+/// @param signal The signal whose related lanes are being resolved.
+/// @param road_id The XODR road ID that contains the signal.
+/// @param signal_references Additional roads that reference the same signal.
+/// @param road_geometry Pointer to the built road geometry.
+/// @returns A sorted, deduplicated vector of maliput LaneIds.
+std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
+    const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
+    const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
+    const maliput::api::RoadGeometry* road_geometry);
+
+/// Filters lane_ids to those whose travel direction is compatible with orientation.
+/// - kWithS:        keep lanes whose direction is "WithS" or "Bidirectional"
+/// - kAgainstS:     keep lanes whose direction is "AgainstS" or "Bidirectional"
+/// - kBidirectional: keep all (no filter)
+///
+/// @param lane_ids Candidate lane IDs (already resolved and built into the RG).
+/// @param orientation Signal/object orientation from XODR (unified xodr::Orientation enum).
+/// @param road_geometry Pointer to the road geometry (must not be nullptr).
+/// @returns Filtered subset of lane_ids.
+///
+/// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
+std::vector<maliput::api::LaneId> FilterLaneIdsBySignalOrientation(const std::vector<maliput::api::LaneId>& lane_ids,
+                                                                   xodr::Orientation orientation,
+                                                                   const maliput::api::RoadGeometry* road_geometry);
 
 /// Converts XODR outline corners to maliput Outlines.
 ///

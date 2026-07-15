@@ -139,8 +139,7 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
       maliput::api::Rotation::FromRpy(signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
                                       orientation + (signal_.orientation != xodr::Orientation::kAgainstS ? M_PI : 0.));
 
-  auto related_lanes =
-      ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);
+  auto related_lanes = ResolveAndDeduplicateLaneIds(signal_, road_id_, signal_references_, road_geometry_);
 
   maliput::log()->debug("TrafficLightBuilder: creating TrafficLight for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "'. TrafficLight position: (x=", pos.x(),

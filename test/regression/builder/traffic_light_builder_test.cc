@@ -398,18 +398,17 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS1Fields) {
 
   // Related lanes for S1:
   //   - From signal's own validity (fromLane=-1, toLane=-1) on road 1 → {"1_0_-1"}
-  //   - From signalReference to S2 on road 2 (no validity) → all lanes of road 2 at s=50 → {"2_0_1", "2_0_-1"}
-  // Total (sorted): {"1_0_-1", "2_0_-1", "2_0_1"}
+  //   - From signalReference to S1 on road 2 (orientation="+") → lane "2_0_1"
+  // Total (sorted): {"1_0_-1", "2_0_1"}
   const auto& related = tl->related_lanes();
-  ASSERT_EQ(3u, related.size());
+  ASSERT_EQ(2u, related.size());
   std::vector<std::string> lane_ids;
   for (const auto& lid : related) {
     lane_ids.push_back(lid.string());
   }
   std::sort(lane_ids.begin(), lane_ids.end());
   EXPECT_EQ("1_0_-1", lane_ids[0]);
-  EXPECT_EQ("2_0_-1", lane_ids[1]);
-  EXPECT_EQ("2_0_1", lane_ids[2]);
+  EXPECT_EQ("2_0_1", lane_ids[1]);
 }
 
 // Verifies all fields of the TrafficLight created from signal S2.
@@ -445,20 +444,19 @@ TEST_F(TrafficLightBuilderTwoRoadsTest, TrafficLightS2Fields) {
   EXPECT_NE(bulb_groups[0]->GetBulb(maliput::api::rules::Bulb::Id("GreenBulb")), nullptr);
 
   // Related lanes for S2:
-  //   - From signal's own validity (empty → all lanes) on road 2 at s=40 → {"2_0_1", "2_0_-1"}
-  //   - From signalReference to S1 on road 1 (no validity) → all lanes of road 1 at s=40 → {"1_0_1", "1_0_-1"}
-  // Total (sorted): {"1_0_-1", "1_0_1", "2_0_-1", "2_0_1"}
+  //   - From signal's own validity (empty → all lanes) on road 2 at s=40 and orientation="-"
+  //     → lane "2_0_1"
+  //   - From signalReference to S2 on road 1 (orientation="+") → lane "1_0_-1"
+  // Total (sorted): {"1_0_-1", "2_0_1"}
   const auto& related = tl->related_lanes();
-  ASSERT_EQ(4u, related.size());
+  ASSERT_EQ(2u, related.size());
   std::vector<std::string> lane_ids;
   for (const auto& lid : related) {
     lane_ids.push_back(lid.string());
   }
   std::sort(lane_ids.begin(), lane_ids.end());
   EXPECT_EQ("1_0_-1", lane_ids[0]);
-  EXPECT_EQ("1_0_1", lane_ids[1]);
-  EXPECT_EQ("2_0_-1", lane_ids[2]);
-  EXPECT_EQ("2_0_1", lane_ids[3]);
+  EXPECT_EQ("2_0_1", lane_ids[1]);
 }
 
 // ---------------------------------------------------------------------------
@@ -514,6 +512,60 @@ TEST_F(TrafficLightBuilderOrientationAttributesTest, OrientationAttributesAreApp
   EXPECT_NEAR(kExpectedRotation.roll(), rot.roll(), 1e-6);
   EXPECT_NEAR(kExpectedRotation.pitch(), rot.pitch(), 1e-6);
   EXPECT_NEAR(kExpectedRotation.yaw(), rot.yaw(), 1e-6);
+}
+
+// ---------------------------------------------------------------------------
+
+class TrafficLightBuilderDirectionFilterTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadBidirectionalLanes.xodr", kMalidriveResourceFolder);
+    const std::string yaml_db = utility::FindResourceInPath(
+        "traffic_control_device_db/traffic_control_device_db_example.yaml", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kTrafficControlDeviceDb, yaml_db},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    traffic_light_book_ = road_network_->traffic_light_book();
+    ASSERT_NE(traffic_light_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::rules::TrafficLightBook* traffic_light_book_{};
+};
+
+// Verifies that traffic lights with orientation="+" (kWithS) filter related_lanes correctly.
+TEST_F(TrafficLightBuilderDirectionFilterTest, OrientationWithSFilters) {
+  const auto* tl = traffic_light_book_->GetTrafficLight(maliput::api::rules::TrafficLight::Id("S_WithS"));
+  ASSERT_NE(tl, nullptr);
+  // Only lane -1 (WithS) should be included
+  EXPECT_EQ(tl->related_lanes().size(), 1);
+  EXPECT_EQ(tl->related_lanes()[0].string(), "1_0_-1");
+}
+
+// Verifies that traffic lights with orientation="-" (kAgainstS) filter related_lanes correctly.
+TEST_F(TrafficLightBuilderDirectionFilterTest, OrientationAgainstSFilters) {
+  const auto* tl = traffic_light_book_->GetTrafficLight(maliput::api::rules::TrafficLight::Id("S_AgainstS"));
+  ASSERT_NE(tl, nullptr);
+  // Only lane +1 (AgainstS) should be included
+  EXPECT_EQ(tl->related_lanes().size(), 1);
+  EXPECT_EQ(tl->related_lanes()[0].string(), "1_0_1");
+}
+
+// Verifies that traffic lights with orientation="none" (kBidirectional) don't filter related_lanes.
+TEST_F(TrafficLightBuilderDirectionFilterTest, OrientationBidirectionalNoFilter) {
+  const auto* tl = traffic_light_book_->GetTrafficLight(maliput::api::rules::TrafficLight::Id("S_Bidirectional"));
+  ASSERT_NE(tl, nullptr);
+  // Both lanes should be included (no filter)
+  EXPECT_EQ(tl->related_lanes().size(), 2);
+  const auto lane_ids = tl->related_lanes();
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_-1"; }));
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_1"; }));
 }
 
 }  // namespace
