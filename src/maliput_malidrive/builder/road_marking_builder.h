@@ -29,11 +29,13 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include <maliput/api/objects/road_marking.h>
 #include <maliput/api/road_geometry.h>
 
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
+#include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/signal/signal.h"
@@ -69,10 +71,12 @@ class RoadMarkingBuilder {
   /// @param loader The @ref traffic_control_device::TrafficControlDeviceDatabaseLoader providing access
   ///        to the traffic control device YAML database.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
+  /// @param object_references Object references from other roads that point to @p object.
   /// @throws std::invalid_argument if @p source_type is not kObject or @p road_geometry is nullptr.
   RoadMarkingBuilder(SourceType source_type, const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                     const maliput::api::RoadGeometry* road_geometry);
+                     const maliput::api::RoadGeometry* road_geometry,
+                     std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references = {});
 
   /// Constructs a RoadMarkingBuilder.
   ///
@@ -82,10 +86,12 @@ class RoadMarkingBuilder {
   /// @param loader The @ref traffic_control_device::TrafficControlDeviceDatabaseLoader providing access
   ///        to the traffic control device YAML database.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
+  /// @param signal_references Signal references from other roads that point to @p signal.
   /// @throws std::invalid_argument if @p source_type is not kSignal or @p road_geometry is nullptr.
   RoadMarkingBuilder(SourceType source_type, const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                     const maliput::api::RoadGeometry* road_geometry);
+                     const maliput::api::RoadGeometry* road_geometry,
+                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {});
 
   /// Builds and returns the @ref maliput::api::objects::RoadMarking.
   ///
@@ -100,6 +106,8 @@ class RoadMarkingBuilder {
   const xodr::RoadHeader::Id& road_id_;
   const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader_;
   const maliput::api::RoadGeometry* road_geometry_;
+  const std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references_;
+  const std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references_;
 };
 
 }  // namespace builder

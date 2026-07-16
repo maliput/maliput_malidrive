@@ -86,6 +86,8 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
 
   // Pre-build the signal-reference index once.
   const auto signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();
+  // Pre-build the object-reference index once.
+  const auto object_refs_by_id = mali_rg->get_manager()->GetObjectReferencesByObjectId();
 
   // --- Signals pass: route to TrafficLightBook or TrafficSignBook ---
   for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
@@ -141,13 +143,14 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
           tsb->AddTrafficSign(std::move(ts));
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
-        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_)();
+        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_,
+                                    std::move(refs))();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadMarking) {
-        auto rm =
-            RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_)();
+        auto rm = RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_,
+                                     std::move(refs))();
         if (rm) {
           rmb->AddRoadMarking(std::move(rm));
         }
@@ -172,6 +175,12 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       }
     }
     for (const auto& object : road_header.objects->objects) {
+      std::vector<xodr::DBManager::ObjectReferenceOnRoad> refs;
+      const auto refs_it = object_refs_by_id.find(object.id.string());
+      if (refs_it != object_refs_by_id.end()) {
+        refs = refs_it->second;
+      }
+
       const std::string type_str =
           object.type.has_value() ? xodr::object::Object::object_type_to_str(object.type.value()) : "";
 
@@ -187,7 +196,8 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
                               "' name='", object.name.value_or(""), "'.");
-        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();
+        auto ro =
+            RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_, refs)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
@@ -197,13 +207,14 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
       const auto& definition = definition_opt.value();
 
       if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadMarking) {
-        auto rm =
-            RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();
+        auto rm = RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object, road_id, loader, road_geometry_,
+                                     std::move(refs))();
         if (rm) {
           rmb->AddRoadMarking(std::move(rm));
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
-        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_)();
+        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_,
+                                    std::move(refs))();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }

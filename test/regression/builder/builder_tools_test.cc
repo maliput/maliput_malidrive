@@ -1149,7 +1149,7 @@ TEST_F(FilterLaneIdsBySignalOrientationTest, SingleLaneAgainstSNoMatch) {
   EXPECT_EQ(filtered.size(), 0);  // WithS doesn't match AgainstS filter
 }
 
-class ResolveAndDeduplicateLaneIdsSignalReferenceTest : public ::testing::Test {
+class ResolveLaneIdsSignalReferenceTest : public ::testing::Test {
  protected:
   void SetUp() override {
     const std::string xodr_file_path =
@@ -1168,7 +1168,7 @@ class ResolveAndDeduplicateLaneIdsSignalReferenceTest : public ::testing::Test {
   const maliput::api::RoadGeometry* road_geometry_{};
 };
 
-TEST_F(ResolveAndDeduplicateLaneIdsSignalReferenceTest, AppliesSignalReferenceOrientation) {
+TEST_F(ResolveLaneIdsSignalReferenceTest, AppliesSignalReferenceOrientation) {
   xodr::signal::Signal signal{50., 0., xodr::signal::Signal::Id("S1")};
   signal.orientation = xodr::Orientation::kWithS;
   signal.validities = {{xodr::Validity::Id("-1"), xodr::Validity::Id("-1")}};
@@ -1179,14 +1179,11 @@ TEST_F(ResolveAndDeduplicateLaneIdsSignalReferenceTest, AppliesSignalReferenceOr
   signal_reference.signal_reference.s = 50.;
   signal_reference.signal_reference.validities = {};
 
-  const auto related_lanes = ResolveAndDeduplicateLaneIds(signal, xodr::RoadHeader::Id("1"), {signal_reference},
-                                                          road_geometry_);
+  const auto related_lanes = ResolveLaneIds(signal, xodr::RoadHeader::Id("1"), {signal_reference}, road_geometry_);
 
   ASSERT_EQ(2u, related_lanes.size());
-  EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("1_0_-1")),
-            related_lanes.end());
-  EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("2_0_-1")),
-            related_lanes.end());
+  EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("1_0_-1")), related_lanes.end());
+  EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("2_0_-1")), related_lanes.end());
 }
 
 }  // namespace

@@ -69,6 +69,22 @@ odr_signal_types:
         height: 0.0
 )";
 
+const char kDirectionFilterSignalRoadMarkingDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      name: "*"
+    properties:
+      device_type: RoadMarking
+      device_semantics: StopLine
+      default_bounding_box:
+        length: 3.0
+        width: 0.61
+        height: 0.0
+)";
+
 // ---------------------------------------------------------------------------
 // RoadMarkingBuilder tests.
 // Uses the RoadWithRoadMarkings.xodr resource and road_marking_test_db.yaml.
@@ -152,8 +168,9 @@ TEST_F(RoadMarkingBuilderTest, BuildStopLine) {
   EXPECT_NEAR(bb.box_size().y(), 7.0, 1e-3);
   EXPECT_NEAR(bb.box_size().z(), 0.0, 1e-3);
 
-  // Related lanes: both lanes.
-  EXPECT_GE(road_marking->related_lanes().size(), 2u);
+  // Related lanes: with orientation="+", only WithS lane survives.
+  ASSERT_EQ(road_marking->related_lanes().size(), 1u);
+  EXPECT_EQ(road_marking->related_lanes()[0].string(), "1_0_-1");
 }
 
 TEST_F(RoadMarkingBuilderTest, BuildCrosswalk) {
@@ -321,6 +338,83 @@ TEST_F(RoadMarkingBuilderSignalTest, BuildRoadMarkingFromSignal) {
   EXPECT_EQ(road_marking->related_lanes().size(), 1u);
   EXPECT_NEAR(road_marking->bounding_box().box_size().x(), 3.0, 1e-6);
   EXPECT_NEAR(road_marking->bounding_box().box_size().y(), 0.61, 1e-6);
+}
+
+// ---------------------------------------------------------------------------
+
+class RoadMarkingBuilderDirectionFilterTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadBidirectionalLanes.xodr", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+
+    const auto* manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+    const auto road_headers = manager->GetRoadHeaders();
+    const auto road_header_it = road_headers.find(road_id_);
+    ASSERT_NE(road_header_it, road_headers.end());
+    ASSERT_TRUE(road_header_it->second.signals.has_value());
+    signals_ = road_header_it->second.signals->signals;
+    loader_ = std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(
+        kDirectionFilterSignalRoadMarkingDb);
+  }
+
+  const xodr::signal::Signal& FindSignal(const std::string& id) const {
+    for (const auto& signal : signals_) {
+      if (signal.id.string() == id) return signal;
+    }
+    MALIPUT_THROW_MESSAGE("Signal " + id + " not found");
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  std::vector<xodr::signal::Signal> signals_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+  const xodr::RoadHeader::Id road_id_{"1"};
+};
+
+// Verifies that road markings created from signals with orientation="+" (kWithS) filter related_lanes correctly.
+TEST_F(RoadMarkingBuilderDirectionFilterTest, SignalOrientationWithSFilters) {
+  const auto& signal = FindSignal("S_WithS");
+  const auto rm =
+      RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kSignal, signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(rm, nullptr);
+  // Only lane -1 (WithS) should be included
+  EXPECT_EQ(rm->related_lanes().size(), 1);
+  EXPECT_EQ(rm->related_lanes()[0].string(), "1_0_-1");
+}
+
+// Verifies that road markings created from signals with orientation="-" (kAgainstS) filter related_lanes correctly.
+TEST_F(RoadMarkingBuilderDirectionFilterTest, SignalOrientationAgainstSFilters) {
+  const auto& signal = FindSignal("S_AgainstS");
+  const auto rm =
+      RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kSignal, signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(rm, nullptr);
+  // Only lane +1 (AgainstS) should be included
+  EXPECT_EQ(rm->related_lanes().size(), 1);
+  EXPECT_EQ(rm->related_lanes()[0].string(), "1_0_1");
+}
+
+// Verifies that road markings created from signals with orientation="none" (kBidirectional) don't filter related_lanes.
+TEST_F(RoadMarkingBuilderDirectionFilterTest, SignalOrientationBidirectionalNoFilter) {
+  const auto& signal = FindSignal("S_Bidirectional");
+  const auto rm =
+      RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kSignal, signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(rm, nullptr);
+  // Both lanes should be included (no filter)
+  EXPECT_EQ(rm->related_lanes().size(), 2);
+  const auto lane_ids = rm->related_lanes();
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_-1"; }));
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_1"; }));
 }
 
 }  // namespace

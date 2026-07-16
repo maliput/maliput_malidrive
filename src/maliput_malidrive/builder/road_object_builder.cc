@@ -98,8 +98,14 @@ std::optional<maliput::api::objects::RoadObjectType> StringToRoadObjectType(cons
 RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::object::Object& object,
                                      const xodr::RoadHeader::Id& road_id,
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                                     const maliput::api::RoadGeometry* road_geometry)
-    : source_type_(source_type), object_(&object), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+                                     const maliput::api::RoadGeometry* road_geometry,
+                                     std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references)
+    : source_type_(source_type),
+      object_(&object),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
+      object_references_(std::move(object_references)) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kObject, std::invalid_argument,
                      "RoadObjectBuilder object constructor requires SourceType::kObject.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
@@ -108,8 +114,14 @@ RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::object:
 RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::signal::Signal& signal,
                                      const xodr::RoadHeader::Id& road_id,
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                                     const maliput::api::RoadGeometry* road_geometry)
-    : source_type_(source_type), signal_(&signal), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+                                     const maliput::api::RoadGeometry* road_geometry,
+                                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
+    : source_type_(source_type),
+      signal_(&signal),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
+      signal_references_(std::move(signal_references)) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kSignal, std::invalid_argument,
                      "RoadObjectBuilder signal constructor requires SourceType::kSignal.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
@@ -183,7 +195,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       // --- Type ---
       const maliput::api::objects::RoadObjectType type = MapXodrObjectType(object.type, object.subtype);
       // --- Related lanes ---
-      auto related_lanes = ResolveLaneIds(road_id_, object_s, object.validities, road_geometry_);
+      auto related_lanes = ResolveLaneIds(object, road_id_, object_references_, road_geometry_);
       // --- Outlines ---
       auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
 
@@ -262,7 +274,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
       // --- Related lanes ---
-      auto related_lanes = ResolveLaneIds(road_id_, signal_s, signal.validities, road_geometry_);
+      auto related_lanes = ResolveLaneIds(signal, road_id_, signal_references_, road_geometry_);
       // --- Type ---
       const auto type = type_from_db.value_or(maliput::api::objects::RoadObjectType::kUnknown);
 

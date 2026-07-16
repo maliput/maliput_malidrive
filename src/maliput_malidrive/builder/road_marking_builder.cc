@@ -69,8 +69,14 @@ namespace builder {
 RoadMarkingBuilder::RoadMarkingBuilder(SourceType source_type, const xodr::signal::Signal& signal,
                                        const xodr::RoadHeader::Id& road_id,
                                        const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                                       const maliput::api::RoadGeometry* road_geometry)
-    : source_type_(source_type), signal_(&signal), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+                                       const maliput::api::RoadGeometry* road_geometry,
+                                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
+    : source_type_(source_type),
+      signal_(&signal),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
+      signal_references_(std::move(signal_references)) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kSignal, std::invalid_argument,
                      "RoadMarkingBuilder signal constructor requires SourceType::kSignal.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
@@ -79,8 +85,14 @@ RoadMarkingBuilder::RoadMarkingBuilder(SourceType source_type, const xodr::signa
 RoadMarkingBuilder::RoadMarkingBuilder(SourceType source_type, const xodr::object::Object& object,
                                        const xodr::RoadHeader::Id& road_id,
                                        const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                                       const maliput::api::RoadGeometry* road_geometry)
-    : source_type_(source_type), object_(&object), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+                                       const maliput::api::RoadGeometry* road_geometry,
+                                       std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references)
+    : source_type_(source_type),
+      object_(&object),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
+      object_references_(std::move(object_references)) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kObject, std::invalid_argument,
                      "RoadMarkingBuilder object constructor requires SourceType::kObject.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
@@ -167,7 +179,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
-      auto related_lanes = ResolveLaneIds(road_id_, object_s, object.validities, road_geometry_);
+      auto related_lanes = ResolveLaneIds(object, road_id_, object_references_, road_geometry_);
       auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
 
       maliput::log()->debug("RoadMarkingBuilder: creating RoadMarking id='", object.id.string(),
@@ -243,7 +255,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
-      auto related_lanes = ResolveLaneIds(road_id_, signal_s, signal.validities, road_geometry_);
+      auto related_lanes = ResolveLaneIds(signal, road_id_, signal_references_, road_geometry_);
 
       maliput::log()->debug("RoadMarkingBuilder: creating RoadMarking id='", signal.id.string(),
                             "' type=", static_cast<int>(marking_type), " position=(", inertial_pos.x(), ", ",

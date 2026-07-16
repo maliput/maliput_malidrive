@@ -140,8 +140,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
       maliput::api::Rotation::FromRpy(signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
                                       orientation + (signal_.orientation != xodr::Orientation::kAgainstS ? M_PI : 0.));
 
-  auto related_lanes =
-      ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);
+  auto related_lanes = ResolveLaneIds(signal_, road_id_, signal_references_, road_geometry_);
 
   // Build a bounding box from the signal's physical dimensions when available.
   // The bounding box position and orientation are expressed in the sign's local frame.

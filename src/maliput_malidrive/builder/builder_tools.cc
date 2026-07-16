@@ -29,7 +29,6 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/builder_tools.h"
 
-#include <algorithm>
 #include <cmath>
 #include <map>
 #include <set>
@@ -784,38 +783,7 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
   return result;
 }
 
-std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& road_id, double s_coordinate,
-                                                 const std::vector<xodr::Validity>& validities,
-                                                 xodr::Orientation orientation,
-                                                 const maliput::api::RoadGeometry* road_geometry) {
-  std::set<maliput::api::LaneId, LaneIdStringLess> lane_ids;
-  AppendResolvedLaneIdsToSet(road_id, s_coordinate, validities, orientation, road_geometry, &lane_ids);
-  return LaneIdsFromSet(lane_ids);
-}
-
-std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
-    const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
-    const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
-    const maliput::api::RoadGeometry* road_geometry) {
-  auto related_lanes = ResolveLaneIds(road_id, s_coordinate, validities, road_geometry);
-
-  for (const auto& ref_ctx : signal_references) {
-    auto ref_lanes =
-        ResolveLaneIds(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities, road_geometry);
-    related_lanes.insert(related_lanes.end(), std::make_move_iterator(ref_lanes.begin()),
-                         std::make_move_iterator(ref_lanes.end()));
-  }
-
-  std::sort(related_lanes.begin(), related_lanes.end(),
-            [](const auto& a, const auto& b) { return a.string() < b.string(); });
-  related_lanes.erase(std::unique(related_lanes.begin(), related_lanes.end(),
-                                  [](const auto& a, const auto& b) { return a.string() == b.string(); }),
-                      related_lanes.end());
-
-  return related_lanes;
-}
-
-std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
+std::vector<maliput::api::LaneId> ResolveLaneIds(
     const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
     const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
     const maliput::api::RoadGeometry* road_geometry) {
@@ -826,6 +794,28 @@ std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
   for (const auto& ref_ctx : signal_references) {
     AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities,
                                ref_ctx.signal_reference.orientation, road_geometry, &related_lanes);
+  }
+
+  return LaneIdsFromSet(related_lanes);
+}
+
+std::vector<maliput::api::LaneId> ResolveLaneIds(
+    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+    const std::vector<xodr::DBManager::ObjectReferenceOnRoad>& object_references,
+    const maliput::api::RoadGeometry* road_geometry) {
+  std::set<maliput::api::LaneId, LaneIdStringLess> related_lanes;
+
+  if (object.orientation.has_value()) {
+    AppendResolvedLaneIdsToSet(road_id, object.s, object.validities, object.orientation.value(), road_geometry,
+                               &related_lanes);
+  } else {
+    auto main_lanes = ResolveLaneIds(road_id, object.s, object.validities, road_geometry);
+    related_lanes.insert(main_lanes.begin(), main_lanes.end());
+  }
+
+  for (const auto& ref_ctx : object_references) {
+    AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.object_reference.s, ref_ctx.object_reference.validities,
+                               ref_ctx.object_reference.orientation, road_geometry, &related_lanes);
   }
 
   return LaneIdsFromSet(related_lanes);
