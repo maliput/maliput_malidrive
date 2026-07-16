@@ -85,9 +85,9 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
                      "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
 
   // Pre-build the signal-reference index once.
-  const auto signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();
+  const auto& signal_refs_by_id = mali_rg->get_manager()->GetSignalReferencesBySignalId();
   // Pre-build the object-reference index once.
-  const auto object_refs_by_id = mali_rg->get_manager()->GetObjectReferencesByObjectId();
+  const auto& object_refs_by_id = mali_rg->get_manager()->GetObjectReferencesByObjectId();
 
   // --- Signals pass: route to TrafficLightBook or TrafficSignBook ---
   for (const auto& [road_id, road_header] : mali_rg->get_manager()->GetRoadHeaders()) {
