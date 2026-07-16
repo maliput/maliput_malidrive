@@ -1179,7 +1179,7 @@ TEST_F(ResolveLaneIdsSignalReferenceTest, AppliesSignalReferenceOrientation) {
   signal_reference.signal_reference.s = 50.;
   signal_reference.signal_reference.validities = {};
 
-  const auto related_lanes = ResolveLaneIds(signal, xodr::RoadHeader::Id("1"), {signal_reference}, road_geometry_);
+  const auto related_lanes = ResolveLaneIds(signal, signal.s, xodr::RoadHeader::Id("1"), {signal_reference}, road_geometry_);
 
   ASSERT_EQ(2u, related_lanes.size());
   EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("1_0_-1")), related_lanes.end());

@@ -126,11 +126,7 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
 
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
   double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal_.s, signal_.id.string());
-  if (adjusted_s != signal_.s) {
-    signal_.s = adjusted_s;
-  }
-
-  malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_.s,
+  malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), adjusted_s,
                                                                       signal_.t};
   // We allow off-road positions conversions here since traffic lights in XODR files tend to be placed slightly off the
   // road.
@@ -144,7 +140,7 @@ std::unique_ptr<const maliput::api::rules::TrafficLight> TrafficLightBuilder::op
       maliput::api::Rotation::FromRpy(signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
                                       orientation + (signal_.orientation != xodr::Orientation::kAgainstS ? M_PI : 0.));
 
-  auto related_lanes = ResolveLaneIds(signal_, road_id_, signal_references_, road_geometry_);
+  auto related_lanes = ResolveLaneIds(signal_, adjusted_s, road_id_, signal_references_, road_geometry_);
 
   maliput::log()->debug("TrafficLightBuilder: creating TrafficLight for signal id='", signal_.id.string(), "' type='",
                         signal_.type, "' subtype='", signal_.subtype, "'. TrafficLight position: (x=", pos.x(),

@@ -790,12 +790,12 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
 }
 
 std::vector<maliput::api::LaneId> ResolveLaneIds(
-    const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
+    const xodr::signal::Signal& signal, double s_coordinate, const xodr::RoadHeader::Id& road_id,
     const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
     const maliput::api::RoadGeometry* road_geometry) {
   std::set<maliput::api::LaneId, LaneIdStringLess> related_lanes;
 
-  AppendResolvedLaneIdsToSet(road_id, signal.s, signal.validities, signal.orientation, road_geometry, &related_lanes);
+  AppendResolvedLaneIdsToSet(road_id, s_coordinate, signal.validities, signal.orientation, road_geometry, &related_lanes);
 
   for (const auto& ref_ctx : signal_references) {
     AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities,
@@ -806,16 +806,16 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(
 }
 
 std::vector<maliput::api::LaneId> ResolveLaneIds(
-    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+    const xodr::object::Object& object, double s_coordinate, const xodr::RoadHeader::Id& road_id,
     const std::vector<xodr::DBManager::ObjectReferenceOnRoad>& object_references,
     const maliput::api::RoadGeometry* road_geometry) {
   std::set<maliput::api::LaneId, LaneIdStringLess> related_lanes;
 
   if (object.orientation.has_value()) {
-    AppendResolvedLaneIdsToSet(road_id, object.s, object.validities, object.orientation.value(), road_geometry,
+    AppendResolvedLaneIdsToSet(road_id, s_coordinate, object.validities, object.orientation.value(), road_geometry,
                                &related_lanes);
   } else {
-    auto main_lanes = ResolveLaneIds(road_id, object.s, object.validities, road_geometry);
+    auto main_lanes = ResolveLaneIds(road_id, s_coordinate, object.validities, road_geometry);
     related_lanes.insert(main_lanes.begin(), main_lanes.end());
   }
 

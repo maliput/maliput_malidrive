@@ -133,10 +133,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
       }
 
       double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, object.s, object.id.string());
-      if (adjusted_s != object.s) {
-        object.s = adjusted_s;
-      }
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object.s,
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), adjusted_s,
                                                                                 object.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
@@ -169,7 +166,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
-      auto related_lanes = ResolveLaneIds(object, road_id_, object_references_, road_geometry_);
+      auto related_lanes = ResolveLaneIds(object, adjusted_s, road_id_, object_references_, road_geometry_);
       auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
 
       maliput::log()->debug("RoadMarkingBuilder: creating RoadMarking id='", object.id.string(),
@@ -210,12 +207,8 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                               "'. Defaulting to RoadMarkingType::kUnknown.");
       }
 
-      double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal_.s, signal_.id.string());
-      if (adjusted_s != signal_.s) {
-        signal_.s = adjusted_s;
-      }
-
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal.s,
+      double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal.s, signal.id.string());
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), adjusted_s,
                                                                                 signal.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
@@ -240,7 +233,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
-      auto related_lanes = ResolveLaneIds(signal, road_id_, signal_references_, road_geometry_);
+      auto related_lanes = ResolveLaneIds(signal, adjusted_s, road_id_, signal_references_, road_geometry_);
 
       maliput::log()->debug("RoadMarkingBuilder: creating RoadMarking id='", signal.id.string(),
                             "' type=", static_cast<int>(marking_type), " position=(", inertial_pos.x(), ", ",
