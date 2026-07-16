@@ -453,7 +453,8 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
 /// being returned.
 ///
 /// @param signal The signal whose related lanes are being resolved.
-/// @param s_coordinate The signal's s-coordinate along the road, could slightly vary from the @p signal due to adjustments.
+/// @param s_coordinate The signal's s-coordinate along the road, could slightly vary from the @p signal due to
+/// adjustments.
 /// @param road_id The XODR road ID that contains the signal.
 /// @param signal_references Additional roads that reference the same signal.
 /// @param road_geometry Pointer to the built road geometry.
@@ -471,7 +472,8 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(
 /// being returned.
 ///
 /// @param object The object whose related lanes are being resolved.
-/// @param s_coordinate The object's s-coordinate along the road, could slightly vary from the @p object due to adjustments.
+/// @param s_coordinate The object's s-coordinate along the road, could slightly vary from the @p object due to
+/// adjustments.
 /// @param road_id The XODR road ID that contains the object.
 /// @param object_references Additional roads that reference the same object.
 /// @param road_geometry Pointer to the built road geometry.

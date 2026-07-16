@@ -795,7 +795,8 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(
     const maliput::api::RoadGeometry* road_geometry) {
   std::set<maliput::api::LaneId, LaneIdStringLess> related_lanes;
 
-  AppendResolvedLaneIdsToSet(road_id, s_coordinate, signal.validities, signal.orientation, road_geometry, &related_lanes);
+  AppendResolvedLaneIdsToSet(road_id, s_coordinate, signal.validities, signal.orientation, road_geometry,
+                             &related_lanes);
 
   for (const auto& ref_ctx : signal_references) {
     AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities,

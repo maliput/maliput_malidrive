@@ -144,8 +144,8 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
 
       // --- Position ---
       double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, object.s, object.id.string());
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), adjusted_s,
-                                                                                object.t};
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()),
+                                                                                adjusted_s, object.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
       maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
@@ -217,8 +217,8 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
 
       // --- Position ---
       double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal.s, signal.id.string());
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), adjusted_s,
-                                                                                signal.t};
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()),
+                                                                                adjusted_s, signal.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
       maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
