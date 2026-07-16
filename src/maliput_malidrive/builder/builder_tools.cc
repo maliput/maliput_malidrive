@@ -29,6 +29,7 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/builder_tools.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <map>
@@ -799,7 +800,9 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(
                              &related_lanes);
 
   for (const auto& ref_ctx : signal_references) {
-    AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.validities,
+    const double adjusted_ref_s = AdjustSCoordinateToLaneSection(
+        road_geometry, ref_ctx.road_id, ref_ctx.signal_reference.s, ref_ctx.signal_reference.signal_id.string());
+    AppendResolvedLaneIdsToSet(ref_ctx.road_id, adjusted_ref_s, ref_ctx.signal_reference.validities,
                                ref_ctx.signal_reference.orientation, road_geometry, &related_lanes);
   }
 
@@ -821,7 +824,9 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(
   }
 
   for (const auto& ref_ctx : object_references) {
-    AppendResolvedLaneIdsToSet(ref_ctx.road_id, ref_ctx.object_reference.s, ref_ctx.object_reference.validities,
+    const double adjusted_ref_s = AdjustSCoordinateToLaneSection(
+        road_geometry, ref_ctx.road_id, ref_ctx.object_reference.s, ref_ctx.object_reference.id.string());
+    AppendResolvedLaneIdsToSet(ref_ctx.road_id, adjusted_ref_s, ref_ctx.object_reference.validities,
                                ref_ctx.object_reference.orientation, road_geometry, &related_lanes);
   }
 
