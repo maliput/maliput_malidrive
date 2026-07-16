@@ -30,8 +30,10 @@
 #include "maliput_malidrive/builder/builder_tools.h"
 
 #include <cmath>
+#include <iomanip>
 #include <map>
 #include <set>
+#include <sstream>
 
 #include <maliput/api/lane.h>
 #include <maliput/api/objects/road_object.h>
@@ -48,6 +50,8 @@
 #include "maliput_malidrive/xodr/road_link.h"
 
 using maliput::api::LaneId;
+
+static constexpr double kEpsilon{1e-10};
 
 namespace malidrive {
 namespace builder {
@@ -91,6 +95,8 @@ const std::map<xodr::Lane::Type, XodrLaneProperties> kXodrLaneTypesToMaliputProp
     {xodr::Lane::Type::kOffRamp, {true, "NonPedestrians", {}}},
     {xodr::Lane::Type::kConnectingRamp, {true, "NonPedestrians", {}}},
 };
+
+bool is_almost_equal(double a, double b) { return std::abs(a - b) < kEpsilon; }
 
 }  // namespace
 
@@ -906,6 +912,23 @@ std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
     ++outline_index;
   }
   return result;
+}
+
+double AdjustSCoordinateToLaneSection(const maliput::api::RoadGeometry* road_geometry,
+                                      const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::string& id) {
+  const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry);
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error,
+                     "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+  if (is_almost_equal(s_coordinate, mali_rg->GetRoadCurve(road_id)->p1())) {
+    std::ostringstream s_str, adjusted_s_str;
+    s_str << std::fixed << std::setprecision(10) << s_coordinate;
+    adjusted_s_str << std::fixed << std::setprecision(10) << (s_coordinate - kEpsilon);
+    maliput::log()->warn("XODR element with ID ", id, " has s coordinate ", s_str.str(),
+                         " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
+                         " to avoid potential issues with lane association and orientation.");
+    s_coordinate -= kEpsilon;
+  }
+  return s_coordinate;
 }
 
 }  // namespace builder

@@ -126,6 +126,11 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   }
 
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
+  double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal_.s, signal_.id.string());
+  if (adjusted_s != signal_.s) {
+    signal_.s = adjusted_s;
+  }
+
   malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_.s,
                                                                       signal_.t};
   // We allow off-road positions conversions here since traffic signs in XODR files tend to be placed slightly off

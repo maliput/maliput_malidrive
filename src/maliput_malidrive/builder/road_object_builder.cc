@@ -48,13 +48,6 @@
 #include "maliput_malidrive/builder/road_object_type_mapper.h"
 #include "maliput_malidrive/common/macros.h"
 
-static constexpr double kEpsilon{1e-10};
-
-namespace {
-
-bool is_almost_equal(double a, double b) { return std::abs(a - b) < kEpsilon; }
-
-}  // namespace
 namespace malidrive {
 namespace builder {
 
@@ -150,18 +143,12 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       }
 
       // --- Position ---
-      double object_s = object.s;
-      if (is_almost_equal(object.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
-        std::ostringstream s_str, adjusted_s_str;
-        s_str << std::fixed << std::setprecision(10) << object.s;
-        adjusted_s_str << std::fixed << std::setprecision(10) << (object.s - kEpsilon);
-        maliput::log()->warn("RoadObjectBuilder: Object ", object.id.string(), " has s coordinate ", s_str.str(),
-                             " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
-                             " to avoid potential issues with lane association and orientation.");
-        object_s -= kEpsilon;
+      double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, object.s, object.id.string());
+      if (adjusted_s != object.s) {
+        object.s = adjusted_s;
       }
 
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_s,
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object.s,
                                                                                 object.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
@@ -233,18 +220,12 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       }
 
       // --- Position ---
-      double signal_s = signal.s;
-      if (is_almost_equal(signal.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
-        std::ostringstream s_str, adjusted_s_str;
-        s_str << std::fixed << std::setprecision(10) << signal.s;
-        adjusted_s_str << std::fixed << std::setprecision(10) << (signal.s - kEpsilon);
-        maliput::log()->warn("RoadObjectBuilder: Signal ", signal.id.string(), " has s coordinate ", s_str.str(),
-                             " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
-                             " to avoid potential issues with lane association and orientation.");
-        signal_s -= kEpsilon;
+      double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal_.s, signal_.id.string());
+      if (adjusted_s != signal_.s) {
+        signal_.s = adjusted_s;
       }
 
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_s,
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal.s,
                                                                                 signal.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);

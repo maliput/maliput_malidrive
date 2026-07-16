@@ -512,5 +512,16 @@ std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
     const maliput::api::RoadGeometry* road_geometry, const maliput::api::InertialPosition& object_inertial_pos,
     const maliput::api::Rotation& object_orientation);
 
+/// Adjusts the s-coordinate to be within the valid range of the road geometry.
+///
+/// @param road_geometry Pointer to the road geometry (must be castable to malidrive::RoadGeometry).
+/// @param road_id The ID of the road to which the s-coordinate belongs.
+/// @param s_coordinate The s-coordinate to be adjusted. It may be outside the valid range of the road.
+/// @param id The ID of the XODR element (e.g., signal, object) associated with the s-coordinate. This is used for
+/// logging and error messages.
+/// @return The adjusted s-coordinate, clamped to the valid range of the road geometry.
+double AdjustSCoordinateToLaneSection(const maliput::api::RoadGeometry* road_geometry,
+                                      const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::string& id);
+
 }  // namespace builder
 }  // namespace malidrive
