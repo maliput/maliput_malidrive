@@ -287,6 +287,29 @@ TEST_F(RoadMarkingBuilderElevatedRoadTest, PositionZIsRelativeToRoadSurface) {
   EXPECT_GT(std::abs(road_marking_z - object_.z_offset), 1.0);
 }
 
+TEST_F(RoadMarkingBuilderElevatedRoadTest, ObjectOrientationDoesNotAffectYaw) {
+  xodr::object::Object object_with_positive_orientation = object_;
+  object_with_positive_orientation.orientation = xodr::Orientation::kWithS;
+  object_with_positive_orientation.hdg = 0.;
+
+  xodr::object::Object object_with_negative_orientation = object_;
+  object_with_negative_orientation.orientation = xodr::Orientation::kAgainstS;
+  object_with_negative_orientation.hdg = 0.;
+
+  const auto positive_orientation_road_marking =
+      RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object_with_positive_orientation,
+                         xodr::RoadHeader::Id("1"), *loader_, road_geometry_)();
+  ASSERT_NE(positive_orientation_road_marking, nullptr);
+
+  const auto negative_orientation_road_marking =
+      RoadMarkingBuilder(RoadMarkingBuilder::SourceType::kObject, object_with_negative_orientation,
+                         xodr::RoadHeader::Id("1"), *loader_, road_geometry_)();
+  ASSERT_NE(negative_orientation_road_marking, nullptr);
+
+  EXPECT_NEAR(positive_orientation_road_marking->orientation().yaw(), 0., 1e-5);
+  EXPECT_NEAR(negative_orientation_road_marking->orientation().yaw(), 0., 1e-5);
+}
+
 class RoadMarkingBuilderSignalTest : public ::testing::Test {
  protected:
   void SetUp() override {

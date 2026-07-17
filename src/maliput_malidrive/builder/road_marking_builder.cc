@@ -147,11 +147,9 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
       const double hdg = object.hdg.value_or(0.);
       const double pitch = perp_to_road ? 0. : object.pitch.value_or(0.);
       const double roll = perp_to_road ? 0. : object.roll.value_or(0.);
-      const double orientation_offset =
-          (object.orientation.has_value() && object.orientation.value() == xodr::Orientation::kAgainstS) ? M_PI : 0.;
       const maliput::api::Rotation orientation =
           maliput::api::Rotation::FromRpy(road_orientation.roll_angle() + roll, road_orientation.pitch_angle() + pitch,
-                                          road_orientation.yaw_angle() + hdg + orientation_offset);
+                                          road_orientation.yaw_angle() + hdg);
 
       const auto default_bounding_box =
           definition.default_bounding_box.value_or(traffic_control_device::BoundingBoxDimensions{});
