@@ -2,6 +2,16 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.30.0 (2026-07-17)
+-----------
+* XODR object orientation doesn't affect RoadMarking yaw-orientation. (`#529 <https://github.com/maliput/maliput_malidrive/issues/529>`_)
+* Set TrafficControlDevice related_lanes based on XODR signal/object orientation. (`#528 <https://github.com/maliput/maliput_malidrive/issues/528>`_)
+* Adding new RoadObject types (`#523 <https://github.com/maliput/maliput_malidrive/issues/523>`_)
+* Refactor object::Orientation and signal::Orientation into the same module. (`#527 <https://github.com/maliput/maliput_malidrive/issues/527>`_)
+* Initilize bulb state on builder. (`#525 <https://github.com/maliput/maliput_malidrive/issues/525>`_)
+* Add roll and pitch to signal's orientation. (`#524 <https://github.com/maliput/maliput_malidrive/issues/524>`_)
+* Contributors: Juan Carosella, Santiago Lopez
+
 0.29.0 (2026-07-06)
 -------------------
 * Improve TrafficControlDevice::Lookup by passing XODR element type (`#517 <https://github.com/maliput/maliput_malidrive/issues/517>`_)
