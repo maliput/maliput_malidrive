@@ -126,7 +126,8 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
   }
 
   const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry_);
-  malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_.s,
+  double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal_.s, signal_.id.string());
+  malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), adjusted_s,
                                                                       signal_.t};
   // We allow off-road positions conversions here since traffic signs in XODR files tend to be placed slightly off
   // the road.
@@ -140,8 +141,7 @@ std::unique_ptr<const maliput::api::rules::TrafficSign> TrafficSignBuilder::oper
       maliput::api::Rotation::FromRpy(signal_.roll.value_or(0.), signal_.pitch.value_or(0.),
                                       orientation + (signal_.orientation != xodr::Orientation::kAgainstS ? M_PI : 0.));
 
-  auto related_lanes =
-      ResolveAndDeduplicateLaneIds(road_id_, signal_.s, signal_.validities, signal_references_, road_geometry_);
+  auto related_lanes = ResolveLaneIds(signal_, adjusted_s, road_id_, signal_references_, road_geometry_);
 
   // Build a bounding box from the signal's physical dimensions when available.
   // The bounding box position and orientation are expressed in the sign's local frame.

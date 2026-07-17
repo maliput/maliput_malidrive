@@ -41,11 +41,13 @@
 #include "maliput_malidrive/base/lane.h"
 #include "maliput_malidrive/builder/rule_tools.h"
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/xodr/common.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/junction.h"
 #include "maliput_malidrive/xodr/lane.h"
 #include "maliput_malidrive/xodr/object/object.h"
 #include "maliput_malidrive/xodr/road_header.h"
+#include "maliput_malidrive/xodr/signal/signal.h"
 #include "maliput_malidrive/xodr/validity.h"
 
 namespace malidrive {
@@ -443,25 +445,58 @@ std::vector<maliput::api::LaneId> ResolveLaneIds(const xodr::RoadHeader::Id& roa
                                                  const std::vector<xodr::Validity>& validities,
                                                  const maliput::api::RoadGeometry* road_geometry);
 
-/// Resolves the related lane IDs for a signal from its own road and from any
-/// signal references on other roads, then deduplicates the result.
+/// Resolves the lane IDs related to a signal and its signal
+/// references in one pass per source.
 ///
-/// This combines @ref ResolveLaneIds calls for the primary road and every
-/// @p signal_references entry, appending all results before performing a
-/// sort-then-unique deduplication. Duplicates are unlikely with well-formed
-/// XODR files but could occur when a road references its own signal via a
-/// `<signalReference>` element.
+/// Each source road is processed independently with its own orientation and
+/// validity. The resulting lane IDs are merged into a deduplicated set before
+/// being returned.
 ///
-/// @param road_id The XODR road ID of the signal's own road.
-/// @param s_coordinate The s-coordinate of the signal on its own road.
-/// @param validities The XODR validity ranges for the signal's own road.
+/// @param signal The signal whose related lanes are being resolved.
+/// @param s_coordinate The signal's s-coordinate along the road, could slightly vary from the @p signal due to
+/// adjustments.
+/// @param road_id The XODR road ID that contains the signal.
 /// @param signal_references Additional roads that reference the same signal.
 /// @param road_geometry Pointer to the built road geometry.
 /// @returns A sorted, deduplicated vector of maliput LaneIds.
-std::vector<maliput::api::LaneId> ResolveAndDeduplicateLaneIds(
-    const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::vector<xodr::Validity>& validities,
+std::vector<maliput::api::LaneId> ResolveLaneIds(
+    const xodr::signal::Signal& signal, double s_coordinate, const xodr::RoadHeader::Id& road_id,
     const std::vector<xodr::DBManager::SignalReferenceOnRoad>& signal_references,
     const maliput::api::RoadGeometry* road_geometry);
+
+/// Resolves the lane IDs related to an object and its object
+/// references in one pass per source.
+///
+/// Each source road is processed independently with its own orientation and
+/// validity. The resulting lane IDs are merged into a deduplicated set before
+/// being returned.
+///
+/// @param object The object whose related lanes are being resolved.
+/// @param s_coordinate The object's s-coordinate along the road, could slightly vary from the @p object due to
+/// adjustments.
+/// @param road_id The XODR road ID that contains the object.
+/// @param object_references Additional roads that reference the same object.
+/// @param road_geometry Pointer to the built road geometry.
+/// @returns A sorted, deduplicated vector of maliput LaneIds.
+std::vector<maliput::api::LaneId> ResolveLaneIds(
+    const xodr::object::Object& object, double s_coordinate, const xodr::RoadHeader::Id& road_id,
+    const std::vector<xodr::DBManager::ObjectReferenceOnRoad>& object_references,
+    const maliput::api::RoadGeometry* road_geometry);
+
+/// Filters lane_ids to those whose travel direction is compatible with orientation.
+/// - kWithS:        keep lanes whose direction is "WithS" or "Bidirectional"
+/// - kAgainstS:     keep lanes whose direction is "AgainstS" or "Bidirectional"
+/// - kBidirectional: keep all (no filter)
+///
+/// @param lane_ids Candidate lane IDs (already resolved and built into the RG).
+/// @param orientation Signal/object orientation from XODR (unified xodr::Orientation enum).
+/// @param road_geometry Pointer to the road geometry (must not be nullptr).
+/// @returns Filtered subset of lane_ids.
+///
+/// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
+std::vector<maliput::api::LaneId> FilterLaneIdsBySignalOrientation(const std::vector<maliput::api::LaneId>& lane_ids,
+                                                                   xodr::Orientation orientation,
+                                                                   const maliput::api::RoadGeometry* road_geometry);
 
 /// Converts XODR outline corners to maliput Outlines.
 ///
@@ -480,6 +515,17 @@ std::vector<std::unique_ptr<maliput::api::objects::Outline>> BuildOutlines(
     const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
     const maliput::api::RoadGeometry* road_geometry, const maliput::api::InertialPosition& object_inertial_pos,
     const maliput::api::Rotation& object_orientation);
+
+/// Adjusts the s-coordinate to be within the valid range of the road geometry.
+///
+/// @param road_geometry Pointer to the road geometry (must be castable to malidrive::RoadGeometry).
+/// @param road_id The ID of the road to which the s-coordinate belongs.
+/// @param s_coordinate The s-coordinate to be adjusted. It may be outside the valid range of the road.
+/// @param id The ID of the XODR element (e.g., signal, object) associated with the s-coordinate. This is used for
+/// logging and error messages.
+/// @return The adjusted s-coordinate, clamped to the valid range of the road geometry.
+double AdjustSCoordinateToLaneSection(const maliput::api::RoadGeometry* road_geometry,
+                                      const xodr::RoadHeader::Id& road_id, double s_coordinate, const std::string& id);
 
 }  // namespace builder
 }  // namespace malidrive

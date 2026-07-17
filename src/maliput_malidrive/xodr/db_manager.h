@@ -41,6 +41,7 @@
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/xodr/header.h"
 #include "maliput_malidrive/xodr/junction.h"
+#include "maliput_malidrive/xodr/object/object_reference.h"
 #include "maliput_malidrive/xodr/parser_configuration.h"
 #include "maliput_malidrive/xodr/road_header.h"
 #include "maliput_malidrive/xodr/signal/signal_reference.h"
@@ -69,6 +70,14 @@ class DBManager {
   struct SignalReferenceOnRoad {
     RoadHeader::Id road_id;
     signal::SignalReference signal_reference;
+  };
+
+  /// Pairs an @ref object::ObjectReference with the ID of the road on which
+  /// the reference appears. This allows consumers to resolve lanes from
+  /// multiple roads that reference the same physical object.
+  struct ObjectReferenceOnRoad {
+    RoadHeader::Id road_id;
+    object::ObjectReference object_reference;
   };
 
   /// Holds Geometry related information:
@@ -165,6 +174,15 @@ class DBManager {
   /// @returns A map from signal-ID string to all @ref SignalReferenceOnRoad
   ///          entries referencing it.
   const std::unordered_map<std::string, std::vector<SignalReferenceOnRoad>>& GetSignalReferencesBySignalId() const;
+
+  /// Collects all object references from every road, grouped by the referenced object ID.
+  ///
+  /// The returned map keys are object ID strings; the values are vectors of
+  /// @ref ObjectReferenceOnRoad entries that reference that object.
+  ///
+  /// @returns A map from object-ID string to all @ref ObjectReferenceOnRoad
+  ///          entries referencing it.
+  const std::unordered_map<std::string, std::vector<ObjectReferenceOnRoad>>& GetObjectReferencesByObjectId() const;
 
   /// @{ Xodr geometry introspection queries.
 

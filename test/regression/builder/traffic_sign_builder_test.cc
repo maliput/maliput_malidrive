@@ -61,6 +61,18 @@ namespace {
 
 // Resource folder path defined via compile definition.
 static constexpr char kMalidriveResourceFolder[] = DEF_MALIDRIVE_RESOURCES;
+const char kDirectionFilterSignalTrafficSignDb[] = R"(
+odr_signal_types:
+  - odr_representation:
+      type: "1000001"
+      subtype: "-1"
+      country: "OpenDRIVE"
+      name: "*"
+    properties:
+      device_type: TrafficSign
+      device_semantics: Stop
+      is_position_dynamic: true
+)";
 
 // Test fixture for TrafficSignBuilder.
 // Builds a RoadNetwork from the figure8_trafficlights XODR (which contains
@@ -326,18 +338,17 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS1Fields) {
 
   // Related lanes for SS1:
   //   - From signal's own validity (fromLane=-1, toLane=-1) on road 1 → {"1_0_-1"}
-  //   - From signalReference to SS2 on road 2 (no validity) → all lanes of road 2 → {"2_0_1", "2_0_-1"}
-  // Total (sorted): {"1_0_-1", "2_0_-1", "2_0_1"}
+  //   - From signalReference on road 2 (uses referenced signal orientation="-") → {"2_0_1"}
+  // Total (sorted): {"1_0_-1", "2_0_1"}
   const auto& related = ts->related_lanes();
-  ASSERT_EQ(3u, related.size());
+  ASSERT_EQ(2u, related.size());
   std::vector<std::string> lane_ids;
   for (const auto& lid : related) {
     lane_ids.push_back(lid.string());
   }
   std::sort(lane_ids.begin(), lane_ids.end());
   EXPECT_EQ("1_0_-1", lane_ids[0]);
-  EXPECT_EQ("2_0_-1", lane_ids[1]);
-  EXPECT_EQ("2_0_1", lane_ids[2]);
+  EXPECT_EQ("2_0_1", lane_ids[1]);
 
   const auto& properties = ts->properties();
   EXPECT_EQ(properties.at("type"), "206");
@@ -375,20 +386,18 @@ TEST_F(TrafficSignBuilderTwoRoadsTest, TrafficSignSS2Fields) {
   EXPECT_NEAR(0., std::abs(rot.yaw()), 1e-1);
 
   // Related lanes for SS2:
-  //   - From signal's own validity (empty → all lanes) on road 2 → {"2_0_1", "2_0_-1"}
-  //   - From signalReference to SS1 on road 1 (no validity) → all lanes of road 1 → {"1_0_1", "1_0_-1"}
-  // Total (sorted): {"1_0_-1", "1_0_1", "2_0_-1", "2_0_1"}
+  //   - From signal's own orientation "-" on road 2 → {"2_0_1"}
+  //   - From signalReference on road 1 (uses referenced signal orientation="+") → {"1_0_-1"}
+  // Total (sorted): {"1_0_-1", "2_0_1"}
   const auto& related = ts->related_lanes();
-  ASSERT_EQ(4u, related.size());
+  ASSERT_EQ(2u, related.size());
   std::vector<std::string> lane_ids;
   for (const auto& lid : related) {
     lane_ids.push_back(lid.string());
   }
   std::sort(lane_ids.begin(), lane_ids.end());
   EXPECT_EQ("1_0_-1", lane_ids[0]);
-  EXPECT_EQ("1_0_1", lane_ids[1]);
-  EXPECT_EQ("2_0_-1", lane_ids[2]);
-  EXPECT_EQ("2_0_1", lane_ids[3]);
+  EXPECT_EQ("2_0_1", lane_ids[1]);
 
   const auto& properties = ts->properties();
   EXPECT_EQ(properties.at("type"), "206");
@@ -605,6 +614,80 @@ TEST_F(TrafficSignBuilderOrientationAttributesTest, OrientationAttributesAreAppl
   EXPECT_NEAR(kExpectedRotation.roll(), rot.roll(), 1e-6);
   EXPECT_NEAR(kExpectedRotation.pitch(), rot.pitch(), 1e-6);
   EXPECT_NEAR(kExpectedRotation.yaw(), rot.yaw(), 1e-6);
+}
+
+// ---------------------------------------------------------------------------
+
+class TrafficSignBuilderDirectionFilterTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadBidirectionalLanes.xodr", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+
+    const auto* manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+    const auto road_headers = manager->GetRoadHeaders();
+    const auto road_header_it = road_headers.find(road_id_);
+    ASSERT_NE(road_header_it, road_headers.end());
+    ASSERT_TRUE(road_header_it->second.signals.has_value());
+    signals_ = road_header_it->second.signals->signals;
+    loader_ = std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(
+        kDirectionFilterSignalTrafficSignDb);
+  }
+
+  const xodr::signal::Signal& FindSignal(const std::string& id) const {
+    for (const auto& signal : signals_) {
+      if (signal.id.string() == id) return signal;
+    }
+    MALIPUT_THROW_MESSAGE("Signal " + id + " not found");
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  std::vector<xodr::signal::Signal> signals_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+  const xodr::RoadHeader::Id road_id_{"1"};
+};
+
+// Verifies that signals with orientation="+" (kWithS) filter related_lanes correctly.
+TEST_F(TrafficSignBuilderDirectionFilterTest, OrientationWithSFilters) {
+  const auto& signal = FindSignal("S_WithS");
+  const auto ts = TrafficSignBuilder(signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(ts, nullptr);
+  // Only lane -1 (WithS) should be included
+  EXPECT_EQ(ts->related_lanes().size(), 1);
+  EXPECT_EQ(ts->related_lanes()[0].string(), "1_0_-1");
+}
+
+// Verifies that signals with orientation="-" (kAgainstS) filter related_lanes correctly.
+TEST_F(TrafficSignBuilderDirectionFilterTest, OrientationAgainstSFilters) {
+  const auto& signal = FindSignal("S_AgainstS");
+  const auto ts = TrafficSignBuilder(signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(ts, nullptr);
+  // Only lane +1 (AgainstS) should be included
+  EXPECT_EQ(ts->related_lanes().size(), 1);
+  EXPECT_EQ(ts->related_lanes()[0].string(), "1_0_1");
+}
+
+// Verifies that signals with orientation="none" (kBidirectional) don't filter related_lanes.
+TEST_F(TrafficSignBuilderDirectionFilterTest, OrientationBidirectionalNoFilter) {
+  const auto& signal = FindSignal("S_Bidirectional");
+  const auto ts = TrafficSignBuilder(signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(ts, nullptr);
+  // Both lanes should be included (no filter)
+  EXPECT_EQ(ts->related_lanes().size(), 2);
+  const auto lane_ids = ts->related_lanes();
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_-1"; }));
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_1"; }));
 }
 
 }  // namespace

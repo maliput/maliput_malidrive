@@ -1076,6 +1076,117 @@ GTEST_TEST(DetermineJunctionIntersectionFromXodrTest, FewConnectionsFallbackToNo
   EXPECT_EQ(std::make_optional(false), DetermineJunctionIntersectionFromXodr(junction, road_headers));
 }
 
+class FilterLaneIdsBySignalOrientationTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("SingleRoadBidirectionalLanes.xodr", kMalidriveResourceFolder);
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = road_network_->road_geometry();
+    ASSERT_NE(road_geometry_, nullptr);
+  }
+
+  // Helper to get lane IDs by lane ID string
+  std::vector<maliput::api::LaneId> GetLaneIds(const std::vector<std::string>& lane_id_strings) const {
+    std::vector<maliput::api::LaneId> result;
+    for (const auto& id_str : lane_id_strings) {
+      result.push_back(maliput::api::LaneId(id_str));
+    }
+    return result;
+  }
+
+  std::unique_ptr<maliput::api::RoadNetwork> road_network_;
+  const maliput::api::RoadGeometry* road_geometry_;
+};
+
+// Test FilterLaneIdsBySignalOrientation with kWithS orientation
+TEST_F(FilterLaneIdsBySignalOrientationTest, FilterWithS) {
+  const auto lane_ids = GetLaneIds({"1_0_-1", "1_0_1"});
+  const auto filtered = FilterLaneIdsBySignalOrientation(lane_ids, xodr::Orientation::kWithS, road_geometry_);
+  EXPECT_EQ(filtered.size(), 1);
+  EXPECT_EQ(filtered[0].string(), "1_0_-1");  // Only WithS lane
+}
+
+// Test FilterLaneIdsBySignalOrientation with kAgainstS orientation
+TEST_F(FilterLaneIdsBySignalOrientationTest, FilterAgainstS) {
+  const auto lane_ids = GetLaneIds({"1_0_-1", "1_0_1"});
+  const auto filtered = FilterLaneIdsBySignalOrientation(lane_ids, xodr::Orientation::kAgainstS, road_geometry_);
+  EXPECT_EQ(filtered.size(), 1);
+  EXPECT_EQ(filtered[0].string(), "1_0_1");  // Only AgainstS lane
+}
+
+// Test FilterLaneIdsBySignalOrientation with kBidirectional orientation
+TEST_F(FilterLaneIdsBySignalOrientationTest, FilterBidirectional) {
+  const auto lane_ids = GetLaneIds({"1_0_-1", "1_0_1"});
+  const auto filtered = FilterLaneIdsBySignalOrientation(lane_ids, xodr::Orientation::kBidirectional, road_geometry_);
+  EXPECT_EQ(filtered.size(), 2);  // Both lanes pass through
+}
+
+// Test FilterLaneIdsBySignalOrientation with empty lane IDs
+TEST_F(FilterLaneIdsBySignalOrientationTest, EmptyLaneIds) {
+  const auto lane_ids = GetLaneIds({});
+  const auto filtered = FilterLaneIdsBySignalOrientation(lane_ids, xodr::Orientation::kWithS, road_geometry_);
+  EXPECT_EQ(filtered.size(), 0);
+}
+
+// Test FilterLaneIdsBySignalOrientation with single lane (WithS)
+TEST_F(FilterLaneIdsBySignalOrientationTest, SingleLaneWithS) {
+  const auto lane_ids = GetLaneIds({"1_0_-1"});
+  const auto filtered = FilterLaneIdsBySignalOrientation(lane_ids, xodr::Orientation::kWithS, road_geometry_);
+  EXPECT_EQ(filtered.size(), 1);
+  EXPECT_EQ(filtered[0].string(), "1_0_-1");
+}
+
+// Test FilterLaneIdsBySignalOrientation with single lane (AgainstS, doesn't match)
+TEST_F(FilterLaneIdsBySignalOrientationTest, SingleLaneAgainstSNoMatch) {
+  const auto lane_ids = GetLaneIds({"1_0_-1"});  // WithS lane
+  const auto filtered = FilterLaneIdsBySignalOrientation(lane_ids, xodr::Orientation::kAgainstS, road_geometry_);
+  EXPECT_EQ(filtered.size(), 0);  // WithS doesn't match AgainstS filter
+}
+
+class ResolveLaneIdsSignalReferenceTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("TwoRoadsWithTrafficLights.xodr", kMalidriveResourceFolder);
+    const RoadNetworkConfiguration rn_config{RoadNetworkConfiguration::FromMap({
+        {params::kOpendriveFile, xodr_file_path},
+        {params::kOmitNonDrivableLanes, "false"},
+    })};
+    road_network_ = RoadNetworkBuilder(rn_config.ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = road_network_->road_geometry();
+    ASSERT_NE(road_geometry_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::RoadGeometry* road_geometry_{};
+};
+
+TEST_F(ResolveLaneIdsSignalReferenceTest, AppliesSignalReferenceOrientation) {
+  xodr::signal::Signal signal{50., 0., xodr::signal::Signal::Id("S1")};
+  signal.orientation = xodr::Orientation::kWithS;
+  signal.validities = {{xodr::Validity::Id("-1"), xodr::Validity::Id("-1")}};
+
+  xodr::DBManager::SignalReferenceOnRoad signal_reference{
+      xodr::RoadHeader::Id("2"), xodr::signal::SignalReference{xodr::signal::SignalReference::SignalId("S2")}};
+  signal_reference.signal_reference.orientation = xodr::Orientation::kWithS;
+  signal_reference.signal_reference.s = 50.;
+  signal_reference.signal_reference.validities = {};
+
+  const auto related_lanes =
+      ResolveLaneIds(signal, signal.s, xodr::RoadHeader::Id("1"), {signal_reference}, road_geometry_);
+
+  ASSERT_EQ(2u, related_lanes.size());
+  EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("1_0_-1")), related_lanes.end());
+  EXPECT_NE(std::find(related_lanes.begin(), related_lanes.end(), maliput::api::LaneId("2_0_-1")), related_lanes.end());
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder

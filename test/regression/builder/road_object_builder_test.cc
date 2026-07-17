@@ -677,6 +677,82 @@ TEST_F(RoadObjectBuilderTest, FindInRadius) {
   EXPECT_TRUE(far_away.empty());
 }
 
+// ---------------------------------------------------------------------------
+
+class RoadObjectBuilderDirectionFilterTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file =
+        utility::FindResourceInPath("SingleRoadBidirectionalLanes.xodr", kMalidriveResourceFolder);
+
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_geometry_ = dynamic_cast<const malidrive::RoadGeometry*>(road_network_->road_geometry());
+    ASSERT_NE(road_geometry_, nullptr);
+
+    const auto* manager = road_geometry_->get_manager();
+    ASSERT_NE(manager, nullptr);
+    const auto road_headers = manager->GetRoadHeaders();
+    const auto road_header_it = road_headers.find(road_id_);
+    ASSERT_NE(road_header_it, road_headers.end());
+    ASSERT_TRUE(road_header_it->second.signals.has_value());
+    signals_ = road_header_it->second.signals->signals;
+    loader_ = std::make_unique<traffic_control_device::TrafficControlDeviceDatabaseLoader>(kSignalRoadObjectDb);
+  }
+
+  const xodr::signal::Signal& FindSignal(const std::string& id) const {
+    for (const auto& signal : signals_) {
+      if (signal.id.string() == id) return signal;
+    }
+    MALIPUT_THROW_MESSAGE("Signal " + id + " not found");
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const malidrive::RoadGeometry* road_geometry_{};
+  std::vector<xodr::signal::Signal> signals_;
+  std::unique_ptr<traffic_control_device::TrafficControlDeviceDatabaseLoader> loader_;
+  const xodr::RoadHeader::Id road_id_{"1"};
+};
+
+// Verifies that road objects created from signals with orientation="+" (kWithS) filter related_lanes correctly.
+TEST_F(RoadObjectBuilderDirectionFilterTest, SignalOrientationWithSFilters) {
+  const auto& signal = FindSignal("S_WithS");
+  const auto ro =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(ro, nullptr);
+  // Only lane -1 (WithS) should be included
+  EXPECT_EQ(ro->related_lanes().size(), 1);
+  EXPECT_EQ(ro->related_lanes()[0].string(), "1_0_-1");
+}
+
+// Verifies that road objects created from signals with orientation="-" (kAgainstS) filter related_lanes correctly.
+TEST_F(RoadObjectBuilderDirectionFilterTest, SignalOrientationAgainstSFilters) {
+  const auto& signal = FindSignal("S_AgainstS");
+  const auto ro =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(ro, nullptr);
+  // Only lane +1 (AgainstS) should be included
+  EXPECT_EQ(ro->related_lanes().size(), 1);
+  EXPECT_EQ(ro->related_lanes()[0].string(), "1_0_1");
+}
+
+// Verifies that road objects created from signals with orientation="none" (kBidirectional) don't filter related_lanes.
+TEST_F(RoadObjectBuilderDirectionFilterTest, SignalOrientationBidirectionalNoFilter) {
+  const auto& signal = FindSignal("S_Bidirectional");
+  const auto ro =
+      RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id_, *loader_, road_geometry_)();
+  ASSERT_NE(ro, nullptr);
+  // Both lanes should be included (no filter)
+  EXPECT_EQ(ro->related_lanes().size(), 2);
+  const auto lane_ids = ro->related_lanes();
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_-1"; }));
+  EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_1"; }));
+}
+
 }  // namespace
 }  // namespace test
 }  // namespace builder

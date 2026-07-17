@@ -48,11 +48,7 @@
 #include "maliput_malidrive/common/macros.h"
 #include "maliput_malidrive/traffic_control_device/parser.h"
 
-static constexpr double kEpsilon{1e-10};
-
 namespace {
-
-bool is_almost_equal(double a, double b) { return std::abs(a - b) < kEpsilon; }
 
 std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
   if (subtype.empty() || subtype == "-1" || subtype == "none") {
@@ -69,8 +65,14 @@ namespace builder {
 RoadMarkingBuilder::RoadMarkingBuilder(SourceType source_type, const xodr::signal::Signal& signal,
                                        const xodr::RoadHeader::Id& road_id,
                                        const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                                       const maliput::api::RoadGeometry* road_geometry)
-    : source_type_(source_type), signal_(&signal), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+                                       const maliput::api::RoadGeometry* road_geometry,
+                                       std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
+    : source_type_(source_type),
+      signal_(&signal),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
+      signal_references_(std::move(signal_references)) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kSignal, std::invalid_argument,
                      "RoadMarkingBuilder signal constructor requires SourceType::kSignal.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
@@ -79,8 +81,14 @@ RoadMarkingBuilder::RoadMarkingBuilder(SourceType source_type, const xodr::signa
 RoadMarkingBuilder::RoadMarkingBuilder(SourceType source_type, const xodr::object::Object& object,
                                        const xodr::RoadHeader::Id& road_id,
                                        const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
-                                       const maliput::api::RoadGeometry* road_geometry)
-    : source_type_(source_type), object_(&object), road_id_(road_id), loader_(loader), road_geometry_(road_geometry) {
+                                       const maliput::api::RoadGeometry* road_geometry,
+                                       std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references)
+    : source_type_(source_type),
+      object_(&object),
+      road_id_(road_id),
+      loader_(loader),
+      road_geometry_(road_geometry),
+      object_references_(std::move(object_references)) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kObject, std::invalid_argument,
                      "RoadMarkingBuilder object constructor requires SourceType::kObject.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
@@ -124,18 +132,9 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                               "'. Defaulting to RoadMarkingType::kUnknown.");
       }
 
-      double object_s = object.s;
-      if (is_almost_equal(object.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
-        std::ostringstream s_str, adjusted_s_str;
-        s_str << std::fixed << std::setprecision(10) << object.s;
-        adjusted_s_str << std::fixed << std::setprecision(10) << (object.s - kEpsilon);
-        maliput::log()->warn("RoadMarkingBuilder: Object ", object.id.string(), " has s coordinate ", s_str.str(),
-                             " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
-                             " to avoid potential issues with lane association and orientation.");
-        object_s -= kEpsilon;
-      }
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), object_s,
-                                                                                object.t};
+      double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, object.s, object.id.string());
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()),
+                                                                                adjusted_s, object.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
       maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
@@ -167,7 +166,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
-      auto related_lanes = ResolveLaneIds(road_id_, object_s, object.validities, road_geometry_);
+      auto related_lanes = ResolveLaneIds(object, adjusted_s, road_id_, object_references_, road_geometry_);
       auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
 
       maliput::log()->debug("RoadMarkingBuilder: creating RoadMarking id='", object.id.string(),
@@ -208,18 +207,9 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                               "'. Defaulting to RoadMarkingType::kUnknown.");
       }
 
-      double signal_s = signal.s;
-      if (is_almost_equal(signal.s, mali_rg->GetRoadCurve(road_id_)->p1())) {
-        std::ostringstream s_str, adjusted_s_str;
-        s_str << std::fixed << std::setprecision(10) << signal.s;
-        adjusted_s_str << std::fixed << std::setprecision(10) << (signal.s - kEpsilon);
-        maliput::log()->warn("RoadMarkingBuilder: Signal ", signal.id.string(), " has s coordinate ", s_str.str(),
-                             " equal to the road length. Adjusting s to ", adjusted_s_str.str(),
-                             " to avoid potential issues with lane association and orientation.");
-        signal_s -= kEpsilon;
-      }
-      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()), signal_s,
-                                                                                signal.t};
+      double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry_, road_id_, signal.s, signal.id.string());
+      const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_road_position{std::stoi(road_id_.string()),
+                                                                                adjusted_s, signal.t};
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
       maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
@@ -243,7 +233,7 @@ std::unique_ptr<maliput::api::objects::RoadMarking> RoadMarkingBuilder::operator
                                                     maliput::math::Vector3(bb_length, bb_width, bb_height),
                                                     maliput::math::RollPitchYaw(0., 0., 0.), 1e-3};
 
-      auto related_lanes = ResolveLaneIds(road_id_, signal_s, signal.validities, road_geometry_);
+      auto related_lanes = ResolveLaneIds(signal, adjusted_s, road_id_, signal_references_, road_geometry_);
 
       maliput::log()->debug("RoadMarkingBuilder: creating RoadMarking id='", signal.id.string(),
                             "' type=", static_cast<int>(marking_type), " position=(", inertial_pos.x(), ", ",
