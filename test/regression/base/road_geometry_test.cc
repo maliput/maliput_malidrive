@@ -1509,7 +1509,7 @@ std::vector<CommandsInputOutputs> InstanciateCommandsInputOutputsParameters() {
       {{"MaliputRoadPositionToOpenScenarioRoadPosition,1_0_1,48.75,0.,0."}, {"1,50.000000,1.000000"}},
       {{"OpenScenarioRelativeRoadPositionToMaliputRoadPosition,1,0.,1.,50.,1."}, {"1_0_1,48.750000,1.000000,0.000000"}},
       {{"OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition,1,1,0.,-1,50.,-0.8"},
-       {"1_0_-1,48.750000,-0.800000,0.000000"}},
+       {"1_0_-1,51.250000,-0.800000,0.000000"}},
       {{"OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition,1,-1,0.,1,50.,0.8"},
        {"1_0_1,50.000000,0.800000,0.000000"}},
       {{"GetRoadOrientationAtOpenScenarioRoadPosition,1,50.,0."}, {"0.000000,-0.000000,1.250000"}},
