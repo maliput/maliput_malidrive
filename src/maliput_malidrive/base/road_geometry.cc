@@ -610,7 +610,7 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsT
     const OpenScenarioLanePosition new_xodr_reference_lane_position{
         ToMalidrive(lane_end->lane)->get_track(), new_xodr_reference_s, ToMalidrive(lane_end->lane)->get_lane_id(),
         xodr_reference_lane_position.offset};
-    return OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(new_xodr_reference_lane_position, new_d_lane,
+    return OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(new_xodr_reference_lane_position, new_d_lane,
                                                                            new_xodr_ds, offset);
   }
 
@@ -622,8 +622,13 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsT
         std::to_string(xodr_reference_lane_position.road_id) + ", s: " + std::to_string(target_s) +
         ", LaneID: " + std::to_string(xodr_reference_lane_position.lane_id) + ", offset: " + std::to_string(offset));
   }
-  target_position.lane = target_lane;
-  return target_position;
+  const OpenScenarioLanePosition new_os_lane_pos{
+      xodr_reference_lane_position.road_id,
+      target_s,
+      target_lane->get_lane_id(),
+      offset,
+  };
+  return OpenScenarioLanePositionToMaliputRoadPosition(new_os_lane_pos);
 }
 
 maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(
