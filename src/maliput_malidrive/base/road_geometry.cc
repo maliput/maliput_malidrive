@@ -564,12 +564,19 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsT
   MALIPUT_THROW_UNLESS(reference_segment != nullptr);
   const road_curve::RoadCurve* reference_road_curve = reference_segment->road_curve();
 
-  maliput::api::RoadPosition target_position;
   // Target is in the same road.
   if (target_s >= reference_road_curve->p0() && target_s <= reference_road_curve->p1()) {
+    const Lane* target_lane = ApplyOffsetToLane(reference_lane, d_lane);
+    if (target_lane == nullptr) {
+      MALIDRIVE_THROW_MESSAGE(
+          "A maliput lane can't be found for the given OpenSCENARIO lane position: "
+          "RoadID: " +
+          std::to_string(xodr_reference_lane_position.road_id) + ", s: " + std::to_string(target_s) +
+          ", LaneID: " + std::to_string(xodr_reference_lane_position.lane_id) + ", offset: " + std::to_string(offset));
+    }
     const OpenScenarioLanePosition new_os_lane_pos{xodr_reference_lane_position.road_id, target_s,
-                                                   xodr_reference_lane_position.lane_id, offset};
-    target_position = OpenScenarioLanePositionToMaliputRoadPosition(new_os_lane_pos);
+                                                   target_lane->get_lane_id(), offset};
+    return OpenScenarioLanePositionToMaliputRoadPosition(new_os_lane_pos);
   } else {
     // The target_s falls outside this xodr_road.
     // We cover the case where:
@@ -613,22 +620,6 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsT
     return OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(new_xodr_reference_lane_position, new_d_lane,
                                                                        new_xodr_ds, offset);
   }
-
-  const Lane* target_lane = ApplyOffsetToLane(reference_lane, d_lane);
-  if (target_lane == nullptr) {
-    MALIDRIVE_THROW_MESSAGE(
-        "A maliput lane can't be found for the given OpenSCENARIO lane position: "
-        "RoadID: " +
-        std::to_string(xodr_reference_lane_position.road_id) + ", s: " + std::to_string(target_s) +
-        ", LaneID: " + std::to_string(xodr_reference_lane_position.lane_id) + ", offset: " + std::to_string(offset));
-  }
-  const OpenScenarioLanePosition new_os_lane_pos{
-      xodr_reference_lane_position.road_id,
-      target_s,
-      target_lane->get_lane_id(),
-      offset,
-  };
-  return OpenScenarioLanePositionToMaliputRoadPosition(new_os_lane_pos);
 }
 
 maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(
