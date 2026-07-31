@@ -611,7 +611,7 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsT
         ToMalidrive(lane_end->lane)->get_track(), new_xodr_reference_s, ToMalidrive(lane_end->lane)->get_lane_id(),
         xodr_reference_lane_position.offset};
     return OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(new_xodr_reference_lane_position, new_d_lane,
-                                                                           new_xodr_ds, offset);
+                                                                       new_xodr_ds, offset);
   }
 
   const Lane* target_lane = ApplyOffsetToLane(reference_lane, d_lane);
