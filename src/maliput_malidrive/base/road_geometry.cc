@@ -577,49 +577,47 @@ maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsT
     const OpenScenarioLanePosition new_os_lane_pos{xodr_reference_lane_position.road_id, target_s,
                                                    target_lane->get_lane_id(), offset};
     return OpenScenarioLanePositionToMaliputRoadPosition(new_os_lane_pos);
-  } else {
-    // The target_s falls outside this xodr_road.
-    // We cover the case where:
-    //  - we move backwards (negative ds) and next road is geometrically constructed in the opposite direction.
-    //  - we move backwards (negative ds) and next road is geometrically constructed in the same direction.
-    //  - we move forwards (positive ds) and next road is geometrically constructed in the opposite direction.
-    //  - we move forwards (positive ds) and next road is geometrically constructed in the same direction.
-    const bool forward_direction = xodr_ds >= 0.;
-    const double xodr_s_to_road_end = forward_direction ? reference_road_curve->p1() - xodr_reference_lane_position.s
-                                                        : reference_road_curve->p0() - xodr_reference_lane_position.s;
-    const double new_raw_xodr_ds = xodr_ds - xodr_s_to_road_end;
-    const maliput::api::RoadPosition last_road_position_before_branching =
-        OpenScenarioLanePositionToMaliputRoadPosition(
-            OpenScenarioLanePosition{xodr_reference_lane_position.road_id,
-                                     forward_direction ? reference_road_curve->p1() : reference_road_curve->p0(),
-                                     xodr_reference_lane_position.lane_id, xodr_reference_lane_position.offset});
-    const std::optional<LaneEnd> lane_end = last_road_position_before_branching.lane->GetDefaultBranch(
-        forward_direction ? LaneEnd::Which::kFinish : LaneEnd::Which::kStart);
-    if (lane_end == std::nullopt) {
-      // There is no default branch.
-      MALIDRIVE_THROW_MESSAGE("There is no connection road for the given OpenSCENARIO lane position: RoadID: " +
-                              std::to_string(xodr_reference_lane_position.road_id) +
-                              ", s: " + std::to_string(xodr_reference_lane_position.s) +
-                              ", LaneID: " + std::to_string(xodr_reference_lane_position.lane_id) +
-                              ", offset: " + std::to_string(xodr_reference_lane_position.offset));
-    }
-    const Segment* new_target_segment = ToMalidrive(lane_end->lane->segment());
-    const road_curve::RoadCurve* new_reference_road_curve = new_target_segment->road_curve();
-    const double new_xodr_reference_s =
-        lane_end->end == LaneEnd::Which::kFinish ? new_reference_road_curve->p1() : new_reference_road_curve->p0();
-    // Forward direction true + laneEnd::kStart -> no sign change for deltas
-    // Forward direction true + laneEnd::kFinish -> sign change for deltas
-    // Forward direction false + laneEnd::kStart -> sign change for deltas
-    // Forward direction false + laneEnd::kFinish -> no sign change for deltas
-    const double sign_for_new_deltas = forward_direction == (lane_end->end == LaneEnd::Which::kStart) ? 1. : -1.;
-    const double new_xodr_ds = sign_for_new_deltas * new_raw_xodr_ds;
-    const int new_d_lane = sign_for_new_deltas * d_lane;
-    const OpenScenarioLanePosition new_xodr_reference_lane_position{
-        ToMalidrive(lane_end->lane)->get_track(), new_xodr_reference_s, ToMalidrive(lane_end->lane)->get_lane_id(),
-        xodr_reference_lane_position.offset};
-    return OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(new_xodr_reference_lane_position, new_d_lane,
-                                                                       new_xodr_ds, offset);
   }
+  // The target_s falls outside this xodr_road.
+  // We cover the case where:
+  //  - we move backwards (negative ds) and next road is geometrically constructed in the opposite direction.
+  //  - we move backwards (negative ds) and next road is geometrically constructed in the same direction.
+  //  - we move forwards (positive ds) and next road is geometrically constructed in the opposite direction.
+  //  - we move forwards (positive ds) and next road is geometrically constructed in the same direction.
+  const bool forward_direction = xodr_ds >= 0.;
+  const double xodr_s_to_road_end = forward_direction ? reference_road_curve->p1() - xodr_reference_lane_position.s
+                                                      : reference_road_curve->p0() - xodr_reference_lane_position.s;
+  const double new_raw_xodr_ds = xodr_ds - xodr_s_to_road_end;
+  const maliput::api::RoadPosition last_road_position_before_branching = OpenScenarioLanePositionToMaliputRoadPosition(
+      OpenScenarioLanePosition{xodr_reference_lane_position.road_id,
+                               forward_direction ? reference_road_curve->p1() : reference_road_curve->p0(),
+                               xodr_reference_lane_position.lane_id, xodr_reference_lane_position.offset});
+  const std::optional<LaneEnd> lane_end = last_road_position_before_branching.lane->GetDefaultBranch(
+      forward_direction ? LaneEnd::Which::kFinish : LaneEnd::Which::kStart);
+  if (lane_end == std::nullopt) {
+    // There is no default branch.
+    MALIDRIVE_THROW_MESSAGE("There is no connection road for the given OpenSCENARIO lane position: RoadID: " +
+                            std::to_string(xodr_reference_lane_position.road_id) +
+                            ", s: " + std::to_string(xodr_reference_lane_position.s) +
+                            ", LaneID: " + std::to_string(xodr_reference_lane_position.lane_id) +
+                            ", offset: " + std::to_string(xodr_reference_lane_position.offset));
+  }
+  const Segment* new_target_segment = ToMalidrive(lane_end->lane->segment());
+  const road_curve::RoadCurve* new_reference_road_curve = new_target_segment->road_curve();
+  const double new_xodr_reference_s =
+      lane_end->end == LaneEnd::Which::kFinish ? new_reference_road_curve->p1() : new_reference_road_curve->p0();
+  // Forward direction true + laneEnd::kStart -> no sign change for deltas
+  // Forward direction true + laneEnd::kFinish -> sign change for deltas
+  // Forward direction false + laneEnd::kStart -> sign change for deltas
+  // Forward direction false + laneEnd::kFinish -> no sign change for deltas
+  const double sign_for_new_deltas = forward_direction == (lane_end->end == LaneEnd::Which::kStart) ? 1. : -1.;
+  const double new_xodr_ds = sign_for_new_deltas * new_raw_xodr_ds;
+  const int new_d_lane = sign_for_new_deltas * d_lane;
+  const OpenScenarioLanePosition new_xodr_reference_lane_position{
+      ToMalidrive(lane_end->lane)->get_track(), new_xodr_reference_s, ToMalidrive(lane_end->lane)->get_lane_id(),
+      xodr_reference_lane_position.offset};
+  return OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(new_xodr_reference_lane_position, new_d_lane,
+                                                                     new_xodr_ds, offset);
 }
 
 maliput::api::RoadPosition RoadGeometry::OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition(
