@@ -2,8 +2,13 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.30.1 (2026-07-31)
+-------------------
+* Fixing bug in OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition (`#531 <https://github.com/maliput/maliput_malidrive/issues/531>`_)
+* Contributors: Juan Carosella
+
 0.30.0 (2026-07-17)
------------
+-------------------
 * XODR object orientation doesn't affect RoadMarking yaw-orientation. (`#529 <https://github.com/maliput/maliput_malidrive/issues/529>`_)
 * Set TrafficControlDevice related_lanes based on XODR signal/object orientation. (`#528 <https://github.com/maliput/maliput_malidrive/issues/528>`_)
 * Adding new RoadObject types (`#523 <https://github.com/maliput/maliput_malidrive/issues/523>`_)
