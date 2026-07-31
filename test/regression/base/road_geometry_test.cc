@@ -579,6 +579,33 @@ TEST_F(RoadGeometryOpenScenarioConversionsArcLane, OpenScenarioRelativeRoadPosit
       AssertCompare(IsLanePositionClose(expected_lane_position, mali_road_pos.pos, constants::kLinearTolerance)));
 }
 
+TEST_F(RoadGeometryOpenScenarioConversionsArcLane,
+       OpenScenarioRelativeLanePositionWithDsToMaliputRoadPositionRoundTripAcrossLaneChange) {
+  auto rg = dynamic_cast<const RoadGeometry*>(road_network_->road_geometry());
+
+  // Regression guard for d_lane + ds: on curved roads neighboring lanes can have
+  // different LaneSFromTrackS/TrackSFromLaneS mappings. After changing lanes, the
+  // final lane-s must be computed in the target lane parametrization.
+  const RoadGeometry::OpenScenarioLanePosition reference{1, 50., -1, 0.};
+
+  for (const double xodr_ds : {5., -5.}) {
+    const int d_lane = 1;
+    const double offset = 0.;
+    const double expected_xodr_s = reference.s + xodr_ds;
+
+    const maliput::api::RoadPosition mali_road_pos =
+        rg->OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition(reference, d_lane, xodr_ds, offset);
+    EXPECT_EQ(maliput::api::LaneId("1_0_1"), mali_road_pos.lane->id());
+
+    const RoadGeometry::OpenScenarioLanePosition round_trip =
+        rg->MaliputRoadPositionToOpenScenarioLanePosition(mali_road_pos);
+    EXPECT_EQ(reference.road_id, round_trip.road_id);
+    EXPECT_EQ(1, round_trip.lane_id);
+    EXPECT_NEAR(expected_xodr_s, round_trip.s, constants::kLinearTolerance);
+    EXPECT_NEAR(offset, round_trip.offset, constants::kLinearTolerance);
+  }
+}
+
 class RoadGeometryOpenScenarioConversionsArcLaneRolled : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -1482,7 +1509,7 @@ std::vector<CommandsInputOutputs> InstanciateCommandsInputOutputsParameters() {
       {{"MaliputRoadPositionToOpenScenarioRoadPosition,1_0_1,48.75,0.,0."}, {"1,50.000000,1.000000"}},
       {{"OpenScenarioRelativeRoadPositionToMaliputRoadPosition,1,0.,1.,50.,1."}, {"1_0_1,48.750000,1.000000,0.000000"}},
       {{"OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition,1,1,0.,-1,50.,-0.8"},
-       {"1_0_-1,48.750000,-0.800000,0.000000"}},
+       {"1_0_-1,51.250000,-0.800000,0.000000"}},
       {{"OpenScenarioRelativeLanePositionWithDsLaneToMaliputRoadPosition,1,-1,0.,1,50.,0.8"},
        {"1_0_1,50.000000,0.800000,0.000000"}},
       {{"GetRoadOrientationAtOpenScenarioRoadPosition,1,50.,0."}, {"0.000000,-0.000000,1.250000"}},
