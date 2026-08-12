@@ -2,8 +2,7 @@
 <!--
  BSD 3-Clause License
 
- Copyright (c) 2022, Woven Planet. All rights reserved.
- Copyright (c) 2020-2022, Toyota Research Institute. All rights reserved.
+ Copyright (c) 2026, Woven Planet. All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
@@ -93,6 +92,17 @@
                 <validity fromLane="1" toLane="1"/>
                 <repeat s="50.0" length="50.0" distance="0.0"
                         tStart="4.5" tEnd="4.5"
+                        heightStart="1.0" heightEnd="1.0"
+                        widthStart="0.3" widthEnd="0.3"
+                        zOffsetStart="0.0" zOffsetEnd="0.0"/>
+            </object>
+            <object id="guardrail_detached_boundary" name="DetachedBoundaryGuardRail" type="barrier" subtype="guardRail"
+                    s="0.0" t="-0.5" zOffset="0.0"
+                    length="50.0" width="0.3" height="1.0"
+                    hdg="0.0" orientation="+" dynamic="no">
+                <validity fromLane="-1" toLane="-1"/>
+                <repeat s="0.0" length="50.0" distance="0.0" detachFromReferenceLine="true"
+                        tStart="-0.5" tEnd="-0.5"
                         heightStart="1.0" heightEnd="1.0"
                         widthStart="0.3" widthEnd="0.3"
                         zOffsetStart="0.0" zOffsetEnd="0.0"/>

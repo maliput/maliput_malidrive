@@ -63,6 +63,7 @@ class RoadNetworkConfigurationTest : public ::testing::Test {
   const double kAngularTolerance{5e-5};
   const double kScaleLength{2.};
   const bool kUseUserDataIntersections{true};
+  const int kContinuousObjectSamplesPerRoad{12};
 
   void ExpectEqual(const RoadNetworkConfiguration& lhs, const RoadNetworkConfiguration& rhs) {
     // RoadNetworkConfiguration parameters.
@@ -95,6 +96,8 @@ class RoadNetworkConfigurationTest : public ::testing::Test {
               rhs.road_geometry_configuration.omit_nondrivable_lanes);
     EXPECT_EQ(lhs.road_geometry_configuration.use_userdata_intersections,
               rhs.road_geometry_configuration.use_userdata_intersections);
+    EXPECT_EQ(lhs.road_geometry_configuration.continuous_object_samples_per_road,
+              rhs.road_geometry_configuration.continuous_object_samples_per_road);
   }
 };
 
@@ -111,7 +114,8 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       kOmitNondrivableLanes,
       1.0 /* integrator_accuracy_multiplier */,
       false /* use_userdata_traffic_direction */,
-      kUseUserDataIntersections};
+      kUseUserDataIntersections,
+      kContinuousObjectSamplesPerRoad};
   RoadNetworkConfiguration dut1{rg_config,      kRuleRegistry,     kRoadRuleBook,          kTrafficLightBook,
                                 kPhaseRingBook, kIntersectionBook, kTrafficControlDeviceDb};
 
@@ -135,6 +139,7 @@ TEST_F(RoadNetworkConfigurationTest, Constructor) {
       {params::kIntersectionBook, kIntersectionBook.value()},
       {params::kTrafficControlDeviceDb, kTrafficControlDeviceDb.value()},
       {params::kUseUserDataIntersections, (kUseUserDataIntersections ? "true" : "false")},
+      {params::kContinuousObjectSamplesPerRoad, std::to_string(kContinuousObjectSamplesPerRoad)},
   };
 
   const RoadNetworkConfiguration dut2{RoadNetworkConfiguration::FromMap(rn_config_map)};
@@ -148,7 +153,7 @@ TEST_F(RoadNetworkConfigurationTest, ToStringMap) {
        builder::RoadGeometryConfiguration::BuildTolerance{kLinearTolerance, kMaxLinearTolerance, kAngularTolerance},
        kScaleLength, kRandomVector, kBuildPolicy, kSimplificationPolicy, kStandardStrictnessPolicy,
        kOmitNondrivableLanes, 1.0 /* integrator_accuracy_multiplier */, false /* use_userdata_traffic_direction */,
-       kUseUserDataIntersections},
+       kUseUserDataIntersections, kContinuousObjectSamplesPerRoad},
       kRuleRegistry,
       kRoadRuleBook,
       kTrafficLightBook,

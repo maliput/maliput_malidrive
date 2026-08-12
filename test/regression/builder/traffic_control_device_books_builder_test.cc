@@ -138,7 +138,7 @@ class TrafficControlDeviceBooksBuilderTest : public ::testing::Test {
 
 // Verifies that the builder rejects a nullptr RoadGeometry.
 TEST_F(TrafficControlDeviceBooksBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt, true),
+  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt, true, 10),
                maliput::common::assertion_error);
 }
 

@@ -301,6 +301,53 @@ TEST_F(RoadObjectBuilderTest, ObstacleObjectWithOutline) {
   EXPECT_GE(road_object->related_lanes().size(), 2u);
 }
 
+TEST_F(RoadObjectBuilderTest, ContinuousPropertiesFromRepeatDistanceZero) {
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
+  ASSERT_NE(road_object, nullptr);
+
+  const auto& continuous_properties = road_object->continuous_properties();
+  ASSERT_EQ(11u, continuous_properties.size());
+
+  // Repeat widthStart/widthEnd are absent; width falls back to object-level width.
+  EXPECT_NEAR(continuous_properties.front().width(), 7.0, kLinearTolerance);
+  EXPECT_NEAR(continuous_properties.back().width(), 7.0, kLinearTolerance);
+  EXPECT_NEAR(continuous_properties.front().height(), 0.05, kLinearTolerance);
+  EXPECT_NEAR(continuous_properties.back().height(), 0.15, kLinearTolerance);
+  EXPECT_NEAR(continuous_properties.front().point_sample().x(), 90.0, 0.5);
+  EXPECT_NEAR(continuous_properties.back().point_sample().x(), 98.0, 0.5);
+}
+
+TEST_F(RoadObjectBuilderTest, ContinuousPropertiesSamplingUsesRepeatLength) {
+  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
+  ASSERT_NE(road_object, nullptr);
+  const auto& continuous_properties = road_object->continuous_properties();
+  ASSERT_EQ(11u, continuous_properties.size());
+  EXPECT_NEAR(continuous_properties[0].point_sample().x(), 90.0, 0.5);
+  EXPECT_NEAR(continuous_properties[1].point_sample().x(), 90.8, 0.5);
+  EXPECT_NEAR(continuous_properties.back().point_sample().x(), 98.0, 0.5);
+}
+
+TEST_F(RoadObjectBuilderTest, ContinuousPropertiesSamplingDensityIsConfigurable) {
+  const std::string xodr_file_path =
+      utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
+  const std::string tcd_db_path =
+      utility::FindResourceInPath("traffic_control_device_db/road_object_test_db.yaml", kMalidriveResourceFolder);
+  const auto road_network = RoadNetworkBuilder(
+      RoadNetworkConfiguration::FromMap({
+                                        {params::kOpendriveFile, xodr_file_path},
+                                        {params::kTrafficControlDeviceDb, tcd_db_path},
+                                        {params::kOmitNonDrivableLanes, "false"},
+                                        {params::kContinuousObjectSamplesPerRoad, "20"},
+                                    })
+          .ToStringMap())();
+  ASSERT_NE(road_network, nullptr);
+
+  const auto* road_object =
+      road_network->road_object_book()->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
+  ASSERT_NE(road_object, nullptr);
+  EXPECT_EQ(21u, road_object->continuous_properties().size());
+}
+
 TEST_F(RoadObjectBuilderTest, VegetationObjectWithCornerLocalOutline) {
   // obj_vegetation: vegetation at s=0, t=4, hdg=pi/3, star-shaped cornerLocal outline.
   const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_vegetation"));
@@ -751,6 +798,85 @@ TEST_F(RoadObjectBuilderDirectionFilterTest, SignalOrientationBidirectionalNoFil
   const auto lane_ids = ro->related_lanes();
   EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_-1"; }));
   EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_1"; }));
+}
+
+class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("ArcLaneRolledAndOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+    road_network_ = RoadNetworkBuilder(
+        RoadNetworkConfiguration::FromMap({
+                                              {params::kOpendriveFile, xodr_file_path},
+                                              {params::kOmitNonDrivableLanes, "false"},
+                                          })
+            .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_object_book_ = road_network_->road_object_book();
+    ASSERT_NE(road_object_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::objects::RoadObjectBook* road_object_book_{};
+};
+
+TEST_F(ContinuousObjectRepeatSamplingTest, GuardRailRepeatProducesSamples) {
+  const auto* ro =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(ro, nullptr);
+  EXPECT_EQ(11u, ro->continuous_properties().size());
+  EXPECT_NEAR(ro->continuous_properties().front().width(), 0.3, 1e-3);
+  EXPECT_NEAR(ro->continuous_properties().back().height(), 1.0, 1e-3);
+  EXPECT_NEAR(ro->continuous_properties().front().point_sample().z(), ro->continuous_properties().back().point_sample().z(),
+              1e-3);
+}
+
+class RepeatDetachFromReferenceLineTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("ArcLaneRolledAndOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+    road_network_ = RoadNetworkBuilder(
+        RoadNetworkConfiguration::FromMap({
+                                              {params::kOpendriveFile, xodr_file_path},
+                                              {params::kOmitNonDrivableLanes, "false"},
+                                          })
+            .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_object_book_ = road_network_->road_object_book();
+    ASSERT_NE(road_object_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::objects::RoadObjectBook* road_object_book_{};
+};
+
+TEST_F(RepeatDetachFromReferenceLineTest, DetachedRepeatSamplesAChord) {
+  const auto* detached =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_detached_boundary"));
+  ASSERT_NE(detached, nullptr);
+  const auto& detached_samples = detached->continuous_properties();
+  ASSERT_EQ(11u, detached_samples.size());
+
+  const auto& detached_start = detached_samples.front().point_sample();
+  const auto& detached_mid = detached_samples[detached_samples.size() / 2].point_sample();
+  const auto& detached_end = detached_samples.back().point_sample();
+  const auto expected_mid_x = (detached_start.x() + detached_end.x()) / 2.;
+  const auto expected_mid_y = (detached_start.y() + detached_end.y()) / 2.;
+  const auto expected_mid_z = (detached_start.z() + detached_end.z()) / 2.;
+  EXPECT_NEAR(detached_mid.x(), expected_mid_x, 1e-2);
+  EXPECT_NEAR(detached_mid.y(), expected_mid_y, 1e-2);
+  EXPECT_NEAR(detached_mid.z(), expected_mid_z, 1e-2);
+
+  const auto* attached =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(attached, nullptr);
+  const auto& attached_samples = attached->continuous_properties();
+  ASSERT_EQ(11u, attached_samples.size());
+  const auto& attached_mid = attached_samples[attached_samples.size() / 2].point_sample();
+
+  const double midpoint_delta = std::hypot(attached_mid.x() - expected_mid_x, attached_mid.y() - expected_mid_y);
+  EXPECT_GT(midpoint_delta, 0.1);
 }
 
 }  // namespace

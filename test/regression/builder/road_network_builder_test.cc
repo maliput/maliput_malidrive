@@ -1562,7 +1562,7 @@ TEST_F(RoadObjectBookBuilderTest, FindByType) {
 }
 
 TEST_F(RoadObjectBookBuilderTest, ConstructorThrowsOnNullptrRoadGeometry) {
-  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt, true),
+  EXPECT_THROW(TrafficControlDeviceBooksBuilder(nullptr, std::nullopt, std::nullopt, true, 10),
                maliput::common::assertion_error);
 }
 
