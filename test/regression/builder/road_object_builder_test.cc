@@ -332,14 +332,14 @@ TEST_F(RoadObjectBuilderTest, ContinuousPropertiesSamplingDensityIsConfigurable)
       utility::FindResourceInPath("TwoRoadsWithRoadObjects.xodr", kMalidriveResourceFolder);
   const std::string tcd_db_path =
       utility::FindResourceInPath("traffic_control_device_db/road_object_test_db.yaml", kMalidriveResourceFolder);
-  const auto road_network = RoadNetworkBuilder(
-      RoadNetworkConfiguration::FromMap({
-                                        {params::kOpendriveFile, xodr_file_path},
-                                        {params::kTrafficControlDeviceDb, tcd_db_path},
-                                        {params::kOmitNonDrivableLanes, "false"},
-                                        {params::kContinuousObjectSamplesPerRoad, "20"},
-                                    })
-          .ToStringMap())();
+  const auto road_network =
+      RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                               {params::kOpendriveFile, xodr_file_path},
+                                                               {params::kTrafficControlDeviceDb, tcd_db_path},
+                                                               {params::kOmitNonDrivableLanes, "false"},
+                                                               {params::kContinuousObjectSamplesPerRoad, "20"},
+                                                           })
+                             .ToStringMap())();
   ASSERT_NE(road_network, nullptr);
 
   const auto* road_object =
@@ -805,12 +805,11 @@ class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("ArcLaneRolledAndOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
-    road_network_ = RoadNetworkBuilder(
-        RoadNetworkConfiguration::FromMap({
-                                              {params::kOpendriveFile, xodr_file_path},
-                                              {params::kOmitNonDrivableLanes, "false"},
-                                          })
-            .ToStringMap())();
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file_path},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     road_object_book_ = road_network_->road_object_book();
     ASSERT_NE(road_object_book_, nullptr);
@@ -821,14 +820,13 @@ class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
 };
 
 TEST_F(ContinuousObjectRepeatSamplingTest, GuardRailRepeatProducesSamples) {
-  const auto* ro =
-      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  const auto* ro = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
   ASSERT_NE(ro, nullptr);
   EXPECT_EQ(11u, ro->continuous_properties().size());
   EXPECT_NEAR(ro->continuous_properties().front().width(), 0.3, 1e-3);
   EXPECT_NEAR(ro->continuous_properties().back().height(), 1.0, 1e-3);
-  EXPECT_NEAR(ro->continuous_properties().front().point_sample().z(), ro->continuous_properties().back().point_sample().z(),
-              1e-3);
+  EXPECT_NEAR(ro->continuous_properties().front().point_sample().z(),
+              ro->continuous_properties().back().point_sample().z(), 1e-3);
 }
 
 class RepeatDetachFromReferenceLineTest : public ::testing::Test {
@@ -836,12 +834,11 @@ class RepeatDetachFromReferenceLineTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("ArcLaneRolledAndOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
-    road_network_ = RoadNetworkBuilder(
-        RoadNetworkConfiguration::FromMap({
-                                              {params::kOpendriveFile, xodr_file_path},
-                                              {params::kOmitNonDrivableLanes, "false"},
-                                          })
-            .ToStringMap())();
+    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                             {params::kOpendriveFile, xodr_file_path},
+                                                                             {params::kOmitNonDrivableLanes, "false"},
+                                                                         })
+                                           .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     road_object_book_ = road_network_->road_object_book();
     ASSERT_NE(road_object_book_, nullptr);

@@ -200,9 +200,8 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         maliput::log()->debug("TrafficControlDeviceBooksBuilder: no definition found for object id='",
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
                               "' name='", object.name.value_or(""), "'.");
-        auto ro =
-            RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_, refs,
-                              continuous_object_samples_per_road_)();
+        auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_,
+                                    refs, continuous_object_samples_per_road_)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }

@@ -98,7 +98,8 @@ double Lerp(double start, double end, double ratio) { return start + (end - star
 double Clamp01(double value) { return std::max(0., std::min(1., value)); }
 
 /// Resolves a repeat width boundary, falling back to object-level dimensions.
-double ResolveRepeatWidthBoundary(const xodr::object::Object& object, const std::optional<double>& repeat_width_boundary) {
+double ResolveRepeatWidthBoundary(const xodr::object::Object& object,
+                                  const std::optional<double>& repeat_width_boundary) {
   // Repeat width may be omitted in XODR. In that case, use object-level
   // dimensions so continuous samples remain available.
   if (repeat_width_boundary.has_value()) {
@@ -165,12 +166,9 @@ maliput::api::InertialPosition BuildRepeatSamplePoint(const xodr::object::Object
   const double z_offset = Lerp(repeat.z_offset_start, repeat.z_offset_end, ratio);
   const double width_start = ResolveRepeatWidthBoundary(object, repeat.width_start);
   const double width_end = ResolveRepeatWidthBoundary(object, repeat.width_end);
-  const double width = Lerp(width_start, width_end, ratio);
-  const double height = Lerp(repeat.height_start, repeat.height_end, ratio);
 
   const double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry, road_id, sample_road_s, object.id.string());
-  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_position{std::stoi(road_id.string()), adjusted_s,
-                                                                       t};
+  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_position{std::stoi(road_id.string()), adjusted_s, t};
   const maliput::api::RoadPosition sample_road_position =
       mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_position, true);
 
@@ -180,8 +178,8 @@ maliput::api::InertialPosition BuildRepeatSamplePoint(const xodr::object::Object
 }
 
 std::vector<maliput::api::objects::ContinuousObject> BuildContinuousProperties(
-    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id, const maliput::api::RoadGeometry* road_geometry,
-    int samples_per_road) {
+    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
+    const maliput::api::RoadGeometry* road_geometry, int samples_per_road) {
   std::vector<maliput::api::objects::ContinuousObject> continuous_properties;
   if (object.repeats.empty()) {
     return continuous_properties;
@@ -202,8 +200,7 @@ std::vector<maliput::api::objects::ContinuousObject> BuildContinuousProperties(
     std::optional<maliput::api::InertialPosition> detached_start_point;
     std::optional<maliput::api::InertialPosition> detached_end_point;
     if (detach_from_reference_line) {
-      detached_start_point =
-          BuildRepeatSamplePoint(object, repeat, road_geometry, road_id, repeat.s, 0., mali_rg);
+      detached_start_point = BuildRepeatSamplePoint(object, repeat, road_geometry, road_id, repeat.s, 0., mali_rg);
       detached_end_point =
           BuildRepeatSamplePoint(object, repeat, road_geometry, road_id, repeat.s + repeat.length, 1., mali_rg);
     }
@@ -217,10 +214,11 @@ std::vector<maliput::api::objects::ContinuousObject> BuildContinuousProperties(
       const double height = Lerp(repeat.height_start, repeat.height_end, ratio);
 
       std::optional<maliput::api::InertialPosition> sample_point;
-      // When detachFromReferenceLine is true, the sample point is interpolated between the repeat endpoints as a straight line.
+      // When detachFromReferenceLine is true, the sample point is interpolated between the repeat endpoints as a
+      // straight line.
       if (detach_from_reference_line) {
-        MALIDRIVE_VALIDATE(detached_start_point.has_value() && detached_end_point.has_value(),
-                           std::logic_error, "Detached repeat endpoints are not initialized.");
+        MALIDRIVE_VALIDATE(detached_start_point.has_value() && detached_end_point.has_value(), std::logic_error,
+                           "Detached repeat endpoints are not initialized.");
         sample_point = maliput::api::InertialPosition{
             Lerp(detached_start_point->x(), detached_end_point->x(), ratio),
             Lerp(detached_start_point->y(), detached_end_point->y(), ratio),
@@ -306,7 +304,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
       maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
-      inertial_pos.set_z(inertial_pos.z() + object.z_offset)
+      inertial_pos.set_z(inertial_pos.z() + object.z_offset);
       const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
 
       // --- Orientation ---
@@ -352,11 +350,10 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
                             "' type=", static_cast<int>(type), " position=(", inertial_pos.x(), ", ", inertial_pos.y(),
                             ", ", inertial_pos.z(), ") related_lanes=", related_lanes.size(), ".");
 
-      return std::make_unique<MalidriveRoadObject>(maliput::api::objects::RoadObject::Id(object.id.string()), type,
-                                                   position, orientation, bounding_box, object.dynamic.value_or(false),
-                                                   std::move(related_lanes), object.name, object.subtype,
-                                                   std::move(outlines), std::move(properties),
-                                                   std::move(continuous_properties), is_movable);
+      return std::make_unique<MalidriveRoadObject>(
+          maliput::api::objects::RoadObject::Id(object.id.string()), type, position, orientation, bounding_box,
+          object.dynamic.value_or(false), std::move(related_lanes), object.name, object.subtype, std::move(outlines),
+          std::move(properties), std::move(continuous_properties), is_movable);
     }
     case SourceType::kSignal: {
       MALIDRIVE_VALIDATE(signal_ != nullptr, maliput::common::assertion_error,

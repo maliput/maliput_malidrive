@@ -86,8 +86,7 @@ class TrafficControlDeviceBooksBuilder {
   /// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
   TrafficControlDeviceBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
                                    std::optional<std::string> traffic_light_book_path,
-                                   std::optional<std::string> traffic_control_device_db,
-                                   bool allow_non_driveable_lanes,
+                                   std::optional<std::string> traffic_control_device_db, bool allow_non_driveable_lanes,
                                    int continuous_object_samples_per_road = 10);
 
   TrafficControlDeviceBooksBuilder() = delete;
