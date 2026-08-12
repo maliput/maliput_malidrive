@@ -28,9 +28,12 @@
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "maliput_malidrive/builder/road_object_builder.h"
 
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
+#include <optional>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -64,9 +67,11 @@ class MalidriveRoadObject final : public maliput::api::objects::RoadObject {
                       bool is_dynamic, std::vector<maliput::api::LaneId> related_lanes, std::optional<std::string> name,
                       std::optional<std::string> subtype,
                       std::vector<std::unique_ptr<maliput::api::objects::Outline>> outlines,
-                      std::unordered_map<std::string, std::string> properties, bool is_movable)
+                      std::unordered_map<std::string, std::string> properties,
+                      std::vector<maliput::api::objects::ContinuousObject> continuous_properties, bool is_movable)
       : RoadObject(id, type, position, orientation, bounding_box, is_dynamic, std::move(related_lanes), std::move(name),
-                   std::move(subtype), std::move(outlines), std::move(properties), is_movable) {}
+                   std::move(subtype), std::move(outlines), std::move(properties), std::move(continuous_properties),
+                   is_movable) {}
 };
 
 std::optional<std::string> NormalizeSubtype(const std::string& subtype) {
@@ -86,38 +91,190 @@ std::optional<maliput::api::objects::RoadObjectType> StringToRoadObjectType(cons
   return std::nullopt;
 }
 
+/// Returns the step made for a linear interpolation between @p start and @p end, given the @p ratio.
+double Lerp(double start, double end, double ratio) { return start + (end - start) * ratio; }
+
+/// Clamps a scalar into [0, 1].
+double Clamp01(double value) { return std::max(0., std::min(1., value)); }
+
+/// Resolves a repeat width boundary, falling back to object-level dimensions.
+double ResolveRepeatWidthBoundary(const xodr::object::Object& object, const std::optional<double>& repeat_width_boundary) {
+  // Repeat width may be omitted in XODR. In that case, use object-level
+  // dimensions so continuous samples remain available.
+  if (repeat_width_boundary.has_value()) {
+    return repeat_width_boundary.value();
+  }
+  if (object.width.has_value()) {
+    return object.width.value();
+  }
+  if (object.radius.has_value()) {
+    return object.radius.value() * 2.;
+  }
+  return 0.;
+}
+
+/// Builds the s-sample set for a qualifying repeat.
+///
+/// Sampling uses the repeat length and the configured samples-per-road value.
+/// Repeat start and end are always present in the returned vector.
+std::vector<double> BuildSampleSCoordinates(const xodr::object::Repeat& repeat, int samples_per_road) {
+  MALIDRIVE_VALIDATE(samples_per_road > 0, maliput::common::assertion_error, "samples_per_road must be positive.");
+
+  const double start_s = repeat.s;
+  const double end_s = repeat.s + repeat.length;
+  const double min_s = std::min(start_s, end_s);
+  const double max_s = std::max(start_s, end_s);
+
+  if (std::abs(max_s - min_s) < 1e-12) {
+    return {start_s};
+  }
+
+  const double nominal_step = (max_s - min_s) / static_cast<double>(samples_per_road);
+  const double step = nominal_step > 0. ? nominal_step : (max_s - min_s);
+
+  std::vector<double> samples{start_s};
+  double sample_s = min_s + step;
+  const double kEpsilon = 1e-10;
+  while (sample_s < max_s - kEpsilon) {
+    samples.push_back(start_s <= end_s ? sample_s : (start_s - (sample_s - min_s)));
+    sample_s += step;
+  }
+  if (std::abs(samples.back() - end_s) > kEpsilon) {
+    samples.push_back(end_s);
+  }
+  return samples;
+}
+
+/// Converts qualifying XODR repeat entries into ContinuousObject samples.
+///
+/// Only repeats with distance == 0 are considered. By default, each sample is
+/// projected from OpenDRIVE road coordinates. The returned inertial position's
+/// lateral coordinate is centered on the object (so interpolated width extends
+/// width/2 to each side along the object r-axis).
+///
+/// The returned inertial position's z-coordinate is anchored at the interpolated
+/// object bottom for that s-coordinate, and the interpolated height extends upward from that point.
+/// When detachFromReferenceLine is true, the sampled points are interpolated between
+/// the repeat endpoints as a straight line.
+maliput::api::InertialPosition BuildRepeatSamplePoint(const xodr::object::Object& object,
+                                                      const xodr::object::Repeat& repeat,
+                                                      const maliput::api::RoadGeometry* road_geometry,
+                                                      const xodr::RoadHeader::Id& road_id, double sample_road_s,
+                                                      double ratio, const malidrive::RoadGeometry* mali_rg) {
+  const double t = Lerp(repeat.t_start, repeat.t_end, ratio);
+  const double z_offset = Lerp(repeat.z_offset_start, repeat.z_offset_end, ratio);
+  const double width_start = ResolveRepeatWidthBoundary(object, repeat.width_start);
+  const double width_end = ResolveRepeatWidthBoundary(object, repeat.width_end);
+  const double width = Lerp(width_start, width_end, ratio);
+  const double height = Lerp(repeat.height_start, repeat.height_end, ratio);
+
+  const double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry, road_id, sample_road_s, object.id.string());
+  const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_position{std::stoi(road_id.string()), adjusted_s,
+                                                                       t};
+  const maliput::api::RoadPosition sample_road_position =
+      mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_position, true);
+
+  maliput::api::InertialPosition sample_point = sample_road_position.ToInertialPosition();
+  sample_point.set_z(sample_point.z() + z_offset);
+  return sample_point;
+}
+
+std::vector<maliput::api::objects::ContinuousObject> BuildContinuousProperties(
+    const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id, const maliput::api::RoadGeometry* road_geometry,
+    int samples_per_road) {
+  std::vector<maliput::api::objects::ContinuousObject> continuous_properties;
+  if (object.repeats.empty()) {
+    return continuous_properties;
+  }
+
+  const auto* mali_rg = dynamic_cast<const malidrive::RoadGeometry*>(road_geometry);
+  MALIDRIVE_VALIDATE(mali_rg != nullptr, maliput::common::assertion_error,
+                     "RoadGeometry cannot be cast to malidrive::RoadGeometry.");
+
+  for (const auto& repeat : object.repeats) {
+    // Current scope: only repeats that model one continuous object instance.
+    // Discrete object repeats are treated as separate RoadObjects.
+    if (repeat.distance != 0.) {
+      continue;
+    }
+    const auto sample_s_coordinates = BuildSampleSCoordinates(repeat, samples_per_road);
+    const bool detach_from_reference_line = repeat.detach_from_reference_line.value_or(false);
+    std::optional<maliput::api::InertialPosition> detached_start_point;
+    std::optional<maliput::api::InertialPosition> detached_end_point;
+    if (detach_from_reference_line) {
+      detached_start_point =
+          BuildRepeatSamplePoint(object, repeat, road_geometry, road_id, repeat.s, 0., mali_rg);
+      detached_end_point =
+          BuildRepeatSamplePoint(object, repeat, road_geometry, road_id, repeat.s + repeat.length, 1., mali_rg);
+    }
+    for (const double sample_road_s : sample_s_coordinates) {
+      const double span = repeat.length;
+      const double ratio = std::abs(span) < 1e-12 ? 0. : Clamp01((sample_road_s - repeat.s) / span);
+
+      const double width_start = ResolveRepeatWidthBoundary(object, repeat.width_start);
+      const double width_end = ResolveRepeatWidthBoundary(object, repeat.width_end);
+      const double width = Lerp(width_start, width_end, ratio);
+      const double height = Lerp(repeat.height_start, repeat.height_end, ratio);
+
+      std::optional<maliput::api::InertialPosition> sample_point;
+      // When detachFromReferenceLine is true, the sample point is interpolated between the repeat endpoints as a straight line.
+      if (detach_from_reference_line) {
+        MALIDRIVE_VALIDATE(detached_start_point.has_value() && detached_end_point.has_value(),
+                           std::logic_error, "Detached repeat endpoints are not initialized.");
+        sample_point = maliput::api::InertialPosition{
+            Lerp(detached_start_point->x(), detached_end_point->x(), ratio),
+            Lerp(detached_start_point->y(), detached_end_point->y(), ratio),
+            Lerp(detached_start_point->z(), detached_end_point->z(), ratio),
+        };
+      } else {
+        sample_point = BuildRepeatSamplePoint(object, repeat, road_geometry, road_id, sample_road_s, ratio, mali_rg);
+      }
+      continuous_properties.emplace_back(width, height, *sample_point);
+    }
+  }
+  return continuous_properties;
+}
+
 }  // namespace
 
 RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::object::Object& object,
                                      const xodr::RoadHeader::Id& road_id,
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                      const maliput::api::RoadGeometry* road_geometry,
-                                     std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references)
+                                     std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references,
+                                     int continuous_object_samples_per_road)
     : source_type_(source_type),
       object_(&object),
       road_id_(road_id),
       loader_(loader),
       road_geometry_(road_geometry),
-      object_references_(std::move(object_references)) {
+      object_references_(std::move(object_references)),
+      continuous_object_samples_per_road_(continuous_object_samples_per_road) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kObject, std::invalid_argument,
                      "RoadObjectBuilder object constructor requires SourceType::kObject.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
+  MALIDRIVE_VALIDATE(continuous_object_samples_per_road_ > 0, std::invalid_argument,
+                     "continuous_object_samples_per_road must be positive.");
 }
 
 RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::signal::Signal& signal,
                                      const xodr::RoadHeader::Id& road_id,
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                      const maliput::api::RoadGeometry* road_geometry,
-                                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references)
+                                     std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references,
+                                     int continuous_object_samples_per_road)
     : source_type_(source_type),
       signal_(&signal),
       road_id_(road_id),
       loader_(loader),
       road_geometry_(road_geometry),
-      signal_references_(std::move(signal_references)) {
+      signal_references_(std::move(signal_references)),
+      continuous_object_samples_per_road_(continuous_object_samples_per_road) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kSignal, std::invalid_argument,
                      "RoadObjectBuilder signal constructor requires SourceType::kSignal.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
+  MALIDRIVE_VALIDATE(continuous_object_samples_per_road_ > 0, std::invalid_argument,
+                     "continuous_object_samples_per_road must be positive.");
 }
 
 std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()() const {
@@ -149,7 +306,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       const maliput::api::RoadPosition rp =
           mali_rg->OpenScenarioRoadPositionToMaliputRoadPosition(osc_road_position, true);
       maliput::api::InertialPosition inertial_pos = rp.ToInertialPosition();
-      inertial_pos.set_z(inertial_pos.z() + object.z_offset);
+      inertial_pos.set_z(inertial_pos.z() + object.z_offset)
       const maliput::api::objects::RoadObjectPosition position(inertial_pos, rp.lane->id(), rp.pos);
 
       // --- Orientation ---
@@ -181,6 +338,9 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       auto related_lanes = ResolveLaneIds(object, adjusted_s, road_id_, object_references_, road_geometry_);
       // --- Outlines ---
       auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
+      // Repeats with distance == 0 are represented as sampled continuous properties.
+      auto continuous_properties =
+          BuildContinuousProperties(object, road_id_, road_geometry_, continuous_object_samples_per_road_);
 
       std::unordered_map<std::string, std::string> properties;
       if (!object.materials.empty()) {
@@ -195,7 +355,8 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       return std::make_unique<MalidriveRoadObject>(maliput::api::objects::RoadObject::Id(object.id.string()), type,
                                                    position, orientation, bounding_box, object.dynamic.value_or(false),
                                                    std::move(related_lanes), object.name, object.subtype,
-                                                   std::move(outlines), std::move(properties), is_movable);
+                                                   std::move(outlines), std::move(properties),
+                                                   std::move(continuous_properties), is_movable);
     }
     case SourceType::kSignal: {
       MALIDRIVE_VALIDATE(signal_ != nullptr, maliput::common::assertion_error,
@@ -259,7 +420,8 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
           maliput::api::objects::RoadObject::Id(signal.id.string()), type, position, orientation, bounding_box,
           signal.dynamic, std::move(related_lanes), signal.name, NormalizeSubtype(signal.subtype),
           std::vector<std::unique_ptr<maliput::api::objects::Outline>>{},
-          std::unordered_map<std::string, std::string>{}, is_movable);
+          std::unordered_map<std::string, std::string>{}, std::vector<maliput::api::objects::ContinuousObject>{},
+          is_movable);
     }
   }
 

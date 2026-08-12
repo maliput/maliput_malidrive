@@ -212,6 +212,15 @@ static constexpr char const* kUseUserDataTrafficDirection{"use_userdata_traffic_
 ///   - Default: @e "false"
 static constexpr char const* kUseUserDataIntersections{"use_userdata_intersections"};
 
+/// Number of continuous-object samples to take per road length unit when
+/// generating RoadObject continuous properties from XODR `<repeat>` records.
+///
+/// For a road of length L and value N, the nominal spacing is L / N.
+/// Repeat start and end points are always included even when spacing does not
+/// land exactly on those boundaries.
+///   - Default: @e "10"
+static constexpr char const* kContinuousObjectSamplesPerRoad{"continuous_object_samples_per_road"};
+
 /// @}
 
 }  // namespace params
