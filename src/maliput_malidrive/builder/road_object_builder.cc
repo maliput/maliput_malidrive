@@ -164,8 +164,6 @@ maliput::api::InertialPosition BuildRepeatSamplePoint(const xodr::object::Object
                                                       double ratio, const malidrive::RoadGeometry* mali_rg) {
   const double t = Lerp(repeat.t_start, repeat.t_end, ratio);
   const double z_offset = Lerp(repeat.z_offset_start, repeat.z_offset_end, ratio);
-  const double width_start = ResolveRepeatWidthBoundary(object, repeat.width_start);
-  const double width_end = ResolveRepeatWidthBoundary(object, repeat.width_end);
 
   const double adjusted_s = AdjustSCoordinateToLaneSection(road_geometry, road_id, sample_road_s, object.id.string());
   const malidrive::RoadGeometry::OpenScenarioRoadPosition osc_position{std::stoi(road_id.string()), adjusted_s, t};

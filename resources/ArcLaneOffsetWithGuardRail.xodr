@@ -43,7 +43,6 @@
         <elevationProfile>
         </elevationProfile>
         <lateralProfile>
-            <superelevation s="0.0000000000000000e+00" a="-0.78539816339e+00" b="0.0000000000000000e+00" c="0.0000000000000000e+00" d="0.0000000000000000e+00"/>
         </lateralProfile>
         <lanes>
             <laneOffset s="0.0000000000000000e+00" a="2.0000000000000000e+00" b="0.0000000000000000e+00" c="0.0000000000000000e+00" d="0.0000000000000000e+00"/>
@@ -91,9 +90,9 @@
                     hdg="0.0" orientation="+" dynamic="no">
                 <validity fromLane="1" toLane="1"/>
                 <repeat s="50.0" length="50.0" distance="0.0"
-                        tStart="4.5" tEnd="4.5"
+                        tStart="4.5" tEnd="5.0"
                         heightStart="1.0" heightEnd="1.0"
-                        widthStart="0.3" widthEnd="0.3"
+                        widthStart="0.3" widthEnd="1.3"
                         zOffsetStart="0.0" zOffsetEnd="0.0"/>
             </object>
             <object id="guardrail_detached_boundary" name="DetachedBoundaryGuardRail" type="barrier" subtype="guardRail"

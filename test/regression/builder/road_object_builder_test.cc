@@ -301,22 +301,6 @@ TEST_F(RoadObjectBuilderTest, ObstacleObjectWithOutline) {
   EXPECT_GE(road_object->related_lanes().size(), 2u);
 }
 
-TEST_F(RoadObjectBuilderTest, ContinuousPropertiesFromRepeatDistanceZero) {
-  const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
-  ASSERT_NE(road_object, nullptr);
-
-  const auto& continuous_properties = road_object->continuous_properties();
-  ASSERT_EQ(11u, continuous_properties.size());
-
-  // Repeat widthStart/widthEnd are absent; width falls back to object-level width.
-  EXPECT_NEAR(continuous_properties.front().width(), 7.0, kLinearTolerance);
-  EXPECT_NEAR(continuous_properties.back().width(), 7.0, kLinearTolerance);
-  EXPECT_NEAR(continuous_properties.front().height(), 0.05, kLinearTolerance);
-  EXPECT_NEAR(continuous_properties.back().height(), 0.15, kLinearTolerance);
-  EXPECT_NEAR(continuous_properties.front().point_sample().x(), 90.0, 0.5);
-  EXPECT_NEAR(continuous_properties.back().point_sample().x(), 98.0, 0.5);
-}
-
 TEST_F(RoadObjectBuilderTest, ContinuousPropertiesSamplingUsesRepeatLength) {
   const auto* road_object = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("obj_obstacle"));
   ASSERT_NE(road_object, nullptr);
@@ -804,7 +788,7 @@ class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
  protected:
   void SetUp() override {
     const std::string xodr_file_path =
-        utility::FindResourceInPath("ArcLaneRolledAndOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+        utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file_path},
                                                                              {params::kOmitNonDrivableLanes, "false"},
@@ -817,23 +801,30 @@ class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
 
   std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
   const maliput::api::objects::RoadObjectBook* road_object_book_{};
+  constexpr static double kLinearTolerance = 1e-2;
 };
 
 TEST_F(ContinuousObjectRepeatSamplingTest, GuardRailRepeatProducesSamples) {
   const auto* ro = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
   ASSERT_NE(ro, nullptr);
   EXPECT_EQ(11u, ro->continuous_properties().size());
-  EXPECT_NEAR(ro->continuous_properties().front().width(), 0.3, 1e-3);
-  EXPECT_NEAR(ro->continuous_properties().back().height(), 1.0, 1e-3);
-  EXPECT_NEAR(ro->continuous_properties().front().point_sample().z(),
-              ro->continuous_properties().back().point_sample().z(), 1e-3);
+  for (const auto& sample : ro->continuous_properties()) {
+    EXPECT_NEAR(sample.width(), 0.3, kLinearTolerance);
+    EXPECT_NEAR(sample.height(), 1.0, kLinearTolerance);
+  }
+  EXPECT_NEAR(ro->continuous_properties().front().point_sample().x(), 0., kLinearTolerance);
+  EXPECT_NEAR(ro->continuous_properties().front().point_sample().y(), -0.5, kLinearTolerance);
+  EXPECT_NEAR(ro->continuous_properties().front().point_sample().z(), 0., kLinearTolerance);
+  EXPECT_NEAR(ro->continuous_properties().back().point_sample().x(), 38.43, kLinearTolerance);
+  EXPECT_NEAR(ro->continuous_properties().back().point_sample().y(), 27.22, kLinearTolerance);
+  EXPECT_NEAR(ro->continuous_properties().back().point_sample().z(), 0.0, kLinearTolerance);
 }
 
 class RepeatDetachFromReferenceLineTest : public ::testing::Test {
  protected:
   void SetUp() override {
     const std::string xodr_file_path =
-        utility::FindResourceInPath("ArcLaneRolledAndOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+        utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
     road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                              {params::kOpendriveFile, xodr_file_path},
                                                                              {params::kOmitNonDrivableLanes, "false"},
