@@ -966,10 +966,10 @@ TEST_F(ContinuousObjectRepeatSamplingTest, SamplingDensityIsConfigurable) {
 
   const auto coarse_network =
       RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                {params::kOpendriveFile, xodr_file_path},
-                                                                {params::kOmitNonDrivableLanes, "false"},
-                                                                {params::kContinuousObjectSamplesPerRoad, "4"},
-                                                            })
+                                                               {params::kOpendriveFile, xodr_file_path},
+                                                               {params::kOmitNonDrivableLanes, "false"},
+                                                               {params::kContinuousObjectSamplesPerRoad, "4"},
+                                                           })
                              .ToStringMap())();
   ASSERT_NE(coarse_network, nullptr);
   const auto* coarse_ro = coarse_network->road_object_book()->GetRoadObject(
@@ -989,10 +989,10 @@ TEST_F(ContinuousObjectRepeatSamplingTest, SamplingDensityIsConfigurable) {
 
   const auto fine_network =
       RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                {params::kOpendriveFile, xodr_file_path},
-                                                                {params::kOmitNonDrivableLanes, "false"},
-                                                                {params::kContinuousObjectSamplesPerRoad, "20"},
-                                                            })
+                                                               {params::kOpendriveFile, xodr_file_path},
+                                                               {params::kOmitNonDrivableLanes, "false"},
+                                                               {params::kContinuousObjectSamplesPerRoad, "20"},
+                                                           })
                              .ToStringMap())();
   ASSERT_NE(fine_network, nullptr);
   const auto* fine_ro = fine_network->road_object_book()->GetRoadObject(
