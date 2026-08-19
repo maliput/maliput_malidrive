@@ -212,6 +212,15 @@ static constexpr char const* kUseUserDataTrafficDirection{"use_userdata_traffic_
 ///   - Default: @e "false"
 static constexpr char const* kUseUserDataIntersections{"use_userdata_intersections"};
 
+/// Distance, in meters, between consecutive samples when generating RoadObject
+/// continuous properties from XODR `<repeat>` records.
+///
+/// Consecutive samples are spaced this distance apart in road s-coordinate.
+/// Repeat start and end points are always included, even if the final segment
+/// ends up shorter than this distance.
+///   - Default: @e "1.0" (#malidrive::constants::kContinuousObjectSamplingDistance)
+static constexpr char const* kContinuousObjectSamplingDistance{"continuous_object_sampling_distance"};
+
 /// @}
 
 }  // namespace params

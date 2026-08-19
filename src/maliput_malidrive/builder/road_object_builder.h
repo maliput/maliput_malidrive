@@ -34,6 +34,7 @@
 #include <maliput/api/objects/road_object.h>
 #include <maliput/api/road_geometry.h>
 
+#include "maliput_malidrive/constants.h"
 #include "maliput_malidrive/traffic_control_device/traffic_control_device_database_loader.h"
 #include "maliput_malidrive/xodr/db_manager.h"
 #include "maliput_malidrive/xodr/object/object.h"
@@ -64,11 +65,14 @@ class RoadObjectBuilder {
   /// @param loader Database loader for looking up object device definitions.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
   /// @param object_references Object references from other roads that point to @p object.
+  /// @param continuous_object_sampling_distance Distance, in meters, between consecutive
+  ///        continuous property samples; repeat endpoints are always sampled.
   /// @throws std::invalid_argument if @p source_type is not kObject or @p road_geometry is nullptr.
   RoadObjectBuilder(SourceType source_type, const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
                     const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                     const maliput::api::RoadGeometry* road_geometry,
-                    std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references = {});
+                    std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references = {},
+                    double continuous_object_sampling_distance = constants::kContinuousObjectSamplingDistance);
 
   /// Constructs a RoadObjectBuilder.
   ///
@@ -78,11 +82,14 @@ class RoadObjectBuilder {
   /// @param loader Database loader for looking up signal device definitions.
   /// @param road_geometry Pointer to the road geometry. Must not be nullptr.
   /// @param signal_references Signal references from other roads that point to @p signal.
+  /// @param continuous_object_sampling_distance Distance, in meters, between consecutive
+  ///        continuous property samples; repeat endpoints are always sampled.
   /// @throws std::invalid_argument if @p source_type is not kSignal or @p road_geometry is nullptr.
   RoadObjectBuilder(SourceType source_type, const xodr::signal::Signal& signal, const xodr::RoadHeader::Id& road_id,
                     const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                     const maliput::api::RoadGeometry* road_geometry,
-                    std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {});
+                    std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references = {},
+                    double continuous_object_sampling_distance = constants::kContinuousObjectSamplingDistance);
 
   /// Builds and returns the @ref maliput::api::objects::RoadObject.
   ///
@@ -98,6 +105,7 @@ class RoadObjectBuilder {
   const maliput::api::RoadGeometry* road_geometry_;
   const std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references_;
   const std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references_;
+  const double continuous_object_sampling_distance_{constants::kContinuousObjectSamplingDistance};
 };
 
 }  // namespace builder

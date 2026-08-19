@@ -30,8 +30,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <gtest/gtest.h>
 #include <maliput/api/lane_data.h>
@@ -751,6 +753,350 @@ TEST_F(RoadObjectBuilderDirectionFilterTest, SignalOrientationBidirectionalNoFil
   const auto lane_ids = ro->related_lanes();
   EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_-1"; }));
   EXPECT_TRUE(std::any_of(lane_ids.begin(), lane_ids.end(), [](const auto& id) { return id.string() == "1_0_1"; }));
+}
+
+// Expected inertial position of one ContinuousObject sample.
+struct ExpectedSample {
+  double x{};
+  double y{};
+};
+
+// Checks that `samples`' point_sample()s match `expected`, in order, within `tolerance`.
+// z is always 0 for this map: the arc road has no elevation profile and every repeat
+// has zOffsetStart = zOffsetEnd = 0.
+void ExpectSamplePoints(const std::vector<maliput::api::objects::ContinuousObject>& samples,
+                        const std::vector<ExpectedSample>& expected, double tolerance) {
+  ASSERT_EQ(expected.size(), samples.size());
+  for (size_t i = 0; i < expected.size(); ++i) {
+    SCOPED_TRACE("sample index " + std::to_string(i));
+    EXPECT_NEAR(samples[i].point_sample().x(), expected[i].x, tolerance);
+    EXPECT_NEAR(samples[i].point_sample().y(), expected[i].y, tolerance);
+    EXPECT_NEAR(samples[i].point_sample().z(), 0., tolerance);
+  }
+}
+
+// ArcLaneOffsetWithGuardRail.xodr: road "1" is one arc, curvature = 0.025 -> R = 40 m,
+// starting at (0, 0) with hdg = 0, curving left about C = (0, 40). No elevation profile
+// and no superelevation, so z = 0 everywhere. The XODR `t` coordinate is measured from
+// the reference line (the `laneOffset a=2.0` shifts lanes, not `t`), therefore:
+//
+//   from math import sin, cos
+//   R = 40.0
+//   def pt(s, t):
+//       th = s / R
+//       return ((R - t) * sin(th), R - (R - t) * cos(th))
+//   def lerp(a, b, r): return a + (b - a) * r
+//
+// Every sample of an attached (non-detached) repeat must also satisfy |P - C| = R - t.
+class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+    // Explicitly pin the sampling distance to 5.0 m (equivalent to the old default of
+    // 10 samples over this fixture's 50 m repeats) so the hardcoded expectations below
+    // remain valid regardless of the builder's default continuous_object_sampling_distance.
+    road_network_ =
+        RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                 {params::kOpendriveFile, xodr_file_path},
+                                                                 {params::kOmitNonDrivableLanes, "false"},
+                                                                 {params::kContinuousObjectSamplingDistance, "5.0"},
+                                                             })
+                               .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_object_book_ = road_network_->road_object_book();
+    ASSERT_NE(road_object_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::objects::RoadObjectBook* road_object_book_{};
+  constexpr static double kLinearTolerance = 1e-2;
+};
+
+TEST_F(ContinuousObjectRepeatSamplingTest, GuardRailRepeatProducesSamples) {
+  const auto* ro = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(ro, nullptr);
+  const auto& samples = ro->continuous_properties();
+  ASSERT_EQ(11u, samples.size());
+  for (const auto& sample : samples) {
+    EXPECT_NEAR(sample.width(), 0.3, kLinearTolerance);
+    EXPECT_NEAR(sample.height(), 1.0, kLinearTolerance);
+  }
+
+  // guardrail_right_boundary: repeat s=[0, 50], t = -0.5 constant.
+  const std::vector<ExpectedSample> kExpected{
+      {0.00000, -0.50000},   // s =  0.0
+      {5.04933, -0.18401},   // s =  5.0
+      {10.01986, 0.75905},   // s = 10.0
+      {14.83404, 2.31444},   // s = 15.0
+      {19.41673, 4.45791},   // s = 20.0
+      {23.69644, 7.15599},   // s = 25.0
+      {27.60637, 10.36660},  // s = 30.0
+      {31.08551, 14.03963},  // s = 35.0
+      {34.07957, 18.11776},  // s = 40.0
+      {36.54184, 22.53735},  // s = 45.0
+      {38.43388, 27.22944},  // s = 50.0
+  };
+  ExpectSamplePoints(samples, kExpected, kLinearTolerance);
+
+  // On the arc, not a chord: |P - C| = R - t = 40.5 for every sample.
+  const maliput::api::InertialPosition kCenter{0., 40., 0.};
+  for (const auto& sample : samples) {
+    const auto& p = sample.point_sample();
+    EXPECT_NEAR(std::hypot(p.x() - kCenter.x(), p.y() - kCenter.y()), 40.5, kLinearTolerance);
+  }
+
+  // Uniform arc-length spacing between consecutive samples: 2*40.5*sin(2.5/40) ~= 5.05920.
+  for (size_t i = 1; i < samples.size(); ++i) {
+    const auto& prev = samples[i - 1].point_sample();
+    const auto& curr = samples[i].point_sample();
+    EXPECT_NEAR(std::hypot(curr.x() - prev.x(), curr.y() - prev.y()), 5.05920, kLinearTolerance);
+  }
+}
+
+TEST_F(ContinuousObjectRepeatSamplingTest, LeftGuardRailInterpolatesLateralOffset) {
+  const auto* ro = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_left_boundary"));
+  ASSERT_NE(ro, nullptr);
+  const auto& samples = ro->continuous_properties();
+  ASSERT_EQ(11u, samples.size());
+
+  // guardrail_left_boundary: repeat s=[50, 100], t: 4.5 -> 5.0 (interpolated).
+  const std::vector<ExpectedSample> kExpected{
+      {33.68895, 28.80606},  // s =  50.0, t = 4.50
+      {34.77266, 33.10328},  // s =  55.0, t = 4.55
+      {35.31132, 37.49590},  // s =  60.0, t = 4.60
+      {35.29808, 41.91516},  // s =  65.0, t = 4.65
+      {34.73470, 46.29209},  // s =  70.0, t = 4.70
+      {33.63152, 50.55856},  // s =  75.0, t = 4.75
+      {32.00727, 54.64837},  // s =  80.0, t = 4.80
+      {29.88874, 58.49826},  // s =  85.0, t = 4.85
+      {27.31037, 62.04889},  // s =  90.0, t = 4.90
+      {24.31366, 65.24576},  // s =  95.0, t = 4.95
+      {20.94653, 68.04003},  // s = 100.0, t = 5.00
+  };
+  ExpectSamplePoints(samples, kExpected, kLinearTolerance);
+
+  // |P - C| = R - t = 35.5 - 0.05*i for every sample, proving `t` is interpolated
+  // across the repeat rather than pinned to tStart.
+  const maliput::api::InertialPosition kCenter{0., 40., 0.};
+  for (size_t i = 0; i < samples.size(); ++i) {
+    SCOPED_TRACE("sample index " + std::to_string(i));
+    const auto& p = samples[i].point_sample();
+    const double expected_radius = 35.5 - 0.05 * static_cast<double>(i);
+    EXPECT_NEAR(std::hypot(p.x() - kCenter.x(), p.y() - kCenter.y()), expected_radius, kLinearTolerance);
+  }
+
+  // heightStart == heightEnd == 1.0, so height must stay constant.
+  for (const auto& sample : samples) {
+    EXPECT_NEAR(sample.height(), 1.0, kLinearTolerance);
+  }
+}
+
+TEST_F(ContinuousObjectRepeatSamplingTest, LeftGuardRailWidthInterpolatesAcrossRepeat) {
+  constexpr double kWidthTolerance{1e-9};
+
+  const auto* left = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_left_boundary"));
+  ASSERT_NE(left, nullptr);
+  const auto& left_samples = left->continuous_properties();
+  ASSERT_EQ(11u, left_samples.size());
+
+  // guardrail_left_boundary: widthStart = 0.3 -> widthEnd = 1.3, linear over the repeat.
+  const std::vector<double> kExpectedWidths{0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3};
+  ASSERT_EQ(kExpectedWidths.size(), left_samples.size());
+  for (size_t i = 0; i < kExpectedWidths.size(); ++i) {
+    SCOPED_TRACE("sample index " + std::to_string(i));
+    EXPECT_NEAR(left_samples[i].width(), kExpectedWidths[i], kWidthTolerance);
+  }
+
+  // Endpoints match the XODR attributes exactly.
+  EXPECT_NEAR(left_samples.front().width(), 0.3, kWidthTolerance);
+  EXPECT_NEAR(left_samples.back().width(), 1.3, kWidthTolerance);
+
+  // Strictly increasing, with a uniform 0.1 step: linear interpolation, not a
+  // step/nearest-neighbour scheme.
+  for (size_t i = 1; i < left_samples.size(); ++i) {
+    SCOPED_TRACE("gap " + std::to_string(i - 1) + "->" + std::to_string(i));
+    EXPECT_GT(left_samples[i].width(), left_samples[i - 1].width());
+    EXPECT_NEAR(left_samples[i].width() - left_samples[i - 1].width(), 0.1, kWidthTolerance);
+  }
+
+  // Height is untouched by the width interpolation.
+  for (const auto& sample : left_samples) {
+    EXPECT_NEAR(sample.height(), 1.0, kWidthTolerance);
+  }
+
+  // Contrast: guardrail_right_boundary has widthStart == widthEnd == 0.3, so its
+  // width must stay constant. This pins down that the ramp above comes from the
+  // repeat's widthStart/widthEnd, not from `ratio` leaking into every object.
+  const auto* right =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(right, nullptr);
+  for (const auto& sample : right->continuous_properties()) {
+    EXPECT_NEAR(sample.width(), 0.3, kWidthTolerance);
+  }
+}
+
+TEST_F(ContinuousObjectRepeatSamplingTest, SamplingSpansRepeatRangeNotRoadRange) {
+  const auto* right =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(right, nullptr);
+  const auto& right_samples = right->continuous_properties();
+  ASSERT_EQ(11u, right_samples.size());
+  EXPECT_NEAR(right_samples.front().point_sample().x(), 0.00000, kLinearTolerance);
+  EXPECT_NEAR(right_samples.front().point_sample().y(), -0.50000, kLinearTolerance);
+  EXPECT_NEAR(right_samples.back().point_sample().x(), 38.43388, kLinearTolerance);
+  EXPECT_NEAR(right_samples.back().point_sample().y(), 27.22944, kLinearTolerance);
+
+  const auto* left = road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_left_boundary"));
+  ASSERT_NE(left, nullptr);
+  const auto& left_samples = left->continuous_properties();
+  ASSERT_EQ(11u, left_samples.size());
+  EXPECT_NEAR(left_samples.front().point_sample().x(), 33.68895, kLinearTolerance);
+  EXPECT_NEAR(left_samples.front().point_sample().y(), 28.80606, kLinearTolerance);
+  EXPECT_NEAR(left_samples.back().point_sample().x(), 20.94653, kLinearTolerance);
+  EXPECT_NEAR(left_samples.back().point_sample().y(), 68.04003, kLinearTolerance);
+
+  // guardrail_right_boundary's repeat only covers s=[0, 50], half of the 100 m road.
+  // If sampling were driven by the road length instead of repeat.length, its last
+  // sample would land near the road end (s=100) instead of s=50.
+  constexpr double kRoadEndX = 20.69857;
+  constexpr double kRoadEndY = 67.87251;
+  const auto& right_last = right_samples.back().point_sample();
+  EXPECT_GT(std::hypot(right_last.x() - kRoadEndX, right_last.y() - kRoadEndY), 1.0);
+}
+
+TEST_F(ContinuousObjectRepeatSamplingTest, SamplingDensityIsConfigurable) {
+  const std::string xodr_file_path =
+      utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+
+  const auto coarse_network =
+      RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                               {params::kOpendriveFile, xodr_file_path},
+                                                               {params::kOmitNonDrivableLanes, "false"},
+                                                               {params::kContinuousObjectSamplingDistance, "12.5"},
+                                                           })
+                             .ToStringMap())();
+  ASSERT_NE(coarse_network, nullptr);
+  const auto* coarse_ro = coarse_network->road_object_book()->GetRoadObject(
+      maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(coarse_ro, nullptr);
+  const auto& coarse_samples = coarse_ro->continuous_properties();
+
+  // sampling_distance = 12.5 -> 5 samples at s = {0, 12.5, 25, 37.5, 50}.
+  const std::vector<ExpectedSample> kExpectedCoarse{
+      {0.00000, -0.50000},   // s =  0.0
+      {12.45126, 1.46150},   // s = 12.5
+      {23.69644, 7.15599},   // s = 25.0
+      {32.64628, 16.03189},  // s = 37.5
+      {38.43388, 27.22944},  // s = 50.0
+  };
+  ExpectSamplePoints(coarse_samples, kExpectedCoarse, kLinearTolerance);
+
+  const auto fine_network =
+      RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                               {params::kOpendriveFile, xodr_file_path},
+                                                               {params::kOmitNonDrivableLanes, "false"},
+                                                               {params::kContinuousObjectSamplingDistance, "2.5"},
+                                                           })
+                             .ToStringMap())();
+  ASSERT_NE(fine_network, nullptr);
+  const auto* fine_ro = fine_network->road_object_book()->GetRoadObject(
+      maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(fine_ro, nullptr);
+  const auto& fine_samples = fine_ro->continuous_properties();
+  ASSERT_EQ(21u, fine_samples.size());
+
+  // Endpoints are always sampled regardless of density.
+  EXPECT_NEAR(fine_samples.front().point_sample().x(), 0.00000, kLinearTolerance);
+  EXPECT_NEAR(fine_samples.front().point_sample().y(), -0.50000, kLinearTolerance);
+  EXPECT_NEAR(fine_samples.back().point_sample().x(), 38.43388, kLinearTolerance);
+  EXPECT_NEAR(fine_samples.back().point_sample().y(), 27.22944, kLinearTolerance);
+}
+
+class RepeatDetachFromReferenceLineTest : public ::testing::Test {
+ protected:
+  void SetUp() override {
+    const std::string xodr_file_path =
+        utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
+    // Explicitly pin the sampling distance to 5.0 m (equivalent to the old default of
+    // 10 samples over this fixture's 50 m repeats) so the hardcoded expectations below
+    // remain valid regardless of the builder's default continuous_object_sampling_distance.
+    road_network_ =
+        RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                 {params::kOpendriveFile, xodr_file_path},
+                                                                 {params::kOmitNonDrivableLanes, "false"},
+                                                                 {params::kContinuousObjectSamplingDistance, "5.0"},
+                                                             })
+                               .ToStringMap())();
+    ASSERT_NE(road_network_, nullptr);
+    road_object_book_ = road_network_->road_object_book();
+    ASSERT_NE(road_object_book_, nullptr);
+  }
+
+  std::unique_ptr<const maliput::api::RoadNetwork> road_network_;
+  const maliput::api::objects::RoadObjectBook* road_object_book_{};
+};
+
+TEST_F(RepeatDetachFromReferenceLineTest, DetachedRepeatSamplesAChord) {
+  constexpr double kLinearTolerance{1e-2};
+
+  const auto* detached =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_detached_boundary"));
+  ASSERT_NE(detached, nullptr);
+  const auto& detached_samples = detached->continuous_properties();
+  ASSERT_EQ(11u, detached_samples.size());
+
+  const auto& detached_start = detached_samples.front().point_sample();
+  const auto& detached_mid = detached_samples[detached_samples.size() / 2].point_sample();
+  const auto& detached_end = detached_samples.back().point_sample();
+  const auto expected_mid_x = (detached_start.x() + detached_end.x()) / 2.;
+  const auto expected_mid_y = (detached_start.y() + detached_end.y()) / 2.;
+  const auto expected_mid_z = (detached_start.z() + detached_end.z()) / 2.;
+  EXPECT_NEAR(detached_mid.x(), expected_mid_x, kLinearTolerance);
+  EXPECT_NEAR(detached_mid.y(), expected_mid_y, kLinearTolerance);
+  EXPECT_NEAR(detached_mid.z(), expected_mid_z, kLinearTolerance);
+
+  const auto* attached =
+      road_object_book_->GetRoadObject(maliput::api::objects::RoadObject::Id("guardrail_right_boundary"));
+  ASSERT_NE(attached, nullptr);
+  const auto& attached_samples = attached->continuous_properties();
+  ASSERT_EQ(11u, attached_samples.size());
+  const auto& attached_mid = attached_samples[attached_samples.size() / 2].point_sample();
+
+  const double midpoint_delta = std::hypot(attached_mid.x() - expected_mid_x, attached_mid.y() - expected_mid_y);
+  EXPECT_GT(midpoint_delta, 0.1);
+
+  // guardrail_detached_boundary is the same repeat as guardrail_right_boundary
+  // (t=-0.5, s=[0,50]) plus detachFromReferenceLine="true", so its samples are a
+  // straight Lerp between the arc's start and end points, not points on the arc.
+  const std::vector<ExpectedSample> kExpected{
+      {0.00000, -0.50000},   // ratio = 0.0
+      {3.84339, 2.27294},    // ratio = 0.1
+      {7.68678, 5.04589},    // ratio = 0.2
+      {11.53016, 7.81883},   // ratio = 0.3
+      {15.37355, 10.59178},  // ratio = 0.4
+      {19.21694, 13.36472},  // ratio = 0.5
+      {23.06033, 16.13767},  // ratio = 0.6
+      {26.90371, 18.91061},  // ratio = 0.7
+      {30.74710, 21.68356},  // ratio = 0.8
+      {34.59049, 24.45650},  // ratio = 0.9
+      {38.43388, 27.22944},  // ratio = 1.0
+  };
+  ExpectSamplePoints(detached_samples, kExpected, kLinearTolerance);
+
+  // Uniform spacing along the chord: 47.392879 / 10 ~= 4.739288 between consecutive
+  // samples.
+  for (size_t i = 1; i < detached_samples.size(); ++i) {
+    const auto& prev = detached_samples[i - 1].point_sample();
+    const auto& curr = detached_samples[i].point_sample();
+    EXPECT_NEAR(std::hypot(curr.x() - prev.x(), curr.y() - prev.y()), 4.739288, kLinearTolerance);
+  }
+
+  // The detached branch must not disturb the interpolated width/height dimensions.
+  for (const auto& sample : detached_samples) {
+    EXPECT_NEAR(sample.width(), 0.3, kLinearTolerance);
+    EXPECT_NEAR(sample.height(), 1.0, kLinearTolerance);
+  }
 }
 
 }  // namespace

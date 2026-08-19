@@ -46,6 +46,8 @@ static constexpr double kBaseLinearTolerance{1e-6};  // [m]
 static constexpr double kToleranceStepMultiplier{1.1};
 /// Default length of the adapting lane widths functions.
 static constexpr double kDefaultAdaptingFunctionLength{1e-1};  // [m]
+/// Default distance between consecutive ContinuousObject samples generated from XODR `<repeat>` records.
+static constexpr double kContinuousObjectSamplingDistance{1.};  // [m]
 
 /// Stricter tolerances.
 static constexpr double kStrictLinearTolerance{1e-12};   // [m]
