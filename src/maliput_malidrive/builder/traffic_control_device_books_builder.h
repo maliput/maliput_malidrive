@@ -39,6 +39,7 @@
 #include <maliput/api/rules/traffic_sign_book.h>
 
 #include "maliput_malidrive/common/macros.h"
+#include "maliput_malidrive/constants.h"
 
 namespace malidrive {
 namespace builder {
@@ -81,13 +82,13 @@ class TrafficControlDeviceBooksBuilder {
   ///        @p traffic_light_book_path for the TrafficLightBook).
   /// @param allow_non_driveable_lanes If false, any XODR road without driveable lanes will
   ///        be skipped when building books.
-  /// @param continuous_object_samples_per_road Sampling density for ContinuousObject
-  ///        generation in RoadObjectBuilder.
+  /// @param continuous_object_sampling_distance Distance, in meters, between consecutive
+  ///        ContinuousObject samples generated in RoadObjectBuilder.
   /// @throws maliput::common::assertion_error When @p road_geometry is nullptr.
-  TrafficControlDeviceBooksBuilder(const maliput::api::RoadGeometry* road_geometry,
-                                   std::optional<std::string> traffic_light_book_path,
-                                   std::optional<std::string> traffic_control_device_db, bool allow_non_driveable_lanes,
-                                   int continuous_object_samples_per_road = 10);
+  TrafficControlDeviceBooksBuilder(
+      const maliput::api::RoadGeometry* road_geometry, std::optional<std::string> traffic_light_book_path,
+      std::optional<std::string> traffic_control_device_db, bool allow_non_driveable_lanes,
+      double continuous_object_sampling_distance = constants::kContinuousObjectSamplingDistance);
 
   TrafficControlDeviceBooksBuilder() = delete;
 
@@ -101,7 +102,7 @@ class TrafficControlDeviceBooksBuilder {
   const std::optional<std::string> traffic_light_book_path_;
   const std::optional<std::string> traffic_control_device_db_;
   const bool allow_non_driveable_lanes_;
-  const int continuous_object_samples_per_road_{10};
+  const double continuous_object_sampling_distance_{constants::kContinuousObjectSamplingDistance};
 };
 
 }  // namespace builder

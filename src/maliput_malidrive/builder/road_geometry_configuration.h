@@ -185,10 +185,9 @@ struct RoadGeometryConfiguration {
   double integrator_accuracy_multiplier{1.0};
   bool use_userdata_traffic_direction{false};
   bool use_userdata_intersections{false};
-  /// Sampling density for creating ContinuousObject entries from XODR repeats.
-  /// A value N means nominal step = road_length / N, with repeat endpoints
-  /// always sampled.
-  int continuous_object_samples_per_road{10};
+  /// Distance, in meters, between consecutive ContinuousObject samples generated
+  /// from XODR repeats, with repeat endpoints always sampled.
+  double continuous_object_sampling_distance{constants::kContinuousObjectSamplingDistance};
   /// @}
 };
 

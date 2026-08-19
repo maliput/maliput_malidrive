@@ -116,10 +116,12 @@ double ResolveRepeatWidthBoundary(const xodr::object::Object& object,
 
 /// Builds the s-sample set for a qualifying repeat.
 ///
-/// Sampling uses the repeat length and the configured samples-per-road value.
-/// Repeat start and end are always present in the returned vector.
-std::vector<double> BuildSampleSCoordinates(const xodr::object::Repeat& repeat, int samples_per_road) {
-  MALIDRIVE_VALIDATE(samples_per_road > 0, maliput::common::assertion_error, "samples_per_road must be positive.");
+/// Repeat start and end are always taken verbatim from the repeat's position and
+/// length. Interior samples are added on top, spaced @p sampling_distance apart;
+/// the final segment (last interior sample to the repeat end) may be shorter than
+/// @p sampling_distance.
+std::vector<double> BuildSampleSCoordinates(const xodr::object::Repeat& repeat, double sampling_distance) {
+  MALIDRIVE_VALIDATE(sampling_distance > 0., maliput::common::assertion_error, "sampling_distance must be positive.");
 
   const double start_s = repeat.s;
   const double end_s = repeat.s + repeat.length;
@@ -130,15 +132,12 @@ std::vector<double> BuildSampleSCoordinates(const xodr::object::Repeat& repeat, 
     return {start_s};
   }
 
-  const double nominal_step = (max_s - min_s) / static_cast<double>(samples_per_road);
-  const double step = nominal_step > 0. ? nominal_step : (max_s - min_s);
-
   std::vector<double> samples{start_s};
-  double sample_s = min_s + step;
+  double sample_s = min_s + sampling_distance;
   const double kEpsilon = 1e-10;
   while (sample_s < max_s - kEpsilon) {
     samples.push_back(start_s <= end_s ? sample_s : (start_s - (sample_s - min_s)));
-    sample_s += step;
+    sample_s += sampling_distance;
   }
   if (std::abs(samples.back() - end_s) > kEpsilon) {
     samples.push_back(end_s);
@@ -177,7 +176,7 @@ maliput::api::InertialPosition BuildRepeatSamplePoint(const xodr::object::Object
 
 std::vector<maliput::api::objects::ContinuousObject> BuildContinuousProperties(
     const xodr::object::Object& object, const xodr::RoadHeader::Id& road_id,
-    const maliput::api::RoadGeometry* road_geometry, int samples_per_road) {
+    const maliput::api::RoadGeometry* road_geometry, double sampling_distance) {
   std::vector<maliput::api::objects::ContinuousObject> continuous_properties;
   if (object.repeats.empty()) {
     return continuous_properties;
@@ -193,7 +192,7 @@ std::vector<maliput::api::objects::ContinuousObject> BuildContinuousProperties(
     if (repeat.distance != 0.) {
       continue;
     }
-    const auto sample_s_coordinates = BuildSampleSCoordinates(repeat, samples_per_road);
+    const auto sample_s_coordinates = BuildSampleSCoordinates(repeat, sampling_distance);
     const bool detach_from_reference_line = repeat.detach_from_reference_line.value_or(false);
     std::optional<maliput::api::InertialPosition> detached_start_point;
     std::optional<maliput::api::InertialPosition> detached_end_point;
@@ -238,19 +237,19 @@ RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::object:
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                      const maliput::api::RoadGeometry* road_geometry,
                                      std::vector<xodr::DBManager::ObjectReferenceOnRoad> object_references,
-                                     int continuous_object_samples_per_road)
+                                     double continuous_object_sampling_distance)
     : source_type_(source_type),
       object_(&object),
       road_id_(road_id),
       loader_(loader),
       road_geometry_(road_geometry),
       object_references_(std::move(object_references)),
-      continuous_object_samples_per_road_(continuous_object_samples_per_road) {
+      continuous_object_sampling_distance_(continuous_object_sampling_distance) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kObject, std::invalid_argument,
                      "RoadObjectBuilder object constructor requires SourceType::kObject.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
-  MALIDRIVE_VALIDATE(continuous_object_samples_per_road_ > 0, std::invalid_argument,
-                     "continuous_object_samples_per_road must be positive.");
+  MALIDRIVE_VALIDATE(continuous_object_sampling_distance_ > 0., std::invalid_argument,
+                     "continuous_object_sampling_distance must be positive.");
 }
 
 RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::signal::Signal& signal,
@@ -258,19 +257,19 @@ RoadObjectBuilder::RoadObjectBuilder(SourceType source_type, const xodr::signal:
                                      const traffic_control_device::TrafficControlDeviceDatabaseLoader& loader,
                                      const maliput::api::RoadGeometry* road_geometry,
                                      std::vector<xodr::DBManager::SignalReferenceOnRoad> signal_references,
-                                     int continuous_object_samples_per_road)
+                                     double continuous_object_sampling_distance)
     : source_type_(source_type),
       signal_(&signal),
       road_id_(road_id),
       loader_(loader),
       road_geometry_(road_geometry),
       signal_references_(std::move(signal_references)),
-      continuous_object_samples_per_road_(continuous_object_samples_per_road) {
+      continuous_object_sampling_distance_(continuous_object_sampling_distance) {
   MALIDRIVE_VALIDATE(source_type_ == SourceType::kSignal, std::invalid_argument,
                      "RoadObjectBuilder signal constructor requires SourceType::kSignal.");
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, std::invalid_argument, "road_geometry must not be nullptr.");
-  MALIDRIVE_VALIDATE(continuous_object_samples_per_road_ > 0, std::invalid_argument,
-                     "continuous_object_samples_per_road must be positive.");
+  MALIDRIVE_VALIDATE(continuous_object_sampling_distance_ > 0., std::invalid_argument,
+                     "continuous_object_sampling_distance must be positive.");
 }
 
 std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()() const {
@@ -336,7 +335,7 @@ std::unique_ptr<maliput::api::objects::RoadObject> RoadObjectBuilder::operator()
       auto outlines = BuildOutlines(object, road_id_, road_geometry_, inertial_pos, orientation);
       // Repeats with distance == 0 are represented as sampled continuous properties.
       auto continuous_properties =
-          BuildContinuousProperties(object, road_id_, road_geometry_, continuous_object_samples_per_road_);
+          BuildContinuousProperties(object, road_id_, road_geometry_, continuous_object_sampling_distance_);
 
       std::unordered_map<std::string, std::string> properties;
       if (!object.materials.empty()) {

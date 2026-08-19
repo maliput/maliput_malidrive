@@ -55,7 +55,7 @@ class RoadGeometryConfigurationTest : public ::testing::Test {
   const double kScaleLength{2.};
   const double kIntegratorAccuracyMultiplier{0.1};
   const bool kUseUserDataIntersections{true};
-  const int kContinuousObjectSamplesPerRoad{12};
+  const double kContinuousObjectSamplingDistance{12.5};
 
   void ExpectEqual(const RoadGeometryConfiguration& lhs, const RoadGeometryConfiguration& rhs) {
     EXPECT_EQ(lhs.id, rhs.id);
@@ -72,7 +72,7 @@ class RoadGeometryConfigurationTest : public ::testing::Test {
     EXPECT_EQ(lhs.omit_nondrivable_lanes, rhs.omit_nondrivable_lanes);
     EXPECT_EQ(lhs.integrator_accuracy_multiplier, rhs.integrator_accuracy_multiplier);
     EXPECT_EQ(lhs.use_userdata_intersections, rhs.use_userdata_intersections);
-    EXPECT_EQ(lhs.continuous_object_samples_per_road, rhs.continuous_object_samples_per_road);
+    EXPECT_EQ(lhs.continuous_object_sampling_distance, rhs.continuous_object_sampling_distance);
   }
 };
 
@@ -90,7 +90,7 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
       kIntegratorAccuracyMultiplier,
       false /* use_userdata_traffic_direction */,
       kUseUserDataIntersections,
-      kContinuousObjectSamplesPerRoad};
+      kContinuousObjectSamplingDistance};
 
   const std::map<std::string, std::string> rg_config_map{
       {params::kRoadGeometryId, kRgId},
@@ -108,7 +108,7 @@ TEST_F(RoadGeometryConfigurationTest, Constructor) {
       {params::kOmitNonDrivableLanes, (kOmitNondrivableLanes ? "true" : "false")},
       {params::kIntegratorAccuracyMultiplier, std::to_string(kIntegratorAccuracyMultiplier)},
       {params::kUseUserDataIntersections, (kUseUserDataIntersections ? "true" : "false")},
-      {params::kContinuousObjectSamplesPerRoad, std::to_string(kContinuousObjectSamplesPerRoad)},
+      {params::kContinuousObjectSamplingDistance, std::to_string(kContinuousObjectSamplingDistance)},
   };
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(rg_config_map)};
@@ -130,7 +130,7 @@ TEST_F(RoadGeometryConfigurationTest, ToStringMapUsingMaxLinearTolerance) {
       kIntegratorAccuracyMultiplier,
       false /* use_userdata_traffic_direction */,
       kUseUserDataIntersections,
-      kContinuousObjectSamplesPerRoad};
+      kContinuousObjectSamplingDistance};
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);
@@ -150,7 +150,7 @@ TEST_F(RoadGeometryConfigurationTest, ToStringMapNotUsingMaxLinearTolerance) {
       kIntegratorAccuracyMultiplier,
       false /* use_userdata_traffic_direction */,
       kUseUserDataIntersections,
-      kContinuousObjectSamplesPerRoad};
+      kContinuousObjectSamplingDistance};
 
   const RoadGeometryConfiguration dut2{RoadGeometryConfiguration::FromMap(dut1.ToStringMap())};
   ExpectEqual(dut1, dut2);

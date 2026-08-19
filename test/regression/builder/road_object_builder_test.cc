@@ -793,11 +793,16 @@ class ContinuousObjectRepeatSamplingTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
-    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                             {params::kOpendriveFile, xodr_file_path},
-                                                                             {params::kOmitNonDrivableLanes, "false"},
-                                                                         })
-                                           .ToStringMap())();
+    // Explicitly pin the sampling distance to 5.0 m (equivalent to the old default of
+    // 10 samples over this fixture's 50 m repeats) so the hardcoded expectations below
+    // remain valid regardless of the builder's default continuous_object_sampling_distance.
+    road_network_ =
+        RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                 {params::kOpendriveFile, xodr_file_path},
+                                                                 {params::kOmitNonDrivableLanes, "false"},
+                                                                 {params::kContinuousObjectSamplingDistance, "5.0"},
+                                                             })
+                               .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     road_object_book_ = road_network_->road_object_book();
     ASSERT_NE(road_object_book_, nullptr);
@@ -968,7 +973,7 @@ TEST_F(ContinuousObjectRepeatSamplingTest, SamplingDensityIsConfigurable) {
       RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                {params::kOpendriveFile, xodr_file_path},
                                                                {params::kOmitNonDrivableLanes, "false"},
-                                                               {params::kContinuousObjectSamplesPerRoad, "4"},
+                                                               {params::kContinuousObjectSamplingDistance, "12.5"},
                                                            })
                              .ToStringMap())();
   ASSERT_NE(coarse_network, nullptr);
@@ -977,7 +982,7 @@ TEST_F(ContinuousObjectRepeatSamplingTest, SamplingDensityIsConfigurable) {
   ASSERT_NE(coarse_ro, nullptr);
   const auto& coarse_samples = coarse_ro->continuous_properties();
 
-  // samples_per_road = 4 -> step = 50/4 = 12.5 -> 5 samples at s = {0, 12.5, 25, 37.5, 50}.
+  // sampling_distance = 12.5 -> 5 samples at s = {0, 12.5, 25, 37.5, 50}.
   const std::vector<ExpectedSample> kExpectedCoarse{
       {0.00000, -0.50000},   // s =  0.0
       {12.45126, 1.46150},   // s = 12.5
@@ -991,7 +996,7 @@ TEST_F(ContinuousObjectRepeatSamplingTest, SamplingDensityIsConfigurable) {
       RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
                                                                {params::kOpendriveFile, xodr_file_path},
                                                                {params::kOmitNonDrivableLanes, "false"},
-                                                               {params::kContinuousObjectSamplesPerRoad, "20"},
+                                                               {params::kContinuousObjectSamplingDistance, "2.5"},
                                                            })
                              .ToStringMap())();
   ASSERT_NE(fine_network, nullptr);
@@ -1013,11 +1018,16 @@ class RepeatDetachFromReferenceLineTest : public ::testing::Test {
   void SetUp() override {
     const std::string xodr_file_path =
         utility::FindResourceInPath("ArcLaneOffsetWithGuardRail.xodr", kMalidriveResourceFolder);
-    road_network_ = RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
-                                                                             {params::kOpendriveFile, xodr_file_path},
-                                                                             {params::kOmitNonDrivableLanes, "false"},
-                                                                         })
-                                           .ToStringMap())();
+    // Explicitly pin the sampling distance to 5.0 m (equivalent to the old default of
+    // 10 samples over this fixture's 50 m repeats) so the hardcoded expectations below
+    // remain valid regardless of the builder's default continuous_object_sampling_distance.
+    road_network_ =
+        RoadNetworkBuilder(RoadNetworkConfiguration::FromMap({
+                                                                 {params::kOpendriveFile, xodr_file_path},
+                                                                 {params::kOmitNonDrivableLanes, "false"},
+                                                                 {params::kContinuousObjectSamplingDistance, "5.0"},
+                                                             })
+                               .ToStringMap())();
     ASSERT_NE(road_network_, nullptr);
     road_object_book_ = road_network_->road_object_book();
     ASSERT_NE(road_object_book_, nullptr);

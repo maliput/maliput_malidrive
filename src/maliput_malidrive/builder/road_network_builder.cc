@@ -90,7 +90,7 @@ std::unique_ptr<maliput::api::RoadNetwork> RoadNetworkBuilder::operator()() cons
   auto [traffic_light_book, traffic_sign_book, road_object_book, road_marking_book] =
       TrafficControlDeviceBooksBuilder(rg.get(), rn_config.traffic_light_book, rn_config.traffic_control_device_db,
                                        !rn_config.road_geometry_configuration.omit_nondrivable_lanes,
-                                       rn_config.road_geometry_configuration.continuous_object_samples_per_road)();
+                                       rn_config.road_geometry_configuration.continuous_object_sampling_distance)();
   maliput::log()->trace("Built TrafficControlDevice books.");
 
   maliput::log()->trace("Building RuleRegistry...");

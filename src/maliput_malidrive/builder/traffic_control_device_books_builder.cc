@@ -57,15 +57,15 @@ TrafficControlDeviceBooksBuilder::TrafficControlDeviceBooksBuilder(const maliput
                                                                    std::optional<std::string> traffic_light_book_path,
                                                                    std::optional<std::string> traffic_control_device_db,
                                                                    bool allow_non_driveable_lanes,
-                                                                   int continuous_object_samples_per_road)
+                                                                   double continuous_object_sampling_distance)
     : road_geometry_(road_geometry),
       traffic_light_book_path_(std::move(traffic_light_book_path)),
       traffic_control_device_db_(std::move(traffic_control_device_db)),
       allow_non_driveable_lanes_(allow_non_driveable_lanes),
-      continuous_object_samples_per_road_(continuous_object_samples_per_road) {
+      continuous_object_sampling_distance_(continuous_object_sampling_distance) {
   MALIDRIVE_VALIDATE(road_geometry_ != nullptr, maliput::common::assertion_error, "road_geometry must not be nullptr.");
-  MALIDRIVE_VALIDATE(continuous_object_samples_per_road_ > 0, maliput::common::assertion_error,
-                     "continuous_object_samples_per_road must be positive.");
+  MALIDRIVE_VALIDATE(continuous_object_sampling_distance_ > 0., maliput::common::assertion_error,
+                     "continuous_object_sampling_distance must be positive.");
 }
 
 TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
@@ -148,7 +148,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kSignal, signal, road_id, loader, road_geometry_,
-                                    std::move(refs), continuous_object_samples_per_road_)();
+                                    std::move(refs), continuous_object_sampling_distance_)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
@@ -201,7 +201,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
                               object.id.string(), "' type='", type_str, "' subtype='", object.subtype.value_or(""),
                               "' name='", object.name.value_or(""), "'.");
         auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_,
-                                    refs, continuous_object_samples_per_road_)();
+                                    refs, continuous_object_sampling_distance_)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
@@ -218,7 +218,7 @@ TrafficControlDeviceBooks TrafficControlDeviceBooksBuilder::operator()() const {
         }
       } else if (definition.device_type == traffic_control_device::TrafficControlDeviceType::kRoadObject) {
         auto ro = RoadObjectBuilder(RoadObjectBuilder::SourceType::kObject, object, road_id, loader, road_geometry_,
-                                    std::move(refs), continuous_object_samples_per_road_)();
+                                    std::move(refs), continuous_object_sampling_distance_)();
         if (ro) {
           rob->AddRoadObject(std::move(ro));
         }
