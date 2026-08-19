@@ -2,6 +2,11 @@
 Changelog for package maliput_malidrive
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+0.31.0 (2026-08-19)
+-------------------
+* Implement ContinuousObject API in RoadObjectBuilder. (`#533 <https://github.com/maliput/maliput_malidrive/issues/533>`_)
+* Contributors: Santiago Lopez
+
 0.30.1 (2026-07-31)
 -------------------
 * Fixing bug in OpenScenarioRelativeLanePositionWithDsToMaliputRoadPosition (`#531 <https://github.com/maliput/maliput_malidrive/issues/531>`_)
