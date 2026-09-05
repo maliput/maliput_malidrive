@@ -1594,19 +1594,45 @@ TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, GetOrientation) {
 TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, GetCurvature) {
   // GetCurvature computes 3D path curvature using finite differences on the tangent vector.
   // For a straight line with elevation profile z(p) = a*p³ + b*p² + c*p + d:
-  // - The 3D curvature is: κ = |z''| / (1 + z'²)^(3/2)
+  // - The 3D curvature magnitude is: κ = |z''| / (1 + z'²)^(3/2)
   // - For constant elevation (a=b=c=0), z'' = 0, so κ = 0
   // - For linear elevation (c≠0 only), z'' = 0, so κ = 0
   // - For quadratic/cubic elevation, z'' ≠ 0, so κ > 0
   //
-  // We verify that curvature is non-negative for all cases.
+  // The implementation returns signed curvature where the sign indicates turning direction.
+  // For straight ground curves with elevation, the "turn" is in the vertical plane, so the sign
+  // depends on whether the elevation is concave up or down. Due to finite difference numerical
+  // errors, values near zero may have small negative or positive fluctuations.
+  //
+  // We verify that curvature magnitude is reasonable (within tolerance of zero for flat cases,
+  // or non-trivial for curved elevation profiles).
+  const double kCurvatureTolerance{1e-3};
 
-  // Curvature should always be non-negative
-  EXPECT_GE(dut_->GetCurvature({params_.expected_s_start, kRCenterline, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({params_.expected_s_half, kRCenterline, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({params_.expected_s_end, kRCenterline, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({params_.expected_s_half, kRLeft, kZeroH}), 0.);
-  EXPECT_GE(dut_->GetCurvature({params_.expected_s_half, kRRight, kZeroH}), 0.);
+  // For constant and linear elevation (first two test cases), curvature should be ~0.
+  // For quadratic/cubic elevation, curvature will be non-zero.
+  // We use EXPECT_NEAR to handle numerical precision issues at boundaries.
+  const double curvature_start = dut_->GetCurvature({params_.expected_s_start, kRCenterline, kZeroH});
+  const double curvature_half = dut_->GetCurvature({params_.expected_s_half, kRCenterline, kZeroH});
+  const double curvature_end = dut_->GetCurvature({params_.expected_s_end, kRCenterline, kZeroH});
+  const double curvature_left = dut_->GetCurvature({params_.expected_s_half, kRLeft, kZeroH});
+  const double curvature_right = dut_->GetCurvature({params_.expected_s_half, kRRight, kZeroH});
+
+  if (params_.a == 0. && params_.b == 0.) {
+    // Constant or linear elevation: curvature should be approximately zero.
+    EXPECT_NEAR(0., curvature_start, kCurvatureTolerance);
+    EXPECT_NEAR(0., curvature_half, kCurvatureTolerance);
+    EXPECT_NEAR(0., curvature_end, kCurvatureTolerance);
+    EXPECT_NEAR(0., curvature_left, kCurvatureTolerance);
+    EXPECT_NEAR(0., curvature_right, kCurvatureTolerance);
+  } else {
+    // Quadratic or cubic elevation: curvature magnitude should be non-trivial.
+    // The sign can be positive or negative depending on the elevation profile direction.
+    EXPECT_GT(std::abs(curvature_start), kCurvatureTolerance);
+    EXPECT_GT(std::abs(curvature_half), kCurvatureTolerance);
+    EXPECT_GT(std::abs(curvature_end), kCurvatureTolerance);
+    EXPECT_GT(std::abs(curvature_left), kCurvatureTolerance);
+    EXPECT_GT(std::abs(curvature_right), kCurvatureTolerance);
+  }
 }
 
 TEST_P(MalidriveLineLaneWithElevationFullyInitializedTest, EvalMotionDerivatives) {
